@@ -104,7 +104,14 @@ Sources (JSON) → Scraper → Articles (JSON)
 
 ## Technology Stack
 
-**Runtime**: Node.js v18+ (ES modules)
+**Runtime**: Node.js v18+ (ES modules, TypeScript 5.5.4)
+
+**Dev Tooling**:
+
+- `typescript@5.5.4` - Type checking, compiled to `dist/`
+- `vitest` - Test runner (tests co-located: `src/**/*.test.ts`)
+- `eslint@8.57` + `@typescript-eslint@7.18` - Linting (flat config)
+- `prettier` - Formatting
 
 **Core Dependencies**:
 
@@ -185,9 +192,9 @@ newspapper/
 
 ## What Needs Implementation
 
-⏳ 9 CLI command handlers in `src/commands/`:
+⏳ 8 CLI command handlers remaining in `src/commands/`:
 
-1. `scrape.js` - Orchestrate scraping
+1. ✅ `scrape.js` - Orchestrate scraping
 2. `group.js` - Interactive clustering
 3. `extract-entities.js` - Entity extraction
 4. `query-entities.js` - Entity search
