@@ -1,0 +1,29 @@
+{{!-- Template-based summarization (no LLM) --}}
+{{!-- This template generates slides using simple text extraction --}}
+
+{
+  "slides": [
+    {
+      "type": "title",
+      "text": "{{#if customTitle}}{{customTitle}}{{else}}{{articles.[0].title}}{{/if}}",
+      "notes": "{{articles.length}} articles from {{#each sources}}{{this.name}}{{#unless @last}}, {{/unless}}{{/each}}"
+    },
+    {{#each articles}}
+    {{#if @first}}
+    {
+      "type": "body",
+      "text": "{{excerpt this.body 280}}",
+      "notes": "Main article: {{this.sourceName}}"
+    }{{#unless @last}},{{/unless}}
+    {{/if}}
+    {{#if this.hasQuote}}
+    {
+      "type": "quote",
+      "text": "{{this.extractedQuote}}",
+      "attribution": "{{this.sourceName}}",
+      "notes": "From {{this.author}}"
+    }{{#unless @last}},{{/unless}}
+    {{/if}}
+    {{/each}}
+  ]
+}

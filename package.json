@@ -1,0 +1,59 @@
+{
+  "name": "newspapper",
+  "version": "1.0.0",
+  "description": "Personal news aggregation and summarization tool that generates Instagram-ready slides",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "scrape": "node src/commands/scrape.js",
+    "group": "node src/commands/group.js",
+    "extract-entities": "node src/commands/extract-entities.js",
+    "query-entities": "node src/commands/query-entities.js",
+    "summarize": "node src/commands/summarize.js",
+    "generate": "node src/commands/generate.js",
+    "export": "node src/commands/export.js",
+    "clean": "node src/commands/clean.js",
+    "list": "node src/commands/list.js",
+    "test": "jest",
+    "lint": "eslint src/",
+    "format": "prettier --write src/"
+  },
+  "keywords": [
+    "news",
+    "aggregator",
+    "summarization",
+    "scraper",
+    "nlp"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@xenova/transformers": "^2.0.1",
+    "axios": "^1.16.0",
+    "chalk": "^5.6.2",
+    "cheerio": "^1.2.0",
+    "cli-table3": "^0.6.5",
+    "commander": "^14.0.3",
+    "compromise": "^14.15.0",
+    "date-fns": "^4.1.0",
+    "dotenv": "^17.4.2",
+    "handlebars": "^4.7.9",
+    "inquirer": "^13.4.2",
+    "js-yaml": "^4.1.1",
+    "lodash": "^4.18.1",
+    "ml-distance": "^4.0.1",
+    "ollama": "^0.6.3",
+    "openai": "^6.36.0",
+    "ora": "^9.4.0",
+    "playwright": "^1.59.1",
+    "rss-parser": "^3.13.0",
+    "sharp": "^0.34.5",
+    "uuid": "^14.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^10.3.0",
+    "jest": "^30.3.0",
+    "nodemon": "^3.1.14",
+    "prettier": "^3.8.3"
+  }
+}

@@ -1,0 +1,102 @@
+name: Warm Industrial
+colors:
+  surface: '#fbf9f8'
+  surface-dim: '#dbd9d9'
+  surface-bright: '#fbf9f8'
+  surface-container-lowest: '#ffffff'
+  surface-container-low: '#f5f3f3'
+  surface-container: '#efeded'
+  surface-container-high: '#eae8e7'
+  surface-container-highest: '#e4e2e2'
+  on-surface: '#1b1c1c'
+  on-surface-variant: '#57423c'
+  inverse-surface: '#303030'
+  inverse-on-surface: '#f2f0f0'
+  outline: '#8b716b'
+  outline-variant: '#dec0b8'
+  surface-tint: '#a53b1c'
+  primary: '#a2391a'
+  on-primary: '#ffffff'
+  primary-container: '#c3512f'
+  on-primary-container: '#fffbff'
+  inverse-primary: '#ffb5a0'
+  secondary: '#555f6a'
+  on-secondary: '#ffffff'
+  secondary-container: '#d6e1ee'
+  on-secondary-container: '#59646f'
+  tertiary: '#5f5b55'
+  on-tertiary: '#ffffff'
+  tertiary-container: '#78746d'
+  on-tertiary-container: '#fffbff'
+  error: '#ba1a1a'
+  on-error: '#ffffff'
+  error-container: '#ffdad6'
+  on-error-container: '#93000a'
+  primary-fixed: '#ffdbd1'
+  primary-fixed-dim: '#ffb5a0'
+  on-primary-fixed: '#3b0900'
+  on-primary-fixed-variant: '#852405'
+  secondary-fixed: '#d9e4f0'
+  secondary-fixed-dim: '#bdc8d4'
+  on-secondary-fixed: '#131d26'
+  on-secondary-fixed-variant: '#3e4852'
+  tertiary-fixed: '#e8e1da'
+  tertiary-fixed-dim: '#ccc6be'
+  on-tertiary-fixed: '#1e1b17'
+  on-tertiary-fixed-variant: '#4a4641'
+  background: '#fbf9f8'
+  on-background: '#1b1c1c'
+  surface-variant: '#e4e2e2'
+typography:
+  display:
+    fontFamily: Epilogue
+    fontSize: 80px
+    fontWeight: '800'
+    lineHeight: '1.0'
+    letterSpacing: -0.04em
+  headline-lg:
+    fontFamily: Epilogue
+    fontSize: 48px
+    fontWeight: '800'
+    lineHeight: '1.1'
+    letterSpacing: -0.02em
+  headline-md:
+    fontFamily: Epilogue
+    fontSize: 32px
+    fontWeight: '700'
+    lineHeight: '1.2'
+    letterSpacing: -0.01em
+  body-lg:
+    fontFamily: Manrope
+    fontSize: 18px
+    fontWeight: '400'
+    lineHeight: '1.6'
+  body-md:
+    fontFamily: Manrope
+    fontSize: 16px
+    fontWeight: '400'
+    lineHeight: '1.5'
+  label-bold:
+    fontFamily: Manrope
+    fontSize: 14px
+    fontWeight: '700'
+    lineHeight: '1.2'
+rounded:
+  sm: 0.25rem
+  DEFAULT: 0.5rem
+  md: 0.75rem
+  lg: 1rem
+  xl: 1.5rem
+  full: 9999px
+spacing:
+  base: 8px
+  xs: 4px
+  sm: 12px
+  md: 24px
+  lg: 48px
+  xl: 80px
+  container-margin: 32px
+  gutter: 24px
+shapes:
+  borderRadius: 0.5rem
+  borderWidth: 2px

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@700;800&family=Manrope:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      width: 1080px;
+      height: 1080px;
+      background-color: {{colors.primary}};
+      background-image: 
+        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.05) 2px, rgba(0,0,0,0.05) 4px);
+      color: {{colors.on-primary}};
+      font-family: {{typography.body-md.fontFamily}}, sans-serif;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: {{spacing.container-margin}};
+    }
+    
+    .container {
+      width: 100%;
+      max-width: 900px;
+      padding: {{spacing.lg}};
+      position: relative;
+    }
+    
+    .quote-mark {
+      font-family: {{typography.display.fontFamily}}, sans-serif;
+      font-size: 180px;
+      font-weight: {{typography.display.fontWeight}};
+      color: {{colors.primary-container}};
+      line-height: 1;
+      position: absolute;
+      top: -40px;
+      left: 0;
+      opacity: 0.3;
+    }
+    
+    .quote-text {
+      font-family: {{typography.headline-md.fontFamily}}, sans-serif;
+      font-size: {{typography.headline-md.fontSize}};
+      font-weight: {{typography.headline-md.fontWeight}};
+      line-height: {{typography.headline-md.lineHeight}};
+      color: {{colors.on-primary}};
+      margin-bottom: {{spacing.md}};
+      position: relative;
+      z-index: 1;
+    }
+    
+    .attribution {
+      font-family: {{typography.label-bold.fontFamily}}, sans-serif;
+      font-size: {{typography.label-bold.fontSize}};
+      font-weight: {{typography.label-bold.fontWeight}};
+      color: {{colors.on-primary-container}};
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: {{spacing.sm}};
+      background-color: {{colors.primary-container}};
+      border-radius: {{shapes.borderRadius}};
+      display: inline-block;
+    }
+    
+    .slide-number {
+      font-family: {{typography.label-bold.fontFamily}}, sans-serif;
+      font-size: {{typography.label-bold.fontSize}};
+      color: {{colors.on-primary-container}};
+      position: absolute;
+      bottom: {{spacing.md}};
+      right: {{spacing.md}};
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="quote-mark">"</div>
+    <div class="quote-text">{{text}}</div>
+    <div class="attribution">— {{attribution}}</div>
+    <div class="slide-number">{{slideNumber}}/{{totalSlides}}</div>
+  </div>
+</body>
+</html>

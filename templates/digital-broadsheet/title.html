@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:wght@400;600;700&family=Space+Grotesk:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      width: 1080px;
+      height: 1080px;
+      background-color: {{colors.surface}};
+      color: {{colors.on-surface}};
+      font-family: {{typography.body-md.fontFamily}}, serif;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: {{spacing.margin}};
+      position: relative;
+    }
+    
+    .container {
+      width: 100%;
+      max-width: 900px;
+      border: {{shapes.borderWidth}} solid {{colors.outline}};
+      padding: {{spacing.gutter}};
+      background-color: {{colors.surface-container}};
+    }
+    
+    .masthead {
+      border-bottom: {{shapes.borderWidth}} solid {{colors.outline}};
+      padding-bottom: {{spacing.gutter}};
+      margin-bottom: {{spacing.gutter}};
+    }
+    
+    .title {
+      font-family: {{typography.display-lg.fontFamily}}, serif;
+      font-size: {{typography.display-lg.fontSize}};
+      font-weight: {{typography.display-lg.fontWeight}};
+      line-height: {{typography.display-lg.lineHeight}};
+      letter-spacing: {{typography.display-lg.letterSpacing}};
+      color: {{colors.primary}};
+      margin-bottom: {{spacing.gutter}};
+    }
+    
+    .meta {
+      font-family: {{typography.meta-technical.fontFamily}}, monospace;
+      font-size: {{typography.meta-technical.fontSize}};
+      font-weight: {{typography.meta-technical.fontWeight}};
+      line-height: {{typography.meta-technical.lineHeight}};
+      letter-spacing: {{typography.meta-technical.letterSpacing}};
+      color: {{colors.on-surface-variant}};
+      text-transform: uppercase;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .slide-number {
+      font-family: {{typography.label-sm.fontFamily}}, monospace;
+      font-size: {{typography.label-sm.fontSize}};
+      color: {{colors.on-surface-variant}};
+      position: absolute;
+      bottom: {{spacing.gutter}};
+      right: {{spacing.gutter}};
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="masthead">
+      <div class="meta">
+        <span>NEWSPAPPER</span>
+        <span>{{slideNumber}}/{{totalSlides}}</span>
+      </div>
+    </div>
+    <h1 class="title">{{text}}</h1>
+  </div>
+</body>
+</html>
