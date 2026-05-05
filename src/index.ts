@@ -48,6 +48,8 @@ program
   .requiredOption('--type <type>', 'Entity type: person, place, organization, event')
   .requiredOption('--name <name>', 'Entity name to search for')
   .option('--days <number>', 'Look back N days', parseInt, 30)
+  .option('--related', 'Show frequently mentioned related entities')
+  .option('--timeline', 'Show ASCII article timeline')
   .action(async (options) => {
     const { queryEntitiesCommand } = await import('./commands/query-entities.js');
     await queryEntitiesCommand(options);

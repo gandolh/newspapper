@@ -231,6 +231,9 @@ export class ManifestManager {
     delete m.summaries[summaryId];
     await this.save();
   }
+  getAll(): { articles: Record<string, ArticleEntry> } {
+    return { articles: this.manifest?.articles ?? {} };
+  }
 }
 
 export const manifestManager = new ManifestManager();
