@@ -4,6 +4,8 @@ data/articles/
 data/groups/
 data/summaries/
 data/entities/
+data/manifest.json
+data/sources.json
 output/
 *.log
 .DS_Store
