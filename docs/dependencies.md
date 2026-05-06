@@ -7,11 +7,11 @@
   - Required for ES modules, async/await, and modern JavaScript features
 
 ### HTTP & Web Scraping
-- **axios** - `^1.6.0`
+- **axios** - `^1.16.0`
   - HTTP client for making requests to news sources
   - Used for: RSS feeds, simple HTML fetching
 
-- **cheerio** - `^1.0.0-rc.12`
+- **cheerio** - `^1.2.0`
   - Fast, flexible HTML parsing (jQuery-like API)
   - Used for: extracting content from scraped pages
 
@@ -25,64 +25,64 @@
   - Used for: discovering articles from RSS feeds
 
 ### NLP & Machine Learning
-- **compromise** - `^14.10.0`
+- **compromise** - `^14.15.0`
   - Lightweight NLP library for entity extraction
   - Used for: fast entity extraction (people, places, organizations)
   - Note: Rule-based, no model downloads required
 
-- **@xenova/transformers** - `^2.10.0`
+- **@xenova/transformers** - `^2.0.1`
   - Transformers.js - run transformer models in Node.js
   - Used for: sentence embeddings, advanced NER
   - Note: Downloads models on first use (~100-500MB depending on model)
 
 ### LLM Integration
-- **ollama** - `^0.5.0` (or use HTTP client)
+- **ollama** - `^0.6.3`
   - Ollama JavaScript client
   - Used for: local LLM communication (Llama 3.2 1B)
   - Note: Requires Ollama installed separately
 
-- **openai** - `^4.20.0`
+- **openai** - `^6.36.0`
   - OpenAI API client
   - Used for: cloud LLM summarization (optional)
 
 ### Templating & Rendering
-- **handlebars** - `^4.7.8`
+- **handlebars** - `^4.7.9`
   - Template engine
   - Used for: prompt templates, HTML slide templates
 
 ### Image Processing
-- **sharp** - `^0.33.0`
+- **sharp** - `^0.34.5`
   - High-performance image processing
   - Used for: PNG compression, format conversion
   - Note: Native module, requires build tools
 
 ### CLI & User Interface
-- **commander** - `^11.1.0`
+- **commander** - `^14.0.3`
   - Command-line interface framework
   - Used for: parsing CLI arguments, subcommands
 
-- **inquirer** - `^9.2.0`
+- **inquirer** - `^13.4.2`
   - Interactive CLI prompts
   - Used for: group review, confirmation dialogs
 
-- **chalk** - `^5.3.0`
+- **chalk** - `^5.6.2`
   - Terminal string styling
   - Used for: colored output, formatting
 
-- **ora** - `^7.0.1`
+- **ora** - `^9.4.0`
   - Terminal spinners
   - Used for: progress indicators during scraping/processing
 
-- **cli-table3** - `^0.6.3`
+- **cli-table3** - `^0.6.5`
   - Pretty tables for terminal
   - Used for: listing articles, groups, summaries
 
 ### Utilities
-- **uuid** - `^9.0.1`
+- **uuid** - `^14.0.0`
   - Generate unique identifiers
   - Used for: article IDs, group IDs, summary IDs
 
-- **dotenv** - `^16.3.1`
+- **dotenv** - `^17.4.2`
   - Load environment variables from .env
   - Used for: API keys, configuration
 
@@ -90,7 +90,7 @@
   - YAML parser
   - Used for: reading design system configs
 
-- **date-fns** - `^3.0.0`
+- **date-fns** - `^4.1.0`
   - Date utility library
   - Used for: date formatting, age calculations
 
@@ -108,24 +108,27 @@
 ## Development Dependencies
 
 ### Testing
-- **jest** - `^29.7.0`
+- **vitest** - `^3.x`
   - Testing framework
   - Used for: unit tests, integration tests
+  - Run: `npm test` (single run) or `npm run test:watch`
 
-- **@types/jest** - `^29.5.0`
-  - TypeScript types for Jest (if using JSDoc)
+### TypeScript
+- **tsx** - `^4.x`
+  - TypeScript execution engine (no separate build step needed)
+  - Used for: running `.ts` files directly in development
 
 ### Code Quality
-- **eslint** - `^8.55.0`
-  - JavaScript linter
+- **eslint** - `^8.57.0`
+  - TypeScript-aware linter (`@typescript-eslint`)
   - Used for: code quality, style enforcement
 
-- **prettier** - `^3.1.0`
+- **prettier** - `^3.8.3`
   - Code formatter
   - Used for: consistent code formatting
 
 ### Build Tools
-- **nodemon** - `^3.0.2`
+- **nodemon** - `^3.1.x`
   - Auto-restart on file changes
   - Used for: development workflow
 
@@ -212,16 +215,19 @@ npx playwright install chromium
 ```json
 {
   "scripts": {
-    "scrape": "node src/commands/scrape.js",
-    "group": "node src/commands/group.js",
-    "extract-entities": "node src/commands/extract-entities.js",
-    "query-entities": "node src/commands/query-entities.js",
-    "summarize": "node src/commands/summarize.js",
-    "generate": "node src/commands/generate.js",
-    "export": "node src/commands/export.js",
-    "clean": "node src/commands/clean.js",
-    "list": "node src/commands/list.js",
-    "test": "jest",
+    "start": "tsx src/index.ts",
+    "build": "tsc",
+    "scrape": "tsx src/index.ts scrape",
+    "group": "tsx src/index.ts group",
+    "extract-entities": "tsx src/index.ts extract-entities",
+    "query-entities": "tsx src/index.ts query-entities",
+    "summarize": "tsx src/index.ts summarize",
+    "generate": "tsx src/index.ts generate",
+    "export": "tsx src/index.ts export",
+    "clean": "tsx src/index.ts clean",
+    "list": "tsx src/index.ts list",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "lint": "eslint src/",
     "format": "prettier --write src/"
   }

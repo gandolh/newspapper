@@ -1,343 +1,105 @@
-# Newspapper - Architecture Documentation
+# Architecture
 
-## Overview
+Newspapper is a CLI tool (Node.js + TypeScript) for personal news aggregation and slide generation. Every phase requires an explicit user command — no background jobs, no auto-publishing.
 
-Newspapper is a personal news aggregation and summarization tool that scrapes trusted news sources, groups similar articles, and generates beautiful Instagram-ready slides with summaries.
-
-## Core Philosophy
-
-- **Manual Control:** Every phase requires explicit user command
-- **On-Demand Processing:** No automatic background jobs
-- **Local-First:** Runs entirely on your machine with optional API integrations
-- **File-Based Storage:** No database, pure JSON files
-- **Flexible Processing:** Multiple strategies for scraping, NLP, and summarization
-
-## Tech Stack
-
-### Runtime & Language
-- **Node.js** - JavaScript runtime
-- **JavaScript** - Primary language
-
-### Scraping
-- **axios** - HTTP requests (default)
-- **cheerio** - HTML parsing
-- **Playwright** - Headless browser (fallback for JS-heavy sites)
-- **RSS parser** - Feed discovery and parsing
-
-### NLP & ML
-- **compromise** - Lightweight entity extraction (default)
-- **@xenova/transformers** - Advanced NER and embeddings
-- **Sentence embeddings** - For article similarity clustering
-
-### LLM Integration
-- **Ollama** - Local LLM (Llama 3.2 1B, default)
-- **OpenAI API** - Cloud LLM option
-
-### Rendering
-- **Playwright** - HTML to PNG screenshots
-- **Handlebars** - Template engine for prompts and HTML
-
-### CLI
-- **Commander.js** (or similar) - Command-line interface
-
-### Utilities
-- **sharp** - Image compression
-- **uuid** - Unique identifiers
-
-## Project Structure
+## Pipeline
 
 ```
-newspapper/
-├── src/
-│   ├── commands/          # CLI command handlers
-│   │   ├── scrape.js
-│   │   ├── group.js
-│   │   ├── extract-entities.js
-│   │   ├── query-entities.js
-│   │   ├── summarize.js
-│   │   ├── generate.js
-│   │   ├── export.js
-│   │   ├── clean.js
-│   │   └── list.js
-│   ├── scrapers/          # Scraping implementations
-│   │   ├── http-scraper.js
-│   │   ├── playwright-scraper.js
-│   │   └── rss-parser.js
-│   ├── nlp/               # NLP and ML
-│   │   ├── entity-extractor.js
-│   │   ├── embeddings.js
-│   │   └── clustering.js
-│   ├── summarizers/       # Summarization strategies
-│   │   ├── llm-summarizer.js
-│   │   ├── local-summarizer.js
-│   │   └── template-summarizer.js
-│   ├── renderer/          # Image generation
-│   │   ├── html-builder.js
-│   │   └── screenshot.js
-│   ├── storage/           # File operations
-│   │   ├── manifest.js
-│   │   ├── articles.js
-│   │   ├── groups.js
-│   │   └── summaries.js
-│   └── utils/
-│       ├── logger.js
-│       └── config.js
-├── data/
-│   ├── manifest.json      # Index of all entities and relationships
-│   ├── sources.json       # Trusted news sources configuration
-│   ├── articles/          # One JSON file per article
-│   ├── groups/            # Similarity clusters
-│   ├── summaries/         # Generated summaries
-│   └── entities/          # Extracted entities per article
-├── output/
-│   └── {group-id}/
-│       ├── slides/        # Generated PNG images
-│       │   ├── 01-title.png
-│       │   ├── 02-body.png
-│       │   └── ...
-│       ├── summary.json   # Summary data
-│       └── metadata.json  # Sources, dates, entities
-├── design-systems/
-│   ├── digital-broadsheet.yaml
-│   └── warm-industrial.yaml
-├── prompts/
-│   ├── summarize-llm.hbs
-│   ├── summarize-local.hbs
-│   └── summarize-template.hbs
-├── templates/             # HTML slide templates
-│   ├── digital-broadsheet/
-│   │   ├── title.html
-│   │   ├── body.html
-│   │   ├── quote.html
-│   │   └── image-caption.html
-│   └── warm-industrial/
-│       ├── title.html
-│       ├── body.html
-│       ├── quote.html
-│       └── image-caption.html
-├── .env                   # API keys and configuration
-├── package.json
-└── README.md
-```
-
-## Data Models
-
-### manifest.json
-```json
-{
-  "articles": {
-    "article-uuid": {
-      "id": "article-uuid",
-      "title": "Article Title",
-      "sourceId": "source-uuid",
-      "scrapedAt": "2026-05-04T20:00:00Z",
-      "status": "scraped|grouped|deleted",
-      "groupId": "group-uuid",
-      "hasEntities": true
-    }
-  },
-  "groups": {
-    "group-uuid": {
-      "id": "group-uuid",
-      "createdAt": "2026-05-04T21:00:00Z",
-      "threshold": 0.75,
-      "status": "draft|reviewed|summarized",
-      "articleIds": ["article-uuid-1", "article-uuid-2"],
-      "summaryId": "summary-uuid"
-    }
-  },
-  "summaries": {
-    "summary-uuid": {
-      "id": "summary-uuid",
-      "groupId": "group-uuid",
-      "method": "llm|local|nlp",
-      "tone": "optimistic|analytical",
-      "design": "broadsheet|industrial",
-      "createdAt": "2026-05-04T22:00:00Z",
-      "status": "draft|generated|published"
-    }
-  }
-}
-```
-
-### sources.json
-```json
-[
-  {
-    "id": "source-uuid",
-    "name": "The Guardian",
-    "url": "https://theguardian.com",
-    "rss": "https://theguardian.com/rss",
-    "scraperType": "http|playwright",
-    "selectors": {
-      "title": "h1.headline",
-      "author": ".author-name",
-      "date": "time[datetime]",
-      "body": "article .content"
-    }
-  }
-]
-```
-
-### articles/{article-id}.json
-```json
-{
-  "id": "article-uuid",
-  "sourceId": "source-uuid",
-  "url": "https://...",
-  "title": "Article Title",
-  "author": "Author Name",
-  "publishedAt": "2026-05-04T10:00:00Z",
-  "scrapedAt": "2026-05-04T20:00:00Z",
-  "body": "Full article text...",
-  "image": "https://...",
-  "metadata": {
-    "wordCount": 1500,
-    "language": "en"
-  }
-}
-```
-
-### groups/{group-id}.json
-```json
-{
-  "id": "group-uuid",
-  "articleIds": ["uuid-1", "uuid-2", "uuid-3"],
-  "createdAt": "2026-05-04T21:00:00Z",
-  "threshold": 0.75,
-  "centroid": [0.1, 0.2, ...],
-  "commonEntities": {
-    "people": ["Biden", "Putin"],
-    "places": ["Ukraine"],
-    "events": ["Summit"]
-  }
-}
-```
-
-### summaries/{summary-id}.json
-```json
-{
-  "id": "summary-uuid",
-  "groupId": "group-uuid",
-  "method": "local",
-  "tone": "analytical",
-  "design": "broadsheet",
-  "createdAt": "2026-05-04T22:00:00Z",
-  "slides": [
-    {
-      "type": "title",
-      "text": "Main Headline",
-      "notes": "Context for this slide"
-    },
-    {
-      "type": "body",
-      "text": "Summary paragraph...",
-      "notes": "Key points emphasized"
-    },
-    {
-      "type": "quote",
-      "text": "\"Important quote\"",
-      "attribution": "Source Name",
-      "notes": ""
-    }
-  ]
-}
-```
-
-### entities/{article-id}.json
-```json
-{
-  "articleId": "article-uuid",
-  "method": "compromise|transformers",
-  "extractedAt": "2026-05-04T21:30:00Z",
-  "entities": {
-    "people": ["Joe Biden", "Vladimir Putin"],
-    "places": ["Washington", "Moscow", "Ukraine"],
-    "organizations": ["NATO", "UN"],
-    "events": ["Peace Summit", "Election"]
-  }
-}
+data/sources.json
+      ↓
+  scrape → data/articles/{uuid}.json
+      ↓
+  group  → data/groups/{uuid}.json
+      ↓
+ summarize → data/summaries/{uuid}.json
+      ↓
+ generate → output/{group-id}/slides/*.png
+      ↓
+  export → destination/
 ```
 
 ## Workflow States
 
-Articles and groups flow through these states:
-
-1. **Scraped** → Articles stored in `data/articles/`, not yet grouped
-2. **Grouped** → Similarity clusters created in `data/groups/`, awaiting user review
-3. **Reviewed** → User approved groups via CLI, ready for summarization
-4. **Summarized** → Summary generated in `data/summaries/`, ready for rendering
-5. **Generated** → Images created in `output/{group-id}/slides/`
-6. **Published** → Exported and marked complete in manifest
-
-## Data Flow
+Articles and groups move through these states in `data/manifest.json`:
 
 ```
-1. Sources Configuration (sources.json)
-         ↓
-2. Scrape Articles (HTTP/Playwright/RSS)
-         ↓
-3. Store Articles (data/articles/*.json)
-         ↓
-4. Extract Entities (on-demand, data/entities/*.json)
-         ↓
-5. Generate Embeddings (@xenova/transformers)
-         ↓
-6. Cluster by Similarity (cosine similarity)
-         ↓
-7. Create Groups (data/groups/*.json)
-         ↓
-8. User Review Groups (CLI TUI)
-         ↓
-9. Summarize (LLM/Local/Template)
-         ↓
-10. Store Summary (data/summaries/*.json)
-         ↓
-11. Render HTML Templates (Handlebars)
-         ↓
-12. Screenshot with Playwright
-         ↓
-13. Compress Images (sharp)
-         ↓
-14. Export Package (output/{group-id}/)
+scraped → grouped → reviewed → summarized → generated → published
 ```
+
+## Module Responsibilities
+
+| Module | Path | Responsibility |
+|--------|------|----------------|
+| Commands | `src/commands/` | CLI handlers; orchestrate all other modules |
+| Storage | `src/storage/` | JSON file I/O; `manifest.ts` is the central index |
+| Scrapers | `src/scrapers/` | HTTP (axios+cheerio), Playwright, RSS |
+| NLP | `src/nlp/` | Entity extraction (compromise), embeddings (@xenova/transformers), clustering |
+| Summarizers | `src/summarizers/` | LLM (OpenAI), local (Ollama), template (rule-based) |
+| Renderer | `src/renderer/` | Handlebars → HTML → Playwright screenshot → Sharp compression |
+| Utils | `src/utils/` | `config.ts` (loads .env), `logger.ts` (shared logger) |
+
+## Storage Strategy
+
+File-based JSON — no database. The manifest (`data/manifest.json`) is the central index tracking every article, group, and summary and their relationships. All other `data/` files are content-only JSON.
+
+**Why file-based?**
+- Transparent and inspectable
+- No setup or migrations
+- Git-friendly
+- Portable — copy `data/` anywhere
+
+## Scraping Strategy
+
+1. Try RSS if `source.rss` is set and `--method` is not `http`/`playwright`
+2. Fall back to HTTP (axios + cheerio) for simple sites
+3. Fall back to Playwright (headless Chromium) for JS-heavy sites
+
+Playwright must be installed separately: `npx playwright install chromium`
+
+## Summarization Methods
+
+| Method | Quality | Cost | Requires |
+|--------|---------|------|----------|
+| `llm` | Best | API fees | `OPENAI_API_KEY` in `.env` |
+| `local` | Good | Free | Ollama running (`ollama serve`) |
+| `nlp` | Basic | Free | Nothing |
+
+## Rendering
+
+Slides are rendered at 1080×1080px (Instagram post format) by default. Each slide type has an HTML template in `templates/{design}/`. Handlebars fills in variables, Playwright screenshots the result, Sharp compresses the PNG.
+
+CSS lint errors in templates are expected — Handlebars variables like `{{colors.surface}}` confuse the linter but work fine at runtime.
+
+## Design Systems
+
+Two themes: `digital-broadsheet` (editorial, serif, high-contrast borders) and `warm-industrial` (soft brutalism, terracotta, rounded corners). Each has four slide templates: `title`, `body`, `quote`, `image-caption`. Configured via `design-systems/*.yaml`.
+
+See [design-systems.md](design-systems.md) for full visual specs.
+
+## Tech Stack
+
+**Runtime:** Node.js v18+ with TypeScript 5.5.4, executed via `tsx` (no separate build step needed for development)
+
+**Dev tooling:** `vitest` (tests), `eslint` + `@typescript-eslint` (linting), `prettier` (formatting)
+
+**Core:** `commander` (CLI), `inquirer` (prompts), `ora` (spinners), `chalk` (colors), `cli-table3` (tables)
+
+**Scraping:** `axios`, `cheerio`, `playwright`, `rss-parser`
+
+**NLP/AI:** `compromise`, `@xenova/transformers`, `ollama`, `openai`
+
+**Rendering:** `handlebars`, `js-yaml`, `sharp`
 
 ## Key Design Decisions
 
-### Why File-Based Storage?
-- **Transparency:** Easy to inspect, debug, and version control
-- **Simplicity:** No database setup or migrations
-- **Portability:** Copy the `data/` folder anywhere
-- **Manual Control:** Aligns with on-demand workflow
+**Manual control everywhere** — no automatic publishing. User reviews groups, summaries, and images at each step.
 
-### Why Dual Strategies?
-- **Scraping:** HTTP is fast, Playwright handles complex sites
-- **NLP:** compromise is lightweight, transformers for precision
-- **Summarization:** Flexibility to experiment with quality vs. cost
+**Dual strategies** for scraping, NLP, and summarization — flexibility to trade quality for cost or offline capability.
 
-### Why Manifest?
-- **Performance:** Avoid scanning thousands of JSON files
-- **Relationships:** Track article→group→summary connections
-- **Queries:** Fast entity lookups without loading all files
+**Manifest as index** — avoids scanning thousands of JSON files for status queries; all relationships tracked centrally.
 
-### Why 30-Day Retention?
-- Supports multi-day event tracking
-- Prevents unbounded storage growth
-- User controls deletion timing
+**30-day default retention** — `npm run clean --older-than=30d` keeps storage bounded; user controls timing.
 
-## Scalability Considerations
+## Scalability
 
-**Current Design (10-20 sources, daily scraping):**
-- ~100-500 articles/day
-- ~10-50 groups/day
-- File system handles this easily
-
-**If Scaling to 100 sources:**
-- Consider SQLite for manifest (keep JSON for articles)
-- Add pagination to CLI commands
-- Implement background indexing
-
-**Not Recommended:**
-- Real-time scraping (stick with on-demand)
-- Automatic deletion (manual control is a feature)
-- Web UI (CLI keeps it focused)
+Current design handles 10–20 sources, ~100–500 articles/day easily. If scaling beyond 100 sources, consider SQLite for the manifest (keep JSON for article content) and pagination in list commands.
