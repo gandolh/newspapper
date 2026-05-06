@@ -12,6 +12,7 @@ export interface Source {
   scraperType: string;
   selectors: Record<string, string>;
   enabled: boolean;
+  maxArticles: number;
 }
 
 export class SourceManager {
@@ -68,7 +69,8 @@ export class SourceManager {
       rss: sourceData.rss || null,
       scraperType: sourceData.scraperType || 'http',
       selectors: sourceData.selectors || {},
-      enabled: sourceData.enabled !== false
+      enabled: sourceData.enabled !== false,
+      maxArticles: sourceData.maxArticles ?? 10,
     };
 
     this.sources!.push(source);

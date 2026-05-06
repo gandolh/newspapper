@@ -5,6 +5,10 @@ import { rssFeedParser } from '../scrapers/rss-parser.js';
 import { logger } from '../utils/logger.js';
 import ora from 'ora';
 
+export function resolveArticleLimit(cliLimit: number | undefined, sourceMax: number | undefined): number {
+  return cliLimit ?? sourceMax ?? 10;
+}
+
 interface ScrapeOptions {
   sources?: string;
   method?: string;
@@ -42,7 +46,8 @@ export async function scrapeCommand(options: ScrapeOptions): Promise<void> {
       if (source.rss && options.method !== 'http' && options.method !== 'playwright') {
         try {
           const feed = await rssFeedParser.parse(source.rss);
-          articles = feed.articles || [];
+          const limit = resolveArticleLimit(options.limit, source.maxArticles);
+          articles = (feed.articles || []).slice(0, limit);
           logger.debug(`RSS: ${articles.length} articles from ${source.name}`);
         } catch (rssError) {
           logger.warn(`RSS failed for ${source.name}: ${(rssError as Error).message}`);
@@ -59,7 +64,7 @@ export async function scrapeCommand(options: ScrapeOptions): Promise<void> {
           ? articles.map((a: { url?: string }) => a.url as string)
           : [source.url];
 
-        const limit = options.limit || 10;
+        const limit = resolveArticleLimit(options.limit, source.maxArticles);
         articles = [];
 
         for (const url of urls.slice(0, limit)) {
@@ -70,10 +75,6 @@ export async function scrapeCommand(options: ScrapeOptions): Promise<void> {
             logger.warn(`Failed to scrape ${url}: ${(error as Error).message}`);
           }
         }
-      }
-
-      if (options.limit) {
-        articles = articles.slice(0, options.limit);
       }
 
       for (const articleData of articles) {
