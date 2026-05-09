@@ -7,7 +7,9 @@ Newspapper is a CLI tool (Node.js + TypeScript) for personal news aggregation an
 ```
 data/sources.json
       ↓
-  scrape → data/articles/{uuid}.json
+  scrape → data/raw-articles/YYYY-MM-DD/source-id/{uuid}.json
+      ↓
+  entity extraction (automatic) → SQLite database
       ↓
   group  → data/groups/{uuid}.json
       ↓
@@ -20,49 +22,69 @@ data/sources.json
 
 ## Workflow States
 
-Articles and groups move through these states in `data/manifest.json`:
+Articles move through these states tracked in SQLite:
 
 ```
 scraped → grouped → reviewed → summarized → generated → published
 ```
 
+Groups and summaries still use `data/manifest.json` for backward compatibility (will migrate to SQLite in future).
+
 ## Module Responsibilities
 
-| Module | Path | Responsibility |
-|--------|------|----------------|
-| Commands | `src/commands/` | CLI handlers; orchestrate all other modules |
-| Storage | `src/storage/` | JSON file I/O; `manifest.ts` is the central index |
-| Scrapers | `src/scrapers/` | HTTP (axios+cheerio), Playwright, RSS |
-| NLP | `src/nlp/` | Entity extraction (compromise), embeddings (@xenova/transformers), clustering |
-| Summarizers | `src/summarizers/` | LLM (OpenAI), local (Ollama), template (rule-based) |
-| Renderer | `src/renderer/` | Handlebars → HTML → Playwright screenshot → Sharp compression |
-| Utils | `src/utils/` | `config.ts` (loads .env), `logger.ts` (shared logger) |
+| Module      | Path               | Responsibility                                                                |
+| ----------- | ------------------ | ----------------------------------------------------------------------------- |
+| Commands    | `src/commands/`    | CLI handlers; orchestrate all other modules                                   |
+| Storage     | `src/storage/`     | SQLite database (`database.ts`), JSON files, manifest for groups/summaries    |
+| Scrapers    | `src/scrapers/`    | HTTP (axios+cheerio), Playwright, RSS                                         |
+| NLP         | `src/nlp/`         | Entity extraction (compromise), embeddings (@xenova/transformers), clustering |
+| Summarizers | `src/summarizers/` | LLM (OpenAI), local (Ollama), template (rule-based)                           |
+| Renderer    | `src/renderer/`    | Handlebars → HTML → Playwright screenshot → Sharp compression                 |
+| Utils       | `src/utils/`       | `config.ts` (loads .env), `logger.ts` (shared logger)                         |
 
 ## Storage Strategy
 
-File-based JSON — no database. The manifest (`data/manifest.json`) is the central index tracking every article, group, and summary and their relationships. All other `data/` files are content-only JSON.
+**Dual storage system**:
 
-**Why file-based?**
-- Transparent and inspectable
-- No setup or migrations
-- Git-friendly
-- Portable — copy `data/` anywhere
+1. **SQLite Database** (`data/newspapper.db`) - Primary storage for:
+   - Article metadata and relationships
+   - Extracted entities with search capabilities
+   - Article status and grouping information
+
+2. **Raw JSON Files** (`data/raw-articles/YYYY-MM-DD/source-id/`) - Complete article content:
+   - Full article text and metadata
+   - Organized by date and source for easy backup
+   - Human-readable and portable
+
+3. **Legacy Manifest** (`data/manifest.json`) - Groups and summaries (temporary):
+   - Will be migrated to SQLite in future updates
+
+**Why this hybrid approach?**
+
+- SQLite provides fast entity queries and relationships
+- JSON files preserve complete article content transparently
+- Daily organization enables easy backup and analysis
+- Database ensures data integrity and performance
 
 ## Scraping Strategy
 
 1. Try RSS if `source.rss` is set and `--method` is not `http`/`playwright`
 2. Fall back to HTTP (axios + cheerio) for simple sites
 3. Fall back to Playwright (headless Chromium) for JS-heavy sites
+4. **Automatic entity extraction** after each successful scrape:
+   - Extract people, places, organizations, events using compromise
+   - Store in SQLite with article relationships
+   - Enable historical entity tracking
 
 Playwright must be installed separately: `npx playwright install chromium`
 
 ## Summarization Methods
 
-| Method | Quality | Cost | Requires |
-|--------|---------|------|----------|
-| `llm` | Best | API fees | `OPENAI_API_KEY` in `.env` |
-| `local` | Good | Free | Ollama running (`ollama serve`) |
-| `nlp` | Basic | Free | Nothing |
+| Method  | Quality | Cost     | Requires                        |
+| ------- | ------- | -------- | ------------------------------- |
+| `llm`   | Best    | API fees | `OPENAI_API_KEY` in `.env`      |
+| `local` | Good    | Free     | Ollama running (`ollama serve`) |
+| `nlp`   | Basic   | Free     | Nothing                         |
 
 ## Rendering
 
@@ -84,6 +106,8 @@ See [design-systems.md](design-systems.md) for full visual specs.
 
 **Core:** `commander` (CLI), `inquirer` (prompts), `ora` (spinners), `chalk` (colors), `cli-table3` (tables)
 
+**Database:** `better-sqlite3` (SQLite database), `@types/better-sqlite3`
+
 **Scraping:** `axios`, `cheerio`, `playwright`, `rss-parser`
 
 **NLP/AI:** `compromise`, `@xenova/transformers`, `ollama`, `openai`
@@ -96,10 +120,30 @@ See [design-systems.md](design-systems.md) for full visual specs.
 
 **Dual strategies** for scraping, NLP, and summarization — flexibility to trade quality for cost or offline capability.
 
-**Manifest as index** — avoids scanning thousands of JSON files for status queries; all relationships tracked centrally.
+**Hybrid storage** — SQLite for performance and relationships, JSON for transparency and portability.
+
+**Automatic entity extraction** — entities are extracted during scraping to enable historical tracking without manual commands.
+
+**Daily organization** — articles organized by date/source for easy backup and temporal analysis.
 
 **30-day default retention** — `npm run clean --older-than=30d` keeps storage bounded; user controls timing.
 
 ## Scalability
 
-Current design handles 10–20 sources, ~100–500 articles/day easily. If scaling beyond 100 sources, consider SQLite for the manifest (keep JSON for article content) and pagination in list commands.
+Current design with SQLite database handles 100+ sources, ~1000+ articles/day easily. The database provides:
+
+- Fast entity queries across millions of articles
+- Efficient filtering by date, source, and status
+- Scalable relationship tracking
+
+**Performance considerations:**
+
+- SQLite handles current scale well; consider PostgreSQL for enterprise scale
+- Daily JSON organization keeps individual files manageable
+- Entity extraction adds processing time but enables powerful queries
+
+**Future scaling options:**
+
+- Migrate groups/summaries to SQLite (already planned)
+- Add database indexes for specific query patterns
+- Implement pagination for large result sets

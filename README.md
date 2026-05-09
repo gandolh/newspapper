@@ -5,10 +5,13 @@ Personal news aggregation and summarization tool that generates Instagram-ready 
 ## Features
 
 - **Multi-source scraping:** HTTP, Playwright (JS-heavy sites), and RSS feed support
+- **SQLite database:** Persistent storage for articles and extracted entities
+- **Daily organization:** Raw articles organized by date and source in directory structure
+- **Automatic entity extraction:** NLP-based extraction of people, places, organizations, events
 - **Smart grouping:** Cluster similar articles using embeddings or entity extraction
 - **Flexible summarization:** Local LLM (Ollama), OpenAI API, or template-based
 - **Beautiful slides:** Two design systems (Digital Broadsheet, Warm Industrial)
-- **Entity tracking:** Extract and query people, places, organizations, and events
+- **Entity tracking:** Query and track entities across articles and time
 - **Manual control:** Every step requires explicit user command
 
 ## Prerequisites
@@ -41,6 +44,7 @@ cp .env.example .env
 ## Quick Start
 
 1. **Add news sources** - Edit `data/sources.json`:
+
 ```json
 [
   {
@@ -60,27 +64,48 @@ cp .env.example .env
 ]
 ```
 
-2. **Scrape articles:**
+2. **Scrape articles (with automatic entity extraction):**
+
 ```bash
 npm run scrape
 ```
 
-3. **Group similar articles:**
+- Articles are saved to `data/raw-articles/YYYY-MM-DD/source-id/`
+- Entities are automatically extracted and stored in SQLite database
+
+3. **List articles and entities:**
+
+```bash
+npm run list --type=articles
+npm run list --type=entities
+```
+
+4. **Query entities:**
+
+```bash
+npm run query-entities --type=person --name="Biden" --days=30
+```
+
+5. **Group similar articles:**
+
 ```bash
 npm run group
 ```
 
-4. **Summarize a group:**
+6. **Summarize a group:**
+
 ```bash
 npm run summarize <group-id> --method=local --tone=analytical
 ```
 
-5. **Generate images:**
+7. **Generate images:**
+
 ```bash
 npm run generate <group-id>
 ```
 
-6. **Export package:**
+8. **Export package:**
+
 ```bash
 npm run export <group-id>
 ```
@@ -88,27 +113,33 @@ npm run export <group-id>
 ## CLI Commands
 
 ### Scraping
+
 ```bash
 npm run scrape [--sources=source1,source2]
 ```
 
 ### Grouping
+
 ```bash
 npm run group [--threshold=0.75] [--method=embeddings|entities]
 ```
 
 ### Entity Extraction
+
 ```bash
 npm run extract-entities <article-id> [--method=compromise|transformers]
 npm run extract-entities --all
 ```
 
 ### Entity Search
+
 ```bash
-npm run query-entities --type=person --name="Biden" [--days=30]
+npm run query-entities --type=person --name="Biden" [--days=30] [--timeline]
+# Types: person, place, organization, event
 ```
 
 ### Summarization
+
 ```bash
 npm run summarize <group-id> \
   --method=llm|local|nlp \
@@ -119,32 +150,41 @@ npm run summarize <group-id> \
 ```
 
 ### Image Generation
+
 ```bash
 npm run generate <group-id>
 ```
 
 ### Export
+
 ```bash
 npm run export <group-id> [--destination=/path/to/export]
 ```
 
 ### Maintenance
+
 ```bash
-npm run list [--type=articles|groups|summaries] [--status=scraped|grouped|published]
+npm run list --type=articles [--status=scraped] [--source=example-news]
+npm run list --type=entities [--status=person]
+npm run list --type=groups
+npm run list --type=summaries
 npm run clean [--older-than=30d] [--status=published] [--dry-run]
 ```
 
 ## Design Systems
 
 ### Digital Broadsheet
+
 Classic newspaper aesthetic with serif typography (Newsreader), sharp corners, and newsprint colors. Emphasizes authority and archival permanence.
 
 ### Warm Industrial
+
 Soft brutalism with rounded corners, bold sans-serif (Epilogue/Manrope), and terracotta accents. Tactile and grounded feel.
 
 ## Configuration
 
 Edit `.env` to configure:
+
 - OpenAI API key
 - Ollama host and model
 - Scraping settings (timeout, retries)
@@ -161,9 +201,12 @@ newspapper/
 │   ├── nlp/           # Entities, embeddings, clustering
 │   ├── summarizers/   # LLM, local, template
 │   ├── renderer/      # HTML builder, screenshot
-│   ├── storage/       # Manifest, articles, groups
+│   ├── storage/       # SQLite database, JSON files
 │   └── utils/         # Logger, config
-├── data/              # JSON storage
+├── data/
+│   ├── raw-articles/  # Daily organized JSON files (YYYY-MM-DD/source-id/)
+│   ├── newspapper.db  # SQLite database with articles and entities
+│   └── sources.json   # News source configuration
 ├── output/            # Generated images
 ├── design-systems/    # YAML configs
 ├── prompts/           # Handlebars templates
@@ -173,31 +216,36 @@ newspapper/
 ## Workflow Example
 
 ```bash
-# 1. Scrape from all enabled sources
+# 1. Scrape from all enabled sources (automatic entity extraction)
 npm run scrape
 
-# 2. Group similar articles
+# 2. Browse collected articles and entities
+npm run list --type=articles
+npm run list --type=entities
+
+# 3. Query specific entities across articles
+npm run query-entities --type=person --name="Biden" --days=30 --timeline
+
+# 4. Group similar articles
 npm run group --threshold=0.75
 
-# 3. Extract entities for historical tracking
-npm run extract-entities --all
-
-# 4. Summarize a specific group
+# 5. Summarize a specific group
 npm run summarize abc-123 --method=local --tone=analytical --design=broadsheet
 
-# 5. Generate slide images
+# 6. Generate slide images
 npm run generate abc-123
 
-# 6. Export for publishing
+# 7. Export for publishing
 npm run export abc-123
 
-# 7. Clean old data
+# 8. Clean old data
 npm run clean --older-than=30d --status=published
 ```
 
 ## Troubleshooting
 
 ### Ollama connection refused
+
 ```bash
 # Start Ollama service
 ollama serve
@@ -207,6 +255,7 @@ curl http://localhost:11434/api/version
 ```
 
 ### Playwright installation fails
+
 ```bash
 # Install system dependencies (Ubuntu/Debian)
 sudo apt-get install libgbm1 libnss3 libatk-bridge2.0-0
@@ -216,6 +265,7 @@ npx playwright install chromium
 ```
 
 ### Sharp build fails
+
 ```bash
 # Install build tools (Ubuntu/Debian)
 sudo apt-get install build-essential python3
@@ -224,9 +274,31 @@ sudo apt-get install build-essential python3
 npm rebuild sharp
 ```
 
+## New Architecture
+
+The application now uses a **dual storage system**:
+
+- **SQLite Database** (`data/newspapper.db`): Stores article metadata and extracted entities with full search capabilities
+- **Raw JSON Files** (`data/raw-articles/YYYY-MM-DD/source-id/`): Complete article content organized by date and source
+
+**Entity Extraction** happens automatically during scraping:
+
+- **People**: Names and persons mentioned
+- **Places**: Geographic locations
+- **Organizations**: Companies, institutions, governments
+- **Events**: Elections, conferences, conflicts, etc.
+
+**Key Benefits**:
+
+- Fast entity queries across all articles
+- Historical tracking of entities over time
+- Daily organization for easy backup and analysis
+- Persistent storage with SQLite reliability
+
 ## Documentation
 
 See `docs/` directory for detailed documentation:
+
 - `architecture.md` - System architecture and design decisions
 - `cli-commands.md` - Complete CLI reference
 - `design-systems.md` - Design system specifications

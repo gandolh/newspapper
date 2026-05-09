@@ -1,10 +1,10 @@
-import { readFile, writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
-import { v4 as uuidv4 } from 'uuid';
-import { config } from '../utils/config.js';
-import { manifestManager } from './manifest.js';
+import { readFile, writeFile, mkdir } from "fs/promises";
+import { join } from "path";
+import { v4 as uuidv4 } from "uuid";
+import { config } from "../utils/config.js";
+import { db } from "./database.js";
 
-const ARTICLES_DIR = join(config.paths.data, 'articles');
+const RAW_ARTICLES_DIR = join(config.paths.data, "raw-articles");
 
 interface ArticleData {
   sourceId: string;
@@ -30,45 +30,81 @@ interface Article extends ArticleData {
 }
 
 export class ArticleStorage {
-  async ensureDirectory(): Promise<void> {
-    await mkdir(ARTICLES_DIR, { recursive: true });
+  async ensureDirectory(date: string, sourceId: string): Promise<string> {
+    const dir = join(RAW_ARTICLES_DIR, date, sourceId);
+    await mkdir(dir, { recursive: true });
+    return dir;
+  }
+
+  getDateString(date?: Date): string {
+    const d = date || new Date();
+    return d.toISOString().split("T")[0];
   }
 
   async save(articleData: ArticleData): Promise<Article> {
-    await this.ensureDirectory();
+    const existing = db.getArticleByUrl(articleData.url);
+    if (existing) {
+      return existing as unknown as Article;
+    }
+
+    const scrapedAt = new Date().toISOString();
+    const dateStr = this.getDateString(new Date(scrapedAt));
+    const articleId = uuidv4();
+
+    const dir = await this.ensureDirectory(dateStr, articleData.sourceId);
+    const rawFilePath = join(dir, `${articleId}.json`);
 
     const article: Article = {
-      id: uuidv4(),
+      id: articleId,
       sourceId: articleData.sourceId,
       url: articleData.url,
       title: articleData.title,
       author: articleData.author || null,
-      publishedAt: articleData.publishedAt || new Date().toISOString(),
-      scrapedAt: new Date().toISOString(),
+      publishedAt: articleData.publishedAt || scrapedAt,
+      scrapedAt,
       body: articleData.body,
       image: articleData.image || null,
       metadata: {
         wordCount: articleData.body ? articleData.body.split(/\s+/).length : 0,
-        language: articleData.language || 'en',
-        ...articleData.metadata
-      }
+        language: articleData.language || "en",
+        ...articleData.metadata,
+      },
     };
 
-    const filePath = join(ARTICLES_DIR, `${article.id}.json`);
-    await writeFile(filePath, JSON.stringify(article, null, 2));
+    await writeFile(rawFilePath, JSON.stringify(article, null, 2));
 
-    await manifestManager.addArticle(article);
+    db.insertArticle({
+      id: article.id,
+      source_id: articleData.sourceId,
+      source_name: (articleData as any).sourceName || articleData.sourceId,
+      url: article.url,
+      title: article.title,
+      author: article.author ?? null,
+      published_at: article.publishedAt ?? null,
+      scraped_at: article.scrapedAt,
+      body: article.body,
+      image: article.image ?? null,
+      raw_file_path: rawFilePath,
+      language: article.metadata.language,
+      word_count: article.metadata.wordCount,
+      status: "scraped",
+      group_id: null,
+    });
 
     return article;
   }
 
   async load(articleId: string): Promise<Article | null> {
-    const filePath = join(ARTICLES_DIR, `${articleId}.json`);
+    const dbArticle = db.getArticleById(articleId);
+    if (!dbArticle) {
+      return null;
+    }
+
     try {
-      const data = await readFile(filePath, 'utf-8');
+      const data = await readFile(dbArticle.raw_file_path, "utf-8");
       return JSON.parse(data) as Article;
     } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") {
         return null;
       }
       throw error;
@@ -76,24 +112,28 @@ export class ArticleStorage {
   }
 
   async loadMultiple(articleIds: string[]): Promise<Article[]> {
-    const articles = await Promise.all(articleIds.map(id => this.load(id)));
+    const articles = await Promise.all(articleIds.map((id) => this.load(id)));
     return articles.filter((a): a is Article => a !== null);
   }
 
   async delete(articleId: string): Promise<boolean> {
-    const filePath = join(ARTICLES_DIR, `${articleId}.json`);
-    const { unlink } = await import('fs/promises');
+    const dbArticle = db.getArticleById(articleId);
+    if (!dbArticle) {
+      return false;
+    }
+
+    const { unlink } = await import("fs/promises");
 
     try {
-      await unlink(filePath);
-      await manifestManager.deleteArticle(articleId);
-      return true;
+      await unlink(dbArticle.raw_file_path);
     } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-        return false;
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+        throw error;
       }
-      throw error;
     }
+
+    db.deleteArticle(articleId);
+    return true;
   }
 
   async update(articleId: string, updates: Partial<Article>): Promise<Article> {
@@ -103,10 +143,36 @@ export class ArticleStorage {
     }
 
     const updatedArticle = { ...article, ...updates };
-    const filePath = join(ARTICLES_DIR, `${articleId}.json`);
-    await writeFile(filePath, JSON.stringify(updatedArticle, null, 2));
+    const dbArticle = db.getArticleById(articleId);
+    if (dbArticle) {
+      await writeFile(
+        dbArticle.raw_file_path,
+        JSON.stringify(updatedArticle, null, 2),
+      );
+    }
 
     return updatedArticle;
+  }
+
+  async getByDate(date: string): Promise<Article[]> {
+    const dbArticles = db.getArticlesByDate(date);
+    return Promise.all(dbArticles.map((a) => this.load(a.id))).then(
+      (articles) => articles.filter((a): a is Article => a !== null),
+    );
+  }
+
+  async getBySource(sourceId: string): Promise<Article[]> {
+    const dbArticles = db.getArticlesBySource(sourceId);
+    return Promise.all(dbArticles.map((a) => this.load(a.id))).then(
+      (articles) => articles.filter((a): a is Article => a !== null),
+    );
+  }
+
+  async getAll(): Promise<Article[]> {
+    const dbArticles = db.getAllArticles();
+    return Promise.all(dbArticles.map((a) => this.load(a.id))).then(
+      (articles) => articles.filter((a): a is Article => a !== null),
+    );
   }
 }
 

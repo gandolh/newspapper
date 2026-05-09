@@ -1,5 +1,6 @@
-import nlp from 'compromise';
-import { logger } from '../utils/logger.js';
+import nlp from "compromise";
+import { logger } from "../utils/logger.js";
+import { db } from "../storage/database.js";
 
 interface EntityResult {
   people: string[];
@@ -10,14 +11,14 @@ interface EntityResult {
 
 export class EntityExtractor {
   async extractWithCompromise(text: string): Promise<EntityResult> {
-    logger.debug('Extracting entities with compromise');
+    logger.debug("Extracting entities with compromise");
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const doc = nlp(text) as any;
 
-    const people: string[] = doc.people().out('array');
-    const places: string[] = doc.places().out('array');
-    const organizations: string[] = doc.organizations().out('array');
+    const people: string[] = doc.people().out("array");
+    const places: string[] = doc.places().out("array");
+    const organizations: string[] = doc.organizations().out("array");
 
     const events = this.extractEvents(doc);
 
@@ -25,13 +26,15 @@ export class EntityExtractor {
       people: [...new Set(people)],
       places: [...new Set(places)],
       organizations: [...new Set(organizations)],
-      events: [...new Set(events)]
+      events: [...new Set(events)],
     };
   }
 
   async extractWithTransformers(text: string): Promise<EntityResult> {
-    logger.debug('Extracting entities with transformers (not yet implemented)');
-    logger.warn('Transformers-based NER not implemented yet, falling back to compromise');
+    logger.debug("Extracting entities with transformers (not yet implemented)");
+    logger.warn(
+      "Transformers-based NER not implemented yet, falling back to compromise",
+    );
     return await this.extractWithCompromise(text);
   }
 
@@ -41,10 +44,10 @@ export class EntityExtractor {
 
     const eventPatterns = [
       /\b(summit|conference|meeting|election|vote|referendum|protest|strike|war|conflict|crisis|disaster|attack|incident)\b/gi,
-      /\b(announced|declared|signed|launched|unveiled|revealed|introduced)\b/gi
+      /\b(announced|declared|signed|launched|unveiled|revealed|introduced)\b/gi,
     ];
 
-    const sentences: string[] = doc.sentences().out('array');
+    const sentences: string[] = doc.sentences().out("array");
 
     for (const sentence of sentences) {
       for (const pattern of eventPatterns) {
@@ -54,11 +57,13 @@ export class EntityExtractor {
           const contextWindow = 5;
 
           for (const match of matches) {
-            const index = words.findIndex((w: string) => w.toLowerCase().includes(match.toLowerCase()));
+            const index = words.findIndex((w: string) =>
+              w.toLowerCase().includes(match.toLowerCase()),
+            );
             if (index !== -1) {
               const start = Math.max(0, index - contextWindow);
               const end = Math.min(words.length, index + contextWindow + 1);
-              const context = words.slice(start, end).join(' ');
+              const context = words.slice(start, end).join(" ");
 
               if (context.length > 10 && context.length < 100) {
                 events.push(context);
@@ -72,11 +77,45 @@ export class EntityExtractor {
     return events.slice(0, 10);
   }
 
-  async extract(text: string, method = 'compromise'): Promise<EntityResult> {
-    if (method === 'transformers') {
+  async extract(text: string, method = "compromise"): Promise<EntityResult> {
+    if (method === "transformers") {
       return await this.extractWithTransformers(text);
     }
     return await this.extractWithCompromise(text);
+  }
+
+  normalizeEntityValue(value: string): string {
+    return value.toLowerCase().trim();
+  }
+
+  async extractAndSaveForArticle(
+    articleId: string,
+    text: string,
+    method = "compromise",
+  ): Promise<void> {
+    logger.debug(`Extracting entities for article ${articleId}`);
+
+    const entities = await this.extract(text, method);
+    const extractedAt = new Date().toISOString();
+
+    const saveEntity = (
+      type: string,
+      value: string,
+      context: string | null = null,
+    ) => {
+      const normalized = this.normalizeEntityValue(value);
+      const entityId = db.insertEntity(type, value, normalized);
+      db.linkArticleEntity(articleId, entityId, 1.0, context);
+    };
+
+    entities.people.forEach((person) => saveEntity("person", person));
+    entities.places.forEach((place) => saveEntity("place", place));
+    entities.organizations.forEach((org) => saveEntity("organization", org));
+    entities.events.forEach((event) => saveEntity("event", event, event));
+
+    logger.debug(
+      `Extracted ${entities.people.length} people, ${entities.places.length} places, ${entities.organizations.length} organizations, ${entities.events.length} events`,
+    );
   }
 }
 
