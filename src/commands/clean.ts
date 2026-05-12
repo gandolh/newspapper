@@ -1,11 +1,11 @@
+import { readdir, rm, stat } from 'fs/promises';
+import { join } from 'path';
 import Table from 'cli-table3';
-import { logger } from '../utils/logger.js';
-import { manifestManager } from '../storage/manifest.js';
-import { articleStorage } from '../storage/articles.js';
-import { groupStorage } from '../storage/groups.js';
-import { summaryStorage } from '../storage/summaries.js';
 import inquirer from 'inquirer';
 import ora from 'ora';
+import { db } from '../storage/database.js';
+import { config } from '../utils/config.js';
+import { logger } from '../utils/logger.js';
 
 export function parseOlderThan(value: string, now: Date = new Date()): Date {
   const match = value.match(/^(\d+)d$/);
@@ -16,33 +16,15 @@ export function parseOlderThan(value: string, now: Date = new Date()): Date {
   return cutoff;
 }
 
-interface DeletableEntry {
-  id: string;
-  date: string;
-  status: string;
-  [key: string]: unknown;
-}
-
-export function filterDeletable(
-  entries: DeletableEntry[],
-  cutoff: Date,
-  statusFilter?: string
-): DeletableEntry[] {
-  return entries.filter(entry => {
-    if (new Date(entry.date).getTime() >= cutoff.getTime()) return false;
-    if (statusFilter && entry.status !== statusFilter) return false;
-    return true;
-  });
-}
-
 interface CleanOptions {
   olderThan?: string;
-  status?: string;
   dryRun?: boolean;
   force?: boolean;
 }
 
 export async function cleanCommand(options: CleanOptions): Promise<void> {
+  db.initialize();
+
   const olderThanStr = options.olderThan ?? '30d';
   let cutoff: Date;
   try {
@@ -52,43 +34,52 @@ export async function cleanCommand(options: CleanOptions): Promise<void> {
     process.exit(1);
   }
 
-  await manifestManager.load();
-  const manifest = (manifestManager as unknown as { manifest: {
-    articles: Record<string, { id: string; scrapedAt: string; status: string; title: string }>;
-    groups: Record<string, { id: string; createdAt: string; status: string; articleIds: string[] }>;
-    summaries: Record<string, { id: string; createdAt: string; status: string; groupId: string }>;
-  } }).manifest;
+  const cutoffIso = cutoff.toISOString();
+  logger.info(`Cleaning items older than: ${cutoff.toLocaleDateString()}`);
 
-  const articleEntries = Object.values(manifest.articles).map(a => ({
-    id: a.id, date: a.scrapedAt, status: a.status, title: a.title, type: 'article',
-  }));
-  const groupEntries = Object.values(manifest.groups).map(g => ({
-    id: g.id, date: g.createdAt, status: g.status, title: `Group (${g.articleIds.length} articles)`, type: 'group',
-  }));
-  const summaryEntries = Object.values(manifest.summaries).map(s => ({
-    id: s.id, date: s.createdAt, status: s.status, title: `Summary for group ${s.groupId.slice(0, 8)}…`, type: 'summary',
-  }));
+  // Find old articles in DB
+  const allArticles = db.getAllArticles();
+  const oldArticles = allArticles.filter(a => a.scraped_at < cutoffIso);
 
-  const allEntries = [...articleEntries, ...groupEntries, ...summaryEntries];
-  const toDelete = filterDeletable(allEntries, cutoff!, options.status);
+  // Find old post directories
+  const postsDir = join(config.paths.output, 'posts');
+  let oldPostDirs: string[] = [];
+  try {
+    const entries = await readdir(postsDir);
+    for (const entry of entries) {
+      const dirPath = join(postsDir, entry);
+      const s = await stat(dirPath);
+      if (s.isDirectory() && s.mtime < cutoff) {
+        oldPostDirs.push(dirPath);
+      }
+    }
+  } catch {
+    // no posts dir yet
+  }
 
-  if (toDelete.length === 0) {
-    logger.info('Nothing to delete.');
+  if (oldArticles.length === 0 && oldPostDirs.length === 0) {
+    logger.info('Nothing to delete');
     return;
   }
 
-  const table = new Table({ head: ['Type', 'ID', 'Status', 'Date', 'Title'], colWidths: [10, 12, 12, 13, 35] });
-  for (const entry of toDelete) {
-    const shortId = entry.id.slice(0, 8) + '…';
-    const date = new Date(entry.date).toLocaleDateString();
-    const title = String(entry.title ?? '').slice(0, 32);
-    table.push([String(entry.type), shortId, entry.status, date, title]);
+  // Show what will be deleted
+  if (oldArticles.length > 0) {
+    const table = new Table({ head: ['Date', 'Title', 'Source', 'Status'], colWidths: [12, 45, 18, 12] });
+    for (const a of oldArticles) {
+      const title = a.title.length > 42 ? a.title.slice(0, 41) + '…' : a.title;
+      table.push([new Date(a.scraped_at).toLocaleDateString(), title, a.source_name, a.status]);
+    }
+    console.log(`\nArticles to delete (${oldArticles.length}):`);
+    console.log(table.toString());
   }
-  console.log('\nItems to delete:');
-  console.log(table.toString());
+
+  if (oldPostDirs.length > 0) {
+    console.log(`\nPost directories to delete (${oldPostDirs.length}):`);
+    for (const d of oldPostDirs) console.log(`  ${d}`);
+  }
 
   if (options.dryRun) {
-    logger.info(`Dry run: would delete ${toDelete.length} items.`);
+    logger.info('Dry run — nothing deleted');
     return;
   }
 
@@ -96,30 +87,32 @@ export async function cleanCommand(options: CleanOptions): Promise<void> {
     const { confirm } = await inquirer.prompt<{ confirm: boolean }>([{
       type: 'confirm',
       name: 'confirm',
-      message: `Delete ${toDelete.length} items? This cannot be undone.`,
+      message: `Delete ${oldArticles.length} article(s) and ${oldPostDirs.length} post dir(s)? Cannot be undone.`,
       default: false,
     }]);
     if (!confirm) {
-      logger.info('Deletion cancelled.');
+      logger.info('Cancelled');
       return;
     }
   }
 
-  const spinner = ora('Deleting items...').start();
+  const spinner = ora('Deleting...').start();
   let deleted = 0;
-  let failed = 0;
 
-  for (const entry of toDelete) {
+  if (oldArticles.length > 0) {
+    db.deleteArticlesOlderThan(cutoffIso);
+    db.deletePostsOlderThan(cutoffIso);
+    deleted += oldArticles.length;
+  }
+
+  for (const dir of oldPostDirs) {
     try {
-      if (entry.type === 'article') await articleStorage.delete(entry.id);
-      else if (entry.type === 'group') await groupStorage.delete(entry.id);
-      else if (entry.type === 'summary') await summaryStorage.delete(entry.id);
+      await rm(dir, { recursive: true, force: true });
       deleted++;
-    } catch {
-      failed++;
+    } catch (err) {
+      logger.warn(`Failed to delete ${dir}: ${(err as Error).message}`);
     }
   }
 
-  spinner.succeed(`Deleted ${deleted} item${deleted !== 1 ? 's' : ''}${failed > 0 ? ` (${failed} failed)` : ''}`);
-  logger.success('Clean complete');
+  spinner.succeed(`Deleted ${oldArticles.length} article(s) and ${oldPostDirs.length} post dir(s)`);
 }

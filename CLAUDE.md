@@ -9,7 +9,7 @@ npm run build          # TypeScript compilation to dist/
 npm run test           # Run all tests (vitest)
 npm run test:watch     # Watch mode
 npm run lint           # ESLint on src/
-npm run format         # Prettier on src/
+npm run fmt            # Prettier on src/
 
 # Run a single test file
 npx vitest run src/path/to/file.test.ts
@@ -18,12 +18,11 @@ npx vitest run src/path/to/file.test.ts
 npm start -- <command> [options]
 # or use convenience scripts:
 npm run scrape
-npm run group
-npm run summarize
-npm run generate
-npm run export
-npm run clean
+npm run extract-entities
+npm run post -- --entities "Entity1,Entity2"
+npm run generate -- <post-dir>
 npm run list
+npm run clean
 ```
 
 ## Architecture
@@ -32,51 +31,44 @@ Newspapper is a CLI tool (Node.js + TypeScript) for personal news aggregation �
 
 **Pipeline:**
 ```
-sources.json → scrape → articles (JSON) → group (embeddings) → summarize (LLM/local/template) → generate (Playwright→PNG) → export
+sources.json → scrape → extract-entities → format (REPL) → generate (Playwright→PNG)
 ```
 
 Each step is a separate CLI command. Manual control is a core design principle — no background jobs, no auto-publishing.
 
 ### Module responsibilities
 
-- **`src/commands/`** — CLI handlers; each command orchestrates modules, uses ora spinners, inquirer prompts, and updates the manifest
-- **`src/storage/`** — JSON file I/O; `manifest.ts` is the central index for all articles/groups/summaries and their relationships; update manifest after every write
+- **`src/commands/`** — CLI handlers; each command orchestrates modules, uses ora spinners, inquirer prompts
+- **`src/storage/database.ts`** — SQLite via `better-sqlite3`; single source of truth for all state
 - **`src/scrapers/`** — HTTP (axios+cheerio) is default; Playwright fallback for JS-heavy sites; RSS parser for feeds
-- **`src/nlp/`** — `compromise` for fast entity extraction; `@xenova/transformers` for sentence embeddings used in clustering
-- **`src/summarizers/`** — LLM (OpenAI), local (Ollama), template (rule-based, no AI); selected per command invocation
+- **`src/nlp/entity-extractor.ts`** — `compromise` for fast entity extraction
 - **`src/renderer/`** — Handlebars compiles HTML templates; Playwright screenshots at 1080×1920; Sharp compresses output
 - **`src/utils/config.ts`** — loads `.env` values; `src/utils/logger.ts` — shared logger
 
 ### Data storage
 
-All state lives under `data/` as JSON files (no database):
-
 | Path | Contents |
 |------|----------|
-| `data/manifest.json` | Central index: all article/group/summary IDs, statuses, and relationships |
-| `data/sources.json` | Trusted source configs (URL, CSS selectors, scraper type) |
-| `data/articles/{uuid}.json` | Full article content |
-| `data/groups/{uuid}.json` | Clustered article IDs + centroid + commonEntities |
-| `data/summaries/{uuid}.json` | Slides array + method/tone/design metadata |
-| `data/entities/{uuid}.json` | Extracted people/places/orgs/events per article |
+| `data/newspapper.db` | SQLite: articles, entities, article_entities, posts |
+| `data/sources.json` | Source configs (URL, CSS selectors, scraper type) — static config, not in DB |
+| `output/posts/{date}-{slug}/slides.json` | Generated slides JSON (design + tone + slides array) |
+| `output/posts/{date}-{slug}/slides/` | Rendered PNG images |
 
-Workflow states: `scraped → grouped → reviewed → summarized → generated → published`
+Workflow states: `scraped → processed` (articles), `draft → generated` (posts)
 
 ### Design systems
 
-Two visual themes in `design-systems/*.yaml` (`digital-broadsheet`, `warm-industrial`). Four slide types per theme in `templates/{theme}/{title,body,quote,image-caption}.html`. Slide templates use Handlebars — CSS lint errors in templates are expected and harmless.
+Two visual themes in `design-systems/*.yaml` (`digital-broadsheet`, `warm-industrial`). Default: `warm-industrial`. Three slide types per theme: `title`, `body`, `quote`. Templates in `templates/{theme}/`.
 
 ### LLM integration
 
-- **Ollama** (local, default): must be running; uses Llama 3.2 1B by default
-- **OpenAI**: requires `OPENAI_API_KEY` in `.env`
-- **Template**: rule-based fallback, no AI needed
+**Ollama only** — must be running (`ollama serve`); default model: `llama3.2:1b` (configurable via `OLLAMA_MODEL` in `.env`).
 
-Playwright must have browsers installed (`npx playwright install`) for both scraping JS-heavy sites and rendering slides.
+Playwright must have browsers installed (`npx playwright install`) for scraping JS-heavy sites and rendering slides.
 
 ## Testing
 
-Tests are co-located with source: `src/**/*.test.ts`. Run with `vitest`. Tests cover storage, NLP, scrapers, summarizers, and renderer modules. Commands are tested via integration against real module calls; avoid mocking storage when possible to catch schema drift.
+Tests are co-located with source: `src/**/*.test.ts`. Run with `vitest`.
 
 ## Important constraints
 
@@ -93,7 +85,7 @@ Project documentation lives in `docs/` as a LLM-maintained wiki. `docs/index.md`
 |------|----------|
 | `docs/index.md` | Page catalog — read this to find anything |
 | `docs/log.md` | Append-only change log |
-| `docs/commands.md` | CLI command reference (all 9 commands) |
+| `docs/commands.md` | CLI command reference (all 5 commands) |
 | `docs/architecture.md` | System design and pipeline |
 | `docs/data.md` | All JSON schemas |
 | `docs/modules.md` | Module APIs and usage patterns |

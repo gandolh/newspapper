@@ -1,158 +1,90 @@
-import { manifestManager } from '../storage/manifest.js';
-import { articleStorage } from '../storage/articles.js';
-import { entityStorage } from '../storage/entities.js';
+import { db } from '../storage/database.js';
 import { entityExtractor } from '../nlp/entity-extractor.js';
 import { logger } from '../utils/logger.js';
 import ora from 'ora';
-import inquirer from 'inquirer';
 
-interface EntitySet {
-  people: string[];
-  places: string[];
-  organizations: string[];
-  events: string[];
-}
+const TYPE_LABELS: Record<string, string> = {
+  person: 'People',
+  place: 'Places',
+  organization: 'Orgs',
+  event: 'Events',
+};
 
-interface ExtractEntitiesOptions {
-  method?: string;
-  all?: boolean;
-}
+function printEntitySummary(): void {
+  const articles = db.getArticlesByStatus('processed');
+  if (articles.length === 0) return;
 
-export function formatSingleArticleSummary(title: string, entities: EntitySet): string {
-  const lines: string[] = [`\nExtracted entities from: ${title}`];
-  const categories: [keyof EntitySet, string][] = [
-    ['people', 'People'],
-    ['places', 'Places'],
-    ['organizations', 'Organizations'],
-    ['events', 'Events'],
-  ];
-  for (const [key, label] of categories) {
-    const items = entities[key];
-    if (items.length === 0) continue;
-    const preview = items.slice(0, 5).join(', ');
-    lines.push(`  ${label} (${items.length}): ${preview}`);
-  }
-  return lines.join('\n');
-}
+  const LINE = '─'.repeat(72);
+  console.log('\n' + '═'.repeat(72));
+  console.log(' ARTICLES & ENTITIES');
+  console.log('═'.repeat(72));
 
-export function formatAggregateSummary(entitySets: EntitySet[]): string {
-  const unique = {
-    people: new Set<string>(),
-    places: new Set<string>(),
-    organizations: new Set<string>(),
-    events: new Set<string>(),
-  };
-  for (const set of entitySets) {
-    for (const p of set.people) unique.people.add(p.toLowerCase());
-    for (const p of set.places) unique.places.add(p.toLowerCase());
-    for (const o of set.organizations) unique.organizations.add(o.toLowerCase());
-    for (const e of set.events) unique.events.add(e.toLowerCase());
-  }
-  return [
-    '\nEntity extraction summary:',
-    `  Unique people: ${unique.people.size}`,
-    `  Unique places: ${unique.places.size}`,
-    `  Unique organizations: ${unique.organizations.size}`,
-    `  Unique events: ${unique.events.size}`,
-  ].join('\n');
-}
-
-export async function extractEntitiesCommand(articleId: string | undefined, options: ExtractEntitiesOptions): Promise<void> {
-  await manifestManager.load();
-
-  let articleIds: string[];
-
-  if (articleId) {
-    articleIds = [articleId];
-  } else if (options.all) {
-    const entries = await manifestManager.getArticlesByStatus('scraped');
-    if (entries.length === 0) {
-      logger.warn('No scraped articles found for entity extraction');
-      process.exit(0);
+  for (const article of articles) {
+    const entities = db.getEntitiesByArticle(article.id);
+    const byType: Record<string, string[]> = {};
+    for (const e of entities) {
+      (byType[e.entity_type] ??= []).push(e.entity_value);
     }
-    logger.info(`Extracting entities from ${entries.length} articles`);
-    articleIds = entries.map(e => e.id);
-  } else {
-    const entries = await manifestManager.getArticlesByStatus('scraped');
-    if (entries.length === 0) {
-      logger.warn('No scraped articles found');
-      process.exit(0);
+
+    const title = article.title.length > 65
+      ? article.title.slice(0, 64) + '…'
+      : article.title;
+
+    console.log(`\n  ${title}`);
+    console.log(`  ${article.source_name}`);
+    console.log(LINE);
+
+    const types = ['person', 'place', 'organization', 'event'];
+    let hasAny = false;
+    for (const type of types) {
+      const vals = byType[type];
+      if (vals && vals.length > 0) {
+        const label = TYPE_LABELS[type].padEnd(8);
+        console.log(`  ${label}  ${vals.join(' · ')}`);
+        hasAny = true;
+      }
     }
-    const { selected } = await inquirer.prompt<{ selected: string[] }>([{
-      type: 'checkbox',
-      name: 'selected',
-      message: 'Select articles to extract entities from:',
-      choices: entries.map(e => ({ name: e.title, value: e.id })),
-    }]);
-    if (selected.length === 0) {
-      logger.warn('No articles selected');
-      process.exit(0);
-    }
-    articleIds = selected;
+    if (!hasAny) console.log('  (no entities extracted)');
   }
 
-  const method = options.method ?? 'compromise';
+  console.log('\n' + '═'.repeat(72));
+  logger.info('Next: npm run post -- --entities "<entity1>,<entity2>"');
+}
+
+export async function extractEntitiesCommand(): Promise<void> {
+  db.initialize();
+
+  const articles = db.getArticlesByStatus('scraped');
+  if (articles.length === 0) {
+    logger.warn('No scraped articles found');
+    logger.info('Run "npm run scrape" first');
+    process.exit(0);
+  }
+
+  logger.info(`Extracting entities from ${articles.length} article(s)`);
+
   const spinner = ora('Extracting entities...').start();
   let processed = 0;
-  let skipped = 0;
   let failed = 0;
-  const extractedSets: EntitySet[] = [];
 
-  for (let i = 0; i < articleIds.length; i++) {
-    const id = articleIds[i];
-    spinner.text = `Extracting entities (${i + 1}/${articleIds.length})...`;
-
+  for (const article of articles) {
+    spinner.text = `Extracting (${processed + 1}/${articles.length}): ${article.title.slice(0, 50)}`;
     try {
-      const article = await articleStorage.load(id);
-      if (!article) {
-        logger.warn(`Article ${id} not found`);
-        failed++;
-        continue;
-      }
-
-      const existing = await entityStorage.load(id);
-      if (existing) {
-        spinner.stop();
-        const { overwrite } = await inquirer.prompt<{ overwrite: boolean }>([{
-          type: 'confirm',
-          name: 'overwrite',
-          message: `"${article.title}" already has entities. Overwrite?`,
-          default: false,
-        }]);
-        spinner.start();
-        if (!overwrite) {
-          skipped++;
-          continue;
-        }
-      }
-
-      const entities = await entityExtractor.extract(article.body, method);
-      await entityStorage.save(id, { method, entities });
-      extractedSets.push(entities);
+      await entityExtractor.extractAndSaveForArticle(
+        article.id,
+        `${article.title} ${article.body}`
+      );
+      db.updateArticleStatus(article.id, 'processed');
       processed++;
     } catch (err) {
-      logger.warn(`Failed to extract entities from ${id}: ${(err as Error).message}`);
+      logger.warn(`Failed for "${article.title}": ${(err as Error).message}`);
       failed++;
     }
   }
 
-  const skippedFailed = [
-    skipped > 0 ? `${skipped} skipped` : '',
-    failed > 0 ? `${failed} failed` : '',
-  ].filter(Boolean).join(', ');
+  spinner.succeed(
+    `Extracted entities from ${processed} article(s)${failed > 0 ? ` (${failed} failed)` : ''}`
+  );
 
-  spinner.succeed(`Extracted entities from ${processed} article${processed !== 1 ? 's' : ''}${skippedFailed ? ` (${skippedFailed})` : ''}`);
-
-  if (failed > 0) {
-    logger.warn(`Failed to process ${failed} article${failed !== 1 ? 's' : ''}`);
-  }
-
-  if (articleIds.length === 1 && extractedSets.length === 1 && articleId) {
-    const article = await articleStorage.load(articleId);
-    if (article) {
-      console.log(formatSingleArticleSummary(article.title, extractedSets[0]));
-    }
-  } else if (extractedSets.length > 0) {
-    console.log(formatAggregateSummary(extractedSets));
-  }
+  printEntitySummary();
 }

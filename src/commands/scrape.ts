@@ -1,18 +1,13 @@
-import { sourceManager } from "../storage/sources.js";
-import { articleStorage } from "../storage/articles.js";
-import { scraperOrchestrator } from "../scrapers/index.js";
-import { rssFeedParser } from "../scrapers/rss-parser.js";
-import { entityExtractor } from "../nlp/entity-extractor.js";
-import { db } from "../storage/database.js";
-import { logger } from "../utils/logger.js";
-import ora from "ora";
+import { sourceManager } from '../storage/sources.js';
+import { scraperOrchestrator } from '../scrapers/index.js';
+import { rssFeedParser } from '../scrapers/rss-parser.js';
+import { entityExtractor } from '../nlp/entity-extractor.js';
+import { db } from '../storage/database.js';
+import { logger } from '../utils/logger.js';
+import { v4 as uuidv4 } from 'uuid';
+import ora from 'ora';
 
-export function resolveArticleLimit(
-  cliLimit: number | undefined,
-  sourceMax: number | undefined,
-): number {
-  return cliLimit ?? sourceMax ?? 10;
-}
+const MAX_ARTICLES_PER_SOURCE = 10;
 
 interface ScrapeOptions {
   sources?: string;
@@ -22,122 +17,117 @@ interface ScrapeOptions {
 
 export async function scrapeCommand(options: ScrapeOptions): Promise<void> {
   db.initialize();
-
   await sourceManager.load();
-  let sources = await sourceManager.getEnabled();
 
+  let sources = await sourceManager.getEnabled();
   if (options.sources) {
-    const requested = options.sources.split(",").map((s) => s.trim());
-    sources = sources.filter(
-      (s) => requested.includes(s.id) || requested.includes(s.name),
-    );
+    const requested = options.sources.split(',').map(s => s.trim());
+    sources = sources.filter(s => requested.includes(s.id) || requested.includes(s.name));
   }
 
   if (sources.length === 0) {
-    logger.error("No sources found or enabled");
+    logger.error('No sources found or enabled');
     process.exit(1);
   }
 
-  logger.info(`Scraping ${sources.length} source(s)`);
+  const limit = options.limit ?? MAX_ARTICLES_PER_SOURCE;
+  const today = new Date().toISOString().split('T')[0];
+  logger.info(`Scraping ${sources.length} source(s) — today (${today}), max ${limit}/source`);
 
-  const spinner = ora("Scraping articles...").start();
-  let totalArticles = 0;
+  const spinner = ora('Scraping articles...').start();
+  let totalNew = 0;
+  let totalSkipped = 0;
 
   for (const source of sources) {
     spinner.text = `Scraping ${source.name}...`;
 
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let articles: any[] = [];
+      let rawArticles: any[] = [];
 
-      if (
-        source.rss &&
-        options.method !== "http" &&
-        options.method !== "playwright"
-      ) {
+      if (source.rss && options.method !== 'http' && options.method !== 'playwright') {
         try {
           const feed = await rssFeedParser.parse(source.rss);
-          const limit = resolveArticleLimit(options.limit, source.maxArticles);
-          articles = (feed.articles || []).slice(0, limit);
-          logger.debug(`RSS: ${articles.length} articles from ${source.name}`);
+          rawArticles = (feed.articles || []).slice(0, limit);
         } catch (rssError) {
-          logger.warn(
-            `RSS failed for ${source.name}: ${(rssError as Error).message}`,
-          );
+          logger.warn(`RSS failed for ${source.name}: ${(rssError as Error).message}`);
         }
       }
 
-      if (options.method === "rss" && articles.length === 0) {
-        logger.warn(`No RSS feed configured for ${source.name}`);
-        continue;
-      }
+      if (rawArticles.length === 0 || options.method === 'http' || options.method === 'playwright') {
+        const urls: string[] = rawArticles.length > 0
+          ? rawArticles.map((a: { url?: string }) => a.url as string)
+          : [source.url];
 
-      if (
-        articles.length === 0 ||
-        options.method === "http" ||
-        options.method === "playwright"
-      ) {
-        const urls: string[] =
-          articles.length > 0
-            ? articles.map((a: { url?: string }) => a.url as string)
-            : [source.url];
-
-        const limit = resolveArticleLimit(options.limit, source.maxArticles);
-        articles = [];
-
+        rawArticles = [];
         for (const url of urls.slice(0, limit)) {
           try {
-            const article = await scraperOrchestrator.scrapeArticle(
-              url,
-              source,
-            );
-            articles.push(article);
-          } catch (error) {
-            logger.warn(`Failed to scrape ${url}: ${(error as Error).message}`);
+            const article = await scraperOrchestrator.scrapeArticle(url, source);
+            rawArticles.push(article);
+          } catch (err) {
+            logger.warn(`Failed to scrape ${url}: ${(err as Error).message}`);
           }
         }
       }
 
-      for (const articleData of articles) {
-        const savedArticle = await articleStorage.save({
-          sourceId: source.id,
-          sourceName: source.name,
-          title: String(articleData.title || ""),
-          body: String(articleData.body || ""),
-          url: String(articleData.url || ""),
-          ...articleData,
+      // Filter to today's articles only
+      const todayArticles = rawArticles.filter(a => {
+        const pub = a.publishedAt || a.published_at;
+        if (!pub) return true; // no date = include
+        return String(pub).startsWith(today);
+      });
+
+      let sourceNew = 0;
+      for (const articleData of todayArticles) {
+        const url = String(articleData.url || '');
+        if (!url) continue;
+
+        const existing = db.getArticleByUrl(url);
+        if (existing) {
+          totalSkipped++;
+          continue;
+        }
+
+        const id = uuidv4();
+        const now = new Date().toISOString();
+
+        db.insertArticle({
+          id,
+          source_id: source.id,
+          source_name: source.name,
+          url,
+          title: String(articleData.title || '').trim() || url,
+          author: articleData.author || null,
+          published_at: articleData.publishedAt || articleData.published_at || null,
+          scraped_at: now,
+          body: String(articleData.body || ''),
         });
 
-        if (savedArticle && savedArticle.body) {
+        if (articleData.body) {
           try {
             await entityExtractor.extractAndSaveForArticle(
-              savedArticle.id,
-              `${savedArticle.title} ${savedArticle.body}`,
-              "compromise",
+              id,
+              `${articleData.title} ${articleData.body}`
             );
-          } catch (entityError) {
-            logger.warn(
-              `Failed to extract entities for ${savedArticle.id}: ${(entityError as Error).message}`,
-            );
+          } catch (err) {
+            logger.warn(`Entity extraction failed for ${id}: ${(err as Error).message}`);
           }
         }
 
-        totalArticles++;
+        sourceNew++;
+        totalNew++;
       }
 
-      logger.success(`${source.name}: ${articles.length} articles`);
-    } catch (error) {
-      logger.error(
-        `Failed to scrape ${source.name}: ${(error as Error).message}`,
-      );
+      logger.success(`${source.name}: ${sourceNew} new article(s)`);
+    } catch (err) {
+      logger.error(`Failed to scrape ${source.name}: ${(err as Error).message}`);
     }
   }
 
   spinner.succeed(
-    `Scraped ${totalArticles} articles from ${sources.length} source(s)`,
+    `Done — ${totalNew} new article(s)${totalSkipped > 0 ? `, ${totalSkipped} already saved` : ''}`
   );
 
   await scraperOrchestrator.cleanup();
-
-  logger.info("Next: npm run list -- --type=articles");
+  logger.info('Next: npm run extract-entities');
 }
