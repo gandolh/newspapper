@@ -57,10 +57,9 @@ async function callOllama(ollama: Ollama, prompt: string): Promise<string> {
       { role: 'system', content: 'You are a social media content creator. Respond only with valid JSON.' },
       { role: 'user', content: prompt },
     ],
-    format: 'json',
     options: { temperature: 0.7 },
   });
-  return response.message.content;
+  return response.message.content.replace(/```json\s*/gi, '').replace(/```/g, '').trim();
 }
 
 export async function formatCommand(options: FormatOptions): Promise<void> {
@@ -91,6 +90,8 @@ export async function formatCommand(options: FormatOptions): Promise<void> {
 
   // Check Ollama connection
   const spinner = ora('Connecting to Ollama...').start();
+  process.on('SIGINT', () => { spinner.stop(); process.exit(0); });
+  process.on('SIGTERM', () => { spinner.stop(); process.exit(0); });
   const ollama = new Ollama({ host: config.ollama.host });
   try {
     const models = await ollama.list();

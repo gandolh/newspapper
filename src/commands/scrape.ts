@@ -17,6 +17,7 @@ interface ScrapeOptions {
 
 export async function scrapeCommand(options: ScrapeOptions): Promise<void> {
   db.initialize();
+
   await sourceManager.load();
 
   let sources = await sourceManager.getEnabled();
@@ -35,6 +36,14 @@ export async function scrapeCommand(options: ScrapeOptions): Promise<void> {
   logger.info(`Scraping ${sources.length} source(s) — today (${today}), max ${limit}/source`);
 
   const spinner = ora('Scraping articles...').start();
+
+  const exit = async () => {
+    spinner.stop();
+    await scraperOrchestrator.cleanup();
+    process.exit(0);
+  };
+  process.on('SIGINT', exit);
+  process.on('SIGTERM', exit);
   let totalNew = 0;
   let totalSkipped = 0;
 
@@ -87,6 +96,8 @@ export async function scrapeCommand(options: ScrapeOptions): Promise<void> {
           totalSkipped++;
           continue;
         }
+
+        spinner.text = `[${source.name}] ${String(articleData.title || url).slice(0, 60)}`;
 
         const id = uuidv4();
         const now = new Date().toISOString();

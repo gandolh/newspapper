@@ -10,6 +10,9 @@ output/
 # Playwright
 .playwright/
 
+# Downloaded fonts cache
+fonts/
+
 # Test coverage
 coverage/
 

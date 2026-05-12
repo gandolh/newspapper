@@ -64,6 +64,8 @@ export async function extractEntitiesCommand(): Promise<void> {
   logger.info(`Extracting entities from ${articles.length} article(s)`);
 
   const spinner = ora('Extracting entities...').start();
+  process.on('SIGINT', () => { spinner.stop(); process.exit(0); });
+  process.on('SIGTERM', () => { spinner.stop(); process.exit(0); });
   let processed = 0;
   let failed = 0;
 

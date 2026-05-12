@@ -18,12 +18,36 @@ export function parseOlderThan(value: string, now: Date = new Date()): Date {
 
 interface CleanOptions {
   olderThan?: string;
+  all?: boolean;
   dryRun?: boolean;
   force?: boolean;
 }
 
 export async function cleanCommand(options: CleanOptions): Promise<void> {
   db.initialize();
+
+  if (options.all) {
+    if (!options.force) {
+      const { confirm } = await inquirer.prompt<{ confirm: boolean }>([{
+        type: 'confirm',
+        name: 'confirm',
+        message: 'Delete ALL articles, entities, and posts from DB? Cannot be undone.',
+        default: false,
+      }]);
+      if (!confirm) { logger.info('Cancelled'); return; }
+    }
+
+    const spinner = ora('Purging all data...').start();
+    db.purgeAll();
+
+    const postsDir = join(config.paths.output, 'posts');
+    try {
+      await rm(postsDir, { recursive: true, force: true });
+    } catch { /* dir may not exist */ }
+
+    spinner.succeed('All articles, entities, and posts deleted');
+    return;
+  }
 
   const olderThanStr = options.olderThan ?? '30d';
   let cutoff: Date;

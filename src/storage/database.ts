@@ -230,6 +230,11 @@ export class DatabaseManager {
     const result = this.getDb().prepare('DELETE FROM posts WHERE created_at < ?').run(cutoffIso);
     return result.changes;
   }
+
+  purgeAll(): void {
+    const db = this.getDb();
+    db.exec('DELETE FROM article_entities; DELETE FROM entities; DELETE FROM articles; DELETE FROM posts;');
+  }
 }
 
 export const db = new DatabaseManager();

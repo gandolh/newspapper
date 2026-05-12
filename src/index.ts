@@ -65,6 +65,7 @@ program
 program
   .command('clean')
   .description('Delete old articles and post directories')
+  .option('--all', 'Delete ALL articles, entities, and posts from DB')
   .option('--older-than <days>', 'Delete items older than N days', '30d')
   .option('--dry-run', 'Show what would be deleted without deleting')
   .option('--force', 'Skip confirmation prompt')
