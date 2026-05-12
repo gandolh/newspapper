@@ -74,21 +74,13 @@ const source = await sourceManager.getById(id);
 
 ```typescript
 const article = await scraperOrchestrator.scrapeArticle(url, source);
-await scraperOrchestrator.cleanup(); // close Playwright browser
+await scraperOrchestrator.cleanup();
 ```
 
 ### HttpScraper (`http-scraper.ts`)
 
 ```typescript
 const article = await httpScraper.scrape(url, selectors);
-```
-
-### PlaywrightScraper (`playwright-scraper.ts`)
-
-```typescript
-await playwrightScraper.launch();
-const article = await playwrightScraper.scrape(url, selectors);
-await playwrightScraper.close();
 ```
 
 ### RSSFeedParser (`rss-parser.ts`)
@@ -298,4 +290,3 @@ try {
 - `data/` and `output/` are gitignored — do not commit generated data
 - CSS lint errors in HTML templates are expected (Handlebars variables)
 - Ollama must be running for `--method=local`: `ollama serve`
-- Playwright browsers must be installed: `npx playwright install chromium`

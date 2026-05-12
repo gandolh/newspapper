@@ -13,7 +13,7 @@ program
   .command('scrape')
   .description("Scrape today's articles from news sources (max 10/source)")
   .option('--sources <sources>', 'Comma-separated list of source IDs or names')
-  .option('--method <method>', 'Force scraper method: http, playwright, rss')
+  .option('--method <method>', 'Force scraper method: http, rss')
   .option('--limit <number>', 'Maximum articles per source', parseInt)
   .action(async (options) => {
     const { scrapeCommand } = await import('./commands/scrape.js');

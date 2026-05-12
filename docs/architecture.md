@@ -36,10 +36,10 @@ Groups and summaries still use `data/manifest.json` for backward compatibility (
 | ----------- | ------------------ | ----------------------------------------------------------------------------- |
 | Commands    | `src/commands/`    | CLI handlers; orchestrate all other modules                                   |
 | Storage     | `src/storage/`     | SQLite database (`database.ts`), JSON files, manifest for groups/summaries    |
-| Scrapers    | `src/scrapers/`    | HTTP (axios+cheerio), Playwright, RSS                                         |
+| Scrapers    | `src/scrapers/`    | HTTP (axios+cheerio), RSS                                                     |
 | NLP         | `src/nlp/`         | Entity extraction (compromise), embeddings (@xenova/transformers), clustering |
 | Summarizers | `src/summarizers/` | LLM (OpenAI), local (Ollama), template (rule-based)                           |
-| Renderer    | `src/renderer/`    | Handlebars → HTML → Playwright screenshot → Sharp compression                 |
+| Renderer    | `src/renderer/`    | Canvas-based slide rendering → Sharp compression                              |
 | Utils       | `src/utils/`       | `config.ts` (loads .env), `logger.ts` (shared logger)                         |
 
 ## Storage Strategy
@@ -68,15 +68,12 @@ Groups and summaries still use `data/manifest.json` for backward compatibility (
 
 ## Scraping Strategy
 
-1. Try RSS if `source.rss` is set and `--method` is not `http`/`playwright`
-2. Fall back to HTTP (axios + cheerio) for simple sites
-3. Fall back to Playwright (headless Chromium) for JS-heavy sites
-4. **Automatic entity extraction** after each successful scrape:
+1. Try RSS if `source.rss` is set and `--method` is not `http`
+2. Fall back to HTTP (axios + cheerio) for all sites
+3. **Automatic entity extraction** after each successful scrape:
    - Extract people, places, organizations, events using compromise
    - Store in SQLite with article relationships
    - Enable historical entity tracking
-
-Playwright must be installed separately: `npx playwright install chromium`
 
 ## Summarization Methods
 
@@ -88,7 +85,7 @@ Playwright must be installed separately: `npx playwright install chromium`
 
 ## Rendering
 
-Slides are rendered at 1080×1080px (Instagram post format) by default. Each slide type has an HTML template in `templates/{design}/`. Handlebars fills in variables, Playwright screenshots the result, Sharp compresses the PNG.
+Slides are rendered at 1080×1080px (Instagram post format) using `@napi-rs/canvas` directly — no browser required. Sharp compresses the output PNG.
 
 CSS lint errors in templates are expected — Handlebars variables like `{{colors.surface}}` confuse the linter but work fine at runtime.
 
@@ -108,7 +105,7 @@ See [design-systems.md](design-systems.md) for full visual specs.
 
 **Database:** `better-sqlite3` (SQLite database), `@types/better-sqlite3`
 
-**Scraping:** `axios`, `cheerio`, `playwright`, `rss-parser`
+**Scraping:** `axios`, `cheerio`, `rss-parser`
 
 **NLP/AI:** `compromise`, `@xenova/transformers`, `ollama`, `openai`
 

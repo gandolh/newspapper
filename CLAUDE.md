@@ -40,9 +40,9 @@ Each step is a separate CLI command. Manual control is a core design principle �
 
 - **`src/commands/`** — CLI handlers; each command orchestrates modules, uses ora spinners, inquirer prompts
 - **`src/storage/database.ts`** — SQLite via `better-sqlite3`; single source of truth for all state
-- **`src/scrapers/`** — HTTP (axios+cheerio) is default; Playwright fallback for JS-heavy sites; RSS parser for feeds
+- **`src/scrapers/`** — HTTP (axios+cheerio) default; RSS parser for feeds
 - **`src/nlp/entity-extractor.ts`** — `compromise` for fast entity extraction
-- **`src/renderer/`** — Handlebars compiles HTML templates; Playwright screenshots at 1080×1920; Sharp compresses output
+- **`src/renderer/`** — `@napi-rs/canvas` renders slides at 1080×1080; Sharp compresses output
 - **`src/utils/config.ts`** — loads `.env` values; `src/utils/logger.ts` — shared logger
 
 ### Data storage
@@ -63,8 +63,6 @@ Two visual themes in `design-systems/*.yaml` (`digital-broadsheet`, `warm-indust
 ### LLM integration
 
 **Ollama only** — must be running (`ollama serve`); default model: `llama3.2:1b` (configurable via `OLLAMA_MODEL` in `.env`).
-
-Playwright must have browsers installed (`npx playwright install`) for scraping JS-heavy sites and rendering slides.
 
 ## Testing
 

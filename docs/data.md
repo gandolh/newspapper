@@ -80,7 +80,7 @@ Configured manually. Controls which sources are scraped.
     "name": "The Guardian",
     "url": "https://theguardian.com",
     "rss": "https://theguardian.com/rss",
-    "scraperType": "http | playwright",
+    "scraperType": "http",
     "enabled": true,
     "selectors": {
       "title": "h1.headline",

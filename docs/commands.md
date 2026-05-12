@@ -24,14 +24,14 @@ npm run scrape [options]
 
 Options:
   --sources <ids>    Comma-separated source IDs or names
-  --method <method>  Force method: http | playwright | rss
+  --method <method>  Force method: http | rss
   --limit <n>        Max articles per source (default: 10)
 ```
 
 **Behavior:**
 - Loads enabled sources from `data/sources.json`
 - Filters to today's articles only
-- Tries RSS first; falls back to HTTP (axios+cheerio) or Playwright
+- Tries RSS first; falls back to HTTP (axios+cheerio)
 - Saves each new article directly to SQLite (`data/newspapper.db`)
 - Extracts entities inline and saves to SQLite (status: `scraped`)
 - Skips articles already in DB (deduplication by URL)
@@ -97,7 +97,7 @@ Options:
 
 **File:** `src/commands/generate.ts`
 
-Render slides.json to PNG images using Playwright.
+Render slides.json to PNG images using canvas rendering.
 
 ```bash
 npm run generate -- <post-dir>
@@ -108,12 +108,10 @@ Example:
 
 **Behavior:**
 - Reads `slides.json` from the given post directory
-- Renders each slide to PNG using Handlebars templates + Playwright screenshot
+- Renders each slide to PNG using `@napi-rs/canvas`
 - Compresses images with Sharp
 - Saves images to `<post-dir>/slides/`
 - Updates post status in SQLite to `generated`
-
-**Requires:** `npx playwright install chromium` (one-time setup)
 
 ---
 

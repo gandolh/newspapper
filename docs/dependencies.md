@@ -15,11 +15,6 @@
   - Fast, flexible HTML parsing (jQuery-like API)
   - Used for: extracting content from scraped pages
 
-- **playwright** - `^1.40.0`
-  - Headless browser automation
-  - Used for: JavaScript-heavy sites, screenshot rendering
-  - Note: Downloads browser binaries (~300MB per browser)
-
 - **rss-parser** - `^3.13.0`
   - Parse RSS/Atom feeds
   - Used for: discovering articles from RSS feeds
@@ -185,8 +180,6 @@ ollama pull llama3.2:1b
 # Install all dependencies
 npm install
 
-# Install Playwright browsers
-npx playwright install chromium
 ```
 
 ---
@@ -199,7 +192,6 @@ npx playwright install chromium
 - Total node_modules: ~200MB
 
 ### External Downloads
-- Playwright Chromium: ~300MB
 - @xenova/transformers models: ~100-500MB (on first use)
 - Ollama + Llama 3.2 1B: ~1GB
 
@@ -272,12 +264,6 @@ DEFAULT_RETENTION_DAYS=30
 
 ## Dependency Rationale
 
-### Why Playwright over Puppeteer?
-- Better cross-browser support
-- More modern API
-- Better TypeScript support
-- Active development
-
 ### Why compromise over spaCy?
 - Pure JavaScript (no Python dependency)
 - Lightweight (~2MB vs ~500MB)
@@ -305,19 +291,6 @@ DEFAULT_RETENTION_DAYS=30
 ---
 
 ## Potential Issues & Solutions
-
-### Issue: Playwright installation fails
-**Solution:** Install system dependencies
-```bash
-# Ubuntu/Debian
-sudo apt-get install libgbm1 libnss3 libatk-bridge2.0-0
-
-# macOS
-# Usually works out of the box
-
-# Windows
-# Install Visual C++ Redistributable
-```
 
 ### Issue: sharp installation fails
 **Solution:** Install build tools
@@ -360,7 +333,6 @@ If disk space or installation is an issue:
 ### Minimal Setup (No ML)
 Remove:
 - `@xenova/transformers` (use only compromise)
-- `playwright` (use only axios + cheerio)
 - `ollama`/`openai` (use only template-based summarization)
 
 **Savings:** ~1.5GB disk space
@@ -376,7 +348,6 @@ Use only OpenAI API for summarization
 
 ### Headless Setup (No Image Generation)
 Remove:
-- `playwright`
 - `sharp`
 
 Generate only text summaries, no images

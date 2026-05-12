@@ -54,7 +54,7 @@ export async function scrapeCommand(options: ScrapeOptions): Promise<void> {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let rawArticles: any[] = [];
 
-      if (source.rss && options.method !== 'http' && options.method !== 'playwright') {
+      if (source.rss && options.method !== 'http') {
         try {
           const feed = await rssFeedParser.parse(source.rss);
           rawArticles = (feed.articles || []).slice(0, limit);
@@ -63,7 +63,7 @@ export async function scrapeCommand(options: ScrapeOptions): Promise<void> {
         }
       }
 
-      if (rawArticles.length === 0 || options.method === 'http' || options.method === 'playwright') {
+      if (rawArticles.length === 0 || options.method === 'http') {
         const urls: string[] = rawArticles.length > 0
           ? rawArticles.map((a: { url?: string }) => a.url as string)
           : [source.url];

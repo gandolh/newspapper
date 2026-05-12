@@ -55,9 +55,9 @@ Edit `data/sources.json`. Each source object:
 }
 ```
 
-- `scraperType`: `http` (default) or `playwright` (for JS-heavy sites)
+- `scraperType`: `http` (only supported type)
 - `rss`: optional; if present, RSS is tried first before HTML scraping
-- `selectors`: CSS selectors for extracting content; used by HTTP and Playwright scrapers
+- `selectors`: CSS selectors for extracting content; used by HTTP scraper
 - `enabled`: set to `false` to skip without removing the source
 
 ## One-Time Setup
@@ -65,9 +65,6 @@ Edit `data/sources.json`. Each source object:
 ```bash
 # Install npm dependencies
 npm install
-
-# Install Playwright browser (required for JS-heavy scraping and image rendering)
-npx playwright install chromium
 
 # Install and start Ollama (required for --method=local summarization)
 curl -fsSL https://ollama.com/install.sh | sh
