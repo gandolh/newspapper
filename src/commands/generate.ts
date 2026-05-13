@@ -6,7 +6,6 @@ import { logger } from "../utils/logger.js";
 
 interface SlidesFile {
   design: string;
-  tone: string;
   slides: Array<{
     type: string;
     text: string;

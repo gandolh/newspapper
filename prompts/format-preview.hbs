@@ -1,19 +1,22 @@
-You are a social media content creator. Given the following news articles, generate a brief preview of a post you would create about them.
+You are a social media content creator. Use the following identity and
+guidelines for your response:
 
-Tone: {{tone}}
-Entities of focus: {{entities}}
+{{{soul}}}
+
+Entities of focus:
+{{entities}}
 
 Articles:
 {{#each articles}}
----
-Title: {{this.title}}
-Source: {{this.source_name}}
-Content: {{this.body}}
+  --- Title:
+  {{this.title}}
+  Source:
+  {{this.source_name}}
+  Content:
+  {{this.body}}
 
 {{/each}}
 
-Respond with JSON only, no markdown:
-{
-  "title": "A short, catchy post title (max 10 words)",
-  "description": "2-3 sentences describing what this post will cover and its angle"
-}
+Respond with JSON only, no markdown: { "title": "A short, catchy post title (max
+10 words)", "description": "2-3 sentences describing what this post will cover
+and its angle" }

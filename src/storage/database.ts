@@ -30,7 +30,6 @@ export interface Post {
   entities_used: string;
   slides_path: string;
   design: string;
-  tone: string;
   status: string;
   created_at: string;
 }
@@ -94,7 +93,6 @@ export class DatabaseManager {
         entities_used TEXT NOT NULL,
         slides_path TEXT NOT NULL,
         design TEXT NOT NULL,
-        tone TEXT NOT NULL,
         status TEXT DEFAULT 'draft',
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
       );
@@ -274,8 +272,8 @@ export class DatabaseManager {
     this.getDb()
       .prepare(
         `
-      INSERT INTO posts (id, slug, entities_used, slides_path, design, tone, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO posts (id, slug, entities_used, slides_path, design, status)
+      VALUES (?, ?, ?, ?, ?, ?)
     `,
       )
       .run(
@@ -284,7 +282,6 @@ export class DatabaseManager {
         post.entities_used,
         post.slides_path,
         post.design,
-        post.tone,
         post.status,
       );
   }

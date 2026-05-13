@@ -15,8 +15,8 @@ interface Slide {
 }
 
 interface FormatOptions {
+  soul: string;
   entities: string;
-  tone?: string;
   design?: string;
   maxSlides?: number;
 }
@@ -86,12 +86,12 @@ export async function formatCommand(options: FormatOptions): Promise<void> {
     process.exit(1);
   }
 
-  const tone = options.tone ?? "friendly";
+  const soul = await readFile(join(process.cwd(), "soul.md"), "utf-8");
   const design = options.design ?? "warm-industrial";
   const maxSlides = options.maxSlides ?? 8;
 
   logger.info(`Entities: ${entityNames.join(", ")}`);
-  logger.info(`Tone: ${tone} | Design: ${design}`);
+  logger.info(`Design: ${design}`);
 
   // Find articles matching entities
   const articles = db.getArticlesByContent(entityNames);
@@ -160,7 +160,7 @@ export async function formatCommand(options: FormatOptions): Promise<void> {
 
     try {
       const prompt = previewTpl({
-        tone,
+        soul,
         entities: entityNames.join(", "),
         articles: articleContext,
         feedback: lastFeedback || null,
@@ -206,7 +206,7 @@ export async function formatCommand(options: FormatOptions): Promise<void> {
 
   try {
     const prompt = slidesTpl({
-      tone,
+      soul,
       entities: entityNames.join(", "),
       articles: articleContext,
       maxSlides,
@@ -233,10 +233,7 @@ export async function formatCommand(options: FormatOptions): Promise<void> {
   await mkdir(postDir, { recursive: true });
 
   const slidesPath = join(postDir, "slides.json");
-  await writeFile(
-    slidesPath,
-    JSON.stringify({ design, tone, slides }, null, 2),
-  );
+  await writeFile(slidesPath, JSON.stringify({ design, slides }, null, 2));
 
   // Record in DB
   const postId = uuidv4();
@@ -246,7 +243,6 @@ export async function formatCommand(options: FormatOptions): Promise<void> {
     entities_used: JSON.stringify(entityNames),
     slides_path: slidesPath,
     design,
-    tone,
     status: "draft",
   });
 

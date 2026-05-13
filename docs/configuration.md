@@ -74,17 +74,15 @@ ollama serve
 
 ## Design System Selection
 
-Pass `--design=broadsheet` (default) or `--design=industrial` to `npm run summarize`.
+Pass `--design=broadsheet` (default) or `--design=industrial` to `npm run format`.
 
 Design configs live in `design-systems/digital-broadsheet.yaml` and `design-systems/warm-industrial.yaml`. HTML templates in `templates/{design}/`. See [design-systems.md](design-systems.md) for visual specs.
 
-## Prompt Templates
+## Soul Definition
 
-LLM and local summarization use Handlebars templates in `prompts/`:
+The tone and personality of the generated content is controlled by a single file: `soul.md` in the project root. This file defines the identity, voice, and constraints for the AI summarizer.
 
-- `prompts/summarize-llm.hbs` — OpenAI prompt
-- `prompts/summarize-local.hbs` — Ollama prompt
-- `prompts/summarize-template.hbs` — rule-based template
+Modify this file to change how the posts are written. No other parameters (like --tone) are used.
 
 ## npm Scripts
 

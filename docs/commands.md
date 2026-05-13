@@ -53,13 +53,16 @@ Interactive REPL to generate a post JSON from articles matching given entities.
 
 1. Prompts for entity names (comma-separated)
 2. Queries SQLite for articles linked to given entities
-3. Connects to Ollama, generates a short **preview** (title + description)
+3. Connects to Ollama, loads `soul.md` for personality, and generates a short **preview** (title + description)
 4. Enters REPL loop — type feedback to refine, `ok` to approve, `quit` to cancel
-5. On approval: generates full slides JSON via Ollama
+5. On approval: generates full slides JSON via Ollama using the guidelines from `soul.md`
 6. Saves to `output/posts/{date}-{entities}/slides.json`
 7. Records the post in SQLite (status: `draft`)
 
-**Requires:** Ollama running (`ollama serve`) with model configured in `.env`
+**Requires:**
+
+- Ollama running (`ollama serve`) with model configured in `.env`
+- A valid `soul.md` file in the root directory.
 
 ---
 
