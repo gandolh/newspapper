@@ -1,7 +1,6 @@
-import axios, { AxiosInstance } from 'axios';
-import * as cheerio from 'cheerio';
-import { config } from '../utils/config.js';
-import { logger } from '../utils/logger.js';
+import axios, { AxiosInstance } from "axios";
+import { config } from "../utils/config.js";
+import { logger } from "../utils/logger.js";
 
 interface Selectors {
   title?: string;
@@ -27,33 +26,41 @@ export class HttpScraper {
     this.client = axios.create({
       timeout: config.scraping.timeout,
       headers: {
-        'User-Agent': config.scraping.userAgent
-      }
+        "User-Agent": config.scraping.userAgent,
+      },
     });
   }
 
-  async scrape(url: string, selectors: Selectors = {}): Promise<ScrapedArticle> {
+  async scrape(
+    url: string,
+    selectors: Selectors = {},
+  ): Promise<ScrapedArticle> {
     let retries = 0;
-    let lastError: Error = new Error('Unknown error');
+    let lastError: Error = new Error("Unknown error");
 
     while (retries < config.scraping.maxRetries) {
       try {
         logger.debug(`Fetching ${url} (attempt ${retries + 1})`);
 
         const response = await this.client.get(url);
-        const $ = cheerio.load(response.data as string);
+        const html = response.data as string;
 
         const article: ScrapedArticle = {
           url,
-          title: this.extractText($, selectors.title || 'h1, title'),
-          author: this.extractText($, selectors.author),
-          publishedAt: this.extractDate($, selectors.date),
-          body: this.extractBody($, selectors.body),
-          image: this.extractImage($, selectors.image, url)
+          title: this.extractTagContent(html, selectors.title || "h1"),
+          author: this.extractTagContent(html, selectors.author),
+          publishedAt: this.extractTagContent(html, selectors.date),
+          body: this.extractTagContent(html, selectors.body),
+          image: null, // Simplified for now without cheerio
         };
 
+        if (!article.title) {
+          // Fallback to title tag if h1 fails
+          article.title = this.extractTagContent(html, "title");
+        }
+
         if (!article.title || !article.body) {
-          throw new Error('Failed to extract title or body');
+          throw new Error("Failed to extract title or body");
         }
 
         return article;
@@ -64,85 +71,39 @@ export class HttpScraper {
         if (retries < config.scraping.maxRetries) {
           const delay = Math.pow(2, retries) * 1000;
           logger.debug(`Retry in ${delay}ms...`);
-          await new Promise(resolve => setTimeout(resolve, delay));
+          await new Promise((resolve) => setTimeout(resolve, delay));
         }
       }
     }
 
-    throw new Error(`Failed to scrape ${url} after ${retries} attempts: ${lastError.message}`);
+    throw new Error(
+      `Failed to scrape ${url} after ${retries} attempts: ${lastError.message}`,
+    );
   }
 
-  extractText($: cheerio.CheerioAPI, selector?: string): string | null {
-    if (!selector) return null;
-    const element = $(selector).first();
-    if (!element.length) return null;
-    return element.text().trim();
-  }
-
-  extractDate($: cheerio.CheerioAPI, selector?: string): string | null {
-    if (!selector) return null;
-    const element = $(selector).first();
-    if (!element.length) return null;
-    const datetime = element.attr('datetime') || element.text().trim();
-    try {
-      return new Date(datetime).toISOString();
-    } catch {
-      return null;
+  private extractTagContent(
+    html: string,
+    tag: string | undefined,
+  ): string | null {
+    if (!tag) return null;
+    const regex = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, "i");
+    const match = html.match(regex);
+    if (match && match[1]) {
+      return this.cleanText(match[1]);
     }
-  }
-
-  extractBody($: cheerio.CheerioAPI, selector?: string): string | null {
-    if (!selector) {
-      const possibleSelectors = [
-        'article',
-        '[role="article"]',
-        '.article-content',
-        '.post-content',
-        'main article',
-        '.entry-content'
-      ];
-      for (const sel of possibleSelectors) {
-        const element = $(sel).first();
-        if (element.length) {
-          return this.cleanText(element.text());
-        }
-      }
-      return null;
-    }
-    const element = $(selector).first();
-    if (!element.length) return null;
-    return this.cleanText(element.text());
-  }
-
-  extractImage($: cheerio.CheerioAPI, selector?: string, baseUrl?: string): string | null {
-    if (!selector) {
-      const possibleSelectors = [
-        'meta[property="og:image"]',
-        'meta[name="twitter:image"]',
-        'article img',
-        '.article-image img'
-      ];
-      for (const sel of possibleSelectors) {
-        const element = $(sel).first();
-        if (element.length) {
-          const src = element.attr('content') || element.attr('src');
-          if (src) return this.resolveUrl(src, baseUrl || '');
-        }
-      }
-      return null;
-    }
-    const element = $(selector).first();
-    if (!element.length) return null;
-    const src = element.attr('content') || element.attr('src');
-    return src ? this.resolveUrl(src, baseUrl || '') : null;
+    return null;
   }
 
   cleanText(text: string): string {
-    return text.replace(/\s+/g, ' ').replace(/\n+/g, '\n').trim();
+    return text
+      .replace(/<[^>]*>?/gm, "")
+      .replace(/\s+/g, " ")
+      .replace(/\n+/g, "\n")
+      .trim();
   }
 
   resolveUrl(url: string, baseUrl: string): string {
-    if (url.startsWith('http')) return url;
+    if (url.startsWith("http")) return url;
     try {
       const base = new URL(baseUrl);
       return new URL(url, base.origin).href;

@@ -36,6 +36,9 @@ npx playwright install chromium
 curl -fsSL https://ollama.com/install.sh | sh
 ollama pull llama3.2:1b
 
+# Login to Ollama before starting to use it from the app
+ollama login
+
 # Copy environment file
 cp .env.example .env
 # Edit .env and add your OpenAI API key if using API summarization
@@ -64,112 +67,50 @@ cp .env.example .env
 ]
 ```
 
-2. **Scrape articles (with automatic entity extraction):**
+2. **Start the application:**
 
 ```bash
-npm run scrape
+npm start
 ```
+
+- This launches the interactive menu where you can:
+  - **Scrape articles**: Fetches today's news and saves them to SQLite.
+  - **Extract entities**: Identifies people, places, and organizations.
+  - **Format post**: Uses Ollama to generate a post preview and slides based on selected entities.
+  - **Generate slides**: Renders the approved post into high-quality images.
+  - **List items**: Browse articles, entities, and posts.
+  - **Clean data**: Manage database size by removing old records.
 
 - Articles are saved to `data/raw-articles/YYYY-MM-DD/source-id/`
-- Entities are automatically extracted and stored in SQLite database
+- Entities and metadata are stored in the SQLite database.
 
-3. **List articles and entities:**
+## Interactive Menu Options
 
-```bash
-npm run list --type=articles
-npm run list --type=entities
-```
+The application uses a single entry point (`npm start`) with the following options:
 
-4. **Query entities:**
+### Scrape Articles
 
-```bash
-npm run query-entities --type=person --name="Biden" --days=30
-```
+Fetches today's articles from enabled sources in `data/sources.json`. It filters for today's date and deduplicates by URL.
 
-5. **Group similar articles:**
+### Extract Entities
 
-```bash
-npm run group
-```
+Processes articles with status `scraped` to identify and link entities (People, Places, Orgs, Events).
 
-6. **Summarize a group:**
+### Format Post
 
-```bash
-npm run summarize <group-id> --method=local --tone=analytical
-```
+Interactive REPL to build a social media post. Requires Ollama to be running. You provide entity names, and it generates a preview for your feedback before finalizing slides.
 
-7. **Generate images:**
+### Generate Slides
 
-```bash
-npm run generate <group-id>
-```
+Select a formatted post to render into images. Uses `@napi-rs/canvas` and Sharp for high-quality output.
 
-8. **Export package:**
+### List Items
 
-```bash
-npm run export <group-id>
-```
+View articles, entities, or posts in a tabular format.
 
-## CLI Commands
+### Clean Data
 
-### Scraping
-
-```bash
-npm run scrape [--sources=source1,source2]
-```
-
-### Grouping
-
-```bash
-npm run group [--threshold=0.75] [--method=embeddings|entities]
-```
-
-### Entity Extraction
-
-```bash
-npm run extract-entities <article-id> [--method=compromise|transformers]
-npm run extract-entities --all
-```
-
-### Entity Search
-
-```bash
-npm run query-entities --type=person --name="Biden" [--days=30] [--timeline]
-# Types: person, place, organization, event
-```
-
-### Summarization
-
-```bash
-npm run summarize <group-id> \
-  --method=llm|local|nlp \
-  --tone=optimistic|analytical \
-  --design=broadsheet|industrial \
-  [--max-slides=8] \
-  [--emphasis="key point"]
-```
-
-### Image Generation
-
-```bash
-npm run generate <group-id>
-```
-
-### Export
-
-```bash
-npm run export <group-id> [--destination=/path/to/export]
-```
-
-### Maintenance
-
-```bash
-npm run list --type=articles [--status=scraped] [--source=example-news]
-npm run list --type=entities [--status=person]
-npm run list --type=groups
-npm run list --type=summaries
-npm run clean [--older-than=30d] [--status=published] [--dry-run]
-```
+Remove old database records and post directories (default: older than 30 days).
 
 ## Design Systems
 
@@ -216,30 +157,14 @@ newspapper/
 ## Workflow Example
 
 ```bash
-# 1. Scrape from all enabled sources (automatic entity extraction)
-npm run scrape
+# 1. Start the app
+npm start
 
-# 2. Browse collected articles and entities
-npm run list --type=articles
-npm run list --type=entities
-
-# 3. Query specific entities across articles
-npm run query-entities --type=person --name="Biden" --days=30 --timeline
-
-# 4. Group similar articles
-npm run group --threshold=0.75
-
-# 5. Summarize a specific group
-npm run summarize abc-123 --method=local --tone=analytical --design=broadsheet
-
-# 6. Generate slide images
-npm run generate abc-123
-
-# 7. Export for publishing
-npm run export abc-123
-
-# 8. Clean old data
-npm run clean --older-than=30d --status=published
+# 2. Select "Scrape articles"
+# 3. Select "Extract entities"
+# 4. Select "Format post" -> Enter entities (e.g., "Biden, NATO")
+# 5. Select "Generate slides" -> Pick the post you just formatted
+# 6. Select "Clean data" (optional)
 ```
 
 ## Troubleshooting
@@ -300,7 +225,7 @@ The application now uses a **dual storage system**:
 See `docs/` directory for detailed documentation:
 
 - `architecture.md` - System architecture and design decisions
-- `cli-commands.md` - Complete CLI reference
+- `commands.md` - Interactive menu options reference
 - `design-systems.md` - Design system specifications
 - `dependencies.md` - Dependency list and rationale
 

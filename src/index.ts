@@ -1,77 +1,134 @@
 #!/usr/bin/env node
 
-import { Command } from 'commander';
+import { Command } from "commander";
+import inquirer from "inquirer";
+import { logger } from "./utils/logger.js";
 
 const program = new Command();
 
 program
-  .name('newspapper')
-  .description('Personal news aggregation and slide generation tool')
-  .version('2.0.0');
+  .name("newspapper")
+  .description("Personal news aggregation and slide generation tool")
+  .version("2.0.0");
 
-program
-  .command('scrape')
-  .description("Scrape today's articles from news sources (max 10/source)")
-  .option('--sources <sources>', 'Comma-separated list of source IDs or names')
-  .option('--method <method>', 'Force scraper method: http, rss')
-  .option('--limit <number>', 'Maximum articles per source', parseInt)
-  .action(async (options) => {
-    const { scrapeCommand } = await import('./commands/scrape.js');
-    await scrapeCommand(options);
-  });
+async function mainMenu() {
+  console.clear();
+  console.log("═".repeat(50));
+  console.log("  NEWSPAPPER - Personal News Aggregator");
+  console.log("═".repeat(50) + "\n");
 
-program
-  .command('extract-entities')
-  .description('Extract entities from scraped articles and print summary')
-  .action(async () => {
-    const { extractEntitiesCommand } = await import('./commands/extract-entities.js');
-    await extractEntitiesCommand();
-  });
+  const choices = [
+    { name: "Scrape articles   - Fetch today's news", value: "scrape" },
+    {
+      name: "Extract entities  - Identify people, places, and orgs",
+      value: "extract",
+    },
+    { name: "Format post       - Create a post with AI help", value: "format" },
+    {
+      name: "Generate slides   - Render approved posts to images",
+      value: "generate",
+    },
+    { name: "List items        - Browse articles and data", value: "list" },
+    { name: "Clean data        - Purge old database records", value: "clean" },
+    { name: "Exit              - Close the application", value: "exit" },
+  ];
 
-program
-  .command('format')
-  .description('Generate a post JSON from articles matching given entities (interactive REPL)')
-  .requiredOption('--entities <entities>', 'Comma-separated entity names to build post around')
-  .option('--tone <tone>', 'Tone of the post', 'friendly')
-  .option('--design <design>', 'Design system: warm-industrial, digital-broadsheet', 'warm-industrial')
-  .option('--max-slides <number>', 'Maximum number of slides', parseInt, 8)
-  .action(async (options) => {
-    const { formatCommand } = await import('./commands/format.js');
-    await formatCommand(options);
-  });
+  while (true) {
+    let action: string;
+    try {
+      const answers = await (inquirer.prompt as any)([
+        {
+          type: "list",
+          name: "action",
+          message: "Select an action:",
+          choices,
+          pageSize: 10,
+        },
+      ]);
+      action = answers.action;
+    } catch (error: any) {
+      // Handle Ctrl+C (SIGINT) gracefully
+      console.log("\n");
+      logger.info("Goodbye!");
+      process.exit(0);
+    }
 
-program
-  .command('generate')
-  .description('Generate slide images from an approved post directory')
-  .argument('<post-dir>', 'Path to post directory containing slides.json')
-  .action(async (postDir) => {
-    const { generateCommand } = await import('./commands/generate.js');
-    await generateCommand(postDir);
-  });
+    if (action === "exit") {
+      logger.info("Goodbye!");
+      process.exit(0);
+    }
 
-program
-  .command('list')
-  .description('List articles, entities, or posts')
-  .option('--type <type>', 'What to list: articles, entities, posts', 'articles')
-  .option('--status <status>', 'Filter by status (or entity type when --type=entities)')
-  .option('--source <source>', 'Filter by source name (articles only)')
-  .option('--days <number>', 'Only show items from last N days', parseInt)
-  .option('--format <format>', 'Output format: table, json', 'table')
-  .action(async (options) => {
-    const { listCommand } = await import('./commands/list.js');
-    await listCommand(options);
-  });
+    try {
+      switch (action) {
+        case "scrape": {
+          const { scrapeCommand } = await import("./commands/scrape.js");
+          await scrapeCommand({});
+          break;
+        }
+        case "extract": {
+          const { extractEntitiesCommand } =
+            await import("./commands/extract-entities.js");
+          await extractEntitiesCommand();
+          break;
+        }
+        case "format": {
+          const { entities } = await inquirer.prompt([
+            {
+              type: "input",
+              name: "entities",
+              message: "Enter entities to build post around (comma-separated):",
+              validate: (input) =>
+                input.trim().length > 0 || "Entities are required",
+            },
+          ]);
+          const { formatCommand } = await import("./commands/format.js");
+          await formatCommand({ entities });
+          break;
+        }
+        case "generate": {
+          const { db } = await import("./storage/database.js");
+          db.initialize();
+          const posts = db.getAllPosts();
+          if (posts.length === 0) {
+            logger.warn("No posts found. Format a post first.");
+            break;
+          }
+          const { postPath } = await inquirer.prompt([
+            {
+              type: "list",
+              name: "postPath",
+              message: "Select a post to generate slides for:",
+              choices: posts.map((p) => ({
+                name: p.slug,
+                value: p.slides_path.replace("/slides.json", ""),
+              })),
+            },
+          ]);
+          const { generateCommand } = await import("./commands/generate.js");
+          await generateCommand(postPath);
+          break;
+        }
+        case "list": {
+          const { listCommand } = await import("./commands/list.js");
+          await listCommand({ type: "articles" });
+          break;
+        }
+        case "clean": {
+          const { cleanCommand } = await import("./commands/clean.js");
+          await cleanCommand({});
+          break;
+        }
+      }
+    } catch (error) {
+      logger.error(`Error: ${(error as Error).message}`);
+    }
 
-program
-  .command('clean')
-  .description('Delete old articles and post directories')
-  .option('--all', 'Delete ALL articles, entities, and posts from DB')
-  .option('--older-than <days>', 'Delete items older than N days', '30d')
-  .option('--dry-run', 'Show what would be deleted without deleting')
-  .option('--force', 'Skip confirmation prompt')
-  .action(async (options) => {
-    const { cleanCommand } = await import('./commands/clean.js');
-    await cleanCommand(options);
-  });
+    console.log("\n" + "─".repeat(50) + "\n");
+  }
+}
+
+program.action(async () => {
+  await mainMenu();
+});
 
 program.parse();

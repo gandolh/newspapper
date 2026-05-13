@@ -1,24 +1,28 @@
-import { readFile, stat } from 'fs/promises';
-import { join, basename } from 'path';
-import { screenshotRenderer } from '../renderer/screenshot.js';
-import { db } from '../storage/database.js';
-import { logger } from '../utils/logger.js';
-import ora from 'ora';
+import { readFile, stat } from "fs/promises";
+import { join, basename } from "path";
+import { screenshotRenderer } from "../renderer/screenshot.js";
+import { db } from "../storage/database.js";
+import { logger } from "../utils/logger.js";
 
 interface SlidesFile {
   design: string;
   tone: string;
-  slides: Array<{ type: string; text: string; attribution?: string; [key: string]: unknown }>;
+  slides: Array<{
+    type: string;
+    text: string;
+    attribution?: string;
+    [key: string]: unknown;
+  }>;
 }
 
 export async function generateCommand(postDir: string): Promise<void> {
   db.initialize();
 
-  const slidesPath = join(postDir, 'slides.json');
+  const slidesPath = join(postDir, "slides.json");
 
   let slidesData: SlidesFile;
   try {
-    const raw = await readFile(slidesPath, 'utf-8');
+    const raw = await readFile(slidesPath, "utf-8");
     slidesData = JSON.parse(raw) as SlidesFile;
   } catch {
     logger.error(`Cannot read slides.json at: ${slidesPath}`);
@@ -27,25 +31,25 @@ export async function generateCommand(postDir: string): Promise<void> {
   }
 
   if (!slidesData.slides || slidesData.slides.length === 0) {
-    logger.error('slides.json contains no slides');
+    logger.error("slides.json contains no slides");
     process.exit(1);
   }
 
   logger.info(`Rendering ${slidesData.slides.length} slides`);
   logger.info(`Design: ${slidesData.design}`);
 
-  const spinner = ora('Rendering slides...').start();
   let imagePaths: string[];
 
   try {
+    logger.info("Rendering slides...");
     imagePaths = await screenshotRenderer.renderSlides(
       slidesData.slides,
       slidesData.design,
-      postDir
+      postDir,
     );
-    spinner.succeed(`Generated ${imagePaths.length} image(s)`);
+    logger.success(`Generated ${imagePaths.length} image(s)`);
   } catch (err) {
-    spinner.fail('Image generation failed');
+    logger.error("Image generation failed");
     logger.error((err as Error).message);
     process.exit(1);
   } finally {
@@ -62,8 +66,8 @@ export async function generateCommand(postDir: string): Promise<void> {
   // Update post status in DB
   const slug = basename(postDir);
   const posts = db.getAllPosts();
-  const post = posts.find(p => p.slug === slug);
-  if (post) db.updatePostStatus(post.id, 'generated');
+  const post = posts.find((p) => p.slug === slug);
+  if (post) db.updatePostStatus(post.id, "generated");
 
   logger.success(`Images saved to: ${postDir}/slides/`);
 }

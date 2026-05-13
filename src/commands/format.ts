@@ -7,7 +7,6 @@ import { v4 as uuidv4 } from "uuid";
 import { db } from "../storage/database.js";
 import { config } from "../utils/config.js";
 import { logger } from "../utils/logger.js";
-import ora from "ora";
 
 interface Slide {
   type: "title" | "body" | "quote";
@@ -105,15 +104,7 @@ export async function formatCommand(options: FormatOptions): Promise<void> {
   logger.info(`Found ${articles.length} article(s) for these entities`);
 
   // Check Ollama connection
-  const spinner = ora("Connecting to Ollama...").start();
-  process.on("SIGINT", () => {
-    spinner.stop();
-    process.exit(0);
-  });
-  process.on("SIGTERM", () => {
-    spinner.stop();
-    process.exit(0);
-  });
+  logger.info("Connecting to Ollama...");
   const ollama = new Ollama({
     host: config.ollama.host,
   });
@@ -123,14 +114,14 @@ export async function formatCommand(options: FormatOptions): Promise<void> {
       m.name.includes(config.ollama.model.split(":")[0]),
     );
     if (!hasModel) {
-      spinner.fail(`Model ${config.ollama.model} not found`);
+      logger.error(`Model ${config.ollama.model} not found`);
       logger.error(`Available: ${models.models.map((m) => m.name).join(", ")}`);
       logger.info(`Run: ollama pull ${config.ollama.model}`);
       process.exit(1);
     }
-    spinner.succeed("Ollama connected");
+    logger.success("Ollama connected");
   } catch (err) {
-    spinner.fail("Cannot connect to Ollama");
+    logger.error("Cannot connect to Ollama");
     logger.error("Make sure Ollama is running: ollama serve");
     process.exit(1);
   }
@@ -163,7 +154,7 @@ export async function formatCommand(options: FormatOptions): Promise<void> {
   console.log("─".repeat(60));
 
   while (true) {
-    const previewSpinner = ora("Generating preview...").start();
+    logger.info("Generating preview...");
     let preview: { title: string; description: string };
 
     try {
@@ -175,9 +166,8 @@ export async function formatCommand(options: FormatOptions): Promise<void> {
       });
       const raw = await callOllama(ollama, prompt);
       preview = JSON.parse(raw) as { title: string; description: string };
-      previewSpinner.stop();
     } catch (err) {
-      previewSpinner.fail("Preview generation failed");
+      logger.error("Preview generation failed");
       logger.error((err as Error).message);
       rl.close();
       process.exit(1);
@@ -210,7 +200,7 @@ export async function formatCommand(options: FormatOptions): Promise<void> {
   rl.close();
 
   // Generate full slides
-  const slidesSpinner = ora("Generating slides...").start();
+  logger.info("Generating slides...");
   let slides: Slide[];
 
   try {
@@ -227,9 +217,9 @@ export async function formatCommand(options: FormatOptions): Promise<void> {
       throw new Error("Invalid response: missing slides array");
     }
     slides = result.slides;
-    slidesSpinner.succeed(`Generated ${slides.length} slides`);
+    logger.success(`Generated ${slides.length} slides`);
   } catch (err) {
-    slidesSpinner.fail("Slide generation failed");
+    logger.error("Slide generation failed");
     logger.error((err as Error).message);
     process.exit(1);
   }
