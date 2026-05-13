@@ -23,52 +23,36 @@
       font-family: {{typography.body-md.fontFamily}}, sans-serif;
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding: {{spacing.container-margin}};
+      justify-content: flex-start;
+      align-items: flex-start;
+      padding: 120px;
     }
     
     .container {
       width: 100%;
-      max-width: 900px;
-      border: {{shapes.borderWidth}} solid {{colors.outline}};
-      border-radius: {{shapes.borderRadius}};
-      padding: {{spacing.md}};
-      background-color: {{colors.surface-container}};
-      box-shadow: 4px 4px 0 {{colors.outline}};
     }
     
     .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: {{spacing.md}};
-      padding-bottom: {{spacing.sm}};
-      border-bottom: 1px solid {{colors.outline-variant}};
+      margin-bottom: 60px;
     }
     
     .badge {
       font-family: {{typography.label-bold.fontFamily}}, sans-serif;
-      font-size: 12px;
-      font-weight: {{typography.label-bold.fontWeight}};
+      font-size: 14px;
+      font-weight: 700;
       color: {{colors.on-secondary}};
       background-color: {{colors.secondary}};
-      padding: 6px 12px;
-      border-radius: {{shapes.borderRadius}};
+      padding: 8px 16px;
+      border-radius: 4px;
       text-transform: uppercase;
-    }
-    
-    .slide-num {
-      font-family: {{typography.label-bold.fontFamily}}, sans-serif;
-      font-size: {{typography.label-bold.fontSize}};
-      color: {{colors.on-surface-variant}};
+      letter-spacing: 0.1em;
     }
     
     .body-text {
       font-family: {{typography.body-lg.fontFamily}}, sans-serif;
-      font-size: {{typography.body-lg.fontSize}};
-      font-weight: {{typography.body-lg.fontWeight}};
-      line-height: {{typography.body-lg.lineHeight}};
+      font-size: 52px;
+      font-weight: 400;
+      line-height: 1.3;
       color: {{colors.on-surface}};
       white-space: pre-line;
     }
@@ -78,7 +62,6 @@
   <div class="container">
     <div class="header">
       <div class="badge">Newspapper</div>
-      <div class="slide-num">{{slideNumber}}/{{totalSlides}}</div>
     </div>
     <div class="body-text">{{text}}</div>
   </div>

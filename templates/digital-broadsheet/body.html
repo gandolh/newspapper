@@ -22,59 +22,45 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
-      align-items: center;
-      padding: {{spacing.margin}};
+      align-items: flex-start;
+      padding: 100px;
     }
     
     .container {
       width: 100%;
-      max-width: 900px;
-      border: {{shapes.borderWidth}} solid {{colors.outline}};
-      padding: {{spacing.gutter}};
-      background-color: {{colors.surface-container}};
+      border-left: 12px solid {{colors.primary}};
+      padding-left: 60px;
     }
     
     .header {
-      border-bottom: {{shapes.borderWidth}} solid {{colors.outline-variant}};
-      padding-bottom: 16px;
-      margin-bottom: {{spacing.gutter}};
+      margin-bottom: 48px;
     }
     
     .meta {
       font-family: {{typography.meta-technical.fontFamily}}, monospace;
-      font-size: {{typography.meta-technical.fontSize}};
-      font-weight: {{typography.meta-technical.fontWeight}};
-      letter-spacing: {{typography.meta-technical.letterSpacing}};
+      font-size: 20px;
+      font-weight: 500;
+      letter-spacing: 0.15em;
       color: {{colors.on-surface-variant}};
       text-transform: uppercase;
-      margin-bottom: 12px;
     }
     
     .body-text {
       font-family: {{typography.body-lg.fontFamily}}, serif;
-      font-size: {{typography.body-lg.fontSize}};
-      font-weight: {{typography.body-lg.fontWeight}};
-      line-height: {{typography.body-lg.lineHeight}};
+      font-size: 48px;
+      font-weight: 400;
+      line-height: 1.4;
       color: {{colors.on-surface}};
       white-space: pre-line;
-    }
-    
-    .slide-number {
-      font-family: {{typography.label-sm.fontFamily}}, monospace;
-      font-size: {{typography.label-sm.fontSize}};
-      color: {{colors.on-surface-variant}};
-      text-align: right;
-      margin-top: {{spacing.gutter}};
     }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <div class="meta">{{slideNumber}}/{{totalSlides}}</div>
+      <div class="meta">NEWSPAPPER</div>
     </div>
     <div class="body-text">{{text}}</div>
-    <div class="slide-number">NEWSPAPPER</div>
   </div>
 </body>
 </html>

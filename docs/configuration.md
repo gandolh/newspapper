@@ -80,9 +80,7 @@ Design configs live in `design-systems/digital-broadsheet.yaml` and `design-syst
 
 ## Soul Definition
 
-The tone and personality of the generated content is controlled by a single file: `soul.md` in the project root. This file defines the identity, voice, and constraints for the AI summarizer.
-
-Modify this file to change how the posts are written. No other parameters (like --tone) are used.
+The tone and personality of the generated content is controlled by a single file: `soul.md` in the project root. This file defines the identity, voice, and constraints for the AI summarizer. No other parameters are used.
 
 ## npm Scripts
 

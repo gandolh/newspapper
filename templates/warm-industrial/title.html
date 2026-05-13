@@ -23,64 +23,36 @@
       font-family: {{typography.body-md.fontFamily}}, sans-serif;
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding: {{spacing.container-margin}};
-    }
-    
-    .container {
-      width: 100%;
-      max-width: 900px;
-      border: {{shapes.borderWidth}} solid {{colors.outline}};
-      border-radius: {{shapes.borderRadius}};
-      padding: {{spacing.lg}};
-      background-color: {{colors.surface-container}};
-      box-shadow: 4px 4px 0 {{colors.outline}};
+      justify-content: flex-end;
+      align-items: flex-start;
+      padding: 100px;
     }
     
     .badge {
-      display: inline-block;
       font-family: {{typography.label-bold.fontFamily}}, sans-serif;
-      font-size: {{typography.label-bold.fontSize}};
-      font-weight: {{typography.label-bold.fontWeight}};
+      font-size: 20px;
+      font-weight: 800;
       color: {{colors.on-primary}};
       background-color: {{colors.primary}};
-      padding: 8px 16px;
-      border-radius: {{shapes.borderRadius}};
+      padding: 12px 24px;
+      border-radius: 0;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: {{spacing.md}};
+      letter-spacing: 0.1em;
+      margin-bottom: 40px;
     }
     
     .title {
-      font-family: {{typography.headline-lg.fontFamily}}, sans-serif;
-      font-size: {{typography.headline-lg.fontSize}};
-      font-weight: {{typography.headline-lg.fontWeight}};
-      line-height: {{typography.headline-lg.lineHeight}};
-      letter-spacing: {{typography.headline-lg.letterSpacing}};
+      font-family: {{typography.display.fontFamily}}, sans-serif;
+      font-size: 96px;
+      font-weight: 800;
+      line-height: 0.95;
       color: {{colors.on-surface}};
-    }
-    
-    .meta {
-      font-family: {{typography.label-bold.fontFamily}}, sans-serif;
-      font-size: {{typography.label-bold.fontSize}};
-      font-weight: {{typography.label-bold.fontWeight}};
-      color: {{colors.on-surface-variant}};
-      margin-top: {{spacing.md}};
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      text-transform: uppercase;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="badge">Newspapper</div>
-    <h1 class="title">{{text}}</h1>
-    <div class="meta">
-      <span>News Summary</span>
-      <span>{{slideNumber}}/{{totalSlides}}</span>
-    </div>
-  </div>
+  <div class="badge">Newspapper</div>
+  <h1 class="title">{{text}}</h1>
 </body>
 </html>

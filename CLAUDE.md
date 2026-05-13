@@ -30,6 +30,7 @@ npm run clean
 Newspapper is a CLI tool (Node.js + TypeScript) for personal news aggregation → slide generation.
 
 **Pipeline:**
+
 ```
 sources.json → scrape → extract-entities → format (REPL) → generate (Playwright→PNG)
 ```
@@ -47,12 +48,12 @@ Each step is a separate CLI command. Manual control is a core design principle �
 
 ### Data storage
 
-| Path | Contents |
-|------|----------|
-| `data/newspapper.db` | SQLite: articles, entities, article_entities, posts |
-| `data/sources.json` | Source configs (URL, CSS selectors, scraper type) — static config, not in DB |
-| `output/posts/{date}-{slug}/slides.json` | Generated slides JSON (design + tone + slides array) |
-| `output/posts/{date}-{slug}/slides/` | Rendered PNG images |
+| Path                                     | Contents                                                                     |
+| ---------------------------------------- | ---------------------------------------------------------------------------- |
+| `data/newspapper.db`                     | SQLite: articles, entities, article_entities, posts                          |
+| `data/sources.json`                      | Source configs (URL, CSS selectors, scraper type) — static config, not in DB |
+| `output/posts/{date}-{slug}/slides.json` | Generated slides JSON (design + slides array)                                |
+| `output/posts/{date}-{slug}/slides/`     | Rendered PNG images                                                          |
 
 Workflow states: `scraped → processed` (articles), `draft → generated` (posts)
 
@@ -79,17 +80,17 @@ Project documentation lives in `docs/` as a LLM-maintained wiki. `docs/index.md`
 
 ### Pages
 
-| File | Contents |
-|------|----------|
-| `docs/index.md` | Page catalog — read this to find anything |
-| `docs/log.md` | Append-only change log |
-| `docs/commands.md` | CLI command reference (all 5 commands) |
-| `docs/architecture.md` | System design and pipeline |
-| `docs/data.md` | All JSON schemas |
-| `docs/modules.md` | Module APIs and usage patterns |
-| `docs/configuration.md` | Env vars, setup, and npm scripts |
-| `docs/design-systems.md` | Visual theme specs |
-| `docs/dependencies.md` | Package list and rationale |
+| File                     | Contents                                  |
+| ------------------------ | ----------------------------------------- |
+| `docs/index.md`          | Page catalog — read this to find anything |
+| `docs/log.md`            | Append-only change log                    |
+| `docs/commands.md`       | CLI command reference (all 5 commands)    |
+| `docs/architecture.md`   | System design and pipeline                |
+| `docs/data.md`           | All JSON schemas                          |
+| `docs/modules.md`        | Module APIs and usage patterns            |
+| `docs/configuration.md`  | Env vars, setup, and npm scripts          |
+| `docs/design-systems.md` | Visual theme specs                        |
+| `docs/dependencies.md`   | Package list and rationale                |
 
 ### Maintenance rules
 

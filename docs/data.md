@@ -60,7 +60,6 @@ Central index. Updated after every write operation. Never modify manually.
       "id": "summary-uuid",
       "groupId": "group-uuid",
       "method": "llm | local | nlp",
-      "tone": "optimistic | analytical",
       "design": "broadsheet | industrial",
       "createdAt": "2026-05-04T22:00:00Z",
       "status": "draft | generated | published"
@@ -140,7 +139,6 @@ Configured manually. Controls which sources are scraped.
   "id": "summary-uuid",
   "groupId": "group-uuid",
   "method": "local",
-  "tone": "analytical",
   "design": "broadsheet",
   "createdAt": "2026-05-04T22:00:00Z",
   "slides": [
@@ -193,7 +191,6 @@ Written by `npm run generate`. Not tracked in manifest.
   "generatedAt": "2026-05-04T23:00:00Z",
   "design": "broadsheet",
   "method": "local",
-  "tone": "analytical",
   "slideCount": 5,
   "articles": [
     {

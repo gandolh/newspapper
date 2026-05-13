@@ -16,8 +16,8 @@ const manifest = await manifestManager.load(); // returns manifest object
 await manifestManager.save();
 
 await manifestManager.addArticle(article);
-await manifestManager.updateArticleStatus(id, 'grouped');
-await manifestManager.getArticlesByStatus('scraped');
+await manifestManager.updateArticleStatus(id, "grouped");
+await manifestManager.getArticlesByStatus("scraped");
 
 // Similar methods for groups and summaries
 ```
@@ -114,7 +114,10 @@ const similarity = embeddingGenerator.cosineSimilarity(vec1, vec2);
 
 ```typescript
 const clusters = await articleClusterer.clusterArticles(articles, threshold);
-const clusters = await articleClusterer.clusterByEntities(articles, entityStorage);
+const clusters = await articleClusterer.clusterByEntities(
+  articles,
+  entityStorage,
+);
 ```
 
 ---
@@ -124,9 +127,13 @@ const clusters = await articleClusterer.clusterByEntities(articles, entityStorag
 ### SummarizerOrchestrator (`index.ts`)
 
 ```typescript
-const slides = await summarizerOrchestrator.summarize(articles, method, options);
+const slides = await summarizerOrchestrator.summarize(
+  articles,
+  method,
+  options,
+);
 // method: 'llm' | 'local' | 'nlp'
-// options: { tone, design, maxSlides, emphasis }
+// options: { design, maxSlides, emphasis }
 const isAvailable = await summarizerOrchestrator.checkLocalLLM();
 ```
 
@@ -151,7 +158,7 @@ const slides = await templateSummarizer.summarize(articles, options);
 ### DesignLoader (`design-loader.ts`)
 
 ```typescript
-const design = await designLoader.load('broadsheet'); // or 'industrial'
+const design = await designLoader.load("broadsheet"); // or 'industrial'
 ```
 
 ### HtmlBuilder (`html-builder.ts`)
@@ -163,7 +170,11 @@ const html = await htmlBuilder.buildSlide(slide, design);
 ### ScreenshotRenderer (`screenshot.ts`)
 
 ```typescript
-const imagePaths = await screenshotRenderer.renderSlides(slides, designName, outputDir);
+const imagePaths = await screenshotRenderer.renderSlides(
+  slides,
+  designName,
+  outputDir,
+);
 await screenshotRenderer.close(); // always close after use
 ```
 
@@ -174,31 +185,31 @@ await screenshotRenderer.close(); // always close after use
 ### Logger (`logger.ts`)
 
 ```typescript
-logger.error('Error message');
-logger.warn('Warning message');
-logger.info('Info message');
-logger.debug('Debug message'); // only shown if LOG_LEVEL=debug
-logger.success('Success message');
-logger.step('Step message');
+logger.error("Error message");
+logger.warn("Warning message");
+logger.info("Info message");
+logger.debug("Debug message"); // only shown if LOG_LEVEL=debug
+logger.success("Success message");
+logger.step("Step message");
 ```
 
 ### Config (`config.ts`)
 
 ```typescript
-config.openai.apiKey
-config.ollama.host        // default: http://localhost:11434
-config.ollama.model       // default: llama3.2:1b
-config.scraping.timeout
-config.scraping.retries
-config.scraping.userAgent
-config.clustering.threshold
-config.clustering.minGroupSize
-config.image.quality
-config.image.format
-config.image.width
-config.image.height
-config.paths.data
-config.paths.output
+config.openai.apiKey;
+config.ollama.host; // default: http://localhost:11434
+config.ollama.model; // default: llama3.2:1b
+config.scraping.timeout;
+config.scraping.retries;
+config.scraping.userAgent;
+config.clustering.threshold;
+config.clustering.minGroupSize;
+config.image.quality;
+config.image.format;
+config.image.width;
+config.image.height;
+config.paths.data;
+config.paths.output;
 // see data.md for full paths list
 ```
 
@@ -209,25 +220,25 @@ config.paths.output
 All commands follow this structure:
 
 ```typescript
-import { logger } from '../utils/logger.js';
-import ora from 'ora';
+import { logger } from "../utils/logger.js";
+import ora from "ora";
 
 export async function commandName(args, options) {
   // 1. Validate input
   if (!args.requiredParam) {
-    logger.error('Missing required parameter');
+    logger.error("Missing required parameter");
     process.exit(1);
   }
 
   // 2. Load data with spinner
-  const spinner = ora('Loading...').start();
+  const spinner = ora("Loading...").start();
   await manifestManager.load();
-  spinner.succeed('Loaded');
+  spinner.succeed("Loaded");
 
   // 3. Process
   try {
     const result = await someModule.process(data);
-    logger.success('Done');
+    logger.success("Done");
   } catch (error) {
     logger.error((error as Error).message);
     process.exit(1);
@@ -238,7 +249,7 @@ export async function commandName(args, options) {
   await manifestManager.save();
 
   // 5. Show next steps
-  logger.info('Next: npm run next-command');
+  logger.info("Next: npm run next-command");
 }
 ```
 
@@ -247,23 +258,28 @@ export async function commandName(args, options) {
 ### Interactive confirmation
 
 ```typescript
-import inquirer from 'inquirer';
+import inquirer from "inquirer";
 
-const { confirmed } = await inquirer.prompt([{
-  type: 'confirm',
-  name: 'confirmed',
-  message: 'Proceed?',
-  default: true,
-}]);
+const { confirmed } = await inquirer.prompt([
+  {
+    type: "confirm",
+    name: "confirmed",
+    message: "Proceed?",
+    default: true,
+  },
+]);
 if (!confirmed) process.exit(0);
 ```
 
 ### Table output
 
 ```typescript
-import Table from 'cli-table3';
+import Table from "cli-table3";
 
-const table = new Table({ head: ['ID', 'Title', 'Status'], colWidths: [12, 50, 15] });
+const table = new Table({
+  head: ["ID", "Title", "Status"],
+  colWidths: [12, 50, 15],
+});
 table.push([item.id, item.title, item.status]);
 console.log(table.toString());
 ```
@@ -275,8 +291,8 @@ try {
   await riskyOperation();
 } catch (error) {
   logger.error(`Operation failed: ${(error as Error).message}`);
-  if ((error as Error).message.includes('API key')) {
-    logger.info('Set OPENAI_API_KEY in .env file');
+  if ((error as Error).message.includes("API key")) {
+    logger.info("Set OPENAI_API_KEY in .env file");
   }
   process.exit(1);
 }

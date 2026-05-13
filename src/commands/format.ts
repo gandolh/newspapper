@@ -9,13 +9,12 @@ import { config } from "../utils/config.js";
 import { logger } from "../utils/logger.js";
 
 interface Slide {
-  type: "title" | "body" | "quote";
+  type: "title" | "body" | "quote" | "image-caption";
   text: string;
   attribution?: string;
 }
 
 interface FormatOptions {
-  soul: string;
   entities: string;
   design?: string;
   maxSlides?: number;
@@ -62,7 +61,7 @@ async function callOllama(ollama: Ollama, prompt: string): Promise<string> {
       {
         role: "system",
         content:
-          "You are a social media content creator. Respond only with valid JSON.",
+          "You are a chill person who likes silly puns. Generate casual Instagram carousel content in JSON format.",
       },
       { role: "user", content: prompt },
     ],

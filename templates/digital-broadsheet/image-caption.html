@@ -21,23 +21,15 @@
       font-family: {{typography.body-md.fontFamily}}, serif;
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding: {{spacing.margin}};
-    }
-    
-    .container {
-      width: 100%;
-      max-width: 900px;
-      border: {{shapes.borderWidth}} solid {{colors.outline}};
-      background-color: {{colors.surface-container}};
+      padding: 0;
     }
     
     .image-container {
       width: 100%;
-      height: 600px;
+      height: 640px;
       background-color: {{colors.surface-dim}};
-      border-bottom: {{shapes.borderWidth}} solid {{colors.outline}};
+      background-size: cover;
+      background-position: center;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -45,45 +37,47 @@
     
     .image-placeholder {
       font-family: {{typography.meta-technical.fontFamily}}, monospace;
-      font-size: {{typography.meta-technical.fontSize}};
+      font-size: 24px;
       color: {{colors.on-surface-variant}};
       text-transform: uppercase;
-      letter-spacing: {{typography.meta-technical.letterSpacing}};
+      letter-spacing: 0.2em;
+      opacity: 0.5;
     }
     
-    .caption {
-      padding: {{spacing.gutter}};
+    .caption-container {
+      flex: 1;
+      padding: 60px 80px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border-top: 8px solid {{colors.primary}};
     }
     
     .caption-text {
-      font-family: {{typography.body-md.fontFamily}}, serif;
-      font-size: {{typography.body-md.fontSize}};
-      line-height: {{typography.body-md.lineHeight}};
+      font-family: {{typography.body-lg.fontFamily}}, serif;
+      font-size: 38px;
+      line-height: 1.4;
       color: {{colors.on-surface}};
-      margin-bottom: 12px;
+      margin-bottom: 24px;
     }
     
     .meta {
-      font-family: {{typography.label-sm.fontFamily}}, monospace;
-      font-size: {{typography.label-sm.fontSize}};
+      font-family: {{typography.meta-technical.fontFamily}}, monospace;
+      font-size: 16px;
+      font-weight: 500;
       color: {{colors.on-surface-variant}};
-      display: flex;
-      justify-content: space-between;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="image-container">
-      <div class="image-placeholder">[IMAGE]</div>
-    </div>
-    <div class="caption">
-      <div class="caption-text">{{text}}</div>
-      <div class="meta">
-        <span>NEWSPAPPER</span>
-        <span>{{slideNumber}}/{{totalSlides}}</span>
-      </div>
-    </div>
+  <div class="image-container">
+    <div class="image-placeholder">[IMAGE]</div>
+  </div>
+  <div class="caption-container">
+    <div class="caption-text">{{text}}</div>
+    <div class="meta">NEWSPAPPER</div>
   </div>
 </body>
 </html>

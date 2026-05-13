@@ -97,6 +97,15 @@ export class DatabaseManager {
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
       );
     `);
+
+    // Migration: Handle legacy 'tone' column
+    const tableInfo = db.prepare("PRAGMA table_info(posts)").all() as any[];
+    const hasTone = tableInfo.some((col) => col.name === "tone");
+    if (hasTone) {
+      // We ignore the column if it exists to avoid breaking existing DBs,
+      // but we no longer use it in our logic.
+    }
+
     logger.debug("Database initialized");
   }
 

@@ -23,65 +23,38 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      padding: {{spacing.margin}};
-      position: relative;
+      padding: 80px;
     }
     
     .container {
       width: 100%;
-      max-width: 900px;
-      border: {{shapes.borderWidth}} solid {{colors.outline}};
-      padding: {{spacing.gutter}};
-      background-color: {{colors.surface-container}};
-    }
-    
-    .masthead {
-      border-bottom: {{shapes.borderWidth}} solid {{colors.outline}};
-      padding-bottom: {{spacing.gutter}};
-      margin-bottom: {{spacing.gutter}};
-    }
-    
-    .title {
-      font-family: {{typography.display-lg.fontFamily}}, serif;
-      font-size: {{typography.display-lg.fontSize}};
-      font-weight: {{typography.display-lg.fontWeight}};
-      line-height: {{typography.display-lg.lineHeight}};
-      letter-spacing: {{typography.display-lg.letterSpacing}};
-      color: {{colors.primary}};
-      margin-bottom: {{spacing.gutter}};
+      text-align: center;
+      border: 4px solid {{colors.primary}};
+      padding: 80px 40px;
     }
     
     .meta {
       font-family: {{typography.meta-technical.fontFamily}}, monospace;
-      font-size: {{typography.meta-technical.fontSize}};
-      font-weight: {{typography.meta-technical.fontWeight}};
-      line-height: {{typography.meta-technical.lineHeight}};
-      letter-spacing: {{typography.meta-technical.letterSpacing}};
-      color: {{colors.on-surface-variant}};
+      font-size: 24px;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      color: {{colors.primary}};
       text-transform: uppercase;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      margin-bottom: 60px;
     }
     
-    .slide-number {
-      font-family: {{typography.label-sm.fontFamily}}, monospace;
-      font-size: {{typography.label-sm.fontSize}};
-      color: {{colors.on-surface-variant}};
-      position: absolute;
-      bottom: {{spacing.gutter}};
-      right: {{spacing.gutter}};
+    .title {
+      font-family: {{typography.display-lg.fontFamily}}, serif;
+      font-size: 80px;
+      font-weight: 700;
+      line-height: 1.1;
+      color: {{colors.on-surface}};
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="masthead">
-      <div class="meta">
-        <span>NEWSPAPPER</span>
-        <span>{{slideNumber}}/{{totalSlides}}</span>
-      </div>
-    </div>
+    <div class="meta">NEWSPAPPER</div>
     <h1 class="title">{{text}}</h1>
   </div>
 </body>

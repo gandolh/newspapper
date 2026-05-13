@@ -23,64 +23,52 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      padding: {{spacing.margin}};
+      padding: 100px;
     }
     
     .container {
       width: 100%;
-      max-width: 900px;
-      border: {{shapes.borderWidth}} solid {{colors.outline}};
-      padding: 48px;
-      background-color: {{colors.surface-container}};
-      position: relative;
+      max-width: 880px;
+      text-align: center;
     }
     
     .quote-mark {
       font-family: {{typography.display-lg.fontFamily}}, serif;
-      font-size: 120px;
-      font-weight: {{typography.display-lg.fontWeight}};
-      color: {{colors.primary-container}};
+      font-size: 160px;
+      color: {{colors.primary}};
       line-height: 1;
-      margin-bottom: 16px;
+      margin-bottom: -20px;
+      opacity: 0.2;
     }
     
     .quote-text {
       font-family: {{typography.headline-md.fontFamily}}, serif;
-      font-size: {{typography.headline-md.fontSize}};
-      font-weight: {{typography.headline-md.fontWeight}};
-      line-height: {{typography.headline-md.lineHeight}};
+      font-size: 56px;
+      font-weight: 600;
+      line-height: 1.2;
       color: {{colors.on-surface}};
-      margin-bottom: {{spacing.gutter}};
+      margin-bottom: 48px;
       font-style: italic;
     }
     
     .attribution {
       font-family: {{typography.meta-technical.fontFamily}}, monospace;
-      font-size: {{typography.meta-technical.fontSize}};
-      font-weight: {{typography.meta-technical.fontWeight}};
-      letter-spacing: {{typography.meta-technical.letterSpacing}};
+      font-size: 20px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
       color: {{colors.on-surface-variant}};
       text-transform: uppercase;
-      border-top: {{shapes.borderWidth}} solid {{colors.outline-variant}};
-      padding-top: 16px;
-    }
-    
-    .slide-number {
-      font-family: {{typography.label-sm.fontFamily}}, monospace;
-      font-size: {{typography.label-sm.fontSize}};
-      color: {{colors.on-surface-variant}};
-      position: absolute;
-      bottom: {{spacing.gutter}};
-      right: {{spacing.gutter}};
+      display: inline-block;
+      border-top: 2px solid {{colors.outline-variant}};
+      padding-top: 20px;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="quote-mark">"</div>
+    <div class="quote-mark">“</div>
     <div class="quote-text">{{text}}</div>
-    <div class="attribution">— {{attribution}}</div>
-    <div class="slide-number">{{slideNumber}}/{{totalSlides}}</div>
+    <div class="attribution">{{attribution}}</div>
   </div>
 </body>
 </html>
