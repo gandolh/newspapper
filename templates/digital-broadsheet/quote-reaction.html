@@ -21,63 +21,54 @@
       font-family: {{typography.body-md.fontFamily}}, serif;
       display: flex;
       flex-direction: column;
-      padding: 0;
-    }
-    
-    .image-container {
-      width: 100%;
-      height: 640px;
-      background-color: {{colors.surface-dim}};
-      background-size: cover;
-      background-position: center;
-      display: flex;
-      align-items: center;
       justify-content: center;
+      align-items: center;
+      padding: 80px;
     }
     
-    .image-placeholder {
+    .container {
+      width: 100%;
+      max-width: 880px;
+      text-align: left;
+    }
+
+    .reaction {
       font-family: {{typography.meta-technical.fontFamily}}, monospace;
       font-size: 24px;
-      color: {{colors.on-surface-variant}};
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      color: {{colors.primary}};
       text-transform: uppercase;
-      letter-spacing: 0.2em;
-      opacity: 0.5;
-    }
-    
-    .caption-container {
-      flex: 1;
-      padding: 60px 80px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      border-top: 8px solid {{colors.primary}};
-    }
-    
-    .caption-text {
-      font-family: {{typography.body-lg.fontFamily}}, serif;
-      font-size: 38px;
-      line-height: 1.4;
-      color: {{colors.on-surface}};
       margin-bottom: 24px;
     }
     
-    .meta {
+    .quote-text {
+      font-family: {{typography.headline-md.fontFamily}}, serif;
+      font-size: 56px;
+      font-weight: 600;
+      line-height: 1.2;
+      color: {{colors.on-surface}};
+      margin-bottom: 48px;
+      font-style: italic;
+      border-left: 4px solid {{colors.primary}};
+      padding-left: 32px;
+    }
+    
+    .attribution {
       font-family: {{typography.meta-technical.fontFamily}}, monospace;
-      font-size: 16px;
+      font-size: 20px;
       font-weight: 500;
-      color: {{colors.on-surface-variant}};
       letter-spacing: 0.1em;
+      color: {{colors.on-surface-variant}};
       text-transform: uppercase;
     }
   </style>
 </head>
 <body>
-  <div class="image-container">
-    <div class="image-placeholder">[IMAGE]</div>
-  </div>
-  <div class="caption-container">
-    <div class="caption-text">{{text}}</div>
-    <div class="meta">NEWSPAPPER</div>
+  <div class="container">
+    <div class="reaction">Wait, what?</div>
+    <div class="quote-text">{{text}}</div>
+    <div class="attribution">{{attribution}}</div>
   </div>
 </body>
 </html>

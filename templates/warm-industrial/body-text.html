@@ -18,51 +18,70 @@
       height: 1080px;
       background-color: {{colors.surface}};
       background-image: 
-        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.02) 2px, rgba(0,0,0,0.02) 4px);
+        linear-gradient(to right, rgba(27, 28, 28, 0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(27, 28, 28, 0.05) 1px, transparent 1px);
+      background-size: 32px 32px;
       color: {{colors.on-surface}};
       font-family: {{typography.body-md.fontFamily}}, sans-serif;
       display: flex;
       flex-direction: column;
-      justify-content: flex-start;
-      align-items: flex-start;
-      padding: 120px;
-    }
-    
-    .container {
-      width: 100%;
+      border: 12px solid {{colors.on-surface}};
+      box-shadow: 16px 16px 0px {{colors.on-surface}};
     }
     
     .header {
-      margin-bottom: 60px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 48px;
+      border-bottom: 12px solid {{colors.on-surface}};
+      background-color: {{colors.surface}};
     }
     
     .badge {
       font-family: {{typography.label-bold.fontFamily}}, sans-serif;
-      font-size: 14px;
-      font-weight: 700;
-      color: {{colors.on-secondary}};
-      background-color: {{colors.secondary}};
-      padding: 8px 16px;
-      border-radius: 4px;
+      font-size: 20px;
+      font-weight: 800;
+      color: {{colors.on-surface}};
+      background-color: {{colors.surface-container-highest}};
+      padding: 12px 24px;
+      border: 4px solid {{colors.primary}};
       text-transform: uppercase;
       letter-spacing: 0.1em;
+      box-shadow: 4px 4px 0px {{colors.on-surface}};
+    }
+    
+    .content {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 100px;
+    }
+    
+    .accent-bar {
+      width: 96px;
+      height: 8px;
+      background-color: {{colors.primary}};
+      margin-bottom: 32px;
     }
     
     .body-text {
       font-family: {{typography.body-lg.fontFamily}}, sans-serif;
-      font-size: 52px;
+      font-size: 48px;
       font-weight: 400;
-      line-height: 1.3;
+      line-height: 1.4;
       color: {{colors.on-surface}};
       white-space: pre-line;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <div class="badge">Newspapper</div>
-    </div>
+  <div class="header">
+    <div class="badge">NEWSPAPPER</div>
+  </div>
+  <div class="content">
+    <div class="accent-bar"></div>
     <div class="body-text">{{text}}</div>
   </div>
 </body>

@@ -18,7 +18,9 @@
       height: 1080px;
       background-color: {{colors.surface}};
       background-image: 
-        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.02) 2px, rgba(0,0,0,0.02) 4px);
+        linear-gradient(to right, rgba(27, 28, 28, 0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(27, 28, 28, 0.05) 1px, transparent 1px);
+      background-size: 32px 32px;
       color: {{colors.on-surface}};
       font-family: {{typography.body-md.fontFamily}}, sans-serif;
       display: flex;
@@ -26,19 +28,24 @@
       justify-content: flex-end;
       align-items: flex-start;
       padding: 100px;
+      border: 20px solid {{colors.on-surface}};
+      position: relative;
     }
     
     .badge {
+      position: absolute;
+      top: 100px;
+      left: 100px;
       font-family: {{typography.label-bold.fontFamily}}, sans-serif;
       font-size: 20px;
       font-weight: 800;
       color: {{colors.on-primary}};
       background-color: {{colors.primary}};
       padding: 12px 24px;
-      border-radius: 0;
+      border: 4px solid {{colors.on-surface}};
       text-transform: uppercase;
       letter-spacing: 0.1em;
-      margin-bottom: 40px;
+      box-shadow: 8px 8px 0px {{colors.on-surface}};
     }
     
     .title {
@@ -48,11 +55,39 @@
       line-height: 0.95;
       color: {{colors.on-surface}};
       text-transform: uppercase;
+      letter-spacing: -0.05em;
+    }
+    
+    .accent-bars {
+      position: absolute;
+      bottom: 100px;
+      right: 100px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .bar {
+      height: 4px;
+      background-color: {{colors.on-surface}};
+      box-shadow: 2px 2px 0px {{colors.on-surface}};
+    }
+    
+    .bar-long {
+      width: 64px;
+    }
+    
+    .bar-short {
+      width: 32px;
     }
   </style>
 </head>
 <body>
   <div class="badge">Newspapper</div>
   <h1 class="title">{{text}}</h1>
+  <div class="accent-bars">
+    <div class="bar bar-long"></div>
+    <div class="bar bar-short"></div>
+  </div>
 </body>
 </html>

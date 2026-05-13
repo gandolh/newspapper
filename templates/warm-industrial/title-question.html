@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@700;800&family=Manrope:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      width: 1080px;
+      height: 1080px;
+      background-color: {{colors.primary}};
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+      background-size: 32px 32px;
+      color: {{colors.on-primary}};
+      font-family: {{typography.body-md.fontFamily}}, sans-serif;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 100px;
+      border: 20px solid {{colors.on-surface}};
+      text-align: center;
+      position: relative;
+    }
+    
+    .badge {
+      position: absolute;
+      top: 80px;
+      right: 80px;
+      font-family: {{typography.label-bold.fontFamily}}, sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      color: {{colors.on-surface}};
+      background-color: {{colors.surface}};
+      padding: 12px 24px;
+      border: 4px solid {{colors.on-surface}};
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      box-shadow: 8px 8px 0px {{colors.on-surface}};
+    }
+    
+    .title {
+      font-family: {{typography.display.fontFamily}}, sans-serif;
+      font-size: 120px;
+      font-weight: 800;
+      line-height: 0.85;
+      color: {{colors.on-primary}};
+      text-transform: uppercase;
+      letter-spacing: -0.05em;
+      text-shadow: 6px 6px 0px {{colors.on-surface}};
+    }
+  </style>
+</head>
+<body>
+  <div class="badge">NEWSPAPPER</div>
+  <h1 class="title">{{text}}</h1>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@700;800&family=Manrope:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      width: 1080px;
+      height: 1080px;
+      background-color: {{colors.surface}};
+      background-image: 
+        linear-gradient(to right, rgba(27, 28, 28, 0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(27, 28, 28, 0.05) 1px, transparent 1px);
+      background-size: 24px 24px;
+      color: {{colors.on-surface}};
+      font-family: {{typography.body-md.fontFamily}}, sans-serif;
+      display: flex;
+      flex-direction: column;
+      border: 20px solid {{colors.on-surface}};
+    }
+    
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 48px;
+      border-bottom: 4px solid {{colors.on-surface}};
+      background-color: {{colors.surface}};
+    }
+    
+    .badge {
+      font-family: {{typography.headline-md.fontFamily}}, sans-serif;
+      font-size: 24px;
+      font-weight: 700;
+      color: {{colors.on-surface}};
+      background-color: {{colors.surface-container-highest}};
+      padding: 12px 24px;
+      border: 4px solid {{colors.primary}};
+      text-transform: uppercase;
+      letter-spacing: -0.02em;
+      box-shadow: 4px 4px 0px {{colors.on-surface}};
+    }
+    
+    .content {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 100px;
+    }
+    
+    .container {
+      background-color: {{colors.surface-container}};
+      border: 4px solid {{colors.on-surface}};
+      padding: 60px;
+      box-shadow: 8px 8px 0px {{colors.on-surface}};
+    }
+    
+    .body-text {
+      font-family: {{typography.body-lg.fontFamily}}, sans-serif;
+      font-size: 42px;
+      font-weight: 400;
+      line-height: 1.6;
+      color: {{colors.on-surface}};
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="badge">NEWSPAPPER</div>
+  </div>
+  <div class="content">
+    <div class="container">
+      <div class="body-text">{{text}}</div>
+    </div>
+  </div>
+</body>
+</html>

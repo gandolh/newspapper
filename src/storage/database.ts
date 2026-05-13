@@ -102,8 +102,23 @@ export class DatabaseManager {
     const tableInfo = db.prepare("PRAGMA table_info(posts)").all() as any[];
     const hasTone = tableInfo.some((col) => col.name === "tone");
     if (hasTone) {
-      // We ignore the column if it exists to avoid breaking existing DBs,
-      // but we no longer use it in our logic.
+      logger.info("Dropping legacy 'tone' column from posts table...");
+      db.exec(`
+        ALTER TABLE posts RENAME TO posts_old;
+        CREATE TABLE posts (
+          id TEXT PRIMARY KEY,
+          slug TEXT NOT NULL,
+          entities_used TEXT NOT NULL,
+          slides_path TEXT NOT NULL,
+          design TEXT NOT NULL,
+          status TEXT DEFAULT 'draft',
+          created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        );
+        INSERT INTO posts (id, slug, entities_used, slides_path, design, status, created_at)
+        SELECT id, slug, entities_used, slides_path, design, status, created_at FROM posts_old;
+        DROP TABLE posts_old;
+      `);
+      logger.success("Database schema updated successfully");
     }
 
     logger.debug("Database initialized");

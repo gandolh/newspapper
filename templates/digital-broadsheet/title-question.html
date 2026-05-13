@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:wght@400;600;700&family=Space+Grotesk:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      width: 1080px;
+      height: 1080px;
+      background-color: {{colors.primary}};
+      color: {{colors.on-primary}};
+      font-family: {{typography.body-md.fontFamily}}, serif;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 80px;
+    }
+    
+    .container {
+      width: 100%;
+      text-align: center;
+      border: 4px solid {{colors.on-primary}};
+      padding: 80px 40px;
+    }
+    
+    .meta {
+      font-family: {{typography.meta-technical.fontFamily}}, monospace;
+      font-size: 24px;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      color: {{colors.on-primary}};
+      text-transform: uppercase;
+      margin-bottom: 60px;
+    }
+    
+    .title {
+      font-family: {{typography.display-lg.fontFamily}}, serif;
+      font-size: 80px;
+      font-weight: 700;
+      line-height: 1.1;
+      color: {{colors.on-primary}};
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="meta">NEWSPAPPER</div>
+    <h1 class="title">{{text}}</h1>
+  </div>
+</body>
+</html>

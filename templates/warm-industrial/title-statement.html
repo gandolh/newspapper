@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@700;800&family=Manrope:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      width: 1080px;
+      height: 1080px;
+      background-color: {{colors.primary-container}};
+      background-image: 
+        linear-gradient(to right, rgba(27, 28, 28, 0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(27, 28, 28, 0.05) 1px, transparent 1px);
+      background-size: 40px 40px;
+      color: {{colors.on-primary-container}};
+      font-family: {{typography.body-md.fontFamily}}, sans-serif;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 100px;
+      border: 20px solid {{colors.on-surface}};
+      position: relative;
+    }
+    
+    .badge-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      width: 100%;
+      position: absolute;
+      top: 100px;
+      left: 100px;
+      right: 100px;
+    }
+    
+    .badge {
+      font-family: {{typography.label-bold.fontFamily}}, sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      color: {{colors.on-surface}};
+      background-color: {{colors.surface}};
+      padding: 12px 24px;
+      border: 2px solid {{colors.on-surface}};
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      box-shadow: 2px 2px 0px {{colors.on-surface}};
+    }
+    
+    .title-wrapper {
+      border-left: 20px solid {{colors.on-surface}};
+      padding-left: 40px;
+      background-color: rgba(27, 28, 28, 0.1);
+      padding-top: 20px;
+      padding-bottom: 20px;
+    }
+    
+    .title {
+      font-family: {{typography.display.fontFamily}}, sans-serif;
+      font-size: 110px;
+      font-weight: 800;
+      line-height: 0.9;
+      color: {{colors.surface}};
+      text-transform: uppercase;
+      letter-spacing: -0.05em;
+      text-shadow: 4px 4px 0px {{colors.on-surface}};
+    }
+  </style>
+</head>
+<body>
+  <div class="badge-container">
+    <div class="badge">NEWSPAPPER</div>
+  </div>
+  <div class="title-wrapper">
+    <h1 class="title">{{text}}</h1>
+  </div>
+</body>
+</html>

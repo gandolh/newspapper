@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 
+import { readdir } from "fs/promises";
+import { join } from "path";
 import inquirer from "inquirer";
+import { config } from "./utils/config.js";
 import { logger } from "./utils/logger.js";
 
 async function mainMenu() {
@@ -73,7 +76,39 @@ async function mainMenu() {
         case "generate": {
           const { db } = await import("./storage/database.js");
           db.initialize();
-          const posts = db.getAllPosts();
+
+          let posts = db.getAllPosts().map((p) => ({
+            name: p.slug,
+            value: p.slides_path.replace("/slides.json", ""),
+          }));
+
+          // Fallback: Check filesystem if DB is empty or missing specific posts
+          if (posts.length === 0) {
+            try {
+              const postsDir = join(config.paths.output, "posts");
+              const entries = await readdir(postsDir, { withFileTypes: true });
+              for (const entry of entries) {
+                if (entry.isDirectory()) {
+                  const slidesPath = join(postsDir, entry.name, "slides.json");
+                  // Simple check for slides.json existence
+                  posts.push({
+                    name: entry.name,
+                    value: join(postsDir, entry.name),
+                  });
+                }
+              }
+              // Deduplicate based on name (slug)
+              const seen = new Set();
+              posts = posts.filter((p) => {
+                if (seen.has(p.name)) return false;
+                seen.add(p.name);
+                return true;
+              });
+            } catch (err) {
+              // Ignore readdir errors (e.g. directory doesn't exist)
+            }
+          }
+
           if (posts.length === 0) {
             logger.warn("No posts found. Format a post first.");
             break;
@@ -83,10 +118,7 @@ async function mainMenu() {
               type: "list",
               name: "postPath",
               message: "Select a post to generate slides for:",
-              choices: posts.map((p) => ({
-                name: p.slug,
-                value: p.slides_path.replace("/slides.json", ""),
-              })),
+              choices: posts,
             },
           ]);
           const { generateCommand } = await import("./commands/generate.js");

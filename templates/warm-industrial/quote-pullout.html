@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@700;800&family=Manrope:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      width: 1080px;
+      height: 1080px;
+      background-color: {{colors.primary-container}};
+      background-image: 
+        linear-gradient(to right, rgba(27, 28, 28, 0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(27, 28, 28, 0.05) 1px, transparent 1px);
+      background-size: 40px 40px;
+      color: {{colors.on-primary-container}};
+      font-family: {{typography.body-md.fontFamily}}, sans-serif;
+      display: flex;
+      flex-direction: column;
+      border: 16px solid {{colors.on-surface}};
+      box-shadow: 12px 12px 0px {{colors.on-surface}};
+      position: relative;
+    }
+    
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding: 48px;
+      border-bottom: 6px solid {{colors.surface}};
+    }
+    
+    .index {
+      font-family: {{typography.label-bold.fontFamily}}, sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: {{colors.surface}};
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    .badge {
+      font-family: {{typography.label-bold.fontFamily}}, sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: {{colors.on-surface}};
+      background-color: {{colors.surface}};
+      padding: 8px 16px;
+      border: 3px solid {{colors.on-surface}};
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    .content {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 100px;
+      text-align: center;
+    }
+    
+    .quote-text {
+      font-family: {{typography.headline-xl.fontFamily}}, sans-serif;
+      font-size: 88px;
+      font-weight: 800;
+      line-height: 0.85;
+      color: {{colors.surface}};
+      text-transform: uppercase;
+      letter-spacing: -0.05em;
+      text-shadow: 6px 6px 0px {{colors.on-surface}};
+      margin-bottom: 60px;
+    }
+    
+    .attribution {
+      font-family: {{typography.label-bold.fontFamily}}, sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      color: {{colors.surface}};
+      text-transform: uppercase;
+      opacity: 0.8;
+      border-top: 4px solid rgba(255, 255, 255, 0.3);
+      padding-top: 30px;
+      display: inline-block;
+    }
+    
+    .bottom-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 48px;
+      border-top: 6px solid {{colors.surface}};
+    }
+    
+    .footer-text {
+      font-family: {{typography.label-bold.fontFamily}}, sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: {{colors.surface}};
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <div class="index">INDEX // 01</div>
+    <div class="badge">QUOTE.REF</div>
+  </div>
+  <div class="content">
+    <div class="quote-text">{{text}}</div>
+    <div class="attribution">{{attribution}}</div>
+  </div>
+  <div class="bottom-bar">
+    <span class="footer-text">Newspapper Industrial</span>
+  </div>
+</body>
+</html>
