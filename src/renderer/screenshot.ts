@@ -35,8 +35,10 @@ const SIZE = 1080;
 function parseLength(v: string | number | undefined): number {
   if (v === undefined || v === null) return 0;
   if (typeof v === "number") return v;
-  if (v.endsWith("rem")) return parseFloat(v) * 16;
-  return parseFloat(v);
+  const s = String(v);
+  if (s.endsWith("rem")) return parseFloat(s) * 16;
+  if (s.endsWith("px")) return parseFloat(s);
+  return parseFloat(s);
 }
 
 function getTypo(t: Record<string, TypoToken>, ...keys: string[]): TypoToken {
@@ -45,54 +47,94 @@ function getTypo(t: Record<string, TypoToken>, ...keys: string[]): TypoToken {
   }
   return {
     fontFamily: "sans-serif",
-    fontSize: "16px",
+    fontSize: "24px",
     fontWeight: "400",
     lineHeight: "1.5",
   };
 }
 
+/**
+ * Robust text wrapping that handles:
+ * 1. Newlines (\n)
+ * 2. Words longer than maxWidth
+ * 3. Empty lines
+ */
 function wrapText(
   ctx: SKRSContext2D,
   text: string,
   maxWidth: number,
 ): string[] {
-  const words = text.split(" ");
+  if (!text) return [];
+  const paragraphs = text.split(/\r?\n/);
   const lines: string[] = [];
-  let current = "";
-  for (const word of words) {
-    const test = current ? `${current} ${word}` : word;
-    if (ctx.measureText(test).width > maxWidth && current) {
-      lines.push(current);
-      current = word;
-    } else {
-      current = test;
+
+  for (const paragraph of paragraphs) {
+    if (paragraph.trim() === "") {
+      lines.push("");
+      continue;
     }
+
+    const words = paragraph.split(" ");
+    let currentLine = "";
+
+    for (const word of words) {
+      const testLine = currentLine ? `${currentLine} ${word}` : word;
+      let metrics = ctx.measureText(testLine);
+
+      if (metrics.width > maxWidth) {
+        if (currentLine) {
+          lines.push(currentLine);
+          currentLine = word;
+          metrics = ctx.measureText(currentLine);
+        }
+
+        // If a single word is wider than maxWidth, break it char by char
+        if (metrics.width > maxWidth) {
+          let wordToBreak = currentLine;
+          currentLine = "";
+          for (const char of wordToBreak) {
+            if (ctx.measureText(currentLine + char).width > maxWidth) {
+              if (currentLine) lines.push(currentLine);
+              currentLine = char;
+            } else {
+              currentLine += char;
+            }
+          }
+        }
+      } else {
+        currentLine = testLine;
+      }
+    }
+    if (currentLine) lines.push(currentLine);
   }
-  if (current) lines.push(current);
   return lines;
 }
 
 function drawBackground(ctx: SKRSContext2D, color: string) {
+  ctx.save();
   ctx.fillStyle = color;
   ctx.fillRect(0, 0, SIZE, SIZE);
+  ctx.restore();
 }
 
 function drawGridTexture(ctx: SKRSContext2D, gridSize = 32, opacity = 0.05, lightGrid = false) {
+  ctx.save();
   const color = lightGrid ? `rgba(255, 255, 255, ${opacity})` : `rgba(27, 28, 28, ${opacity})`;
   ctx.strokeStyle = color;
   ctx.lineWidth = 1;
-  for (let x = 0; x < SIZE; x += gridSize) {
+  for (let x = 0; x <= SIZE; x += gridSize) {
     ctx.beginPath();
     ctx.moveTo(x, 0);
     ctx.lineTo(x, SIZE);
     ctx.stroke();
   }
-  for (let y = 0; y < SIZE; y += gridSize) {
+  for (let y = 0; y <= SIZE; y += gridSize) {
     ctx.beginPath();
     ctx.moveTo(0, y);
     ctx.lineTo(SIZE, y);
     ctx.stroke();
   }
+  ctx.restore();
 }
 
 function drawBlockedShadow(
@@ -105,655 +147,506 @@ function drawBlockedShadow(
   offsetY = 8,
   color = "#1b1c1c"
 ) {
+  ctx.save();
   ctx.fillStyle = color;
   ctx.fillRect(x + offsetX, y + offsetY, w, h);
+  ctx.restore();
 }
 
 function drawStructuralBorder(
   ctx: SKRSContext2D,
-  x: number,
-  y: number,
-  w: number,
-  h: number,
   borderWidth = 20,
   color = "#1b1c1c"
 ) {
+  ctx.save();
   ctx.strokeStyle = color;
   ctx.lineWidth = borderWidth;
-  ctx.strokeRect(x + borderWidth / 2, y + borderWidth / 2, w - borderWidth, h - borderWidth);
+  ctx.strokeRect(borderWidth / 2, borderWidth / 2, SIZE - borderWidth, SIZE - borderWidth);
+  ctx.restore();
 }
 
-// ===== TITLE RENDERERS =====
+function drawBadge(ctx: SKRSContext2D, d: DesignTokens, x: number, y: number, text: string, options: { inverted?: boolean, shadow?: boolean } = {}) {
+  const c = d.colors;
+  const badgeW = 220;
+  const badgeH = 44;
+  
+  if (options.shadow) {
+    drawBlockedShadow(ctx, x, y, badgeW, badgeH, 8, 8, c["on-surface"]);
+  }
+  
+  ctx.save();
+  ctx.fillStyle = options.inverted ? c.surface : c.primary;
+  ctx.fillRect(x, y, badgeW, badgeH);
+  ctx.strokeStyle = c["on-surface"];
+  ctx.lineWidth = 4;
+  ctx.strokeRect(x, y, badgeW, badgeH);
+  
+  const labelTypo = getTypo(d.typography, "label-bold");
+  // Force weight based on what we have registered
+  const weight = labelTypo.fontWeight === '400' ? '400' : '700';
+  ctx.font = `${weight} 20px "${labelTypo.fontFamily}", sans-serif`;
+  ctx.fillStyle = options.inverted ? c["on-surface"] : c["on-primary"];
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, x + badgeW / 2, y + badgeH / 2 + 2);
+  ctx.restore();
+}
+
+// ===== RENDERERS =====
 
 function renderTitleMain(ctx: SKRSContext2D, slide: Slide, d: DesignTokens) {
   const c = d.colors;
   const margin = 100;
-  const borderWidth = 20;
 
   drawBackground(ctx, c.surface);
   drawGridTexture(ctx, 32, 0.05);
-  drawStructuralBorder(ctx, 0, 0, SIZE, SIZE, borderWidth, c["on-surface"]);
+  drawStructuralBorder(ctx, 20, c["on-surface"]);
+  drawBadge(ctx, d, margin, margin, "NEWSPAPPER", { shadow: true });
 
-  // Badge with blocked shadow
-  const badgeX = margin;
-  const badgeY = margin;
-  const badgeW = 220;
-  const badgeH = 44;
-  drawBlockedShadow(ctx, badgeX, badgeY, badgeW, badgeH, 8, 8, c["on-surface"]);
-  ctx.fillStyle = c.primary;
-  ctx.fillRect(badgeX, badgeY, badgeW, badgeH);
-  ctx.strokeStyle = c["on-surface"];
-  ctx.lineWidth = 4;
-  ctx.strokeRect(badgeX, badgeY, badgeW, badgeH);
-  
-  const labelTypo = getTypo(d.typography, "label-bold");
-  ctx.font = `800 20px "${labelTypo.fontFamily}", sans-serif`;
-  ctx.fillStyle = c["on-primary"];
-  ctx.textAlign = "center";
-  ctx.fillText("NEWSPAPPER", badgeX + badgeW / 2, badgeY + 28);
-
-  // Title text at bottom
   const displayTypo = getTypo(d.typography, "display");
-  ctx.font = `800 96px "${displayTypo.fontFamily}", sans-serif`;
+  const fontSize = 96;
+  ctx.save();
+  ctx.font = `800 ${fontSize}px "${displayTypo.fontFamily}", sans-serif`;
   ctx.fillStyle = c["on-surface"];
   ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
   
-  const titleLines = wrapText(ctx, (slide.text || "").toUpperCase(), SIZE - margin * 2);
-  let titleY = SIZE - margin - (titleLines.length * 100);
-  for (const line of titleLines) {
-    ctx.fillText(line, margin, titleY);
-    titleY += 100;
+  const lines = wrapText(ctx, (slide.text || "").toUpperCase(), SIZE - margin * 2);
+  const lineH = fontSize * 1.0;
+  let y = SIZE - margin - (lines.length - 1) * lineH;
+  
+  for (const line of lines) {
+    ctx.fillText(line, margin, y);
+    y += lineH;
   }
+  ctx.restore();
 
-  // Accent bars at bottom right
+  // Accent bars
+  ctx.save();
   const barX = SIZE - margin - 64;
   const barY = SIZE - margin - 50;
   ctx.fillStyle = c["on-surface"];
   ctx.fillRect(barX, barY, 64, 4);
   ctx.fillRect(barX + 32, barY + 12, 32, 4);
+  ctx.restore();
 }
 
 function renderTitleQuestion(ctx: SKRSContext2D, slide: Slide, d: DesignTokens) {
   const c = d.colors;
   const margin = 100;
-  const borderWidth = 20;
 
   drawBackground(ctx, c.primary);
   drawGridTexture(ctx, 32, 0.05, true);
-  drawStructuralBorder(ctx, 0, 0, SIZE, SIZE, borderWidth, c["on-surface"]);
+  drawStructuralBorder(ctx, 20, c["on-surface"]);
+  drawBadge(ctx, d, SIZE - margin - 220, 80, "NEWSPAPPER", { inverted: true, shadow: true });
 
-  // Badge at top right
-  const badgeX = SIZE - 80 - 220;
-  const badgeY = 80;
-  const badgeW = 220;
-  const badgeH = 44;
-  drawBlockedShadow(ctx, badgeX, badgeY, badgeW, badgeH, 8, 8, c["on-surface"]);
-  ctx.fillStyle = c.surface;
-  ctx.fillRect(badgeX, badgeY, badgeW, badgeH);
-  ctx.strokeStyle = c["on-surface"];
-  ctx.lineWidth = 4;
-  ctx.strokeRect(badgeX, badgeY, badgeW, badgeH);
-  
-  const labelTypo = getTypo(d.typography, "label-bold");
-  ctx.font = `800 20px "${labelTypo.fontFamily}", sans-serif`;
-  ctx.fillStyle = c["on-surface"];
-  ctx.textAlign = "center";
-  ctx.fillText("NEWSPAPPER", badgeX + badgeW / 2, badgeY + 28);
-
-  // Centered title with text shadow
   const displayTypo = getTypo(d.typography, "display");
-  ctx.font = `800 120px "${displayTypo.fontFamily}", sans-serif`;
+  const fontSize = 110;
+  ctx.save();
+  ctx.font = `800 ${fontSize}px "${displayTypo.fontFamily}", sans-serif`;
   ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
   
-  const titleLines = wrapText(ctx, (slide.text || "").toUpperCase(), SIZE - margin * 2);
-  let titleY = SIZE / 2 - (titleLines.length * 110) / 2 + 110;
-  
-  // Text shadow
+  const lines = wrapText(ctx, (slide.text || "").toUpperCase(), SIZE - margin * 2);
+  const lineH = fontSize * 0.95;
+  let startY = SIZE / 2 - ((lines.length - 1) * lineH) / 2;
+
+  // Shadow first
   ctx.fillStyle = c["on-surface"];
-  for (const line of titleLines) {
-    ctx.fillText(line, SIZE / 2 + 6, titleY + 6);
-    titleY += 110;
+  let y = startY;
+  for (const line of lines) {
+    ctx.fillText(line, SIZE / 2 + 6, y + 6);
+    y += lineH;
   }
-  
+
   // Main text
   ctx.fillStyle = c["on-primary"];
-  titleY = SIZE / 2 - (titleLines.length * 110) / 2 + 110;
-  for (const line of titleLines) {
-    ctx.fillText(line, SIZE / 2, titleY);
-    titleY += 110;
+  y = startY;
+  for (const line of lines) {
+    ctx.fillText(line, SIZE / 2, y);
+    y += lineH;
   }
+  ctx.restore();
 }
 
 function renderTitleStatement(ctx: SKRSContext2D, slide: Slide, d: DesignTokens) {
   const c = d.colors;
   const margin = 100;
-  const borderWidth = 20;
 
   drawBackground(ctx, c["primary-container"]);
   drawGridTexture(ctx, 40, 0.05);
-  drawStructuralBorder(ctx, 0, 0, SIZE, SIZE, borderWidth, c["on-surface"]);
+  drawStructuralBorder(ctx, 20, c["on-surface"]);
+  drawBadge(ctx, d, margin, margin, "NEWSPAPPER", { inverted: true });
 
-  // Badge at top left
-  const badgeX = margin;
-  const badgeY = margin;
-  const badgeW = 220;
-  const badgeH = 44;
-  ctx.fillStyle = c.surface;
-  ctx.fillRect(badgeX, badgeY, badgeW, badgeH);
-  ctx.strokeStyle = c["on-surface"];
-  ctx.lineWidth = 2;
-  ctx.strokeRect(badgeX, badgeY, badgeW, badgeH);
-  
-  const labelTypo = getTypo(d.typography, "label-bold");
-  ctx.font = `800 20px "${labelTypo.fontFamily}", sans-serif`;
-  ctx.fillStyle = c["on-surface"];
-  ctx.textAlign = "center";
-  ctx.fillText("NEWSPAPPER", badgeX + badgeW / 2, badgeY + 28);
-
-  // Title wrapper with left border
-  const wrapperX = margin;
   const wrapperY = SIZE / 2 - 150;
-  const wrapperW = SIZE - margin * 2;
   const wrapperH = 300;
   
+  ctx.save();
   ctx.fillStyle = "rgba(27, 28, 28, 0.1)";
-  ctx.fillRect(wrapperX + 20, wrapperY, wrapperW - 20, wrapperH);
-  
+  ctx.fillRect(margin + 20, wrapperY, SIZE - margin * 2 - 20, wrapperH);
   ctx.fillStyle = c["on-surface"];
-  ctx.fillRect(wrapperX, wrapperY, 20, wrapperH);
+  ctx.fillRect(margin, wrapperY, 20, wrapperH);
+  ctx.restore();
 
-  // Title text with shadow
   const displayTypo = getTypo(d.typography, "display");
-  ctx.font = `800 110px "${displayTypo.fontFamily}", sans-serif`;
+  const fontSize = 90;
+  ctx.save();
+  ctx.font = `800 ${fontSize}px "${displayTypo.fontFamily}", sans-serif`;
   ctx.textAlign = "left";
+  ctx.textBaseline = "middle";
   
-  const titleLines = wrapText(ctx, (slide.text || "").toUpperCase(), wrapperW - 80);
-  let titleY = wrapperY + 80;
-  
-  // Text shadow
-  ctx.fillStyle = c["on-surface"];
-  for (const line of titleLines) {
-    ctx.fillText(line, wrapperX + 64, titleY + 4);
-    titleY += 110;
-  }
-  
-  // Main text
-  ctx.fillStyle = c.surface;
-  titleY = wrapperY + 80;
-  for (const line of titleLines) {
-    ctx.fillText(line, wrapperX + 60, titleY);
-    titleY += 110;
-  }
-}
+  const lines = wrapText(ctx, (slide.text || "").toUpperCase(), SIZE - margin * 2 - 80);
+  const lineH = fontSize * 1.0;
+  let y = SIZE / 2 - ((lines.length - 1) * lineH) / 2;
 
-// ===== BODY RENDERERS =====
+  // Shadow
+  ctx.fillStyle = c["on-surface"];
+  for (const line of lines) {
+    ctx.fillText(line, margin + 64, y + 4);
+    y += lineH;
+  }
+
+  // Main
+  ctx.fillStyle = c.surface;
+  y = SIZE / 2 - ((lines.length - 1) * lineH) / 2;
+  for (const line of lines) {
+    ctx.fillText(line, margin + 60, y);
+    y += lineH;
+  }
+  ctx.restore();
+}
 
 function renderBodyText(ctx: SKRSContext2D, slide: Slide, d: DesignTokens) {
   const c = d.colors;
-  const margin = 48;
-  const borderWidth = 12;
+  const margin = 100;
+  const headerH = 120;
 
   drawBackground(ctx, c.surface);
   drawGridTexture(ctx, 32, 0.05);
-  
-  // Blocked shadow for entire slide
-  drawBlockedShadow(ctx, 0, 0, SIZE, SIZE, 16, 16, c["on-surface"]);
-  drawStructuralBorder(ctx, 0, 0, SIZE, SIZE, borderWidth, c["on-surface"]);
+  drawStructuralBorder(ctx, 12, c["on-surface"]);
 
-  // Header with badge
-  const headerH = 120;
-  ctx.fillStyle = c.surface;
-  ctx.fillRect(0, 0, SIZE, headerH);
+  ctx.save();
   ctx.strokeStyle = c["on-surface"];
   ctx.lineWidth = 12;
   ctx.beginPath();
   ctx.moveTo(0, headerH);
   ctx.lineTo(SIZE, headerH);
   ctx.stroke();
+  ctx.restore();
 
-  const badgeX = margin;
-  const badgeY = margin;
-  const badgeW = 220;
-  const badgeH = 44;
-  drawBlockedShadow(ctx, badgeX, badgeY, badgeW, badgeH, 4, 4, c["on-surface"]);
-  ctx.fillStyle = c["surface-container-highest"];
-  ctx.fillRect(badgeX, badgeY, badgeW, badgeH);
-  ctx.strokeStyle = c.primary;
-  ctx.lineWidth = 4;
-  ctx.strokeRect(badgeX, badgeY, badgeW, badgeH);
-  
-  const labelTypo = getTypo(d.typography, "label-bold");
-  ctx.font = `800 20px "${labelTypo.fontFamily}", sans-serif`;
-  ctx.fillStyle = c["on-surface"];
-  ctx.textAlign = "center";
-  ctx.fillText("NEWSPAPPER", badgeX + badgeW / 2, badgeY + 28);
+  drawBadge(ctx, d, 48, 40, "NEWSPAPPER", { shadow: true });
 
-  // Accent bar
-  const barX = 100;
-  const barY = headerH + 100;
-  ctx.fillStyle = c.primary;
-  ctx.fillRect(barX, barY, 96, 8);
-
-  // Body text
   const bodyTypo = getTypo(d.typography, "body-lg");
-  ctx.font = `400 48px "${bodyTypo.fontFamily}", sans-serif`;
+  const fontSize = 48;
+  ctx.save();
+  ctx.font = `400 ${fontSize}px "${bodyTypo.fontFamily}", sans-serif`;
   ctx.fillStyle = c["on-surface"];
   ctx.textAlign = "left";
-  
-  const bodyLines = wrapText(ctx, slide.text || "", SIZE - 200);
-  let bodyY = barY + 60;
-  for (const line of bodyLines) {
-    ctx.fillText(line, 100, bodyY);
-    bodyY += 70;
+  ctx.textBaseline = "top";
+
+  // Accent bar
+  ctx.fillStyle = c.primary;
+  ctx.fillRect(margin, headerH + 80, 96, 8);
+
+  ctx.fillStyle = c["on-surface"];
+  const lines = wrapText(ctx, slide.text || "", SIZE - margin * 2);
+  let y = headerH + 160;
+  for (const line of lines) {
+    if (line === "") {
+      y += fontSize * 0.5;
+    } else {
+      ctx.fillText(line, margin, y);
+      y += fontSize * 1.4;
+    }
   }
+  ctx.restore();
 }
 
 function renderBodyList(ctx: SKRSContext2D, slide: Slide, d: DesignTokens) {
   const c = d.colors;
-  const margin = 48;
-  const borderWidth = 20;
+  const margin = 100;
+  const headerH = 120;
 
   drawBackground(ctx, c.surface);
   drawGridTexture(ctx, 24, 0.05);
-  drawStructuralBorder(ctx, 0, 0, SIZE, SIZE, borderWidth, c["on-surface"]);
+  drawStructuralBorder(ctx, 20, c["on-surface"]);
 
-  // Header
-  const headerH = 120;
-  ctx.fillStyle = c.surface;
-  ctx.fillRect(0, 0, SIZE, headerH);
+  ctx.save();
   ctx.strokeStyle = c["on-surface"];
   ctx.lineWidth = 4;
   ctx.beginPath();
   ctx.moveTo(0, headerH);
   ctx.lineTo(SIZE, headerH);
   ctx.stroke();
+  ctx.restore();
 
-  const badgeX = margin;
-  const badgeY = margin;
-  const badgeW = 220;
-  const badgeH = 44;
-  drawBlockedShadow(ctx, badgeX, badgeY, badgeW, badgeH, 4, 4, c["on-surface"]);
-  ctx.fillStyle = c["surface-container-highest"];
-  ctx.fillRect(badgeX, badgeY, badgeW, badgeH);
-  ctx.strokeStyle = c.primary;
-  ctx.lineWidth = 4;
-  ctx.strokeRect(badgeX, badgeY, badgeW, badgeH);
-  
-  const headlineTypo = getTypo(d.typography, "headline-md");
-  ctx.font = `700 24px "${headlineTypo.fontFamily}", sans-serif`;
-  ctx.fillStyle = c["on-surface"];
-  ctx.textAlign = "center";
-  ctx.fillText("NEWSPAPPER", badgeX + badgeW / 2, badgeY + 28);
+  drawBadge(ctx, d, 48, 40, "NEWSPAPPER", { shadow: true });
 
-  // Container with shadow
-  const containerX = 100;
-  const containerY = headerH + 100;
-  const containerW = SIZE - 200;
+  const containerW = SIZE - margin * 2;
   const containerH = 600;
+  const containerY = headerH + 100;
   
-  drawBlockedShadow(ctx, containerX, containerY, containerW, containerH, 8, 8, c["on-surface"]);
+  drawBlockedShadow(ctx, margin, containerY, containerW, containerH, 8, 8, c["on-surface"]);
+  ctx.save();
   ctx.fillStyle = c["surface-container"];
-  ctx.fillRect(containerX, containerY, containerW, containerH);
+  ctx.fillRect(margin, containerY, containerW, containerH);
   ctx.strokeStyle = c["on-surface"];
   ctx.lineWidth = 4;
-  ctx.strokeRect(containerX, containerY, containerW, containerH);
+  ctx.strokeRect(margin, containerY, containerW, containerH);
+  ctx.restore();
 
-  // Body text
   const bodyTypo = getTypo(d.typography, "body-lg");
-  ctx.font = `400 42px "${bodyTypo.fontFamily}", sans-serif`;
+  const fontSize = 42;
+  ctx.save();
+  ctx.font = `400 ${fontSize}px "${bodyTypo.fontFamily}", sans-serif`;
   ctx.fillStyle = c["on-surface"];
   ctx.textAlign = "left";
+  ctx.textBaseline = "top";
   
-  const bodyLines = wrapText(ctx, slide.text || "", containerW - 120);
-  let bodyY = containerY + 80;
-  for (const line of bodyLines) {
-    ctx.fillText(line, containerX + 60, bodyY);
-    bodyY += 70;
+  const lines = wrapText(ctx, slide.text || "", containerW - 100);
+  let y = containerY + 60;
+  for (const line of lines) {
+    if (line === "") {
+      y += fontSize * 0.5;
+    } else {
+      ctx.fillText(line, margin + 50, y);
+      y += fontSize * 1.5;
+    }
   }
+  ctx.restore();
 }
 
 function renderBodyComparison(ctx: SKRSContext2D, slide: Slide, d: DesignTokens) {
   const c = d.colors;
-  const borderWidth = 20;
+  const margin = 80;
 
   drawBackground(ctx, c.background);
   drawGridTexture(ctx, 32, 0.05);
-  drawStructuralBorder(ctx, 0, 0, SIZE, SIZE, borderWidth, c["on-surface"]);
+  drawStructuralBorder(ctx, 20, c["on-surface"]);
 
-  // Header
   const headerH = 120;
-  ctx.fillStyle = c.surface;
-  ctx.fillRect(0, 0, SIZE, headerH);
+  ctx.save();
   ctx.strokeStyle = c["on-surface"];
   ctx.lineWidth = 12;
   ctx.beginPath();
   ctx.moveTo(0, headerH);
   ctx.lineTo(SIZE, headerH);
   ctx.stroke();
+  ctx.restore();
 
-  const badgeX = SIZE / 2 - 110;
-  const badgeY = 48;
-  const badgeW = 220;
-  const badgeH = 44;
-  ctx.fillStyle = c["secondary-container"];
-  ctx.fillRect(badgeX, badgeY, badgeW, badgeH);
-  ctx.strokeStyle = c["on-surface"];
-  ctx.lineWidth = 2;
-  ctx.strokeRect(badgeX, badgeY, badgeW, badgeH);
-  
-  const labelTypo = getTypo(d.typography, "label-bold");
-  ctx.font = `800 20px "${labelTypo.fontFamily}", sans-serif`;
-  ctx.fillStyle = c["on-surface"];
-  ctx.textAlign = "center";
-  ctx.fillText("NEWSPAPPER", badgeX + badgeW / 2, badgeY + 28);
+  drawBadge(ctx, d, SIZE / 2 - 110, 48, "NEWSPAPPER", { inverted: true });
 
-  // Container with double shadow
-  const containerX = 80;
-  const containerY = SIZE / 2 - 250;
-  const containerW = SIZE - 160;
+  const containerW = SIZE - margin * 2;
   const containerH = 500;
-  
-  // Outer shadow
+  const containerY = SIZE / 2 - 200;
+
+  ctx.save();
   ctx.fillStyle = c["on-surface"];
-  ctx.fillRect(containerX - 16, containerY - 16, containerW, containerH);
+  ctx.fillRect(margin + 16, containerY + 16, containerW, containerH);
+  ctx.restore();
   
-  // Inner shadow
-  drawBlockedShadow(ctx, containerX, containerY, containerW, containerH, 12, 12, c["on-surface"]);
+  drawBlockedShadow(ctx, margin, containerY, containerW, containerH, 8, 8, c["on-surface"]);
   
+  ctx.save();
   ctx.fillStyle = c["surface-container"];
-  ctx.fillRect(containerX, containerY, containerW, containerH);
+  ctx.fillRect(margin, containerY, containerW, containerH);
   ctx.strokeStyle = c["on-surface"];
   ctx.lineWidth = 4;
-  ctx.strokeRect(containerX, containerY, containerW, containerH);
+  ctx.strokeRect(margin, containerY, containerW, containerH);
+  ctx.restore();
 
-  // Body text
-  const headlineTypo = getTypo(d.typography, "headline-md");
-  ctx.font = `700 40px "${headlineTypo.fontFamily}", sans-serif`;
+  const bodyTypo = getTypo(d.typography, "headline-md");
+  const fontSize = 42;
+  ctx.save();
+  ctx.font = `700 ${fontSize}px "${bodyTypo.fontFamily}", sans-serif`;
   ctx.fillStyle = c["on-surface"];
   ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
   
-  const bodyLines = wrapText(ctx, slide.text || "", containerW - 160);
-  let bodyY = containerY + containerH / 2 - (bodyLines.length * 55) / 2 + 40;
-  for (const line of bodyLines) {
-    ctx.fillText(line, SIZE / 2, bodyY);
-    bodyY += 55;
+  const lines = wrapText(ctx, slide.text || "", containerW - 120);
+  const lineH = fontSize * 1.4;
+  let y = containerY + containerH / 2 - ((lines.length - 1) * lineH) / 2;
+  for (const line of lines) {
+    ctx.fillText(line, SIZE / 2, y);
+    y += lineH;
   }
+  ctx.restore();
 }
-
-// ===== QUOTE RENDERERS =====
 
 function renderQuoteClassic(ctx: SKRSContext2D, slide: Slide, d: DesignTokens) {
   const c = d.colors;
-  const borderWidth = 12;
+  const margin = 140;
 
   drawBackground(ctx, c["inverse-surface"]);
-  drawGridTexture(ctx, 8, 0.05);
-  drawStructuralBorder(ctx, 0, 0, SIZE, SIZE, borderWidth, c["on-background"]);
+  drawGridTexture(ctx, 16, 0.05);
+  drawStructuralBorder(ctx, 12, c["on-background"]);
 
-  // Accent stripe at top
   const stripeH = 16;
-  const stripeColors = [c["surface-tint"], c.primary, c["on-primary-fixed-variant"]];
+  const colors = [c["surface-tint"], c.primary, c["on-primary-fixed-variant"]];
   for (let i = 0; i < 3; i++) {
-    ctx.fillStyle = stripeColors[i];
+    ctx.fillStyle = colors[i];
     ctx.fillRect((SIZE / 3) * i, 0, SIZE / 3, stripeH);
   }
-  ctx.strokeStyle = c["on-background"];
-  ctx.lineWidth = 4;
-  ctx.beginPath();
-  ctx.moveTo(0, stripeH);
-  ctx.lineTo(SIZE, stripeH);
-  ctx.stroke();
 
-  // Quote container
-  const containerX = 140;
+  const containerW = SIZE - margin * 2;
+  const containerH = 550;
   const containerY = SIZE / 2 - 300;
-  const containerW = SIZE - 280;
-  const containerH = 600;
   
-  drawBlockedShadow(ctx, containerX, containerY, containerW, containerH, 8, 8, c["on-background"]);
+  drawBlockedShadow(ctx, margin, containerY, containerW, containerH, 12, 12, c["on-background"]);
+  ctx.save();
   ctx.fillStyle = c.surface;
-  ctx.fillRect(containerX, containerY, containerW, containerH);
+  ctx.fillRect(margin, containerY, containerW, containerH);
   ctx.strokeStyle = c["on-background"];
   ctx.lineWidth = 4;
-  ctx.strokeRect(containerX, containerY, containerW, containerH);
+  ctx.strokeRect(margin, containerY, containerW, containerH);
+  ctx.restore();
 
-  // Badge
-  const badgeX = SIZE / 2 - 80;
-  const badgeY = containerY - 20;
-  const badgeW = 160;
-  const badgeH = 36;
-  ctx.fillStyle = c.primary;
-  ctx.fillRect(badgeX, badgeY, badgeW, badgeH);
-  ctx.strokeStyle = c["on-background"];
-  ctx.lineWidth = 2;
-  ctx.strokeRect(badgeX, badgeY, badgeW, badgeH);
-  
-  const labelTypo = getTypo(d.typography, "label-bold");
-  ctx.font = `700 14px "${labelTypo.fontFamily}", sans-serif`;
-  ctx.fillStyle = c["on-primary"];
-  ctx.textAlign = "center";
-  ctx.fillText("CORE PRINCIPLE", badgeX + badgeW / 2, badgeY + 22);
-
-  // Quote text
-  const quoteTypo = getTypo(d.typography, "headline-xl");
-  ctx.font = `800 64px "${quoteTypo.fontFamily}", sans-serif`;
+  const quoteTypo = getTypo(d.typography, "headline-lg");
+  const fontSize = 56;
+  ctx.save();
+  ctx.font = `800 ${fontSize}px "${quoteTypo.fontFamily}", sans-serif`;
   ctx.fillStyle = c["on-background"];
   ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
   
-  const quoteLines = wrapText(ctx, (slide.text || "").toUpperCase(), containerW - 160);
-  let quoteY = containerY + 120;
-  for (const line of quoteLines) {
-    ctx.fillText(line, SIZE / 2, quoteY);
-    quoteY += 70;
+  const lines = wrapText(ctx, (slide.text || "").toUpperCase(), containerW - 100);
+  const lineH = fontSize * 1.1;
+  let y = containerY + containerH / 2 - ((lines.length - 1) * lineH) / 2 - 20;
+  for (const line of lines) {
+    ctx.fillText(line, SIZE / 2, y);
+    y += lineH;
   }
 
-  // Attribution
   if (slide.attribution) {
-    ctx.strokeStyle = c.outline;
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.moveTo(SIZE / 2 - 100, quoteY + 20);
-    ctx.lineTo(SIZE / 2 + 100, quoteY + 20);
-    ctx.stroke();
-    
-    ctx.font = `800 20px "${labelTypo.fontFamily}", sans-serif`;
+    const attrFontSize = 24;
+    ctx.font = `700 ${attrFontSize}px "${getTypo(d.typography, "label-bold").fontFamily}", sans-serif`;
     ctx.fillStyle = c["on-surface-variant"];
-    ctx.fillText((slide.attribution || "").toUpperCase(), SIZE / 2, quoteY + 60);
+    ctx.fillText(`— ${slide.attribution.toUpperCase()}`, SIZE / 2, y + 40);
   }
-
-  // Footer
-  const footerY = SIZE - 80;
-  ctx.fillStyle = c.surface;
-  ctx.fillRect(0, footerY, SIZE, 80);
-  ctx.strokeStyle = c["on-background"];
-  ctx.lineWidth = 12;
-  ctx.beginPath();
-  ctx.moveTo(0, footerY);
-  ctx.lineTo(SIZE, footerY);
-  ctx.stroke();
-  
-  ctx.font = `700 14px "${labelTypo.fontFamily}", sans-serif`;
-  ctx.fillStyle = c["on-background"];
-  ctx.textAlign = "left";
-  ctx.fillText("NEWSPAPPER INDUSTRIAL", 48, footerY + 40);
-  
-  ctx.fillStyle = c.primary;
-  ctx.fillRect(SIZE - 80, footerY + 20, 16, 16);
-  ctx.strokeStyle = c["on-background"];
-  ctx.lineWidth = 2;
-  ctx.strokeRect(SIZE - 80, footerY + 20, 16, 16);
+  ctx.restore();
 }
 
 function renderQuoteReaction(ctx: SKRSContext2D, slide: Slide, d: DesignTokens) {
   const c = d.colors;
-  const borderWidth = 20;
+  const margin = 100;
 
   drawBackground(ctx, c.surface);
   drawGridTexture(ctx, 32, 0.05);
-  drawStructuralBorder(ctx, 0, 0, SIZE, SIZE, borderWidth, c["on-surface"]);
+  drawStructuralBorder(ctx, 20, c["on-surface"]);
 
-  // Container
-  const containerX = 100;
-  const containerY = SIZE / 2 - 300;
-  const containerW = SIZE - 200;
-  const containerH = 600;
+  const containerW = SIZE - margin * 2;
+  const containerH = 550;
+  const containerY = SIZE / 2 - 250;
   
+  ctx.save();
   ctx.fillStyle = c["surface-container-highest"];
-  ctx.fillRect(containerX, containerY, containerW, containerH);
+  ctx.fillRect(margin, containerY, containerW, containerH);
   ctx.strokeStyle = c["on-surface"];
   ctx.lineWidth = 4;
-  ctx.strokeRect(containerX, containerY, containerW, containerH);
+  ctx.strokeRect(margin, containerY, containerW, containerH);
+  ctx.restore();
 
-  // Reaction badge
-  const badgeX = containerX + 80;
-  const badgeY = containerY - 30;
-  const badgeW = 200;
-  const badgeH = 48;
+  const badgeW = 240;
+  const badgeH = 54;
+  const badgeX = margin + 60;
+  const badgeY = containerY - 27;
   drawBlockedShadow(ctx, badgeX, badgeY, badgeW, badgeH, 8, 8, c["on-surface"]);
+  ctx.save();
   ctx.fillStyle = c.primary;
   ctx.fillRect(badgeX, badgeY, badgeW, badgeH);
   ctx.strokeStyle = c["on-surface"];
   ctx.lineWidth = 4;
   ctx.strokeRect(badgeX, badgeY, badgeW, badgeH);
-  
-  const labelTypo = getTypo(d.typography, "label-bold");
-  ctx.font = `800 24px "${labelTypo.fontFamily}", sans-serif`;
+  ctx.font = `700 24px "${getTypo(d.typography, "label-bold").fontFamily}", sans-serif`;
   ctx.fillStyle = c["on-primary"];
   ctx.textAlign = "center";
-  ctx.fillText("WAIT, WHAT?", badgeX + badgeW / 2, badgeY + 32);
+  ctx.textBaseline = "middle";
+  ctx.fillText("WAIT, WHAT?", badgeX + badgeW / 2, badgeY + badgeH / 2 + 2);
+  ctx.restore();
 
-  // Quote text
-  const quoteTypo = getTypo(d.typography, "headline-md");
-  ctx.font = `700 48px "${quoteTypo.fontFamily}", sans-serif`;
+  const fontSize = 48;
+  ctx.save();
+  ctx.font = `700 ${fontSize}px "${getTypo(d.typography, "headline-md").fontFamily}", sans-serif`;
   ctx.fillStyle = c["on-surface"];
   ctx.textAlign = "left";
+  ctx.textBaseline = "top";
   
-  const quoteLines = wrapText(ctx, slide.text || "", containerW - 160);
-  let quoteY = containerY + 100;
-  for (const line of quoteLines) {
-    ctx.fillText(line, containerX + 80, quoteY);
-    quoteY += 62;
+  const lines = wrapText(ctx, slide.text || "", containerW - 120);
+  let y = containerY + 80;
+  for (const line of lines) {
+    ctx.fillText(line, margin + 60, y);
+    y += fontSize * 1.3;
   }
 
-  // Attribution
   if (slide.attribution) {
-    quoteY += 30;
-    ctx.strokeStyle = c.outline;
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.moveTo(containerX + 80, quoteY);
-    ctx.lineTo(containerX + containerW - 80, quoteY);
-    ctx.stroke();
-    
-    ctx.font = `800 20px "${labelTypo.fontFamily}", sans-serif`;
+    ctx.font = `700 22px "${getTypo(d.typography, "label-bold").fontFamily}", sans-serif`;
     ctx.fillStyle = c["on-surface-variant"];
-    ctx.fillText((slide.attribution || "").toUpperCase(), containerX + 80, quoteY + 40);
+    ctx.fillText(`— ${slide.attribution.toUpperCase()}`, margin + 60, y + 40);
   }
+  ctx.restore();
 }
 
 function renderQuotePullout(ctx: SKRSContext2D, slide: Slide, d: DesignTokens) {
   const c = d.colors;
-  const borderWidth = 16;
+  const margin = 100;
 
   drawBackground(ctx, c["primary-container"]);
   drawGridTexture(ctx, 40, 0.05);
-  
-  // Blocked shadow for entire slide
-  drawBlockedShadow(ctx, 0, 0, SIZE, SIZE, 12, 12, c["on-surface"]);
-  drawStructuralBorder(ctx, 0, 0, SIZE, SIZE, borderWidth, c["on-surface"]);
+  drawStructuralBorder(ctx, 16, c["on-surface"]);
 
-  // Top bar
   const topBarH = 100;
+  ctx.save();
   ctx.strokeStyle = c.surface;
   ctx.lineWidth = 6;
   ctx.beginPath();
   ctx.moveTo(0, topBarH);
   ctx.lineTo(SIZE, topBarH);
+  ctx.moveTo(0, SIZE - topBarH);
+  ctx.lineTo(SIZE, SIZE - topBarH);
   ctx.stroke();
-  
-  const labelTypo = getTypo(d.typography, "label-bold");
-  ctx.font = `700 14px "${labelTypo.fontFamily}", sans-serif`;
-  ctx.fillStyle = c.surface;
-  ctx.textAlign = "left";
-  ctx.fillText("INDEX // 01", 48, 60);
-  
-  const badgeX = SIZE - 48 - 140;
-  const badgeY = 48;
-  const badgeW = 140;
-  const badgeH = 32;
-  ctx.fillStyle = c.surface;
-  ctx.fillRect(badgeX, badgeY, badgeW, badgeH);
-  ctx.strokeStyle = c["on-surface"];
-  ctx.lineWidth = 3;
-  ctx.strokeRect(badgeX, badgeY, badgeW, badgeH);
-  
-  ctx.fillStyle = c["on-surface"];
-  ctx.textAlign = "center";
-  ctx.fillText("QUOTE.REF", badgeX + badgeW / 2, badgeY + 20);
+  ctx.restore();
 
-  // Quote text with shadow
-  const quoteTypo = getTypo(d.typography, "headline-xl");
-  ctx.font = `800 88px "${quoteTypo.fontFamily}", sans-serif`;
+  const displayTypo = getTypo(d.typography, "display");
+  const fontSize = 84;
+  ctx.save();
+  ctx.font = `800 ${fontSize}px "${displayTypo.fontFamily}", sans-serif`;
   ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
   
-  const quoteLines = wrapText(ctx, (slide.text || "").toUpperCase(), SIZE - 200);
-  let quoteY = SIZE / 2 - (quoteLines.length * 95) / 2 + 88;
-  
-  // Text shadow
+  const lines = wrapText(ctx, (slide.text || "").toUpperCase(), SIZE - 200);
+  const lineH = fontSize * 1.05;
+  let startY = SIZE / 2 - ((lines.length - 1) * lineH) / 2;
+
   ctx.fillStyle = c["on-surface"];
-  for (const line of quoteLines) {
-    ctx.fillText(line, SIZE / 2 + 6, quoteY + 6);
-    quoteY += 95;
-  }
-  
-  // Main text
-  ctx.fillStyle = c.surface;
-  quoteY = SIZE / 2 - (quoteLines.length * 95) / 2 + 88;
-  for (const line of quoteLines) {
-    ctx.fillText(line, SIZE / 2, quoteY);
-    quoteY += 95;
+  let y = startY;
+  for (const line of lines) {
+    ctx.fillText(line, SIZE / 2 + 6, y + 6);
+    y += lineH;
   }
 
-  // Attribution
+  ctx.fillStyle = c.surface;
+  y = startY;
+  for (const line of lines) {
+    ctx.fillText(line, SIZE / 2, y);
+    y += lineH;
+  }
+
   if (slide.attribution) {
-    quoteY += 30;
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.moveTo(SIZE / 2 - 150, quoteY);
-    ctx.lineTo(SIZE / 2 + 150, quoteY);
-    ctx.stroke();
-    
-    ctx.font = `800 20px "${labelTypo.fontFamily}", sans-serif`;
-    ctx.fillStyle = c.surface;
+    ctx.font = `700 24px "${getTypo(d.typography, "label-bold").fontFamily}", sans-serif`;
     ctx.globalAlpha = 0.8;
-    ctx.fillText((slide.attribution || "").toUpperCase(), SIZE / 2, quoteY + 40);
+    ctx.fillText(slide.attribution.toUpperCase(), SIZE / 2, y + 60);
     ctx.globalAlpha = 1.0;
   }
-
-  // Bottom bar
-  const bottomBarY = SIZE - 100;
-  ctx.strokeStyle = c.surface;
-  ctx.lineWidth = 6;
-  ctx.beginPath();
-  ctx.moveTo(0, bottomBarY);
-  ctx.lineTo(SIZE, bottomBarY);
-  ctx.stroke();
-  
-  ctx.font = `700 14px "${labelTypo.fontFamily}", sans-serif`;
-  ctx.fillStyle = c.surface;
-  ctx.textAlign = "left";
-  ctx.fillText("NEWSPAPPER INDUSTRIAL", 48, bottomBarY + 50);
+  ctx.restore();
 }
 
-// ===== MAIN RENDERER CLASS =====
+// ===== EXPORTED CLASS =====
 
 export class ScreenshotRenderer {
   private fontsLoaded = false;
 
   async init(): Promise<void> {
     if (this.fontsLoaded) return;
-    logger.debug("Loading fonts for rendering...");
     const fontPaths = await ensureFonts();
     for (const { family, path } of fontPaths) {
       GlobalFonts.registerFromPath(path, family);
@@ -761,80 +654,39 @@ export class ScreenshotRenderer {
     this.fontsLoaded = true;
   }
 
-  async close(): Promise<void> {
-    // no-op
-  }
+  async close(): Promise<void> {}
 
-  async renderSlides(
-    slides: Slide[],
-    designName: string,
-    outputDir: string,
-  ): Promise<string[]> {
+  async renderSlides(slides: Slide[], designName: string, outputDir: string): Promise<string[]> {
     await this.init();
-    await mkdir(join(outputDir, "slides"), { recursive: true });
-    logger.info(`Rendering ${slides.length} slides with ${designName}...`);
-
+    const slidesDir = join(outputDir, "slides");
+    await mkdir(slidesDir, { recursive: true });
     const design = (await designLoader.load(designName)) as DesignTokens;
     const outputPaths: string[] = [];
 
     for (let i = 0; i < slides.length; i++) {
       const slide = slides[i];
-      const outputPath = join(
-        outputDir,
-        "slides",
-        `${String(i + 1).padStart(2, "0")}-${slide.type}.png`,
-      );
-
+      const outputPath = join(slidesDir, `${String(i + 1).padStart(2, "0")}-${slide.type}.png`);
       const canvas = createCanvas(SIZE, SIZE);
       const ctx = canvas.getContext("2d");
-      ctx.textBaseline = "alphabetic";
 
-      // Route to appropriate renderer
       switch (slide.type) {
-        case "title-main":
-          renderTitleMain(ctx, slide, design);
-          break;
-        case "title-question":
-          renderTitleQuestion(ctx, slide, design);
-          break;
-        case "title-statement":
-          renderTitleStatement(ctx, slide, design);
-          break;
-        case "body-text":
-          renderBodyText(ctx, slide, design);
-          break;
-        case "body-list":
-          renderBodyList(ctx, slide, design);
-          break;
-        case "body-comparison":
-          renderBodyComparison(ctx, slide, design);
-          break;
-        case "quote-classic":
-          renderQuoteClassic(ctx, slide, design);
-          break;
-        case "quote-reaction":
-          renderQuoteReaction(ctx, slide, design);
-          break;
-        case "quote-pullout":
-          renderQuotePullout(ctx, slide, design);
-          break;
-        default:
-          renderBodyText(ctx, slide, design);
+        case "title-main": renderTitleMain(ctx, slide, design); break;
+        case "title-question": renderTitleQuestion(ctx, slide, design); break;
+        case "title-statement": renderTitleStatement(ctx, slide, design); break;
+        case "body-text": renderBodyText(ctx, slide, design); break;
+        case "body-list": renderBodyList(ctx, slide, design); break;
+        case "body-comparison": renderBodyComparison(ctx, slide, design); break;
+        case "quote-classic": renderQuoteClassic(ctx, slide, design); break;
+        case "quote-reaction": renderQuoteReaction(ctx, slide, design); break;
+        case "quote-pullout": renderQuotePullout(ctx, slide, design); break;
+        default: renderBodyText(ctx, slide, design);
       }
 
       const pngBuf = await canvas.encode("png");
-      const compressed = await sharp(pngBuf)
-        .png({ quality: config.images.quality, compressionLevel: 9 })
-        .toBuffer();
+      const compressed = await sharp(pngBuf).png({ compressionLevel: 9 }).toBuffer();
       await writeFile(outputPath, compressed);
-
-      logger.debug(`Rendered: ${outputPath}`);
       outputPaths.push(outputPath);
     }
-
-    logger.success(
-      `Rendered ${outputPaths.length} slides to ${outputDir}/slides/`,
-    );
     return outputPaths;
   }
 }
