@@ -6,7 +6,7 @@ import { db } from "../storage/database.js";
 import { logger } from "../utils/logger.js";
 import { v4 as uuidv4 } from "uuid";
 
-const MAX_ARTICLES_PER_SOURCE = 10;
+const MAX_ARTICLES_PER_SOURCE = 2;
 
 interface ScrapeOptions {
   sources?: string;
@@ -97,6 +97,8 @@ export async function scrapeCommand(options: ScrapeOptions): Promise<void> {
         const url = String(articleData.url || "");
         if (!url) continue;
 
+        logger.info(`Processing: ${articleData.title || url}`);
+
         const existing = db.getArticleByUrl(url);
         if (existing) {
           totalSkipped++;
@@ -134,6 +136,7 @@ export async function scrapeCommand(options: ScrapeOptions): Promise<void> {
 
         sourceNew++;
         totalNew++;
+        logger.success(`Processed: ${articleData.title || url}`);
       }
 
       logger.success(`${source.name}: ${sourceNew} new article(s)`);

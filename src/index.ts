@@ -99,8 +99,21 @@ async function mainMenu() {
           break;
         }
         case "clean": {
+          const { mode } = await inquirer.prompt([
+            {
+              type: "select",
+              name: "mode",
+              message: "What do you want to clean?",
+              choices: [
+                { name: "All data", value: "all" },
+                { name: "Older than today", value: "today" },
+                { name: "Older than 1 week", value: "week" },
+                { name: "Older than 1 month", value: "month" },
+              ],
+            },
+          ]);
           const { cleanCommand } = await import("./commands/clean.js");
-          await cleanCommand({});
+          await cleanCommand({ mode });
           break;
         }
       }

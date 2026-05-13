@@ -95,4 +95,13 @@ List articles, entities, or posts from SQLite.
 **Action:** `clean`
 **File:** `src/commands/clean.ts`
 
-Delete old articles from SQLite and old post directories.
+Delete articles from SQLite and post directories based on time ranges.
+
+**Options:**
+
+- **All data**: Purges everything (database and output files)
+- **Older than today**: Cleans everything from previous days
+- **Older than 1 week**: Cleans data more than 7 days old
+- **Older than 1 month**: Cleans data more than 30 days old
+
+---
