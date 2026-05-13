@@ -117,9 +117,16 @@ function drawBackground(ctx: SKRSContext2D, color: string) {
   ctx.restore();
 }
 
-function drawGridTexture(ctx: SKRSContext2D, gridSize = 32, opacity = 0.05, lightGrid = false) {
+function drawGridTexture(
+  ctx: SKRSContext2D,
+  gridSize = 32,
+  opacity = 0.05,
+  lightGrid = false,
+) {
   ctx.save();
-  const color = lightGrid ? `rgba(255, 255, 255, ${opacity})` : `rgba(27, 28, 28, ${opacity})`;
+  const color = lightGrid
+    ? `rgba(255, 255, 255, ${opacity})`
+    : `rgba(27, 28, 28, ${opacity})`;
   ctx.strokeStyle = color;
   ctx.lineWidth = 1;
   for (let x = 0; x <= SIZE; x += gridSize) {
@@ -145,7 +152,7 @@ function drawBlockedShadow(
   h: number,
   offsetX = 8,
   offsetY = 8,
-  color = "#1b1c1c"
+  color = "#1b1c1c",
 ) {
   ctx.save();
   ctx.fillStyle = color;
@@ -156,39 +163,85 @@ function drawBlockedShadow(
 function drawStructuralBorder(
   ctx: SKRSContext2D,
   borderWidth = 20,
-  color = "#1b1c1c"
+  color = "#1b1c1c",
 ) {
   ctx.save();
   ctx.strokeStyle = color;
   ctx.lineWidth = borderWidth;
-  ctx.strokeRect(borderWidth / 2, borderWidth / 2, SIZE - borderWidth, SIZE - borderWidth);
+  ctx.strokeRect(
+    borderWidth / 2,
+    borderWidth / 2,
+    SIZE - borderWidth,
+    SIZE - borderWidth,
+  );
   ctx.restore();
 }
 
-function drawBadge(ctx: SKRSContext2D, d: DesignTokens, x: number, y: number, text: string, options: { inverted?: boolean, shadow?: boolean } = {}) {
+function drawBadge(
+  ctx: SKRSContext2D,
+  d: DesignTokens,
+  x: number,
+  y: number,
+  text: string,
+  options: { inverted?: boolean; shadow?: boolean } = {},
+) {
   const c = d.colors;
   const badgeW = 220;
   const badgeH = 44;
-  
+
   if (options.shadow) {
     drawBlockedShadow(ctx, x, y, badgeW, badgeH, 8, 8, c["on-surface"]);
   }
-  
+
   ctx.save();
   ctx.fillStyle = options.inverted ? c.surface : c.primary;
   ctx.fillRect(x, y, badgeW, badgeH);
   ctx.strokeStyle = c["on-surface"];
   ctx.lineWidth = 4;
   ctx.strokeRect(x, y, badgeW, badgeH);
-  
+
   const labelTypo = getTypo(d.typography, "label-bold");
   // Force weight based on what we have registered
-  const weight = labelTypo.fontWeight === '400' ? '400' : '700';
+  const weight = labelTypo.fontWeight === "400" ? "400" : "700";
   ctx.font = `${weight} 20px "${labelTypo.fontFamily}", sans-serif`;
   ctx.fillStyle = options.inverted ? c["on-surface"] : c["on-primary"];
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText(text, x + badgeW / 2, y + badgeH / 2 + 2);
+  ctx.restore();
+}
+
+function drawSlideNumber(
+  ctx: SKRSContext2D,
+  d: DesignTokens,
+  current: number,
+  total: number,
+  options: { inverted?: boolean } = {},
+) {
+  const c = d.colors;
+  const margin = 48;
+  const text = `${current}/${total}`;
+
+  const labelTypo = getTypo(
+    d.typography,
+    "label-bold",
+    "meta-technical",
+    "label-sm",
+  );
+  const weight = labelTypo.fontWeight === "400" ? "400" : "700";
+  const fontSize = 24;
+
+  ctx.save();
+  ctx.font = `${weight} ${fontSize}px "${labelTypo.fontFamily}", sans-serif`;
+  ctx.fillStyle = options.inverted ? c.surface : c["on-surface"];
+  if (options.inverted && !c.surface) {
+    // Fallback if surface is not defined for some reason
+    ctx.fillStyle = "#ffffff";
+  }
+
+  ctx.textAlign = "right";
+  ctx.textBaseline = "bottom";
+  ctx.fillText(text, SIZE - margin, SIZE - margin);
   ctx.restore();
 }
 
@@ -210,11 +263,15 @@ function renderTitleMain(ctx: SKRSContext2D, slide: Slide, d: DesignTokens) {
   ctx.fillStyle = c["on-surface"];
   ctx.textAlign = "left";
   ctx.textBaseline = "alphabetic";
-  
-  const lines = wrapText(ctx, (slide.text || "").toUpperCase(), SIZE - margin * 2);
+
+  const lines = wrapText(
+    ctx,
+    (slide.text || "").toUpperCase(),
+    SIZE - margin * 2,
+  );
   const lineH = fontSize * 1.0;
   let y = SIZE - margin - (lines.length - 1) * lineH;
-  
+
   for (const line of lines) {
     ctx.fillText(line, margin, y);
     y += lineH;
@@ -231,14 +288,21 @@ function renderTitleMain(ctx: SKRSContext2D, slide: Slide, d: DesignTokens) {
   ctx.restore();
 }
 
-function renderTitleQuestion(ctx: SKRSContext2D, slide: Slide, d: DesignTokens) {
+function renderTitleQuestion(
+  ctx: SKRSContext2D,
+  slide: Slide,
+  d: DesignTokens,
+) {
   const c = d.colors;
   const margin = 100;
 
   drawBackground(ctx, c.primary);
   drawGridTexture(ctx, 32, 0.05, true);
   drawStructuralBorder(ctx, 20, c["on-surface"]);
-  drawBadge(ctx, d, SIZE - margin - 220, 80, "NEWSPAPPER", { inverted: true, shadow: true });
+  drawBadge(ctx, d, SIZE - margin - 220, 80, "NEWSPAPPER", {
+    inverted: true,
+    shadow: true,
+  });
 
   const displayTypo = getTypo(d.typography, "display");
   const fontSize = 110;
@@ -246,8 +310,12 @@ function renderTitleQuestion(ctx: SKRSContext2D, slide: Slide, d: DesignTokens) 
   ctx.font = `800 ${fontSize}px "${displayTypo.fontFamily}", sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  
-  const lines = wrapText(ctx, (slide.text || "").toUpperCase(), SIZE - margin * 2);
+
+  const lines = wrapText(
+    ctx,
+    (slide.text || "").toUpperCase(),
+    SIZE - margin * 2,
+  );
   const lineH = fontSize * 0.95;
   let startY = SIZE / 2 - ((lines.length - 1) * lineH) / 2;
 
@@ -269,7 +337,11 @@ function renderTitleQuestion(ctx: SKRSContext2D, slide: Slide, d: DesignTokens) 
   ctx.restore();
 }
 
-function renderTitleStatement(ctx: SKRSContext2D, slide: Slide, d: DesignTokens) {
+function renderTitleStatement(
+  ctx: SKRSContext2D,
+  slide: Slide,
+  d: DesignTokens,
+) {
   const c = d.colors;
   const margin = 100;
 
@@ -280,7 +352,7 @@ function renderTitleStatement(ctx: SKRSContext2D, slide: Slide, d: DesignTokens)
 
   const wrapperY = SIZE / 2 - 150;
   const wrapperH = 300;
-  
+
   ctx.save();
   ctx.fillStyle = "rgba(27, 28, 28, 0.1)";
   ctx.fillRect(margin + 20, wrapperY, SIZE - margin * 2 - 20, wrapperH);
@@ -294,8 +366,12 @@ function renderTitleStatement(ctx: SKRSContext2D, slide: Slide, d: DesignTokens)
   ctx.font = `800 ${fontSize}px "${displayTypo.fontFamily}", sans-serif`;
   ctx.textAlign = "left";
   ctx.textBaseline = "middle";
-  
-  const lines = wrapText(ctx, (slide.text || "").toUpperCase(), SIZE - margin * 2 - 80);
+
+  const lines = wrapText(
+    ctx,
+    (slide.text || "").toUpperCase(),
+    SIZE - margin * 2 - 80,
+  );
   const lineH = fontSize * 1.0;
   let y = SIZE / 2 - ((lines.length - 1) * lineH) / 2;
 
@@ -385,8 +461,17 @@ function renderBodyList(ctx: SKRSContext2D, slide: Slide, d: DesignTokens) {
   const containerW = SIZE - margin * 2;
   const containerH = 600;
   const containerY = headerH + 100;
-  
-  drawBlockedShadow(ctx, margin, containerY, containerW, containerH, 8, 8, c["on-surface"]);
+
+  drawBlockedShadow(
+    ctx,
+    margin,
+    containerY,
+    containerW,
+    containerH,
+    8,
+    8,
+    c["on-surface"],
+  );
   ctx.save();
   ctx.fillStyle = c["surface-container"];
   ctx.fillRect(margin, containerY, containerW, containerH);
@@ -402,7 +487,7 @@ function renderBodyList(ctx: SKRSContext2D, slide: Slide, d: DesignTokens) {
   ctx.fillStyle = c["on-surface"];
   ctx.textAlign = "left";
   ctx.textBaseline = "top";
-  
+
   const lines = wrapText(ctx, slide.text || "", containerW - 100);
   let y = containerY + 60;
   for (const line of lines) {
@@ -416,7 +501,11 @@ function renderBodyList(ctx: SKRSContext2D, slide: Slide, d: DesignTokens) {
   ctx.restore();
 }
 
-function renderBodyComparison(ctx: SKRSContext2D, slide: Slide, d: DesignTokens) {
+function renderBodyComparison(
+  ctx: SKRSContext2D,
+  slide: Slide,
+  d: DesignTokens,
+) {
   const c = d.colors;
   const margin = 80;
 
@@ -444,9 +533,18 @@ function renderBodyComparison(ctx: SKRSContext2D, slide: Slide, d: DesignTokens)
   ctx.fillStyle = c["on-surface"];
   ctx.fillRect(margin + 16, containerY + 16, containerW, containerH);
   ctx.restore();
-  
-  drawBlockedShadow(ctx, margin, containerY, containerW, containerH, 8, 8, c["on-surface"]);
-  
+
+  drawBlockedShadow(
+    ctx,
+    margin,
+    containerY,
+    containerW,
+    containerH,
+    8,
+    8,
+    c["on-surface"],
+  );
+
   ctx.save();
   ctx.fillStyle = c["surface-container"];
   ctx.fillRect(margin, containerY, containerW, containerH);
@@ -462,7 +560,7 @@ function renderBodyComparison(ctx: SKRSContext2D, slide: Slide, d: DesignTokens)
   ctx.fillStyle = c["on-surface"];
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  
+
   const lines = wrapText(ctx, slide.text || "", containerW - 120);
   const lineH = fontSize * 1.4;
   let y = containerY + containerH / 2 - ((lines.length - 1) * lineH) / 2;
@@ -491,8 +589,17 @@ function renderQuoteClassic(ctx: SKRSContext2D, slide: Slide, d: DesignTokens) {
   const containerW = SIZE - margin * 2;
   const containerH = 550;
   const containerY = SIZE / 2 - 300;
-  
-  drawBlockedShadow(ctx, margin, containerY, containerW, containerH, 12, 12, c["on-background"]);
+
+  drawBlockedShadow(
+    ctx,
+    margin,
+    containerY,
+    containerW,
+    containerH,
+    12,
+    12,
+    c["on-background"],
+  );
   ctx.save();
   ctx.fillStyle = c.surface;
   ctx.fillRect(margin, containerY, containerW, containerH);
@@ -508,8 +615,12 @@ function renderQuoteClassic(ctx: SKRSContext2D, slide: Slide, d: DesignTokens) {
   ctx.fillStyle = c["on-background"];
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  
-  const lines = wrapText(ctx, (slide.text || "").toUpperCase(), containerW - 100);
+
+  const lines = wrapText(
+    ctx,
+    (slide.text || "").toUpperCase(),
+    containerW - 100,
+  );
   const lineH = fontSize * 1.1;
   let y = containerY + containerH / 2 - ((lines.length - 1) * lineH) / 2 - 20;
   for (const line of lines) {
@@ -526,7 +637,11 @@ function renderQuoteClassic(ctx: SKRSContext2D, slide: Slide, d: DesignTokens) {
   ctx.restore();
 }
 
-function renderQuoteReaction(ctx: SKRSContext2D, slide: Slide, d: DesignTokens) {
+function renderQuoteReaction(
+  ctx: SKRSContext2D,
+  slide: Slide,
+  d: DesignTokens,
+) {
   const c = d.colors;
   const margin = 100;
 
@@ -537,7 +652,7 @@ function renderQuoteReaction(ctx: SKRSContext2D, slide: Slide, d: DesignTokens) 
   const containerW = SIZE - margin * 2;
   const containerH = 550;
   const containerY = SIZE / 2 - 250;
-  
+
   ctx.save();
   ctx.fillStyle = c["surface-container-highest"];
   ctx.fillRect(margin, containerY, containerW, containerH);
@@ -570,7 +685,7 @@ function renderQuoteReaction(ctx: SKRSContext2D, slide: Slide, d: DesignTokens) 
   ctx.fillStyle = c["on-surface"];
   ctx.textAlign = "left";
   ctx.textBaseline = "top";
-  
+
   const lines = wrapText(ctx, slide.text || "", containerW - 120);
   let y = containerY + 80;
   for (const line of lines) {
@@ -612,7 +727,7 @@ function renderQuotePullout(ctx: SKRSContext2D, slide: Slide, d: DesignTokens) {
   ctx.font = `800 ${fontSize}px "${displayTypo.fontFamily}", sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  
+
   const lines = wrapText(ctx, (slide.text || "").toUpperCase(), SIZE - 200);
   const lineH = fontSize * 1.05;
   let startY = SIZE / 2 - ((lines.length - 1) * lineH) / 2;
@@ -656,7 +771,11 @@ export class ScreenshotRenderer {
 
   async close(): Promise<void> {}
 
-  async renderSlides(slides: Slide[], designName: string, outputDir: string): Promise<string[]> {
+  async renderSlides(
+    slides: Slide[],
+    designName: string,
+    outputDir: string,
+  ): Promise<string[]> {
     await this.init();
     const slidesDir = join(outputDir, "slides");
     await mkdir(slidesDir, { recursive: true });
@@ -665,25 +784,64 @@ export class ScreenshotRenderer {
 
     for (let i = 0; i < slides.length; i++) {
       const slide = slides[i];
-      const outputPath = join(slidesDir, `${String(i + 1).padStart(2, "0")}-${slide.type}.png`);
+      const outputPath = join(
+        slidesDir,
+        `${String(i + 1).padStart(2, "0")}-${slide.type}.png`,
+      );
       const canvas = createCanvas(SIZE, SIZE);
       const ctx = canvas.getContext("2d");
 
       switch (slide.type) {
-        case "title-main": renderTitleMain(ctx, slide, design); break;
-        case "title-question": renderTitleQuestion(ctx, slide, design); break;
-        case "title-statement": renderTitleStatement(ctx, slide, design); break;
-        case "body-text": renderBodyText(ctx, slide, design); break;
-        case "body-list": renderBodyList(ctx, slide, design); break;
-        case "body-comparison": renderBodyComparison(ctx, slide, design); break;
-        case "quote-classic": renderQuoteClassic(ctx, slide, design); break;
-        case "quote-reaction": renderQuoteReaction(ctx, slide, design); break;
-        case "quote-pullout": renderQuotePullout(ctx, slide, design); break;
-        default: renderBodyText(ctx, slide, design);
+        case "title-main":
+          renderTitleMain(ctx, slide, design);
+          drawSlideNumber(ctx, design, i + 1, slides.length);
+          break;
+        case "title-question":
+          renderTitleQuestion(ctx, slide, design);
+          drawSlideNumber(ctx, design, i + 1, slides.length, {
+            inverted: true,
+          });
+          break;
+        case "title-statement":
+          renderTitleStatement(ctx, slide, design);
+          drawSlideNumber(ctx, design, i + 1, slides.length);
+          break;
+        case "body-text":
+          renderBodyText(ctx, slide, design);
+          drawSlideNumber(ctx, design, i + 1, slides.length);
+          break;
+        case "body-list":
+          renderBodyList(ctx, slide, design);
+          drawSlideNumber(ctx, design, i + 1, slides.length);
+          break;
+        case "body-comparison":
+          renderBodyComparison(ctx, slide, design);
+          drawSlideNumber(ctx, design, i + 1, slides.length);
+          break;
+        case "quote-classic":
+          renderQuoteClassic(ctx, slide, design);
+          drawSlideNumber(ctx, design, i + 1, slides.length, {
+            inverted: true,
+          });
+          break;
+        case "quote-reaction":
+          renderQuoteReaction(ctx, slide, design);
+          drawSlideNumber(ctx, design, i + 1, slides.length);
+          break;
+        case "quote-pullout":
+          renderQuotePullout(ctx, slide, design);
+          drawSlideNumber(ctx, design, i + 1, slides.length);
+          break;
+        default:
+          renderBodyText(ctx, slide, design);
+          drawSlideNumber(ctx, design, i + 1, slides.length);
+          break;
       }
 
       const pngBuf = await canvas.encode("png");
-      const compressed = await sharp(pngBuf).png({ compressionLevel: 9 }).toBuffer();
+      const compressed = await sharp(pngBuf)
+        .png({ compressionLevel: 9 })
+        .toBuffer();
       await writeFile(outputPath, compressed);
       outputPaths.push(outputPath);
     }

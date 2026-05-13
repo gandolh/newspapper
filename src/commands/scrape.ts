@@ -6,7 +6,7 @@ import { db } from "../storage/database.js";
 import { logger } from "../utils/logger.js";
 import { v4 as uuidv4 } from "uuid";
 
-const MAX_ARTICLES_PER_SOURCE = 2;
+const MAX_ARTICLES_PER_SOURCE = 10;
 
 interface ScrapeOptions {
   sources?: string;
