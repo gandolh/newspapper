@@ -10,8 +10,7 @@ dotenv.config({ path: join(__dirname, "../../.env") });
 export const config = {
   ollama: {
     host: process.env.OLLAMA_HOST || "http://localhost:11434",
-    model: process.env.OLLAMA_MODEL,
-    apiKey: process.env.OLLAMA_API_KEY,
+    model: process.env.OLLAMA_MODEL || "llama3.2:1b",
   },
 
   scraping: {

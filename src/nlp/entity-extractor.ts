@@ -58,9 +58,6 @@ export class EntityExtractor {
     if (!this.ollama) {
       this.ollama = new Ollama({
         host: config.ollama.host,
-        ...(config.ollama.apiKey
-          ? { headers: { Authorization: `Bearer ${config.ollama.apiKey}` } }
-          : {}),
       });
     }
     return this.ollama;

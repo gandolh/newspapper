@@ -116,9 +116,6 @@ export async function formatCommand(options: FormatOptions): Promise<void> {
   });
   const ollama = new Ollama({
     host: config.ollama.host,
-    ...(config.ollama.apiKey
-      ? { headers: { Authorization: `Bearer ${config.ollama.apiKey}` } }
-      : {}),
   });
   try {
     const models = await ollama.list();
