@@ -9,7 +9,16 @@ import { config } from "../utils/config.js";
 import { logger } from "../utils/logger.js";
 
 interface Slide {
-  type: "title" | "body" | "quote" | "image-caption";
+  type:
+    | "title-main"
+    | "title-question"
+    | "title-statement"
+    | "body-text"
+    | "body-list"
+    | "body-comparison"
+    | "quote-classic"
+    | "quote-reaction"
+    | "quote-pullout";
   text: string;
   attribution?: string;
 }
@@ -217,6 +226,29 @@ export async function formatCommand(options: FormatOptions): Promise<void> {
       throw new Error("Invalid response: missing slides array");
     }
     slides = result.slides;
+
+    // Validate slide types
+    const validTypes = [
+      "title-main",
+      "title-question",
+      "title-statement",
+      "body-text",
+      "body-list",
+      "body-comparison",
+      "quote-classic",
+      "quote-reaction",
+      "quote-pullout",
+    ];
+    const invalidSlides = slides.filter((s) => !validTypes.includes(s.type));
+    if (invalidSlides.length > 0) {
+      logger.warn(
+        `Warning: ${invalidSlides.length} slide(s) have invalid types`,
+      );
+      logger.warn(
+        `Invalid types: ${invalidSlides.map((s) => s.type).join(", ")}`,
+      );
+    }
+
     logger.success(`Generated ${slides.length} slides`);
   } catch (err) {
     logger.error("Slide generation failed");
@@ -246,5 +278,9 @@ export async function formatCommand(options: FormatOptions): Promise<void> {
   });
 
   logger.success(`Saved to: ${postDir}/slides.json`);
-  logger.info(`Next: npm run generate -- "${postDir}"`);
+
+  // Always auto-generate slides
+  logger.info("Generating slides...");
+  const { generateCommand } = await import("./generate.js");
+  await generateCommand(postDir);
 }

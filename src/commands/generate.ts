@@ -1,4 +1,4 @@
-import { readFile, stat } from "fs/promises";
+import { readFile, stat, access } from "fs/promises";
 import { join, basename } from "path";
 import { screenshotRenderer } from "../renderer/screenshot.js";
 import { db } from "../storage/database.js";
@@ -36,6 +36,35 @@ export async function generateCommand(postDir: string): Promise<void> {
 
   logger.info(`Rendering ${slidesData.slides.length} slides`);
   logger.info(`Design: ${slidesData.design}`);
+
+  // Validate templates exist
+  const templatesDir = join(process.cwd(), "templates", slidesData.design);
+  try {
+    await access(templatesDir);
+  } catch {
+    logger.error(`Templates directory not found: ${templatesDir}`);
+    logger.info(`Available designs: digital-broadsheet, warm-industrial`);
+    process.exit(1);
+  }
+
+  // Validate each slide has a corresponding template
+  const missingTemplates: string[] = [];
+  for (const slide of slidesData.slides) {
+    const templatePath = join(templatesDir, `${slide.type}.html`);
+    try {
+      await access(templatePath);
+    } catch {
+      missingTemplates.push(slide.type);
+    }
+  }
+
+  if (missingTemplates.length > 0) {
+    logger.error(
+      `Missing templates for slide types: ${missingTemplates.join(", ")}`,
+    );
+    logger.info(`Check templates in: ${templatesDir}`);
+    process.exit(1);
+  }
 
   let imagePaths: string[];
 

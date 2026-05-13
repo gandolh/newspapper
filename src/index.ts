@@ -17,11 +17,7 @@ async function mainMenu() {
       name: "Scrape & Extract  - Fetch news and identify entities",
       value: "scrape",
     },
-    { name: "Format post       - Create a post with AI help", value: "format" },
-    {
-      name: "Generate slides   - Render approved posts to images",
-      value: "generate",
-    },
+    { name: "Create post       - Format & generate slides", value: "create" },
     { name: "List items        - Browse articles and data", value: "list" },
     { name: "Clean data        - Purge old database records", value: "clean" },
     { name: "Exit              - Close the application", value: "exit" },
@@ -59,7 +55,7 @@ async function mainMenu() {
           await scrapeCommand({});
           break;
         }
-        case "format": {
+        case "create": {
           const { entities } = await inquirer.prompt([
             {
               type: "input",
@@ -71,58 +67,6 @@ async function mainMenu() {
           ]);
           const { formatCommand } = await import("./commands/format.js");
           await formatCommand({ entities });
-          break;
-        }
-        case "generate": {
-          const { db } = await import("./storage/database.js");
-          db.initialize();
-
-          let posts = db.getAllPosts().map((p) => ({
-            name: p.slug,
-            value: p.slides_path.replace("/slides.json", ""),
-          }));
-
-          // Fallback: Check filesystem if DB is empty or missing specific posts
-          if (posts.length === 0) {
-            try {
-              const postsDir = join(config.paths.output, "posts");
-              const entries = await readdir(postsDir, { withFileTypes: true });
-              for (const entry of entries) {
-                if (entry.isDirectory()) {
-                  const slidesPath = join(postsDir, entry.name, "slides.json");
-                  // Simple check for slides.json existence
-                  posts.push({
-                    name: entry.name,
-                    value: join(postsDir, entry.name),
-                  });
-                }
-              }
-              // Deduplicate based on name (slug)
-              const seen = new Set();
-              posts = posts.filter((p) => {
-                if (seen.has(p.name)) return false;
-                seen.add(p.name);
-                return true;
-              });
-            } catch (err) {
-              // Ignore readdir errors (e.g. directory doesn't exist)
-            }
-          }
-
-          if (posts.length === 0) {
-            logger.warn("No posts found. Format a post first.");
-            break;
-          }
-          const { postPath } = await inquirer.prompt([
-            {
-              type: "list",
-              name: "postPath",
-              message: "Select a post to generate slides for:",
-              choices: posts,
-            },
-          ]);
-          const { generateCommand } = await import("./commands/generate.js");
-          await generateCommand(postPath);
           break;
         }
         case "list": {
