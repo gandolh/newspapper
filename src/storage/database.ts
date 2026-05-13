@@ -1,9 +1,9 @@
-import Database from 'better-sqlite3';
-import { join } from 'path';
-import { config } from '../utils/config.js';
-import { logger } from '../utils/logger.js';
+import Database from "better-sqlite3";
+import { join } from "path";
+import { config } from "../utils/config.js";
+import { logger } from "../utils/logger.js";
 
-const DB_PATH = join(config.paths.data, 'newspapper.db');
+const DB_PATH = join(config.paths.data, "newspapper.db");
 
 export interface Article {
   id: string;
@@ -41,8 +41,8 @@ export class DatabaseManager {
   getDb(): Database.Database {
     if (!this.db) {
       this.db = new Database(DB_PATH);
-      this.db.pragma('journal_mode = WAL');
-      this.db.pragma('foreign_keys = ON');
+      this.db.pragma("journal_mode = WAL");
+      this.db.pragma("foreign_keys = ON");
     }
     return this.db;
   }
@@ -99,7 +99,7 @@ export class DatabaseManager {
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
       );
     `);
-    logger.debug('Database initialized');
+    logger.debug("Database initialized");
   }
 
   close(): void {
@@ -111,50 +111,93 @@ export class DatabaseManager {
 
   // --- Articles ---
 
-  insertArticle(article: Omit<Article, 'status'>): void {
+  insertArticle(article: Omit<Article, "status">): void {
     const db = this.getDb();
-    db.prepare(`
+    db.prepare(
+      `
       INSERT OR IGNORE INTO articles
-        (id, source_id, source_name, url, title, author, published_at, scraped_at, body)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
-      article.id, article.source_id, article.source_name, article.url,
-      article.title, article.author, article.published_at, article.scraped_at, article.body
+        (id, source_id, source_name, url, title, author, published_at, scraped_at, body, status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'processed')
+    `,
+    ).run(
+      article.id,
+      article.source_id,
+      article.source_name,
+      article.url,
+      article.title,
+      article.author,
+      article.published_at,
+      article.scraped_at,
+      article.body,
     );
   }
 
+  getArticlesByContent(names: string[]): Article[] {
+    const db = this.getDb();
+    const conditions = names
+      .map(() => "(title LIKE ? OR body LIKE ?)")
+      .join(" OR ");
+    const params = names.flatMap((n) => [`%${n}%`, `%${n}%`]);
+
+    return db
+      .prepare(
+        `
+      SELECT * FROM articles 
+      WHERE ${conditions}
+      ORDER BY scraped_at DESC
+    `,
+      )
+      .all(...params) as Article[];
+  }
+
   getArticleByUrl(url: string): Article | null {
-    return this.getDb().prepare('SELECT * FROM articles WHERE url = ?').get(url) as Article | null;
+    return this.getDb()
+      .prepare("SELECT * FROM articles WHERE url = ?")
+      .get(url) as Article | null;
   }
 
   getArticleById(id: string): Article | null {
-    return this.getDb().prepare('SELECT * FROM articles WHERE id = ?').get(id) as Article | null;
+    return this.getDb()
+      .prepare("SELECT * FROM articles WHERE id = ?")
+      .get(id) as Article | null;
   }
 
   getAllArticles(): Article[] {
-    return this.getDb().prepare('SELECT * FROM articles ORDER BY scraped_at DESC').all() as Article[];
+    return this.getDb()
+      .prepare("SELECT * FROM articles ORDER BY scraped_at DESC")
+      .all() as Article[];
   }
 
   getArticlesToday(): Article[] {
-    return this.getDb().prepare(
-      "SELECT * FROM articles WHERE DATE(scraped_at) = DATE('now') ORDER BY scraped_at DESC"
-    ).all() as Article[];
+    return this.getDb()
+      .prepare(
+        "SELECT * FROM articles WHERE DATE(scraped_at) = DATE('now') ORDER BY scraped_at DESC",
+      )
+      .all() as Article[];
   }
 
   getArticlesByStatus(status: string): Article[] {
-    return this.getDb().prepare('SELECT * FROM articles WHERE status = ? ORDER BY scraped_at DESC').all(status) as Article[];
+    return this.getDb()
+      .prepare(
+        "SELECT * FROM articles WHERE status = ? ORDER BY scraped_at DESC",
+      )
+      .all(status) as Article[];
   }
 
   updateArticleStatus(id: string, status: string): void {
-    this.getDb().prepare('UPDATE articles SET status = ? WHERE id = ?').run(status, id);
+    this.getDb()
+      .prepare("UPDATE articles SET status = ? WHERE id = ?")
+      .run(status, id);
   }
 
   deleteArticle(id: string): void {
-    this.getDb().prepare('DELETE FROM articles WHERE id = ?').run(id);
+    this.getDb().prepare("DELETE FROM articles WHERE id = ?").run(id);
   }
 
   deleteArticlesOlderThan(cutoffIso: string): number {
-    const result = this.getDb().prepare('DELETE FROM articles WHERE scraped_at < ?').run(cutoffIso);
+    const result = this.getDb()
+      .prepare("DELETE FROM articles WHERE scraped_at < ?")
+      .run(cutoffIso);
     return result.changes;
   }
 
@@ -162,78 +205,114 @@ export class DatabaseManager {
 
   upsertEntity(type: string, value: string): number {
     const db = this.getDb();
-    const existing = db.prepare(
-      'SELECT id FROM entities WHERE entity_type = ? AND entity_value = ?'
-    ).get(type, value) as { id: number } | undefined;
+    const existing = db
+      .prepare(
+        "SELECT id FROM entities WHERE entity_type = ? AND entity_value = ?",
+      )
+      .get(type, value) as { id: number } | undefined;
     if (existing) return existing.id;
-    const result = db.prepare(
-      'INSERT INTO entities (entity_type, entity_value) VALUES (?, ?)'
-    ).run(type, value);
+    const result = db
+      .prepare("INSERT INTO entities (entity_type, entity_value) VALUES (?, ?)")
+      .run(type, value);
     return result.lastInsertRowid as number;
   }
 
   linkArticleEntity(articleId: string, entityId: number): void {
-    this.getDb().prepare(
-      'INSERT OR IGNORE INTO article_entities (article_id, entity_id) VALUES (?, ?)'
-    ).run(articleId, entityId);
+    this.getDb()
+      .prepare(
+        "INSERT OR IGNORE INTO article_entities (article_id, entity_id) VALUES (?, ?)",
+      )
+      .run(articleId, entityId);
   }
 
   getEntitiesByArticle(articleId: string): Entity[] {
-    return this.getDb().prepare(`
+    return this.getDb()
+      .prepare(
+        `
       SELECT e.* FROM entities e
       JOIN article_entities ae ON e.id = ae.entity_id
       WHERE ae.article_id = ?
       ORDER BY e.entity_type, e.entity_value
-    `).all(articleId) as Entity[];
+    `,
+      )
+      .all(articleId) as Entity[];
   }
 
   getArticlesByEntityNames(names: string[]): Article[] {
     const db = this.getDb();
-    const placeholders = names.map(() => '?').join(',');
-    const lowerNames = names.map(n => n.toLowerCase());
-    return db.prepare(`
+    const placeholders = names.map(() => "?").join(",");
+    const lowerNames = names.map((n) => n.toLowerCase());
+    return db
+      .prepare(
+        `
       SELECT DISTINCT a.* FROM articles a
       JOIN article_entities ae ON a.id = ae.article_id
       JOIN entities e ON ae.entity_id = e.id
       WHERE LOWER(e.entity_value) IN (${placeholders})
       ORDER BY a.scraped_at DESC
-    `).all(...lowerNames) as Article[];
+    `,
+      )
+      .all(...lowerNames) as Article[];
   }
 
   getAllEntities(type?: string): Entity[] {
     if (type) {
-      return this.getDb().prepare(
-        'SELECT * FROM entities WHERE entity_type = ? ORDER BY entity_value'
-      ).all(type) as Entity[];
+      return this.getDb()
+        .prepare(
+          "SELECT * FROM entities WHERE entity_type = ? ORDER BY entity_value",
+        )
+        .all(type) as Entity[];
     }
-    return this.getDb().prepare('SELECT * FROM entities ORDER BY entity_type, entity_value').all() as Entity[];
+    return this.getDb()
+      .prepare("SELECT * FROM entities ORDER BY entity_type, entity_value")
+      .all() as Entity[];
   }
 
   // --- Posts ---
 
-  insertPost(post: Omit<Post, 'created_at'>): void {
-    this.getDb().prepare(`
+  insertPost(post: Omit<Post, "created_at">): void {
+    this.getDb()
+      .prepare(
+        `
       INSERT INTO posts (id, slug, entities_used, slides_path, design, tone, status)
       VALUES (?, ?, ?, ?, ?, ?, ?)
-    `).run(post.id, post.slug, post.entities_used, post.slides_path, post.design, post.tone, post.status);
+    `,
+      )
+      .run(
+        post.id,
+        post.slug,
+        post.entities_used,
+        post.slides_path,
+        post.design,
+        post.tone,
+        post.status,
+      );
   }
 
   updatePostStatus(id: string, status: string): void {
-    this.getDb().prepare('UPDATE posts SET status = ? WHERE id = ?').run(status, id);
+    this.getDb()
+      .prepare("UPDATE posts SET status = ? WHERE id = ?")
+      .run(status, id);
   }
 
   getAllPosts(): Post[] {
-    return this.getDb().prepare('SELECT * FROM posts ORDER BY created_at DESC').all() as Post[];
+    return this.getDb()
+      .prepare("SELECT * FROM posts ORDER BY created_at DESC")
+      .all() as Post[];
   }
 
   deletePostsOlderThan(cutoffIso: string): number {
-    const result = this.getDb().prepare('DELETE FROM posts WHERE created_at < ?').run(cutoffIso);
+    const result = this.getDb()
+      .prepare("DELETE FROM posts WHERE created_at < ?")
+      .run(cutoffIso);
     return result.changes;
   }
 
   purgeAll(): void {
     const db = this.getDb();
-    db.exec('DELETE FROM article_entities; DELETE FROM entities; DELETE FROM articles; DELETE FROM posts;');
+    db.exec(
+      "DELETE FROM article_entities; DELETE FROM entities; DELETE FROM articles; DELETE FROM posts;",
+    );
   }
 }
 

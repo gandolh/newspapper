@@ -149,6 +149,5 @@ export async function scrapeCommand(options: ScrapeOptions): Promise<void> {
   );
 
   await scraperOrchestrator.cleanup();
-  logger.info("Next: npm run extract-entities");
   return;
 }

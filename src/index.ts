@@ -1,15 +1,7 @@
 #!/usr/bin/env node
 
-import { Command } from "commander";
 import inquirer from "inquirer";
 import { logger } from "./utils/logger.js";
-
-const program = new Command();
-
-program
-  .name("newspapper")
-  .description("Personal news aggregation and slide generation tool")
-  .version("2.0.0");
 
 async function mainMenu() {
   console.clear();
@@ -18,10 +10,9 @@ async function mainMenu() {
   console.log("═".repeat(50) + "\n");
 
   const choices = [
-    { name: "Scrape articles   - Fetch today's news", value: "scrape" },
     {
-      name: "Extract entities  - Identify people, places, and orgs",
-      value: "extract",
+      name: "Scrape & Extract  - Fetch news and identify entities",
+      value: "scrape",
     },
     { name: "Format post       - Create a post with AI help", value: "format" },
     {
@@ -36,9 +27,9 @@ async function mainMenu() {
   while (true) {
     let action: string;
     try {
-      const answers = await (inquirer.prompt as any)([
+      const answers = await inquirer.prompt([
         {
-          type: "list",
+          type: "select",
           name: "action",
           message: "Select an action:",
           choices,
@@ -63,12 +54,6 @@ async function mainMenu() {
         case "scrape": {
           const { scrapeCommand } = await import("./commands/scrape.js");
           await scrapeCommand({});
-          break;
-        }
-        case "extract": {
-          const { extractEntitiesCommand } =
-            await import("./commands/extract-entities.js");
-          await extractEntitiesCommand();
           break;
         }
         case "format": {
@@ -127,8 +112,7 @@ async function mainMenu() {
   }
 }
 
-program.action(async () => {
-  await mainMenu();
+mainMenu().catch((error) => {
+  logger.error(`Fatal error: ${error.message}`);
+  process.exit(1);
 });
-
-program.parse();

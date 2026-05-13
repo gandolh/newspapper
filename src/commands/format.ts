@@ -94,10 +94,11 @@ export async function formatCommand(options: FormatOptions): Promise<void> {
   logger.info(`Tone: ${tone} | Design: ${design}`);
 
   // Find articles matching entities
-  const articles = db.getArticlesByEntityNames(entityNames);
+  const articles = db.getArticlesByContent(entityNames);
   if (articles.length === 0) {
-    logger.error(`No articles found for entities: ${entityNames.join(", ")}`);
-    logger.info('Run "npm run extract-entities" first');
+    logger.error(
+      `No articles found containing entities: ${entityNames.join(", ")}`,
+    );
     process.exit(1);
   }
 
