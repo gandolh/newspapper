@@ -1,20 +1,32 @@
 [
   {
-    "id": "bbc-world",
-    "name": "BBC World",
-    "rss": "https://feeds.bbci.co.uk/news/world/rss.xml",
+    "id": "hotnews",
+    "name": "HotNews.ro",
+    "rss": "https://hotnews.ro/feed",
     "enabled": true
   },
   {
-    "id": "guardian-world",
-    "name": "The Guardian — World",
-    "rss": "https://www.theguardian.com/world/rss",
+    "id": "context",
+    "name": "Context.ro",
+    "rss": "https://context.ro/feed/",
     "enabled": true
   },
   {
-    "id": "reuters-world",
-    "name": "Reuters — World",
-    "rss": "https://feeds.reuters.com/Reuters/worldNews",
-    "enabled": false
+    "id": "factual",
+    "name": "Factual.ro",
+    "rss": "https://www.factual.ro/feed/",
+    "enabled": true
+  },
+  {
+    "id": "politica-la-minut",
+    "name": "Politica la Minut",
+    "rss": "https://www.politicalaminut.ro/feed/",
+    "enabled": true
+  },
+  {
+    "id": "g4media",
+    "name": "G4Media.ro",
+    "rss": "https://www.g4media.ro/feed",
+    "enabled": true
   }
 ]
