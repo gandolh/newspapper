@@ -66,7 +66,7 @@ Full schemas: [docs/data.md](docs/data.md).
 
 ## Theme
 
-One theme ships: `warm-industrial`. Tokens in `design-systems/warm-industrial.yaml`. Reference HTML in `templates/warm-industrial/` (visual specs only — actual rendering is JSX components under `src/render/slides/`). Satori loads fonts from `fonts/` at startup.
+One theme ships: `warm-industrial`. Tokens in `design-systems/warm-industrial.json`. Reference HTML in `templates/warm-industrial/` (visual specs only — actual rendering is JSX components under `src/render/slides/`). Satori loads fonts from `fonts/` at startup.
 
 The `digital-broadsheet` theme was removed in v2.
 

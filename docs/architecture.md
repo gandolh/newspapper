@@ -11,7 +11,7 @@
 ```
 ┌─────────────┐   ┌──────────────┐   ┌──────────────┐
 │   scrape    │ → │   compose    │ → │   render     │
-│  (RSS only) │   │   (Ollama)   │   │  (Satori)    │
+│ (RSS+fetch) │   │   (Ollama)   │   │  (Satori)    │
 └─────────────┘   └──────────────┘   └──────────────┘
       │                  │                  │
       ▼                  ▼                  ▼
@@ -28,8 +28,9 @@ src/
 ├── cli.ts              # entry point, argv → run/sources/list/clean
 ├── run.ts              # the pipeline orchestrator
 ├── scrape/
-│   ├── index.ts        # fetch each source, filter by date, persist
-│   └── rss.ts          # rss-parser wrapper
+│   ├── index.ts        # for each source: fetch feed, filter by date, fetch & strip article body, persist
+│   ├── rss.ts          # rss-parser wrapper
+│   └── body.ts         # fetch URL, regex-strip HTML to plain text
 ├── compose/
 │   ├── index.ts        # build the prompt, call ollama, parse the post JSON
 │   └── ollama.ts       # thin HTTP client for /api/generate
@@ -50,7 +51,7 @@ src/
 
 ## Key decisions
 
-- **RSS only.** No HTML scraping, no headless browser. Sources without a feed are simply not supported.
+- **RSS for discovery, fetch for body.** Sources without an RSS feed are not supported. RSS gives us the item list; the article HTML is then fetched once per new item and stripped to plain text with a regex (no `cheerio`, no headless browser). Imperfect but cheap and dependency-free.
 - **No entity extraction stage.** The old pipeline had a `compromise`-based entity step. v2 drops it — the LLM sees the raw articles and decides what to write about.
 - **One post per day, covering all today's news.** No clustering, no per-topic posts. Simpler prompt, predictable output.
 - **LLM picks slide count.** The prompt constrains the model to 2–8 slides; it chooses based on how much there is to say.

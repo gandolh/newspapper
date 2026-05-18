@@ -67,7 +67,7 @@ newspapper clean     # delete old runs + DB rows
 
 ## Theme
 
-One theme ships: `warm-industrial`. Soft brutalism, terracotta accent, Epilogue + Manrope. Tokens live in `design-systems/warm-industrial.yaml`; reference HTML in `templates/warm-industrial/`.
+One theme ships: `warm-industrial`. Soft brutalism, terracotta accent, Inter at six weights. Tokens live in `design-systems/warm-industrial.json`; reference HTML in `templates/warm-industrial/`.
 
 ## Documentation
 

@@ -24,7 +24,7 @@ Static config, hand-edited. Array of source objects.
 | `rss` | string | yes | RSS or Atom feed URL. Parsed by `rss-parser`. |
 | `enabled` | boolean | yes | Skipped during scrape if false. |
 
-There are no CSS selectors, no scraper-type discriminator, no per-source auth. RSS only.
+There are no CSS selectors, no scraper-type discriminator, no per-source auth. RSS gives us the item list; the article body is fetched separately and regex-stripped.
 
 ## SQLite (`data/newspapper.db`)
 
@@ -39,6 +39,7 @@ Created on first run by `src/storage/db.ts`. Two tables.
 | `url` | TEXT UNIQUE | dedupe key |
 | `title` | TEXT | from RSS `<title>` |
 | `summary` | TEXT | from RSS `<description>` / `content:encoded` |
+| `body` | TEXT | full article body, fetched from `url` and regex-stripped to plain text. Empty string on fetch failure. |
 | `published_at` | TEXT (ISO 8601) | from RSS `<pubDate>` |
 | `scraped_at` | TEXT (ISO 8601) | when this row was inserted |
 

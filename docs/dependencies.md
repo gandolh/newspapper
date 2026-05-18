@@ -2,6 +2,8 @@
 
 Newspapper v2 targets a small dep footprint. The full list below.
 
+**Versions are pinned exactly** (no `^` or `~`) in `package.json`. Upgrades are deliberate.
+
 ## Runtime
 
 | Package | Used in | Why |

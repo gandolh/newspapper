@@ -1,24 +1,48 @@
 {
   "name": "newspapper",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "A minimal CLI that turns today's news into an Instagram-style slide post.",
-  "main": "index.js",
-  "directories": {
-    "doc": "docs"
-  },
+  "type": "module",
+  "main": "dist/cli.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "start": "node dist/cli.js",
+    "dev": "tsx src/cli.ts",
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/gandolh/newspapper.git"
   },
-  "keywords": [],
+  "keywords": [
+    "news",
+    "rss",
+    "instagram",
+    "cli",
+    "ollama"
+  ],
   "author": "",
-  "license": "ISC",
-  "type": "commonjs",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/gandolh/newspapper/issues"
   },
-  "homepage": "https://github.com/gandolh/newspapper#readme"
+  "homepage": "https://github.com/gandolh/newspapper#readme",
+  "dependencies": {
+    "@resvg/resvg-js": "2.6.2",
+    "better-sqlite3": "12.10.0",
+    "cac": "7.0.0",
+    "dotenv": "17.4.2",
+    "react": "19.2.6",
+    "rss-parser": "3.13.0",
+    "satori": "0.26.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "7.6.13",
+    "@types/node": "25.9.0",
+    "@types/react": "19.2.14",
+    "tsx": "4.22.1",
+    "typescript": "6.0.3",
+    "vitest": "4.1.6"
+  }
 }

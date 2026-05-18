@@ -4,23 +4,25 @@ One theme ships: **warm-industrial**. The `digital-broadsheet` theme was removed
 
 ## warm-industrial
 
-Source of truth: `design-systems/warm-industrial.yaml`. The renderer reads tokens from this file at startup.
+Source of truth: `design-systems/warm-industrial.json`. The renderer imports it directly via `resolveJsonModule` — no YAML parser involved.
 
 ### Vibe
 
-Soft brutalism. Rounded corners (8px default), bold display sans-serif (Epilogue 700/800), grounded sans for body (Manrope 400/700), terracotta accent (`#a2391a`) on a warm off-white surface (`#fbf9f8`). Tactile, magazine-like.
+Soft brutalism. Rounded corners (8px default), bold display sans-serif, grounded sans for body, terracotta accent (`#a2391a`) on a warm off-white surface (`#fbf9f8`). Tactile, magazine-like.
+
+**Typeface.** The implementation uses **Inter** (400/500/600/700/800/900) for every text element. The original design brief specified Epilogue + Manrope + Newsreader, but Satori (via opentype.js) chokes on those families' variable-font fvar tables; static-instance TTFs aren't published for them. Inter ships static TTFs and renders cleanly at every weight. The visual character — bold display contrast, generous letter-spacing, tight tracking on large headlines — is preserved.
 
 ### Tokens
 
 | Group | Examples |
 |-------|----------|
 | Colors | `surface`, `on-surface`, `primary` (`#a2391a`), `outline`, plus the full Material 3 surface/container ramp |
-| Typography | `display` (80px Epilogue 800), `headline-lg` (48px), `headline-md` (32px), `body-lg`/`body-md` (Manrope), `label-bold` |
+| Typography | `display` (80px Inter 800), `headline-lg` (48px Inter 800), `headline-md` (32px Inter 700), `body-lg`/`body-md` (Inter 400), `label-bold` (Inter 700) |
 | Spacing | base 8px, scale: `xs=4`, `sm=12`, `md=24`, `lg=48`, `xl=80`. `container-margin=32`, `gutter=24`. |
 | Radius | `sm=0.25rem`, `DEFAULT=0.5rem`, `md=0.75rem`, `lg=1rem`, `xl=1.5rem` |
 | Shapes | `borderWidth=2px` |
 
-See the YAML for the full color ramp and exact values.
+See the JSON for the full color ramp and exact values.
 
 ### Canvas
 

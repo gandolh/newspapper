@@ -1,17 +1,12 @@
 node_modules/
 .env
-data/
+data/*
+!data/sources.json
 output/
 *.log
 .DS_Store
 .vscode/
 .idea/
-
-# Playwright
-.playwright/
-
-# Downloaded fonts cache
-fonts/
 
 # Test coverage
 coverage/

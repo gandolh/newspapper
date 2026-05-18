@@ -27,7 +27,7 @@ Each step logs its progress. Failures abort the run; no partial recovery.
 export async function scrape(config: Config, opts: ScrapeOptions): Promise<{ inserted: number }>
 ```
 
-For each enabled source: fetch the feed via `scrape/rss.ts`, keep items with `pubDate` on today's local date, cap at `maxPerSource`, insert into `articles` (skip on URL collision).
+For each enabled source: fetch the feed via `scrape/rss.ts`, keep items with `pubDate` on today's local date, cap at `maxPerSource`. For each new item, fetch the article URL and reduce the response to plain text with `scrape/body.ts`. Insert into `articles` (skip on URL collision).
 
 ```ts
 // scrape/rss.ts
@@ -35,6 +35,13 @@ export async function fetchFeed(url: string): Promise<RssItem[]>
 ```
 
 Thin wrapper around `rss-parser`. Returns a normalized shape; no parsing logic lives elsewhere.
+
+```ts
+// scrape/body.ts
+export async function fetchBody(url: string, timeoutMs: number): Promise<string>
+```
+
+Fetches the article URL with native `fetch`, runs a regex pass to strip `<script>`/`<style>` blocks and all remaining tags, collapses whitespace, and returns plain text. Returns an empty string on network failure or non-2xx; the article is still inserted so we know we've seen the URL.
 
 ## `compose/`
 

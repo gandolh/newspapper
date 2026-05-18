@@ -1,0 +1,20 @@
+[
+  {
+    "id": "bbc-world",
+    "name": "BBC World",
+    "rss": "https://feeds.bbci.co.uk/news/world/rss.xml",
+    "enabled": true
+  },
+  {
+    "id": "guardian-world",
+    "name": "The Guardian — World",
+    "rss": "https://www.theguardian.com/world/rss",
+    "enabled": true
+  },
+  {
+    "id": "reuters-world",
+    "name": "Reuters — World",
+    "rss": "https://feeds.reuters.com/Reuters/worldNews",
+    "enabled": false
+  }
+]
