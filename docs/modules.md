@@ -1,308 +1,135 @@
 # Modules
 
-Quick reference for all modules in `src/`. Commands in `src/commands/` orchestrate these — they do not implement business logic themselves.
+Module-by-module API reference. All paths under `src/`.
 
-## Storage (`src/storage/`)
+## `cli.ts`
 
-All storage modules follow the same pattern: load data, mutate, save. Always call `manifestManager.save()` after manifest mutations.
+Entry point. Parses argv (using a small library like `cac` or hand-rolled), dispatches to `run`, `sources`, `list`, or `clean`. Loads config from `.env` once and passes it down.
 
-### ManifestManager (`manifest.ts`)
+## `run.ts`
 
-Central index. Load once at command start; save after every write.
-
-```typescript
-await manifestManager.load();
-const manifest = await manifestManager.load(); // returns manifest object
-await manifestManager.save();
-
-await manifestManager.addArticle(article);
-await manifestManager.updateArticleStatus(id, "grouped");
-await manifestManager.getArticlesByStatus("scraped");
-
-// Similar methods for groups and summaries
+```ts
+export async function run(opts: RunOptions): Promise<void>
 ```
 
-### ArticleStorage (`articles.ts`)
+Orchestrates the pipeline:
 
-```typescript
-const article = await articleStorage.save(articleData);
-const article = await articleStorage.load(id);
-const articles = await articleStorage.loadMultiple([id1, id2]);
-await articleStorage.update(id, updates);
-await articleStorage.delete(id);
+1. `scrape(config, opts)` → returns count of new articles
+2. `compose(config, opts)` → returns the post payload
+3. `render(post, config, opts)` → writes PNGs and `slides.json` to disk
+
+Each step logs its progress. Failures abort the run; no partial recovery.
+
+## `scrape/`
+
+```ts
+// scrape/index.ts
+export async function scrape(config: Config, opts: ScrapeOptions): Promise<{ inserted: number }>
 ```
 
-### GroupStorage (`groups.ts`)
+For each enabled source: fetch the feed via `scrape/rss.ts`, keep items with `pubDate` on today's local date, cap at `maxPerSource`, insert into `articles` (skip on URL collision).
 
-```typescript
-const group = await groupStorage.save(groupData);
-const group = await groupStorage.load(id);
-await groupStorage.addArticle(groupId, articleId);
-await groupStorage.removeArticle(groupId, articleId);
+```ts
+// scrape/rss.ts
+export async function fetchFeed(url: string): Promise<RssItem[]>
 ```
 
-### SummaryStorage (`summaries.ts`)
+Thin wrapper around `rss-parser`. Returns a normalized shape; no parsing logic lives elsewhere.
 
-```typescript
-const summary = await summaryStorage.save(summaryData);
-const summary = await summaryStorage.load(id);
-const summaries = await summaryStorage.getByGroup(groupId);
+## `compose/`
+
+```ts
+// compose/index.ts
+export async function compose(config: Config): Promise<Post>
 ```
 
-### EntityStorage (`entities.ts`)
+1. Reads today's articles from the DB.
+2. Builds the prompt (a single string template, embedded in code — no Handlebars).
+3. Calls `ollama.generate(prompt)`.
+4. Parses the model's JSON output; validates against the slide-type schema in [data.md](data.md).
+5. Inserts a row into `posts` (with the next `run_number` for today) and returns the post.
 
-```typescript
-await entityStorage.save(articleId, entityData);
-const entities = await entityStorage.load(articleId);
-const results = await entityStorage.searchByEntity(type, name, articleIds);
+If parsing fails, the run aborts with the raw model output dumped to stderr. No auto-retry — a failed parse usually means the model needs a different prompt or a bigger model.
+
+```ts
+// compose/ollama.ts
+export async function generate(host: string, model: string, prompt: string): Promise<string>
 ```
 
-### SourceManager (`sources.ts`)
+POSTs to `${host}/api/generate` with `stream: false`. Returns the `response` field.
 
-```typescript
-await sourceManager.load();
-const sources = await sourceManager.getEnabled();
-const sources = await sourceManager.getAll();
-const source = await sourceManager.getById(id);
+## `render/`
+
+```ts
+// render/index.ts
+export async function render(post: Post, config: Config): Promise<{ outputDir: string }>
 ```
 
----
+For each slide in `post.slides`: pick the JSX component by `variant`, call Satori to produce SVG, call resvg to produce PNG, write `output/<date>-<n>/<i>.png`. Also writes `slides.json`.
 
-## Scrapers (`src/scrapers/`)
-
-### ScraperOrchestrator (`index.ts`)
-
-```typescript
-const article = await scraperOrchestrator.scrapeArticle(url, source);
-await scraperOrchestrator.cleanup();
+```ts
+// render/satori.ts
+export async function toSvg(node: ReactNode, theme: Theme): Promise<string>
 ```
 
-### HttpScraper (`http-scraper.ts`)
+Configures Satori with the warm-industrial theme tokens and fonts from `fonts/`. The output is a 1080×1080 SVG string.
 
-```typescript
-const article = await httpScraper.scrape(url, selectors);
+```ts
+// render/resvg.ts
+export function toPng(svg: string): Buffer
 ```
 
-### RSSFeedParser (`rss-parser.ts`)
+Synchronous SVG → PNG via `@resvg/resvg-js`.
 
-```typescript
-const feed = await rssFeedParser.parse(feedUrl);
-// feed.articles: array of article objects
+```ts
+// render/slides/*.tsx
+export function TitleMain(props: TitleMainProps): JSX.Element
+export function BodyText(props: BodyTextProps): JSX.Element
+// … one per variant listed in data.md
 ```
 
----
+Each component reads its layout from the theme tokens. They use **only flexbox** — Satori does not support CSS Grid or absolute positioning beyond what flex provides.
 
-## NLP (`src/nlp/`)
+## `storage/`
 
-### EntityExtractor (`entity-extractor.ts`)
-
-```typescript
-const entities = await entityExtractor.extract(text, method);
-// entities = { people: [], places: [], organizations: [], events: [] }
-// method: 'compromise' (default, fast) | 'transformers' (slower, accurate)
+```ts
+// storage/db.ts
+export function open(path: string): Database
+export function migrate(db: Database): void   // idempotent, runs on every open
 ```
 
-### EmbeddingGenerator (`embeddings.ts`)
-
-```typescript
-await embeddingGenerator.initialize(); // downloads model on first use (~100-500MB)
-const embedding = await embeddingGenerator.generate(text);
-const similarity = embeddingGenerator.cosineSimilarity(vec1, vec2);
+```ts
+// storage/articles.ts
+export function insertMany(db: Database, rows: NewArticle[]): number   // returns insert count
+export function todays(db: Database, date: string): Article[]
 ```
 
-### ArticleClusterer (`clustering.ts`)
-
-```typescript
-const clusters = await articleClusterer.clusterArticles(articles, threshold);
-const clusters = await articleClusterer.clusterByEntities(
-  articles,
-  entityStorage,
-);
+```ts
+// storage/posts.ts
+export function nextRunNumber(db: Database, date: string): number
+export function insert(db: Database, row: NewPost): Post
+export function recent(db: Database, limit: number): Post[]
 ```
 
----
+## `util/`
 
-## Summarizers (`src/summarizers/`)
-
-### SummarizerOrchestrator (`index.ts`)
-
-```typescript
-const slides = await summarizerOrchestrator.summarize(
-  articles,
-  method,
-  options,
-);
-// method: 'llm' | 'local' | 'nlp'
-// options: { design, maxSlides, emphasis }
-const isAvailable = await summarizerOrchestrator.checkLocalLLM();
+```ts
+// util/config.ts
+export function loadConfig(): Config
 ```
 
-### Individual summarizers
+Reads `.env`, applies defaults, returns a frozen object. See [configuration.md](configuration.md) for the field list.
 
-```typescript
-// LLMSummarizer — OpenAI API
-const slides = await llmSummarizer.summarize(articles, options);
-
-// LocalSummarizer — Ollama
-const isAvailable = await localSummarizer.checkConnection();
-const slides = await localSummarizer.summarize(articles, options);
-
-// TemplateSummarizer — rule-based, no LLM
-const slides = await templateSummarizer.summarize(articles, options);
+```ts
+// util/logger.ts
+export const log = { info, warn, error }
 ```
 
----
+Plain `console.*` wrapper with timestamps. No spinners, no levels beyond those three.
 
-## Renderer (`src/renderer/`)
-
-### DesignLoader (`design-loader.ts`)
-
-```typescript
-const design = await designLoader.load("broadsheet"); // or 'industrial'
+```ts
+// util/paths.ts
+export function outputDirFor(date: string, runNumber: number): string
 ```
 
-### HtmlBuilder (`html-builder.ts`)
-
-```typescript
-const html = await htmlBuilder.buildSlide(slide, design);
-```
-
-### ScreenshotRenderer (`screenshot.ts`)
-
-```typescript
-const imagePaths = await screenshotRenderer.renderSlides(
-  slides,
-  designName,
-  outputDir,
-);
-await screenshotRenderer.close(); // always close after use
-```
-
----
-
-## Utils (`src/utils/`)
-
-### Logger (`logger.ts`)
-
-```typescript
-logger.error("Error message");
-logger.warn("Warning message");
-logger.info("Info message");
-logger.debug("Debug message"); // only shown if LOG_LEVEL=debug
-logger.success("Success message");
-logger.step("Step message");
-```
-
-### Config (`config.ts`)
-
-```typescript
-config.openai.apiKey;
-config.ollama.host; // default: http://localhost:11434
-config.ollama.model; // default: llama3.2:1b
-config.scraping.timeout;
-config.scraping.retries;
-config.scraping.userAgent;
-config.clustering.threshold;
-config.clustering.minGroupSize;
-config.image.quality;
-config.image.format;
-config.image.width;
-config.image.height;
-config.paths.data;
-config.paths.output;
-// see data.md for full paths list
-```
-
----
-
-## Command Pattern
-
-All commands follow this structure:
-
-```typescript
-import { logger } from "../utils/logger.js";
-import ora from "ora";
-
-export async function commandName(args, options) {
-  // 1. Validate input
-  if (!args.requiredParam) {
-    logger.error("Missing required parameter");
-    process.exit(1);
-  }
-
-  // 2. Load data with spinner
-  const spinner = ora("Loading...").start();
-  await manifestManager.load();
-  spinner.succeed("Loaded");
-
-  // 3. Process
-  try {
-    const result = await someModule.process(data);
-    logger.success("Done");
-  } catch (error) {
-    logger.error((error as Error).message);
-    process.exit(1);
-  }
-
-  // 4. Save and update manifest
-  await someStorage.save(result);
-  await manifestManager.save();
-
-  // 5. Show next steps
-  logger.info("Next: npm run next-command");
-}
-```
-
-## Common Patterns
-
-### Interactive confirmation
-
-```typescript
-import inquirer from "inquirer";
-
-const { confirmed } = await inquirer.prompt([
-  {
-    type: "confirm",
-    name: "confirmed",
-    message: "Proceed?",
-    default: true,
-  },
-]);
-if (!confirmed) process.exit(0);
-```
-
-### Table output
-
-```typescript
-import Table from "cli-table3";
-
-const table = new Table({
-  head: ["ID", "Title", "Status"],
-  colWidths: [12, 50, 15],
-});
-table.push([item.id, item.title, item.status]);
-console.log(table.toString());
-```
-
-### Error with context
-
-```typescript
-try {
-  await riskyOperation();
-} catch (error) {
-  logger.error(`Operation failed: ${(error as Error).message}`);
-  if ((error as Error).message.includes("API key")) {
-    logger.info("Set OPENAI_API_KEY in .env file");
-  }
-  process.exit(1);
-}
-```
-
-## Important Notes
-
-- Always call `await manifestManager.save()` after manifest mutations
-- Always call `await scraperOrchestrator.cleanup()` after scraping
-- Always call `await screenshotRenderer.close()` after rendering
-- `data/` and `output/` are gitignored — do not commit generated data
-- CSS lint errors in HTML templates are expected (Handlebars variables)
-- Ollama must be running for `--method=local`: `ollama serve`
+Resolves `output/YYYY-MM-DD-N/`, ensures the parent exists.

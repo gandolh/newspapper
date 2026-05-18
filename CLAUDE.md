@@ -1,112 +1,120 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code sessions working in this repo.
+
+## What this is
+
+A minimal CLI that turns today's news into an Instagram-style slide post:
+
+```
+sources.json (RSS)  →  scrape  →  compose (Ollama)  →  render (Satori → PNG)
+```
+
+One user-facing command — `newspapper run` — runs the whole pipeline. No interactive menus, no human-in-the-loop, no background jobs.
 
 ## Commands
 
 ```bash
-npm run build          # TypeScript compilation to dist/
-npm run test           # Run all tests (vitest)
-npm run test:watch     # Watch mode
-npm run lint           # ESLint on src/
-npm run fmt            # Prettier on src/
+npm install            # one-time
+npm run build          # tsc → dist/
+npm run dev -- run     # run the pipeline against today's feeds (uses tsx)
+npm start -- run       # same, but from built output
+npm test               # vitest
+npm run lint           # eslint src/
+npm run fmt            # prettier src/
 
-# Run a single test file
+# Single test file
 npx vitest run src/path/to/file.test.ts
-
-# Run the CLI directly
-npm start -- <command> [options]
-# or use convenience scripts:
-npm run scrape
-npm run extract-entities
-npm run post -- --entities "Entity1,Entity2"
-npm run generate -- <post-dir>
-npm run list
-npm run clean
 ```
+
+The CLI surface is intentionally small:
+
+```bash
+newspapper run         # scrape → compose → render
+newspapper sources     # list & ping configured RSS feeds
+newspapper list        # show recent posts from DB
+newspapper clean       # delete old output dirs + DB rows
+```
+
+Flags on `run`: `--max-per-source`, `--theme`, `--model`, `--dry-run`, `--no-scrape`. See [docs/commands.md](docs/commands.md).
 
 ## Architecture
 
-Newspapper is a CLI tool (Node.js + TypeScript) for personal news aggregation → slide generation.
+Three sequential stages in a single process:
 
-**Pipeline:**
+1. **Scrape** (`src/scrape/`) — fetch each enabled source in `data/sources.json` as RSS, keep today's items (cap `--max-per-source`, default 5), dedupe by URL into the `articles` SQLite table.
+2. **Compose** (`src/compose/`) — send all of today's articles to Ollama in one prompt, get back a post (title + 2–8 slide blocks), persist to the `posts` table.
+3. **Render** (`src/render/`) — for each slide block, Satori (HTML/JSX → SVG) then resvg (SVG → PNG) at 1080×1080. Output to `output/YYYY-MM-DD-N/`. Same-day re-runs increment `N`; nothing is overwritten.
 
-```
-sources.json → scrape → extract-entities → format (REPL) → generate (Playwright→PNG)
-```
+See [docs/architecture.md](docs/architecture.md) for the module map and key constraints (Satori = flexbox only, no Grid, no positional CSS).
 
-Each step is a separate CLI command. Manual control is a core design principle — no background jobs, no auto-publishing.
+## Data
 
-### Module responsibilities
+| Path | Contents |
+|------|----------|
+| `data/sources.json` | RSS feed configs — `{id, name, rss, enabled}` |
+| `data/newspapper.db` | SQLite: `articles` (dedupe + history), `posts` (one row per run) |
+| `output/YYYY-MM-DD-N/` | `slides.json` + numbered PNGs for that run |
 
-- **`src/commands/`** — CLI handlers; each command orchestrates modules, uses ora spinners, inquirer prompts
-- **`src/storage/database.ts`** — SQLite via `better-sqlite3`; single source of truth for all state
-- **`src/scrapers/`** — HTTP (axios+cheerio) default; RSS parser for feeds
-- **`src/nlp/entity-extractor.ts`** — `compromise` for fast entity extraction
-- **`src/renderer/`** — `@napi-rs/canvas` renders slides at 1080×1080; Sharp compresses output
-- **`src/utils/config.ts`** — loads `.env` values; `src/utils/logger.ts` — shared logger
+Both `data/` and `output/` are gitignored. The DB is auto-created; nothing in `output/` should be committed.
 
-### Data storage
+Full schemas: [docs/data.md](docs/data.md).
 
-| Path                                     | Contents                                                                     |
-| ---------------------------------------- | ---------------------------------------------------------------------------- |
-| `data/newspapper.db`                     | SQLite: articles, entities, article_entities, posts                          |
-| `data/sources.json`                      | Source configs (URL, CSS selectors, scraper type) — static config, not in DB |
-| `output/posts/{date}-{slug}/slides.json` | Generated slides JSON (design + slides array)                                |
-| `output/posts/{date}-{slug}/slides/`     | Rendered PNG images                                                          |
+## LLM
 
-Workflow states: `scraped → processed` (articles), `draft → generated` (posts)
+**Ollama only.** Must be running (`ollama serve` or the shipped `newspaper-infra/docker-compose.yml`). Default model `llama3.2:1b`, configurable via `OLLAMA_MODEL`. There is no cloud/API fallback.
 
-### Design systems
+## Theme
 
-Two visual themes in `design-systems/*.yaml` (`digital-broadsheet`, `warm-industrial`). Default: `warm-industrial`. Three slide types per theme: `title`, `body`, `quote`. Templates in `templates/{theme}/`.
+One theme ships: `warm-industrial`. Tokens in `design-systems/warm-industrial.yaml`. Reference HTML in `templates/warm-industrial/` (visual specs only — actual rendering is JSX components under `src/render/slides/`). Satori loads fonts from `fonts/` at startup.
 
-### LLM integration
+The `digital-broadsheet` theme was removed in v2.
 
-**Ollama only** — must be running (`ollama serve`); default model: `llama3.2:1b` (configurable via `OLLAMA_MODEL` in `.env`).
+## Constraints / non-goals
 
-## Testing
+- **Minimal dep footprint.** Don't add Playwright, Sharp, canvas, cheerio, Handlebars, inquirer, ora, axios. The v2 dep list is documented in [docs/dependencies.md](docs/dependencies.md).
+- **No entity extraction.** The composer prompt sees raw articles and decides what's interesting.
+- **No clustering / no per-topic posts.** One post per day, covering all today's news.
+- **No human-in-the-loop.** No `format` REPL, no preview command, no approval step.
+- **No cloud services.** Ollama + SQLite + filesystem — that's it.
 
-Tests are co-located with source: `src/**/*.test.ts`. Run with `vitest`.
+## Tests
 
-## Important constraints
-
-- All operations are synchronous/sequential — no background jobs
-- `data/` and `output/` are gitignored — don't commit generated data
+Co-located: `src/**/*.test.ts`, run with `vitest`. Prefer unit tests on the composer's JSON parsing and the scraper's date filtering over snapshot tests on rendered PNGs.
 
 ## Wiki
 
-Project documentation lives in `docs/` as a LLM-maintained wiki. `docs/index.md` is the entry point.
+Project documentation lives in `docs/` and is maintained by Claude Code sessions. `docs/index.md` is the entry point.
 
 ### Pages
 
-| File                     | Contents                                  |
-| ------------------------ | ----------------------------------------- |
-| `docs/index.md`          | Page catalog — read this to find anything |
-| `docs/log.md`            | Append-only change log                    |
-| `docs/commands.md`       | CLI command reference (all 5 commands)    |
-| `docs/architecture.md`   | System design and pipeline                |
-| `docs/data.md`           | All JSON schemas                          |
-| `docs/modules.md`        | Module APIs and usage patterns            |
-| `docs/configuration.md`  | Env vars, setup, and npm scripts          |
-| `docs/design-systems.md` | Visual theme specs                        |
-| `docs/dependencies.md`   | Package list and rationale                |
+| File | Contents |
+|------|----------|
+| `docs/index.md` | Catalog — read this to find anything |
+| `docs/log.md` | Append-only change log |
+| `docs/commands.md` | CLI reference |
+| `docs/architecture.md` | Pipeline + module map |
+| `docs/data.md` | All JSON / SQLite schemas |
+| `docs/modules.md` | Module APIs |
+| `docs/configuration.md` | Env vars + setup |
+| `docs/design-systems.md` | warm-industrial spec + Satori constraints |
+| `docs/dependencies.md` | Package list + rationale |
 
 ### Maintenance rules
 
-1. **When you change a command's behavior** — update the relevant section in `docs/commands.md`
-2. **When you add or change a data schema** — update `docs/data.md`
-3. **When you add, remove, or rename a module** — update `docs/modules.md` and `docs/architecture.md`
-4. **When you add a dependency** — update `docs/dependencies.md`
-5. **When you change env vars or config** — update `docs/configuration.md`
-6. **After any wiki update** — append a line to `docs/log.md`:
+1. **When you change command behavior** → update `docs/commands.md`.
+2. **When you change a schema** → update `docs/data.md`.
+3. **When you add, remove, or rename a module** → update `docs/modules.md` and `docs/architecture.md`.
+4. **When you add or drop a dependency** → update `docs/dependencies.md`.
+5. **When you change env vars or setup** → update `docs/configuration.md` and `.env.example`.
+6. **After any wiki update** → append one line to `docs/log.md`:
    ```
-   ## [YYYY-MM-DD] action | one-line summary of what changed
+   ## [YYYY-MM-DD] action | one-line summary
    ```
-7. **If you add a new wiki page** — add it to the table in `docs/index.md`
+7. **If you add a wiki page** → register it in the `docs/index.md` table.
 
-### What NOT to put in wiki
+### What NOT to put in the wiki
 
-- Generated data (`data/`, `output/`) — gitignored, ephemeral
-- In-progress task state — use TodoWrite for that
-- One-session debugging notes — put them in the PR description instead
+- Contents of `data/` or `output/` — both gitignored, ephemeral.
+- In-progress task state — use TodoWrite.
+- One-session debugging notes — put them in the PR description.

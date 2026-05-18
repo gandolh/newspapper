@@ -1,221 +1,103 @@
 # Data
 
-All state lives under `data/` as JSON files. No database.
+Two storage layers: SQLite for state, filesystem for rendered output. Plus one static config file (`data/sources.json`).
 
-## Directory Layout
+## `data/sources.json`
 
-```
-data/
-├── manifest.json          # Central index
-├── sources.json           # Source configurations
-├── articles/{uuid}.json   # One file per article
-├── groups/{uuid}.json     # One file per group
-├── summaries/{uuid}.json  # One file per summary
-└── entities/{uuid}.json   # One file per article's entities
-```
-
-Output images live under `output/`:
-
-```
-output/
-└── {group-id}/
-    ├── slides/
-    │   ├── 01-title.png
-    │   ├── 02-body.png
-    │   └── ...
-    ├── metadata.json
-    └── summary.json
-```
-
-## manifest.json
-
-Central index. Updated after every write operation. Never modify manually.
-
-```json
-{
-  "articles": {
-    "article-uuid": {
-      "id": "article-uuid",
-      "title": "Article Title",
-      "sourceId": "source-uuid",
-      "scrapedAt": "2026-05-04T20:00:00Z",
-      "status": "scraped | grouped | published",
-      "groupId": "group-uuid",
-      "hasEntities": true
-    }
-  },
-  "groups": {
-    "group-uuid": {
-      "id": "group-uuid",
-      "createdAt": "2026-05-04T21:00:00Z",
-      "threshold": 0.75,
-      "status": "draft | reviewed | summarized | generated | published",
-      "articleIds": ["article-uuid-1", "article-uuid-2"],
-      "articleCount": 2,
-      "summaryId": "summary-uuid"
-    }
-  },
-  "summaries": {
-    "summary-uuid": {
-      "id": "summary-uuid",
-      "groupId": "group-uuid",
-      "method": "llm | local | nlp",
-      "design": "broadsheet | industrial",
-      "createdAt": "2026-05-04T22:00:00Z",
-      "status": "draft | generated | published"
-    }
-  }
-}
-```
-
-## sources.json
-
-Configured manually. Controls which sources are scraped.
+Static config, hand-edited. Array of source objects.
 
 ```json
 [
   {
-    "id": "source-uuid",
-    "name": "The Guardian",
-    "url": "https://theguardian.com",
-    "rss": "https://theguardian.com/rss",
-    "scraperType": "http",
-    "enabled": true,
-    "selectors": {
-      "title": "h1.headline",
-      "author": ".author-name",
-      "date": "time[datetime]",
-      "body": "article .content"
-    }
+    "id": "bbc-world",
+    "name": "BBC World",
+    "rss": "https://feeds.bbci.co.uk/news/world/rss.xml",
+    "enabled": true
   }
 ]
 ```
 
-## articles/{article-id}.json
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `id` | string | yes | Stable slug, used as foreign key in `articles.source_id`. |
+| `name` | string | yes | Human label for `newspapper sources` output. |
+| `rss` | string | yes | RSS or Atom feed URL. Parsed by `rss-parser`. |
+| `enabled` | boolean | yes | Skipped during scrape if false. |
+
+There are no CSS selectors, no scraper-type discriminator, no per-source auth. RSS only.
+
+## SQLite (`data/newspapper.db`)
+
+Created on first run by `src/storage/db.ts`. Two tables.
+
+### `articles`
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | INTEGER PK | autoincrement |
+| `source_id` | TEXT | matches `sources.json.id` |
+| `url` | TEXT UNIQUE | dedupe key |
+| `title` | TEXT | from RSS `<title>` |
+| `summary` | TEXT | from RSS `<description>` / `content:encoded` |
+| `published_at` | TEXT (ISO 8601) | from RSS `<pubDate>` |
+| `scraped_at` | TEXT (ISO 8601) | when this row was inserted |
+
+### `posts`
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | INTEGER PK | autoincrement |
+| `date` | TEXT (YYYY-MM-DD) | local date the run was kicked off |
+| `run_number` | INTEGER | 1 for first run that day, 2 for the next, … |
+| `payload` | TEXT (JSON) | the full post object — see below |
+| `output_dir` | TEXT | absolute path to the rendered folder |
+| `created_at` | TEXT (ISO 8601) | when compose finished |
+
+`UNIQUE(date, run_number)`.
+
+## Post payload (stored in `posts.payload`, also written to `output/<dir>/slides.json`)
 
 ```json
 {
-  "id": "article-uuid",
-  "sourceId": "source-uuid",
-  "sourceName": "The Guardian",
-  "url": "https://...",
-  "title": "Article Title",
-  "author": "Author Name",
-  "publishedAt": "2026-05-04T10:00:00Z",
-  "body": "Full article text...",
-  "excerpt": "Brief summary...",
-  "images": ["https://..."],
-  "metadata": {
-    "wordCount": 1500,
-    "language": "en",
-    "scrapedAt": "2026-05-04T20:00:00Z",
-    "scraperType": "http"
-  }
-}
-```
-
-## groups/{group-id}.json
-
-```json
-{
-  "id": "group-uuid",
-  "articleIds": ["uuid-1", "uuid-2", "uuid-3"],
-  "createdAt": "2026-05-04T21:00:00Z",
-  "threshold": 0.75,
-  "centroid": [0.1, 0.2],
-  "commonEntities": {
-    "people": ["Biden", "Putin"],
-    "places": ["Ukraine"],
-    "organizations": ["NATO"],
-    "events": ["Summit"]
-  }
-}
-```
-
-## summaries/{summary-id}.json
-
-```json
-{
-  "id": "summary-uuid",
-  "groupId": "group-uuid",
-  "method": "local",
-  "design": "broadsheet",
-  "createdAt": "2026-05-04T22:00:00Z",
+  "date": "2026-05-18",
+  "title": "Markets, Migration, and a New Mars Plan",
+  "theme": "warm-industrial",
   "slides": [
-    {
-      "type": "title",
-      "text": "Main Headline",
-      "notes": "Context for this slide"
-    },
-    {
-      "type": "body",
-      "text": "Summary paragraph...",
-      "notes": "Key points emphasized"
-    },
-    {
-      "type": "quote",
-      "text": "\"Important quote\"",
-      "attribution": "Source Name",
-      "notes": ""
-    }
+    { "type": "title", "variant": "title-main", "text": "…", "kicker": "…" },
+    { "type": "body",  "variant": "body-text", "heading": "…", "body": "…" },
+    { "type": "body",  "variant": "body-list", "heading": "…", "items": ["…", "…"] },
+    { "type": "quote", "variant": "quote-pullout", "quote": "…", "attribution": "…" }
   ]
 }
 ```
 
-Slide types: `title`, `body`, `quote`, `image-caption`.
+### Slide types and variants
 
-## entities/{article-id}.json
+Variants map 1:1 to JSX components under `src/render/slides/` and to the reference HTML in `templates/warm-industrial/`.
 
-```json
-{
-  "articleId": "article-uuid",
-  "method": "compromise | transformers",
-  "extractedAt": "2026-05-04T21:30:00Z",
-  "entities": {
-    "people": ["Joe Biden", "Vladimir Putin"],
-    "places": ["Washington", "Moscow", "Ukraine"],
-    "organizations": ["NATO", "UN"],
-    "events": ["Peace Summit", "Election"]
-  }
-}
-```
+| `type` | `variant` | Required fields |
+|--------|-----------|-----------------|
+| `title` | `title-main` | `text`, optional `kicker` |
+| `title` | `title-statement` | `text` |
+| `title` | `title-question` | `text` |
+| `body` | `body-text` | `heading`, `body` |
+| `body` | `body-list` | `heading`, `items` (string[]) |
+| `body` | `body-comparison` | `heading`, `left`, `right` (each `{label, body}`) |
+| `quote` | `quote-classic` | `quote`, `attribution` |
+| `quote` | `quote-pullout` | `quote`, `attribution` |
+| `quote` | `quote-reaction` | `quote`, `attribution` |
 
-## output/{group-id}/metadata.json
+Slide count: between 2 and 8 inclusive. The composer prompt enforces this; the renderer rejects payloads outside that range.
 
-Written by `npm run generate`. Not tracked in manifest.
-
-```json
-{
-  "groupId": "group-uuid",
-  "summaryId": "summary-uuid",
-  "generatedAt": "2026-05-04T23:00:00Z",
-  "design": "broadsheet",
-  "method": "local",
-  "slideCount": 5,
-  "articles": [
-    {
-      "title": "Article Title",
-      "source": "The Guardian",
-      "url": "https://...",
-      "author": "Author Name",
-      "publishedAt": "2026-05-04T10:00:00Z"
-    }
-  ]
-}
-```
-
-## Config Paths
-
-All paths resolved in `src/utils/config.ts`:
+## Filesystem output
 
 ```
-config.paths.data          → ./data
-config.paths.articles      → ./data/articles
-config.paths.groups        → ./data/groups
-config.paths.summaries     → ./data/summaries
-config.paths.entities      → ./data/entities
-config.paths.output        → ./output
-config.paths.designSystems → ./design-systems
-config.paths.prompts       → ./prompts
-config.paths.templates     → ./templates
+output/
+└── 2026-05-18-1/
+    ├── slides.json     # the post payload, identical to posts.payload
+    ├── 1.png           # 1080×1080
+    ├── 2.png
+    └── …
 ```
+
+Filenames are 1-indexed and match the order of `slides[]`.

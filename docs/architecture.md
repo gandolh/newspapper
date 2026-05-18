@@ -1,146 +1,79 @@
 # Architecture
 
-Newspapper is a CLI tool (Node.js + TypeScript) for personal news aggregation and slide generation. Every phase requires an explicit user command — no background jobs, no auto-publishing.
+## Goals
+
+- **Minimal.** Few dependencies, no background jobs, no daemons, no web server.
+- **One command.** `newspapper run` does the whole job.
+- **Local-first.** Ollama for the LLM; SQLite on disk; no cloud services.
 
 ## Pipeline
 
 ```
-data/sources.json
-      ↓
-  scrape → data/raw-articles/YYYY-MM-DD/source-id/{uuid}.json
-      ↓
-  entity extraction (automatic) → SQLite database
-      ↓
-  group  → data/groups/{uuid}.json
-      ↓
- summarize → data/summaries/{uuid}.json
-      ↓
- generate → output/{group-id}/slides/*.png
-      ↓
-  export → destination/
+┌─────────────┐   ┌──────────────┐   ┌──────────────┐
+│   scrape    │ → │   compose    │ → │   render     │
+│  (RSS only) │   │   (Ollama)   │   │  (Satori)    │
+└─────────────┘   └──────────────┘   └──────────────┘
+      │                  │                  │
+      ▼                  ▼                  ▼
+   articles            posts          output/<date>-<n>/
+   (SQLite)           (SQLite)            *.png
 ```
 
-## Workflow States
+All three stages run sequentially in the same process. There is no queue, no worker, no retry loop beyond per-HTTP-request retries.
 
-Articles move through these states tracked in SQLite:
+## Module layout
 
 ```
-scraped → grouped → reviewed → summarized → generated → published
+src/
+├── cli.ts              # entry point, argv → run/sources/list/clean
+├── run.ts              # the pipeline orchestrator
+├── scrape/
+│   ├── index.ts        # fetch each source, filter by date, persist
+│   └── rss.ts          # rss-parser wrapper
+├── compose/
+│   ├── index.ts        # build the prompt, call ollama, parse the post JSON
+│   └── ollama.ts       # thin HTTP client for /api/generate
+├── render/
+│   ├── index.ts        # post JSON → PNGs on disk
+│   ├── satori.ts       # Satori configuration, font loading
+│   ├── resvg.ts        # SVG → PNG
+│   └── slides/         # JSX components per slide type (title, body, quote)
+├── storage/
+│   ├── db.ts           # better-sqlite3 setup, migrations
+│   ├── articles.ts     # CRUD for articles
+│   └── posts.ts        # CRUD for posts
+└── util/
+    ├── config.ts       # .env loader + defaults
+    ├── logger.ts       # tiny console logger
+    └── paths.ts        # resolves output/<date>-<n>/
 ```
 
-Groups and summaries still use `data/manifest.json` for backward compatibility (will migrate to SQLite in future).
+## Key decisions
 
-## Module Responsibilities
+- **RSS only.** No HTML scraping, no headless browser. Sources without a feed are simply not supported.
+- **No entity extraction stage.** The old pipeline had a `compromise`-based entity step. v2 drops it — the LLM sees the raw articles and decides what to write about.
+- **One post per day, covering all today's news.** No clustering, no per-topic posts. Simpler prompt, predictable output.
+- **LLM picks slide count.** The prompt constrains the model to 2–8 slides; it chooses based on how much there is to say.
+- **Satori + resvg, not a browser.** Satori renders a subset of CSS (flexbox, no grid). Templates must respect that subset. In exchange we avoid a 300MB Chromium dependency.
+- **Versioned output folders.** Re-running on the same day writes to a new `YYYY-MM-DD-N/` — nothing is overwritten.
+- **SQLite for articles, FS for renders.** The DB exists for dedupe and history. PNGs and `slides.json` live on disk where they're easy to copy out.
 
-| Module      | Path               | Responsibility                                                                |
-| ----------- | ------------------ | ----------------------------------------------------------------------------- |
-| Commands    | `src/commands/`    | CLI handlers; orchestrate all other modules                                   |
-| Storage     | `src/storage/`     | SQLite database (`database.ts`), JSON files, manifest for groups/summaries    |
-| Scrapers    | `src/scrapers/`    | HTTP (axios+cheerio), RSS                                                     |
-| NLP         | `src/nlp/`         | Entity extraction (compromise), embeddings (@xenova/transformers), clustering |
-| Summarizers | `src/summarizers/` | LLM (OpenAI), local (Ollama), template (rule-based)                           |
-| Renderer    | `src/renderer/`    | Canvas-based slide rendering → Sharp compression                              |
-| Utils       | `src/utils/`       | `config.ts` (loads .env), `logger.ts` (shared logger)                         |
+## What was removed from v1
 
-## Storage Strategy
+- Playwright (headless browser scraping)
+- `compromise` (entity extraction) and the entire entities table
+- `@napi-rs/canvas` and Sharp (replaced by Satori + resvg)
+- The `format` REPL command and the preview step
+- Handlebars prompt templating (a single string template in code is enough)
+- `inquirer` and `ora` (no interactive menus, no spinners)
+- The `digital-broadsheet` theme
+- OpenAI summarization path
 
-**Dual storage system**:
+## What was kept
 
-1. **SQLite Database** (`data/newspapper.db`) - Primary storage for:
-   - Article metadata and relationships
-   - Extracted entities with search capabilities
-   - Article status and grouping information
-
-2. **Raw JSON Files** (`data/raw-articles/YYYY-MM-DD/source-id/`) - Complete article content:
-   - Full article text and metadata
-   - Organized by date and source for easy backup
-   - Human-readable and portable
-
-3. **Legacy Manifest** (`data/manifest.json`) - Groups and summaries (temporary):
-   - Will be migrated to SQLite in future updates
-
-**Why this hybrid approach?**
-
-- SQLite provides fast entity queries and relationships
-- JSON files preserve complete article content transparently
-- Daily organization enables easy backup and analysis
-- Database ensures data integrity and performance
-
-## Scraping Strategy
-
-1. Try RSS if `source.rss` is set and `--method` is not `http`
-2. Fall back to HTTP (axios + cheerio) for all sites
-3. **Automatic entity extraction** after each successful scrape:
-   - Extract people, places, organizations, events using compromise
-   - Store in SQLite with article relationships
-   - Enable historical entity tracking
-
-## Summarization Methods
-
-| Method  | Quality | Cost     | Requires                        |
-| ------- | ------- | -------- | ------------------------------- |
-| `llm`   | Best    | API fees | `OPENAI_API_KEY` in `.env`      |
-| `local` | Good    | Free     | Ollama running (`ollama serve`) |
-| `nlp`   | Basic   | Free     | Nothing                         |
-
-## Rendering
-
-Slides are rendered at 1080×1080px (Instagram post format) using `@napi-rs/canvas` directly — no browser required. Sharp compresses the output PNG.
-
-CSS lint errors in templates are expected — Handlebars variables like `{{colors.surface}}` confuse the linter but work fine at runtime.
-
-## Design Systems
-
-Two themes: `digital-broadsheet` (editorial, serif, high-contrast borders) and `warm-industrial` (soft brutalism, terracotta, rounded corners). Each has four slide templates: `title`, `body`, `quote`, `image-caption`. Configured via `design-systems/*.yaml`.
-
-See [design-systems.md](design-systems.md) for full visual specs.
-
-## Tech Stack
-
-**Runtime:** Node.js v18+ with TypeScript 5.5.4, executed via `tsx` (no separate build step needed for development)
-
-**Dev tooling:** `vitest` (tests), `eslint` + `@typescript-eslint` (linting), `prettier` (formatting)
-
-**Core:** `commander` (CLI), `inquirer` (prompts), `ora` (spinners), `chalk` (colors), `cli-table3` (tables)
-
-**Database:** `better-sqlite3` (SQLite database), `@types/better-sqlite3`
-
-**Scraping:** `axios`, `cheerio`, `rss-parser`
-
-**NLP/AI:** `compromise`, `@xenova/transformers`, `ollama`, `openai`
-
-**Rendering:** `handlebars`, `js-yaml`, `sharp`
-
-## Key Design Decisions
-
-**Manual control everywhere** — no automatic publishing. User reviews groups, summaries, and images at each step.
-
-**Dual strategies** for scraping, NLP, and summarization — flexibility to trade quality for cost or offline capability.
-
-**Hybrid storage** — SQLite for performance and relationships, JSON for transparency and portability.
-
-**Automatic entity extraction** — entities are extracted during scraping to enable historical tracking without manual commands.
-
-**Daily organization** — articles organized by date/source for easy backup and temporal analysis.
-
-**30-day default retention** — `npm run clean --older-than=30d` keeps storage bounded; user controls timing.
-
-## Scalability
-
-Current design with SQLite database handles 100+ sources, ~1000+ articles/day easily. The database provides:
-
-- Fast entity queries across millions of articles
-- Efficient filtering by date, source, and status
-- Scalable relationship tracking
-
-**Performance considerations:**
-
-- SQLite handles current scale well; consider PostgreSQL for enterprise scale
-- Daily JSON organization keeps individual files manageable
-- Entity extraction adds processing time but enables powerful queries
-
-**Future scaling options:**
-
-- Migrate groups/summaries to SQLite (already planned)
-- Add database indexes for specific query patterns
-- Implement pagination for large result sets
+- `data/sources.json` (now RSS-only entries)
+- `design-systems/warm-industrial.yaml` (the visual spec)
+- `templates/warm-industrial/*.html` (reference designs — rewritten as Satori JSX in `src/render/slides/`)
+- `fonts/` (loaded by Satori at runtime)
+- Ollama as the LLM
+- `newspaper-infra/docker-compose.yml` (local Ollama via Docker)
