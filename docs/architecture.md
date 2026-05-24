@@ -73,8 +73,8 @@ src/
 ## What was kept
 
 - `data/sources.json` (now RSS-only entries)
-- `design-systems/warm-industrial.yaml` (the visual spec)
-- `templates/warm-industrial/*.html` (reference designs — rewritten as Satori JSX in `src/render/slides/`)
-- `fonts/` (loaded by Satori at runtime)
+- `assets/design-systems/warm-industrial.json` (the visual spec)
+- `assets/templates/warm-industrial/*.html` (reference designs — rewritten as Satori JSX in `src/render/slides/`)
+- `assets/fonts/` (loaded by Satori at runtime)
 - Ollama as the LLM
-- `newspaper-infra/docker-compose.yml` (local Ollama via Docker)
+- `infra/docker-compose.yml` (local Ollama via Docker)

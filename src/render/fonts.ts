@@ -23,7 +23,7 @@ export function loadFonts(): SatoriFont[] {
   if (cached) return cached;
   cached = FILES.map(({ file, weight }) => ({
     name: 'Inter',
-    data: readFileSync(resolve('fonts', file)),
+    data: readFileSync(resolve('assets/fonts', file)),
     weight,
     style: 'normal' as const,
   }));

@@ -4,7 +4,7 @@ One theme ships: **warm-industrial**. The `digital-broadsheet` theme was removed
 
 ## warm-industrial
 
-Source of truth: `design-systems/warm-industrial.json`. The renderer imports it directly via `resolveJsonModule` — no YAML parser involved.
+Source of truth: `assets/design-systems/warm-industrial.json`. The renderer imports it directly via `resolveJsonModule` — no YAML parser involved.
 
 ### Vibe
 
@@ -30,7 +30,7 @@ Every slide is **1080 × 1080 px**. That's Instagram's square post target; the r
 
 ### Slide variants
 
-Reference HTML lives in `templates/warm-industrial/` — these are the visual specs, not runtime templates. The actual rendering happens through JSX components in `src/render/slides/`.
+Reference HTML lives in `assets/templates/warm-industrial/` — these are the visual specs, not runtime templates. The actual rendering happens through JSX components in `src/render/slides/`.
 
 | File | Component | When to use |
 |------|-----------|-------------|
@@ -51,6 +51,6 @@ Components must respect what Satori supports:
 - **Flexbox only.** No CSS Grid, no `position: absolute` outside what flex provides.
 - **No pseudo-elements** (`::before`, `::after`).
 - **No background images via CSS.** Images must be passed as `<img>` with a URL or base64 source.
-- **Fonts must be loaded explicitly** from `fonts/` as buffers and registered with Satori per weight.
+- **Fonts must be loaded explicitly** from `assets/fonts/` as buffers and registered with Satori per weight.
 
 Anything in the reference HTML that uses these features must be re-expressed with flex when porting to JSX.

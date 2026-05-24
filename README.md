@@ -17,7 +17,7 @@ One command — `newspapper run` — does the whole pipeline. No menus, no human
 
 ```bash
 npm install
-docker compose -f newspaper-infra/docker-compose.yml up -d   # or `ollama serve`
+docker compose -f infra/docker-compose.yml up -d   # or `ollama serve`
 ollama pull llama3.2:1b
 cp .env.example .env                                          # tweak as needed
 ```
@@ -67,7 +67,7 @@ newspapper clean     # delete old runs + DB rows
 
 ## Theme
 
-One theme ships: `warm-industrial`. Soft brutalism, terracotta accent, Inter at six weights. Tokens live in `design-systems/warm-industrial.json`; reference HTML in `templates/warm-industrial/`.
+One theme ships: `warm-industrial`. Soft brutalism, terracotta accent, Inter at six weights. Tokens live in `assets/design-systems/warm-industrial.json`; reference HTML in `assets/templates/warm-industrial/`.
 
 ## Documentation
 

@@ -30,7 +30,7 @@ Start small — three to five feeds is plenty. The composer prompt scales with a
 npm install
 
 # 2. Run Ollama (either natively or via the shipped docker-compose)
-docker compose -f newspaper-infra/docker-compose.yml up -d
+docker compose -f infra/docker-compose.yml up -d
 # or: ollama serve
 
 # 3. Pull the model

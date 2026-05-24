@@ -14,14 +14,7 @@ export interface Theme {
 }
 
 export function loadTheme(name: string): Theme {
-  const path = resolve('design-systems', `${name}.json`);
+  const path = resolve('assets/design-systems', `${name}.json`);
   const raw = readFileSync(path, 'utf8');
   return JSON.parse(raw) as Theme;
-}
-
-export function px(value: string): number {
-  const n = parseFloat(value);
-  if (Number.isNaN(n)) return 0;
-  if (value.endsWith('rem')) return n * 16;
-  return n;
 }
