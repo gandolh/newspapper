@@ -1,0 +1,232 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-md);
+}
+
+/* ---- Error strip ---- */
+.errorStrip {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-sm);
+  background: var(--error-container);
+  color: var(--on-surface);
+  border: 1px solid var(--error);
+  border-radius: var(--radius);
+  padding: var(--sp-sm) var(--sp-md);
+  font-size: var(--font-size-sm);
+}
+
+.errorStripContent {
+  flex: 1;
+}
+
+.errorStripDismiss {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--error);
+  font-size: 14px;
+  line-height: 1;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+/* ---- Header ---- */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--sp-sm);
+}
+
+.headerLeft {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-sm);
+}
+
+.heading {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--on-surface);
+}
+
+.selectionInfo {
+  font-size: var(--font-size-sm);
+  color: var(--muted);
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* ---- Progress panel ---- */
+.progressPanel {
+  border: 1px solid var(--border);
+}
+
+.progressTitle {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: var(--sp-sm);
+}
+
+.sourceList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sourceRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-sm);
+}
+
+.sourceName {
+  font-size: var(--font-size-sm);
+  color: var(--on-surface);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---- Loading ---- */
+.loadingCenter {
+  display: flex;
+  justify-content: center;
+  padding: var(--sp-lg) 0;
+}
+
+/* ---- Article list ---- */
+.articleList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.articleCard {
+  transition: border-color 0.15s ease, background 0.15s ease;
+  border: 1.5px solid var(--border);
+}
+
+.articleCardChecked {
+  border-color: var(--primary);
+  background: #fffaf9;
+}
+
+.articleCardRow {
+  display: flex;
+  gap: var(--sp-sm);
+  align-items: flex-start;
+}
+
+.checkbox {
+  margin-top: 3px;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  flex-shrink: 0;
+  accent-color: var(--primary);
+}
+
+.articleContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.articleMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.externalLink {
+  font-size: 12px;
+  color: var(--muted);
+  opacity: 0.7;
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+}
+
+.externalLink:hover {
+  opacity: 1;
+  color: var(--primary);
+}
+
+.articleTitle {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--on-surface);
+  line-height: 1.4;
+  margin-bottom: 4px;
+}
+
+.articleBody {
+  font-size: var(--font-size-sm);
+  color: var(--muted);
+  line-height: 1.5;
+  /* Clamp to ~3 lines */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  cursor: pointer;
+  transition: color 0.1s ease;
+}
+
+.articleBody:hover {
+  color: var(--on-surface);
+}
+
+.articleBodyExpanded {
+  display: block;
+  -webkit-line-clamp: unset;
+  overflow: visible;
+}
+
+/* ---- Empty actions ---- */
+.emptyActions {
+  display: flex;
+  gap: var(--sp-sm);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ---- Footer ---- */
+.footer {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+  padding-top: var(--sp-sm);
+  border-top: 1px solid var(--border);
+}
+
+.footerHint {
+  font-size: var(--font-size-sm);
+  color: var(--muted);
+}
+
+/* ---- Add article form ---- */
+.addForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-md);
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sp-sm);
+}

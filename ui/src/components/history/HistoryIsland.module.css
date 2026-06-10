@@ -1,0 +1,178 @@
+/* =============================================================
+   HistoryIsland — warm-editorial styles
+   ============================================================= */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-md);
+  max-width: 900px;
+}
+
+/* ---- Page header ---- */
+.pageHeader {
+  margin-bottom: 4px;
+}
+
+.pageTitle {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--on-surface);
+  margin-bottom: 4px;
+}
+
+.pageSubtitle {
+  font-size: var(--font-size-sm);
+  color: var(--muted);
+}
+
+/* ---- Loading ---- */
+.loadingCenter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-sm);
+  padding: var(--sp-lg) 0;
+}
+
+.loadingText {
+  font-size: var(--font-size-sm);
+  color: var(--muted);
+}
+
+/* ---- Month groups ---- */
+.listRoot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-md);
+}
+
+.monthGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+}
+
+.monthHeading {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 6px;
+}
+
+.postList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+}
+
+/* ---- Post card ---- */
+.postCard {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: box-shadow 0.15s ease;
+}
+
+.postCard:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.07);
+}
+
+.cardInner {
+  display: flex;
+  gap: 0;
+}
+
+/* ---- Thumbnail ---- */
+.thumb {
+  width: 100px;
+  flex-shrink: 0;
+  background: var(--surface-container);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid var(--border);
+  overflow: hidden;
+}
+
+@media (max-width: 600px) {
+  .thumb {
+    width: 72px;
+  }
+}
+
+.thumbImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.thumbPlaceholder {
+  font-size: 28px;
+  color: var(--outline-variant);
+}
+
+/* ---- Card body ---- */
+.cardBody {
+  flex: 1;
+  min-width: 0;
+  padding: var(--sp-sm) var(--sp-md);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cardDate {
+  font-size: var(--font-size-xs);
+  color: var(--muted);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.badgeRow {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.cardTitle {
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: var(--on-surface);
+  line-height: 1.3;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.cardMeta {
+  font-size: var(--font-size-xs);
+  color: var(--muted);
+}
+
+/* ---- Card actions ---- */
+.cardActions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.downloadLink {
+  text-decoration: none;
+}

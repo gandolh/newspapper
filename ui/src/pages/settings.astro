@@ -1,13 +1,8 @@
 ---
 import App from '../layouts/App.astro';
-import { EmptyState } from '../components/ui';
+import SettingsIsland from '../components/settings/SettingsIsland';
 ---
 
 <App title="Settings">
-  <EmptyState
-    icon="⚙"
-    title="Settings"
-    hint="Built in a later wave."
-    client:load
-  />
+  <SettingsIsland client:load />
 </App>

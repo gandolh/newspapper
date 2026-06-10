@@ -1,0 +1,51 @@
+.wizard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-md);
+  max-width: 900px;
+}
+
+/* ---- Stepper area ---- */
+.stepperWrap {
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-md);
+}
+
+.clickableStepper {
+  position: relative;
+}
+
+.stepClickLayer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  pointer-events: none;
+}
+
+.stepClickTarget {
+  flex: 1;
+  background: none;
+  border: none;
+  cursor: default;
+  pointer-events: none;
+}
+
+.stepClickTargetActive {
+  cursor: pointer;
+  pointer-events: all;
+}
+
+.stepClickTargetActive:hover {
+  background: rgba(162, 57, 26, 0.04);
+  border-radius: var(--radius);
+}
+
+/* ---- Step content ---- */
+.stepContent {
+  min-height: 300px;
+}

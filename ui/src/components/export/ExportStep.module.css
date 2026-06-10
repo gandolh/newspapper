@@ -1,0 +1,371 @@
+/* =============================================================
+   ExportStep — warm-editorial styles
+   ============================================================= */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-md);
+  max-width: 1200px;
+}
+
+/* ---- Header ---- */
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-sm);
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--on-surface);
+  margin-bottom: 2px;
+}
+
+.subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--muted);
+}
+
+/* ---- Hero / render panel ---- */
+.heroPanelCard {
+  border: 1px solid var(--border);
+}
+
+.heroPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-sm);
+  padding: var(--sp-lg) var(--sp-md);
+  text-align: center;
+}
+
+.heroIcon {
+  font-size: 40px;
+  color: var(--primary);
+  opacity: 0.7;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.heroHeading {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--on-surface);
+}
+
+.heroHint {
+  font-size: var(--font-size-sm);
+  color: var(--muted);
+  max-width: 320px;
+}
+
+/* ---- Rendering in-progress panel ---- */
+.renderingPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-sm);
+  padding: var(--sp-lg) var(--sp-md);
+}
+
+.renderingText {
+  font-size: var(--font-size-sm);
+  color: var(--muted);
+}
+
+.progressWrapper {
+  width: 100%;
+  max-width: 400px;
+}
+
+/* ---- Error panel ---- */
+.errorCard {
+  border: 1px solid var(--error-container);
+  background: #fff5f5;
+}
+
+.errorPanel {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+  flex-wrap: wrap;
+}
+
+.errorIcon {
+  font-size: 24px;
+  color: var(--error);
+  flex-shrink: 0;
+}
+
+.errorHeading {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--error);
+}
+
+.errorMessage {
+  font-size: var(--font-size-sm);
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* ---- Main layout: grid + side panel ---- */
+.mainLayout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: var(--sp-md);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .mainLayout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---- Slide grid ---- */
+.gridSection {
+  min-width: 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--sp-sm);
+}
+
+.gridCell {
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.gridCell:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.gridImg {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  display: block;
+}
+
+.gridCaption {
+  font-size: var(--font-size-xs);
+  color: var(--muted);
+  text-align: center;
+  padding: 6px 8px;
+  border-top: 1px solid var(--border);
+  background: var(--surface-low);
+}
+
+/* ---- Side panel / caption ---- */
+.sidePanel {
+  position: sticky;
+  top: var(--sp-md);
+}
+
+/* ---- Caption panel ---- */
+.captionPanel {
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+}
+
+.panelHeading {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.generateBtn {
+  align-self: flex-start;
+}
+
+.generatingRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+}
+
+.generatingText {
+  font-size: var(--font-size-sm);
+}
+
+/* ---- Hashtag chips ---- */
+.tagsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tagsLabel {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--on-surface);
+}
+
+.tagsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  background: var(--surface-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius);
+  padding: 6px 8px;
+  min-height: 40px;
+}
+
+.tagChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--secondary-container);
+  color: var(--on-surface);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  padding: 2px 8px 2px 6px;
+  border-radius: var(--radius-full);
+}
+
+.tagRemove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 10px;
+  padding: 0 2px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+
+.tagRemove:hover {
+  color: var(--error);
+}
+
+.tagInput {
+  border: none;
+  background: transparent;
+  outline: none;
+  font: inherit;
+  font-size: var(--font-size-sm);
+  color: var(--on-surface);
+  min-width: 100px;
+  flex: 1;
+}
+
+.tagInput::placeholder {
+  color: var(--outline);
+}
+
+/* ---- Caption action row ---- */
+.captionActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ---- Notes/hints ---- */
+.captionHint {
+  font-size: var(--font-size-xs);
+  color: var(--error);
+  line-height: 1.5;
+}
+
+.captionNote {
+  font-size: var(--font-size-xs);
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* ---- Lightbox ---- */
+.lightbox {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+}
+
+.lightboxMain {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.lightboxImg {
+  max-height: 75vh;
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  border-radius: var(--radius-md);
+  object-fit: contain;
+}
+
+.lightboxNav {
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  width: 40px;
+  height: 40px;
+  font-size: 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--on-surface);
+  transition: background 0.15s ease;
+}
+
+.lightboxNav:hover {
+  background: var(--surface-low);
+}
+
+.lightboxLabel {
+  font-size: var(--font-size-sm);
+  color: var(--muted);
+}
+
+/* ---- Footer ---- */
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--sp-sm);
+  border-top: 1px solid var(--border);
+  gap: var(--sp-sm);
+}
+
+.downloadLink {
+  text-decoration: none;
+}
+
+.downloadLinkDisabled {
+  text-decoration: none;
+  cursor: not-allowed;
+}

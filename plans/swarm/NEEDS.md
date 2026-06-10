@@ -1,3 +1,5 @@
 ## For Wave 5 (integration)
 - core/src/compose/slide-ai.ts: `remap` accepts any valid slide; tighten to enforce `result.variant === targetVariant` (retry once on mismatch, then throw). Reported by Wave 1C.
 - data/newspapper.db on this machine is an old v1-CLI DB with user_version=2 (missing source_name/created_at, has scraped_at) — migration passes it through silently. Wave 5: back it up (data/newspapper.db.bak) and let a fresh DB be created, OR add a rescue migration keyed on actual columns. Reported by Wave 2.
+- core templates registry resolves assets/templates relative to process CWD — GET /api/templates returns [] when the API server's CWD isn't the repo root. Fix path resolution (resolve from repo root / make injectable). Reported by Wave 3B.
+- ui: ExportStep.tsx has a JSX-namespace tsc error and *.module.css imports lack declarations (astro build passes; strict tsc in ui/ doesn't). Clean up in Wave 5. Reported by Wave 3B.
