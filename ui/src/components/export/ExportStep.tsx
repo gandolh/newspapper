@@ -9,8 +9,8 @@ import {
   Spinner,
   Textarea,
 } from '../ui';
-import { api, sse } from '../../lib/api';
-import type { PostRow, PostPayload } from '../../lib/types';
+import { api, sse } from '@/lib/api';
+import type { PostRow, PostPayload } from '@/lib/types';
 import styles from './ExportStep.module.css';
 
 // ---------------------------------------------------------------------------

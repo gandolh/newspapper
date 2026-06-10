@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { sse } from '../../lib/api';
-import type { PostRow, SlideBlock } from '../../lib/types';
+import { sse } from '@/lib/api';
+import type { PostRow, SlideBlock } from '@/lib/types';
 import { Button, Badge, Card, Spinner, ConfirmDialog, useToast } from '../ui';
 import styles from './ComposeStep.module.css';
 

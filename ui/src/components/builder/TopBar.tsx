@@ -3,13 +3,13 @@
  */
 
 import { useState } from 'react';
-import type { TemplateDoc } from '../../lib/types';
+import type { TemplateDoc } from '@/lib/types';
 import type { CanvasMode } from './useBuilderStore';
 import Button from '../ui/Button';
 import Modal from '../ui/Modal';
 import ConfirmDialog from '../ui/ConfirmDialog';
 import Input from '../ui/Input';
-import { api } from '../../lib/api';
+import { api } from '@/lib/api';
 import { useToast } from '../ui/Toast';
 import { starterRoot } from './types';
 

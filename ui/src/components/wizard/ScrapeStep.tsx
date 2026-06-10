@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { api, sse } from '../../lib/api';
-import type { Article } from '../../lib/types';
+import { api, sse } from '@/lib/api';
+import type { Article } from '@/lib/types';
 import {
   Button,
   Badge,

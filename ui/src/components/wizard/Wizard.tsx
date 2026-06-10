@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { api } from '../../lib/api';
-import type { PostRow } from '../../lib/types';
+import { api } from '@/lib/api';
+import type { PostRow } from '@/lib/types';
 import { Stepper, ToastProvider } from '../ui';
 import { ScrapeStep } from './ScrapeStep';
 import { ComposeStep } from './ComposeStep';

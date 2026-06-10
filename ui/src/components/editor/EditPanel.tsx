@@ -2,14 +2,14 @@
  * EditPanel — right panel: field form, variant switcher, AI actions.
  */
 import { useRef, useState } from 'react';
-import type { SlideBlock, TemplateDoc } from '../../lib/types';
+import type { SlideBlock, TemplateDoc } from '@/lib/types';
 import Button from '../ui/Button';
 import Badge from '../ui/Badge';
 import Select from '../ui/Select';
 import Spinner from '../ui/Spinner';
 import ConfirmDialog from '../ui/ConfirmDialog';
 import SlideForm from './SlideForm';
-import { api } from '../../lib/api';
+import { api } from '@/lib/api';
 import {
   canInstantSwitch,
   switchVariantInstant,

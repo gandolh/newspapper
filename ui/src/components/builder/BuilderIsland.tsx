@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import type { TemplateDoc } from '../../lib/types';
+import type { TemplateDoc } from '@/lib/types';
 import { ToastProvider, useToast } from '../ui/Toast';
 import { useBuilderStore } from './useBuilderStore';
 import TopBar from './TopBar';
@@ -12,7 +12,7 @@ import TreePanel from './TreePanel';
 import Canvas from './Canvas';
 import Inspector from './Inspector';
 import Spinner from '../ui/Spinner';
-import { api } from '../../lib/api';
+import { api } from '@/lib/api';
 
 interface ThemeEntry {
   name: string;

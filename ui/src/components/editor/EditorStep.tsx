@@ -15,8 +15,8 @@ import {
   useState,
   type ReactElement,
 } from 'react';
-import type { PostPayload, PostRow, SlideBlock, TemplateDoc } from '../../lib/types';
-import { api } from '../../lib/api';
+import type { PostPayload, PostRow, SlideBlock, TemplateDoc } from '@/lib/types';
+import { api } from '@/lib/api';
 import Button from '../ui/Button';
 import Spinner from '../ui/Spinner';
 import { useToast } from '../ui/Toast';

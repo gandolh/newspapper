@@ -2,7 +2,7 @@
  * Builder-specific types and utilities.
  */
 
-import type { TNode, TStyle } from '../../lib/types';
+import type { TNode, TStyle } from '@/lib/types';
 
 /** Path to a node in the tree — array of child indices */
 export type NodePath = number[];

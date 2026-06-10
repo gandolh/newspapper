@@ -4,7 +4,7 @@
  */
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import type { TemplateDoc } from '../../lib/types';
+import type { TemplateDoc } from '@/lib/types';
 import type { NodePath } from './types';
 
 const UNDO_LIMIT = 50;

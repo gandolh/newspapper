@@ -1,7 +1,7 @@
 /**
  * Utility helpers for slide manipulation.
  */
-import type { SlideBlock, FieldSpec } from '../../lib/types';
+import type { SlideBlock, FieldSpec } from '@/lib/types';
 
 /** Convert a SlideBlock to a flat Record for POST /api/preview data param. */
 export function slideToData(slide: SlideBlock): Record<string, unknown> {

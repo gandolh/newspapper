@@ -4,7 +4,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import type { TNode, TemplateDoc } from '../../lib/types';
+import type { TNode, TemplateDoc } from '@/lib/types';
 import type { NodePath } from './types';
 import {
   nodeLabel,

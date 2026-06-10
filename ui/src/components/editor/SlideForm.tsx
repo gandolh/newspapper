@@ -1,7 +1,7 @@
 /**
  * SlideForm — renders editable fields for a single slide based on its FieldSpec[].
  */
-import type { SlideBlock, FieldSpec } from '../../lib/types';
+import type { SlideBlock, FieldSpec } from '@/lib/types';
 import Input from '../ui/Input';
 import Textarea from '../ui/Textarea';
 

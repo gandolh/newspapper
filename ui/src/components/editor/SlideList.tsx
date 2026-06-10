@@ -2,7 +2,7 @@
  * SlideList — vertical list of slide cards with thumbnails, reorder, delete, and add.
  */
 import { useState } from 'react';
-import type { SlideBlock, TemplateDoc } from '../../lib/types';
+import type { SlideBlock, TemplateDoc } from '@/lib/types';
 import Badge from '../ui/Badge';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';

@@ -12,8 +12,8 @@ import {
   useToast,
   ConfirmDialog,
 } from '../ui';
-import { api, ApiError } from '../../lib/api';
-import type { SourceConfig } from '../../lib/types';
+import { api, ApiError } from '@/lib/api';
+import type { SourceConfig } from '@/lib/types';
 
 // ---------------------------------------------------------------------------
 // Types

@@ -5,7 +5,7 @@
  */
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import type { TNode, TemplateDoc } from '../../lib/types';
+import type { TNode, TemplateDoc } from '@/lib/types';
 import type { NodePath } from './types';
 import { pathEquals, nodeChildren } from './types';
 import type { CanvasMode } from './useBuilderStore';

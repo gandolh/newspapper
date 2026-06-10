@@ -4,7 +4,7 @@
  */
 
 import { useState, useRef } from 'react';
-import type { TNode, TemplateDoc, FieldSpec, TStyle } from '../../lib/types';
+import type { TNode, TemplateDoc, FieldSpec, TStyle } from '@/lib/types';
 import type { NodePath } from './types';
 import {
   getNodeAtPath,

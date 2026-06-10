@@ -9,8 +9,8 @@ import {
   ConfirmDialog,
   Spinner,
 } from '../ui';
-import { api } from '../../lib/api';
-import type { PostRow } from '../../lib/types';
+import { api } from '@/lib/api';
+import type { PostRow } from '@/lib/types';
 import styles from './HistoryIsland.module.css';
 
 // ---------------------------------------------------------------------------
