@@ -1,13 +1,63 @@
 ---
-import App from '../layouts/App.astro';
-import { EmptyState } from '../components/ui';
+import '../styles/global.css';
+import ApiHealthDot from '../components/ApiHealthDot';
+import BuilderIsland from '../components/builder/BuilderIsland';
+
+const navLinks = [
+  { href: '/', label: 'Create', icon: '✦' },
+  { href: '/history', label: 'History', icon: '◷' },
+  { href: '/sources', label: 'Sources', icon: '⊕' },
+  { href: '/builder', label: 'Templates', icon: '▦' },
+  { href: '/prompt', label: 'Prompt', icon: '≡' },
+  { href: '/settings', label: 'Settings', icon: '⚙' },
+];
+
+const path = Astro.url.pathname;
+function isActive(href: string): boolean {
+  if (href === '/') return path === '/';
+  return path.startsWith(href);
+}
 ---
 
-<App title="Templates">
-  <EmptyState
-    icon="▦"
-    title="Template Builder"
-    hint="Built in a later wave."
-    client:load
-  />
-</App>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Template Builder — newspapper</title>
+  </head>
+  <body style="margin:0; overflow: hidden;">
+    <div style="display:flex; height:100vh; overflow:hidden;">
+      <!-- Sidebar nav -->
+      <nav style="width:220px; min-height:100vh; background:var(--surface-card); border-right:1px solid var(--border); display:flex; flex-direction:column; flex-shrink:0; position:sticky; top:0; height:100vh; overflow-y:auto;">
+        <div style="padding:var(--sp-md) var(--sp-sm); border-bottom:1px solid var(--border);">
+          <a href="/" style="display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--on-surface);">
+            <span style="display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; background:var(--primary); color:var(--on-primary); border-radius:var(--radius); font-size:13px; font-weight:800; letter-spacing:-0.04em; flex-shrink:0;">np</span>
+            <span style="font-size:15px; font-weight:800; letter-spacing:-0.03em; color:var(--on-surface);">newspapper</span>
+          </a>
+        </div>
+        <ul style="flex:1; padding:var(--sp-sm) var(--sp-xs); display:flex; flex-direction:column; gap:2px; list-style:none; margin:0; padding-top:12px;">
+          {navLinks.map(({ href, label, icon }) => (
+            <li>
+              <a
+                href={href}
+                style={`display:flex; align-items:center; gap:10px; height:40px; padding:0 var(--sp-sm); border-radius:var(--radius); font-size:var(--font-size-sm); font-weight:500; text-decoration:none; color:var(--muted); transition:background 0.15s; ${isActive(href) ? 'background:#ffdbd1; color:var(--primary); font-weight:600;' : ''}`}
+              >
+                <span style="font-size:14px; width:18px; text-align:center; flex-shrink:0; opacity:0.8;">{icon}</span>
+                <span style="flex:1;">{label}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+        <div style="padding:var(--sp-sm); border-top:1px solid var(--border);">
+          <ApiHealthDot client:load />
+        </div>
+      </nav>
+
+      <!-- Builder takes up the rest -->
+      <div style="flex:1; overflow:hidden; min-width:0;">
+        <BuilderIsland client:load />
+      </div>
+    </div>
+  </body>
+</html>
