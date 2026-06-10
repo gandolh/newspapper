@@ -12,8 +12,9 @@ output/
 coverage/
 
 # Build artifacts
-dist/
+**/dist/
 build/
+.astro/
 
 # Temporary files
 *.tmp

@@ -1,48 +1,39 @@
 {
   "name": "newspapper",
-  "version": "2.0.0",
-  "description": "A minimal CLI that turns today's news into an Instagram-style slide post.",
+  "version": "3.0.0",
+  "description": "Turn today's news into an Instagram-style slide post — v3 web app.",
+  "private": true,
   "type": "module",
-  "main": "dist/cli.js",
-  "scripts": {
-    "build": "tsc",
-    "start": "node dist/cli.js",
-    "dev": "tsx src/cli.ts",
-    "test": "vitest",
-    "test:run": "vitest run"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/gandolh/newspapper.git"
-  },
-  "keywords": [
-    "news",
-    "rss",
-    "instagram",
-    "cli",
-    "ollama"
+  "workspaces": [
+    "core",
+    "api",
+    "ui"
   ],
-  "author": "",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/gandolh/newspapper/issues"
-  },
-  "homepage": "https://github.com/gandolh/newspapper#readme",
-  "dependencies": {
-    "@resvg/resvg-js": "2.6.2",
-    "better-sqlite3": "12.10.0",
-    "cac": "7.0.0",
-    "dotenv": "17.4.2",
-    "react": "19.2.6",
-    "rss-parser": "3.13.0",
-    "satori": "0.26.0"
+  "scripts": {
+    "dev": "concurrently --kill-others-on-fail \"npm run dev --workspace=api\" \"npm run dev --workspace=ui\"",
+    "build": "npm run build --workspace=core && npm run build --workspace=api && npm run build --workspace=ui",
+    "test": "vitest run",
+    "lint": "eslint \"core/src/**/*.ts\" \"api/src/**/*.ts\"",
+    "fmt": "prettier --write \"core/src/**/*.ts\" \"api/src/**/*.ts\" \"ui/src/**/*.{ts,tsx,astro}\""
   },
   "devDependencies": {
     "@types/better-sqlite3": "7.6.13",
     "@types/node": "25.9.0",
     "@types/react": "19.2.14",
+    "@types/react-dom": "^19.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.61.0",
+    "@typescript-eslint/parser": "^8.61.0",
+    "concurrently": "^9.0.0",
+    "eslint": "^9.0.0",
+    "prettier": "^3.0.0",
     "tsx": "4.22.1",
     "typescript": "6.0.3",
     "vitest": "4.1.6"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gandolh/newspapper.git"
+  },
+  "author": "",
+  "license": "MIT"
 }
