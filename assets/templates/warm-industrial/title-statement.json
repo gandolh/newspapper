@@ -1,0 +1,63 @@
+{
+  "id": "title-statement",
+  "theme": "warm-industrial",
+  "family": "title",
+  "name": "Title — Statement",
+  "fields": [
+    { "key": "text", "label": "Statement", "kind": "textarea", "required": true }
+  ],
+  "sample": {
+    "text": "The world is changing faster than ever."
+  },
+  "root": {
+    "kind": "box",
+    "style": {
+      "width": 1080,
+      "height": 1080,
+      "display": "flex",
+      "flexDirection": "column",
+      "backgroundColor": "$color.surface-container-high",
+      "color": "$color.on-surface",
+      "padding": "$spacing.xl",
+      "fontFamily": "'Inter', sans-serif"
+    },
+    "children": [
+      {
+        "kind": "text",
+        "text": "{{text}}",
+        "style": {
+          "display": "flex",
+          "flex": 1,
+          "alignItems": "center",
+          "fontFamily": "'Inter', sans-serif",
+          "fontWeight": 800,
+          "fontSize": 76,
+          "lineHeight": 1.05,
+          "letterSpacing": "-0.03em",
+          "color": "$color.on-surface"
+        }
+      },
+      {
+        "kind": "box",
+        "style": {
+          "display": "flex",
+          "flexDirection": "row",
+          "justifyContent": "space-between",
+          "alignItems": "center",
+          "marginTop": "auto",
+          "paddingTop": "$spacing.md",
+          "fontFamily": "'Inter', sans-serif",
+          "fontSize": 14,
+          "fontWeight": 700,
+          "color": "$color.on-surface-variant",
+          "letterSpacing": "0.1em",
+          "textTransform": "uppercase"
+        },
+        "children": [
+          { "kind": "text", "text": "Newspapper" },
+          { "kind": "text", "text": "{{_index}} / {{_total}}" }
+        ]
+      }
+    ]
+  }
+}

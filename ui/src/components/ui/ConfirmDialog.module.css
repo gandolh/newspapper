@@ -1,0 +1,12 @@
+.message {
+  font-size: var(--font-size-base);
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: var(--sp-md);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}

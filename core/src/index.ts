@@ -3,41 +3,60 @@
 // Types (canonical source of truth for PostPayload, SlideBlock, Article, PostRow, Theme, etc.)
 export * from './types.js';
 
-// Storage — exclude types that conflict with canonical types.ts exports
-export { open, migrate } from './storage/db.js';
-export type { DB } from './storage/db.js';
-export {
-  insertMany,
-  existsByUrl,
-  todays,
-} from './storage/articles.js';
-export type {
-  NewArticle,
-  Article as DbArticle,
-} from './storage/articles.js';
-export {
-  nextRunNumber,
-  insert as insertPost,
-  recent as recentPosts,
-} from './storage/posts.js';
-export type { Post } from './storage/posts.js';
+// Storage
+export * from './storage/index.js';
 
 // Scrape
 export { fetchBody, stripHtml } from './scrape/body.js';
 export { fetchFeed } from './scrape/rss.js';
 export type { RssItem } from './scrape/rss.js';
-export { loadSources, scrape } from './scrape/index.js';
-export type { ScrapeOptions } from './scrape/index.js';
+export { scrape, pingSource } from './scrape/index.js';
+export type { ScrapeOptions, ScrapeResult, ScrapeProgressEvent, PingResult } from './scrape/index.js';
 
 // Compose
-export { generate } from './compose/ollama.js';
-export { buildPrompt } from './compose/prompt.js';
-export { parsePost, ComposeParseError } from './compose/parse.js';
-export { compose } from './compose/index.js';
-export type { ComposeOptions } from './compose/index.js';
+export {
+  OllamaClient,
+  OllamaError,
+  composePost,
+  generateCaption,
+  slideAi,
+  parseSlide,
+  parsePost,
+  ComposeParseError,
+  DEFAULT_PROMPT,
+  VARIANT_SHAPES,
+  buildUserPrompt,
+} from './compose/index.js';
+export type {
+  OllamaConfig,
+  ComposePostOptions,
+  CaptionResult,
+  SlideAiAction,
+} from './compose/index.js';
 
 // Util
 export { loadConfig } from './util/config.js';
 export type { Config } from './util/config.js';
 export { log } from './util/logger.js';
 export { ensureDir, ensureParent, todayLocal, nextOutputDir } from './util/paths.js';
+
+// Render
+export * from './render/index.js';
+
+// Themes (Node-only)
+export { loadTheme, listThemes } from './themes/index.js';
+
+// Template registry (Node-only) and interpreter
+export {
+  renderTemplate,
+  resolveStyle,
+  validateTemplateDoc,
+  validateSlideData,
+} from './templates/interpreter.js';
+export {
+  listTemplates,
+  loadTemplate,
+  saveTemplate,
+  deleteTemplate,
+  templatesForFamily,
+} from './templates/registry.js';

@@ -1,0 +1,213 @@
+/* =============================================================
+   Newspapper v3 — Global Design System (warm editorial light)
+   Tokens from assets/design-systems/warm-industrial.json
+   ============================================================= */
+
+/* ---- @font-face ---- */
+@font-face {
+  font-family: 'Inter';
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url('/fonts/Inter-Regular.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Inter';
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  src: url('/fonts/Inter-Medium.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Inter';
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  src: url('/fonts/Inter-SemiBold.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Inter';
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  src: url('/fonts/Inter-Bold.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Inter';
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+  src: url('/fonts/Inter-ExtraBold.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Inter';
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+  src: url('/fonts/Inter-Black.ttf') format('truetype');
+}
+
+/* ---- CSS Custom Properties ---- */
+:root {
+  /* Surfaces */
+  --surface: #fbf9f8;
+  --surface-dim: #dbd9d9;
+  --surface-bright: #fbf9f8;
+  --surface-low: #f5f3f3;
+  --surface-container: #efeded;
+  --surface-container-high: #eae8e7;
+  --surface-container-highest: #e4e2e2;
+  --surface-card: #ffffff;
+
+  /* Text */
+  --on-surface: #1b1c1c;
+  --muted: #57423c;
+  --on-surface-variant: #57423c;
+  --inverse-surface: #303030;
+  --inverse-on-surface: #f2f0f0;
+
+  /* Borders */
+  --outline: #8b716b;
+  --outline-variant: #dec0b8;
+  --border: #e4e2e2;
+
+  /* Accent / Primary */
+  --primary: #a2391a;
+  --primary-hover: #c3512f;
+  --on-primary: #ffffff;
+  --primary-container: #c3512f;
+
+  /* Secondary */
+  --secondary: #555f6a;
+  --on-secondary: #ffffff;
+  --secondary-container: #d6e1ee;
+
+  /* Error */
+  --error: #ba1a1a;
+  --on-error: #ffffff;
+  --error-container: #ffdad6;
+
+  /* Success (not in design system, added for UI feedback) */
+  --success: #2e7d32;
+  --on-success: #ffffff;
+  --success-container: #c8e6c9;
+
+  /* Spacing (8px grid) */
+  --sp-xs: 4px;
+  --sp-sm: 12px;
+  --sp-base: 8px;
+  --sp-md: 24px;
+  --sp-lg: 48px;
+  --sp-xl: 80px;
+  --sp-container: 32px;
+  --sp-gutter: 24px;
+
+  /* Radius */
+  --radius-sm: 0.25rem;
+  --radius: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-full: 9999px;
+
+  /* Typography */
+  --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-size-xs: 12px;
+  --font-size-sm: 13px;
+  --font-size-base: 15px;
+  --font-size-md: 16px;
+  --font-size-lg: 18px;
+
+  /* Layout */
+  --sidebar-width: 220px;
+  --nav-item-height: 40px;
+}
+
+/* ---- Reset ---- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 15px;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+  color: var(--on-surface);
+  background: var(--surface);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+img,
+svg,
+video,
+canvas {
+  display: block;
+  max-width: 100%;
+}
+
+input,
+button,
+select,
+textarea {
+  font: inherit;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  overflow-wrap: break-word;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ---- Focus visible ring (terracotta) ---- */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* ---- Selection colour ---- */
+::selection {
+  background: #ffdbd1;
+  color: var(--on-surface);
+}
+
+/* ---- Scrollbar (subtle) ---- */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--surface-container-highest);
+  border-radius: var(--radius-full);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--outline-variant);
+}

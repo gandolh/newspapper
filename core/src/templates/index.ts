@@ -1,5 +1,5 @@
-// Browser-safe subpath: re-exports template types only (no Node built-ins).
-// A later wave will populate this with TemplateDoc definitions.
+// Browser-safe subpath: no `fs`, `path`, or any Node API.
+// Re-exports template types and the pure interpreter.
 export type {
   TemplateDoc,
   FieldSpec,
@@ -10,3 +10,10 @@ export type {
   PostPayload,
   Theme,
 } from '../types.js';
+
+export {
+  renderTemplate,
+  resolveStyle,
+  validateTemplateDoc,
+  validateSlideData,
+} from './interpreter.js';

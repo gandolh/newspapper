@@ -1,0 +1,13 @@
+---
+import App from '../layouts/App.astro';
+import { EmptyState } from '../components/ui';
+---
+
+<App title="Prompt">
+  <EmptyState
+    icon="≡"
+    title="Prompt"
+    hint="Built in a later wave."
+    client:load
+  />
+</App>

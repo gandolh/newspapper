@@ -1,85 +1,127 @@
-import { readFileSync, existsSync, writeFileSync } from 'node:fs';
-import { resolve } from 'node:path';
-import type { Config } from '../util/config.js';
-import { log } from '../util/logger.js';
-import { ensureParent, todayLocal } from '../util/paths.js';
-import { open } from '../storage/db.js';
-import { existsByUrl, insertMany, type NewArticle } from '../storage/articles.js';
+import type { SourceConfig, Article } from '../types.js';
+import { getDb } from '../storage/db.js';
+import { upsertArticles, articlesForDate } from '../storage/articles.js';
 import { fetchFeed } from './rss.js';
 import { fetchBody } from './body.js';
-import type { SourceConfig } from '../types.js';
 
-/** @deprecated Use SourceConfig from types.ts */
-export type Source = SourceConfig;
+const DEFAULT_USER_AGENT = 'Newspapper/3.0';
+const DEFAULT_TIMEOUT_MS = 30_000;
+const DEFAULT_MAX_PER_SOURCE = 10;
+
+export interface ScrapeProgressEvent {
+  sourceId: string;
+  status: 'fetching' | 'done' | 'error';
+  count?: number;
+  error?: string;
+}
 
 export interface ScrapeOptions {
-  maxPerSource: number;
+  date: string;
+  maxPerSource?: number;
+  dbPath?: string;
+  userAgent?: string;
+  requestTimeoutMs?: number;
+  onProgress?: (e: ScrapeProgressEvent) => void;
 }
 
-const SOURCES_PATH = './data/sources.json';
-
-export function loadSources(): SourceConfig[] {
-  if (!existsSync(SOURCES_PATH)) {
-    ensureParent(SOURCES_PATH);
-    writeFileSync(SOURCES_PATH, '[]\n');
-    return [];
-  }
-  const raw = readFileSync(resolve(SOURCES_PATH), 'utf8');
-  const parsed: unknown = JSON.parse(raw);
-  if (!Array.isArray(parsed)) throw new Error('sources.json must be a JSON array');
-  return parsed as Source[];
+export interface ScrapeResult {
+  articles: Article[];
+  errors: Array<{ sourceId: string; error: string }>;
 }
 
-export async function scrape(config: Config, opts: ScrapeOptions): Promise<{ inserted: number }> {
-  const sources = loadSources().filter((s) => s.enabled);
-  if (sources.length === 0) {
-    log.warn('No enabled sources in data/sources.json — nothing to scrape.');
-    return { inserted: 0 };
+/**
+ * Scrape all enabled sources, filter items to `date`, upsert into the DB.
+ * Per-source failures are collected into `errors` and do not abort the run.
+ * Returns all of today's articles from the DB after upserting (accumulates across re-runs).
+ */
+export async function scrape(sources: SourceConfig[], opts: ScrapeOptions): Promise<ScrapeResult> {
+  const {
+    date,
+    maxPerSource = DEFAULT_MAX_PER_SOURCE,
+    dbPath,
+    userAgent = DEFAULT_USER_AGENT,
+    requestTimeoutMs = DEFAULT_TIMEOUT_MS,
+    onProgress,
+  } = opts;
+
+  const enabled = sources.filter((s) => s.enabled);
+  const errors: Array<{ sourceId: string; error: string }> = [];
+
+  const db = getDb(dbPath);
+
+  try {
+    for (const source of enabled) {
+      onProgress?.({ sourceId: source.id, status: 'fetching' });
+
+      let items;
+      try {
+        items = await fetchFeed(source.rss, userAgent, requestTimeoutMs);
+      } catch (err) {
+        const error = (err as Error).message;
+        errors.push({ sourceId: source.id, error });
+        onProgress?.({ sourceId: source.id, status: 'error', error });
+        continue;
+      }
+
+      // Keep only items published on the target date
+      const todaysItems = items
+        .filter((i) => i.publishedAt.slice(0, 10) === date)
+        .slice(0, maxPerSource);
+
+      // Fetch body for each item
+      const rows = await Promise.all(
+        todaysItems.map(async (item) => {
+          const body = await fetchBody(item.url, userAgent, requestTimeoutMs);
+          return {
+            source_id: source.id,
+            source_name: source.name,
+            url: item.url,
+            title: item.title,
+            body: body || item.summary,
+            published_at: item.publishedAt,
+          };
+        }),
+      );
+
+      upsertArticles(db, rows);
+      onProgress?.({ sourceId: source.id, status: 'done', count: rows.length });
+    }
+
+    // Return all articles for the date (accumulated across re-runs)
+    const articles = articlesForDate(db, date);
+    return { articles, errors };
+  } finally {
+    db.close();
   }
-
-  const today = todayLocal();
-  const db = open(config.dbPath);
-  let totalInserted = 0;
-
-  for (const source of sources) {
-    log.info(`scrape: ${source.id} (${source.rss})`);
-    let items;
-    try {
-      items = await fetchFeed(source.rss, config.userAgent, config.requestTimeoutMs);
-    } catch (err) {
-      log.error(`feed failed for ${source.id}:`, (err as Error).message);
-      continue;
-    }
-    const todays = items.filter((i) => i.publishedAt.slice(0, 10) === today).slice(0, opts.maxPerSource);
-    if (todays.length === 0) {
-      log.info(`  no items dated ${today}`);
-      continue;
-    }
-
-    const fresh = todays.filter((i) => !existsByUrl(db, i.url));
-    if (fresh.length === 0) {
-      log.info(`  ${todays.length} items, all already in DB`);
-      continue;
-    }
-
-    const rows: NewArticle[] = [];
-    for (const item of fresh) {
-      const body = await fetchBody(item.url, config.userAgent, config.requestTimeoutMs);
-      rows.push({
-        source_id: source.id,
-        url: item.url,
-        title: item.title,
-        summary: item.summary,
-        body,
-        published_at: item.publishedAt,
-      });
-    }
-    const inserted = insertMany(db, rows);
-    totalInserted += inserted;
-    log.info(`  inserted ${inserted}/${fresh.length}`);
-  }
-
-  db.close();
-  log.info(`scrape: ${totalInserted} new article(s)`);
-  return { inserted: totalInserted };
 }
+
+export interface PingResult {
+  ok: boolean;
+  itemCount?: number;
+  error?: string;
+  latencyMs: number;
+}
+
+/**
+ * Fetch and parse a feed to test connectivity. Never throws.
+ */
+export async function pingSource(
+  src: SourceConfig,
+  opts: { userAgent?: string; requestTimeoutMs?: number } = {},
+): Promise<PingResult> {
+  const userAgent = opts.userAgent ?? DEFAULT_USER_AGENT;
+  const requestTimeoutMs = opts.requestTimeoutMs ?? DEFAULT_TIMEOUT_MS;
+  const start = Date.now();
+  try {
+    const items = await fetchFeed(src.rss, userAgent, requestTimeoutMs);
+    return { ok: true, itemCount: items.length, latencyMs: Date.now() - start };
+  } catch (err) {
+    return { ok: false, error: (err as Error).message, latencyMs: Date.now() - start };
+  }
+}
+
+// ---- Legacy compatibility ----
+export type { ScrapeOptions as LegacyScrapeOptions };
+
+/** @deprecated */
+export type Source = SourceConfig;

@@ -1,0 +1,89 @@
+{
+  "id": "quote-classic",
+  "theme": "warm-industrial",
+  "family": "quote",
+  "name": "Quote — Classic",
+  "fields": [
+    { "key": "quote",       "label": "Quote text",  "kind": "textarea", "required": true },
+    { "key": "attribution", "label": "Attribution", "kind": "text",     "required": true }
+  ],
+  "sample": {
+    "quote": "The best time to plant a tree was twenty years ago. The second best time is now.",
+    "attribution": "Chinese Proverb"
+  },
+  "root": {
+    "kind": "box",
+    "style": {
+      "width": 1080,
+      "height": 1080,
+      "display": "flex",
+      "flexDirection": "column",
+      "backgroundColor": "$color.surface",
+      "color": "$color.on-surface",
+      "padding": "$spacing.xl",
+      "fontFamily": "'Inter', sans-serif"
+    },
+    "children": [
+      {
+        "kind": "box",
+        "style": {
+          "display": "flex",
+          "flexDirection": "column",
+          "flex": 1,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "gap": "$spacing.md"
+        },
+        "children": [
+          {
+            "kind": "text",
+            "text": "“{{quote}}”",
+            "style": {
+              "display": "flex",
+              "fontFamily": "'Inter', sans-serif",
+              "fontWeight": 400,
+              "fontSize": 48,
+              "lineHeight": 1.3,
+              "color": "$color.on-surface",
+              "textAlign": "center"
+            }
+          },
+          {
+            "kind": "text",
+            "text": "— {{attribution}}",
+            "style": {
+              "display": "flex",
+              "fontFamily": "'Inter', sans-serif",
+              "fontWeight": 700,
+              "fontSize": 22,
+              "letterSpacing": "0.1em",
+              "textTransform": "uppercase",
+              "color": "$color.on-surface-variant"
+            }
+          }
+        ]
+      },
+      {
+        "kind": "box",
+        "style": {
+          "display": "flex",
+          "flexDirection": "row",
+          "justifyContent": "space-between",
+          "alignItems": "center",
+          "marginTop": "auto",
+          "paddingTop": "$spacing.md",
+          "fontFamily": "'Inter', sans-serif",
+          "fontSize": 14,
+          "fontWeight": 700,
+          "color": "$color.on-surface-variant",
+          "letterSpacing": "0.1em",
+          "textTransform": "uppercase"
+        },
+        "children": [
+          { "kind": "text", "text": "Newspapper" },
+          { "kind": "text", "text": "{{_index}} / {{_total}}" }
+        ]
+      }
+    ]
+  }
+}

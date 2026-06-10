@@ -43,6 +43,15 @@ function extractJson(raw: string): string {
   return raw.slice(first, last + 1);
 }
 
+/**
+ * Parse and validate a single slide value (for use in slideAi and tests).
+ * Throws ComposeParseError on invalid input.
+ */
+export function parseSlide(value: unknown): SlideBlock {
+  const raw = JSON.stringify(value);
+  return validateSlide(value, 0, raw);
+}
+
 function validateSlide(s: unknown, index: number, raw: string): SlideBlock {
   if (!isRecord(s)) throw new ComposeParseError(`slide ${index}: not an object`, raw);
   const type = s['type'];

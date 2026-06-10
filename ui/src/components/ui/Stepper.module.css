@@ -1,0 +1,103 @@
+.stepper {
+  width: 100%;
+}
+
+.list {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  position: relative;
+}
+
+.indicator {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  position: relative;
+}
+
+.dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+  z-index: 1;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  border: 2px solid var(--border);
+  background: var(--surface-card);
+  color: var(--muted);
+}
+
+.line {
+  flex: 1;
+  height: 2px;
+  background: var(--border);
+  transition: background 0.2s ease;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-top: 6px;
+  padding: 0 4px;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  transition: color 0.2s ease;
+}
+
+.description {
+  font-size: 11px;
+  color: var(--outline);
+  margin-top: 2px;
+}
+
+/* ---- States ---- */
+.step--done .dot {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--on-primary);
+}
+
+.step--done .line {
+  background: var(--primary);
+}
+
+.step--done .label {
+  color: var(--primary);
+}
+
+.step--current .dot {
+  background: var(--surface-card);
+  border-color: var(--primary);
+  color: var(--primary);
+  box-shadow: 0 0 0 3px #ffdbd1;
+}
+
+.step--current .label {
+  color: var(--on-surface);
+  font-weight: 700;
+}
+
+.step--upcoming .dot {
+  background: var(--surface-low);
+  border-color: var(--border);
+  color: var(--outline);
+}
