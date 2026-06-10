@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, type ReactElement } from 'react';
 import {
   Button,
   Card,
@@ -542,7 +542,7 @@ function ExportStepInner({ post, onPostUpdated, onBack }: ExportStepProps) {
 }
 
 // Wrap with ToastProvider so it works standalone too
-export function ExportStep(props: ExportStepProps): JSX.Element {
+export function ExportStep(props: ExportStepProps): ReactElement {
   return (
     <ToastProvider>
       <ExportStepInner {...props} />

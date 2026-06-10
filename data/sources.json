@@ -28,5 +28,11 @@
     "name": "G4Media.ro",
     "rss": "https://www.g4media.ro/feed",
     "enabled": true
+  },
+  {
+    "id": "bbc",
+    "name": "BBC World",
+    "rss": "http://feeds.bbci.co.uk/news/world/rss.xml",
+    "enabled": true
   }
 ]

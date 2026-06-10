@@ -121,11 +121,10 @@ function styleToString(styleMap: Record<string, string>): string {
 // ---------------------------------------------------------------------------
 function resolvePath(path: string, data: Record<string, unknown>): string {
   const parts = path.split('.');
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let cur: any = data;
+  let cur: unknown = data;
   for (const part of parts) {
     if (cur === null || cur === undefined) return '';
-    cur = cur[part];
+    cur = (cur as Record<string, unknown>)[part];
   }
   if (cur === null || cur === undefined) return '';
   return String(cur);

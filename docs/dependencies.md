@@ -1,51 +1,60 @@
 # Dependencies
 
-Newspapper v2 targets a small dep footprint. The full list below.
+Per-workspace. Versions are locked in `package-lock.json`.
 
-**Versions are pinned exactly** (no `^` or `~`) in `package.json`. Upgrades are deliberate.
-
-## Runtime
-
-| Package | Used in | Why |
-|---------|---------|-----|
-| `rss-parser` | `scrape/rss.ts` | Parses RSS and Atom into a normalized item shape. Tiny, zero-config. |
-| `better-sqlite3` | `storage/db.ts` | Synchronous SQLite. Matches the sequential, no-async-soup style of the CLI. |
-| `satori` | `render/satori.ts` | JSX/HTML → SVG without a browser. Replaces Playwright and `@napi-rs/canvas`. |
-| `@resvg/resvg-js` | `render/resvg.ts` | SVG → PNG. Native binary, ships prebuilt. |
-| `react` | `render/slides/*.tsx` | Satori expects React-shaped JSX nodes. Used only as a node factory — no DOM, no hooks. |
-| `dotenv` | `util/config.ts` | Loads `.env`. |
-| `cac` | `cli.ts` | Tiny argv parser. Optional — could be hand-rolled. |
-
-That's it for runtime deps. Seven packages.
-
-## Dev
+## `core/` — `@newspapper/core`
 
 | Package | Why |
 |---------|-----|
-| `typescript` | Source language. |
-| `tsx` | Fast `ts-node`-style runner for `npm run dev`. |
-| `vitest` | Tests, co-located as `*.test.ts`. |
-| `@types/node`, `@types/react` | Types for the runtime deps. |
+| `better-sqlite3` | Synchronous SQLite for articles, posts, settings. |
+| `dotenv` | Loads `.env` at startup. |
+| `fflate` | Pure-JS zip for `zipRun()` (no native binary needed). |
+| `playwright` | Headless Chromium for 1080×1080 slide screenshots. |
+| `rss-parser` | RSS/Atom feed parsing (normalized items, zero-config). |
+
+## `api/` — `@newspapper/api`
+
+| Package | Why |
+|---------|-----|
+| `fastify` | HTTP server with schema-based request handling and plugin system. |
+| `@fastify/cors` | CORS for dev-mode Astro proxy requests from port 4321. |
+| `@fastify/static` | Serves `/assets/fonts/`, `/output/`, and `ui/dist/` in prod. |
+| `@newspapper/core` | All pipeline logic. |
+
+## `ui/` — `@newspapper/ui`
+
+| Package | Why |
+|---------|-----|
+| `astro` | Static site builder; React islands via `@astrojs/react`. |
+| `@astrojs/react` | Astro integration for React client components (wizard, builder, etc.). |
+| `react`, `react-dom` | UI islands (wizard, editor, builder, settings, history, prompt). |
+| `@newspapper/core` | Type imports only (TemplateDoc, SlideBlock, etc.) — no Node APIs used. |
+
+## Root dev deps
+
+| Package | Why |
+|---------|-----|
+| `typescript` | Source language for all three workspaces. |
+| `tsx` | Dev runner — `tsx watch` for the API; used in test runner. |
+| `vitest` | Test framework (co-located `*.test.ts`). |
+| `concurrently` | Runs API + UI dev servers in parallel (`npm run dev`). |
 | `eslint`, `prettier` | Lint and format. |
+| `@types/node`, `@types/react`, `@types/better-sqlite3`, `@types/react-dom` | Type declarations. |
 
-## What was dropped
+## What changed from v2
 
-| v1 package | Reason gone |
-|------------|-------------|
-| `playwright` | No headless-browser scraping; no browser-based rendering. |
-| `@napi-rs/canvas` | Replaced by Satori + resvg. |
-| `sharp` | No image post-processing step. |
-| `cheerio` | RSS-only scraping; no HTML parsing. |
-| `compromise` | No entity-extraction stage. |
-| `inquirer` | No interactive menus. |
-| `ora` | No spinners. |
-| `handlebars` | The compose prompt is a single string template in code. |
-| `openai` | Ollama-only. |
-| `axios` | Native `fetch` is enough. |
+| Removed | Added | Reason |
+|---------|-------|--------|
+| `satori` | `playwright` | Chromium rendering replaces SVG-based Satori |
+| `@resvg/resvg-js` | `fflate` | PNG-from-SVG gone; pure-JS zip instead of native binding |
+| `cac` | `fastify` | CLI gone; HTTP server instead |
+| `react` (render) | `@fastify/cors`, `@fastify/static` | No JSX rendering needed |
+| `handlebars` | — | Compose prompt is a plain string |
+| `openai`, `axios` | — | Ollama-only; native `fetch` |
 
 ## Native build requirements
 
-- **`better-sqlite3`** — needs a C++ toolchain on install (`build-essential` on Debian/Ubuntu, Xcode CLT on macOS). Ships prebuilt binaries for common platforms; falls back to source build otherwise.
-- **`@resvg/resvg-js`** — native, but distributes prebuilt binaries for all Tier-1 Node platforms. No toolchain needed in the common case.
+- **`better-sqlite3`** — C++ toolchain needed on source build; prebuilt binaries ship for common platforms.
+- **`playwright`** — downloads Chromium on `npx playwright install chromium`; no toolchain needed at install time.
 
-No Python, no system libraries beyond `libc`.
+No Python. No system libraries beyond `libc`.

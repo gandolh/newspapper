@@ -2,56 +2,65 @@
 
 ## `.env`
 
-Loaded by `src/util/config.ts`. Every variable has a sensible default — `.env` only exists to override.
+Copy `.env.example` to `.env`. All variables have defaults; override only what you need.
 
 | Variable | Default | Meaning |
 |----------|---------|---------|
-| `OLLAMA_HOST` | `http://localhost:11434` | Ollama server URL. |
-| `OLLAMA_MODEL` | `llama3.2:1b` | Model passed in the `/api/generate` body. Bigger models give better posts. |
-| `MAX_ARTICLES_PER_SOURCE` | `5` | Cap per source per scrape. |
-| `USER_AGENT` | `Newspapper/2.0` | Sent on RSS HTTP requests. |
-| `REQUEST_TIMEOUT` | `30000` | Milliseconds per RSS fetch. |
-| `MAX_RETRIES` | `3` | Per-feed retry budget on network errors. |
-| `THEME` | `warm-industrial` | Currently the only supported value. |
-| `OUTPUT_DIR` | `./output` | Where versioned PNG folders go. |
-| `DB_PATH` | `./data/newspapper.db` | SQLite file. Auto-created. |
-| `DEFAULT_RETENTION_DAYS` | `30` | Used by `newspapper clean`. |
+| `OLLAMA_HOST` | `http://localhost:11434` | Ollama API base URL. Use `https://ollama.com` for Ollama Cloud. |
+| `OLLAMA_API_KEY` | `""` | Bearer token for Ollama Cloud only. Leave empty for local. |
+| `OLLAMA_MODEL` | `llama3.2:1b` | Model name. Larger models produce better results. |
+| `PORT` | `3001` | API server port. |
+| `NEWSPAPPER_DB_PATH` | auto (repo root) | Override the SQLite path (mainly for tests). |
 
-## `data/sources.json`
+## Settings precedence
 
-Hand-edited. RSS-only. See [data.md](data.md#datasourcesjson) for the schema.
+`DB > env vars > hard-coded defaults`
 
-Start small — three to five feeds is plenty. The composer prompt scales with article count, so very large feed lists slow the LLM down and dilute the post.
+Settings stored via `PUT /api/settings` (or the UI Settings page) take precedence over `.env`. This lets you configure Ollama through the browser without editing files.
+
+## Ollama setup
+
+### Local (default)
+
+```bash
+# Run Ollama natively
+ollama serve
+
+# or via Docker Compose
+docker compose -f infra/docker-compose.yml up -d
+
+# Pull the default model
+ollama pull llama3.2:1b
+```
+
+### Ollama Cloud
+
+Set in `.env` or via the Settings UI:
+```
+OLLAMA_HOST=https://ollama.com
+OLLAMA_API_KEY=<your-key>
+OLLAMA_MODEL=<pick from GET /api/models>
+```
+
+## Playwright Chromium
+
+The render pipeline requires Playwright's bundled Chromium. Install once:
+
+```bash
+npx playwright install chromium
+```
+
+This is not included in `npm install` — it must be run separately. The `playwright` package itself is listed as a dependency in `@newspapper/core`.
 
 ## One-time setup
 
 ```bash
-# 1. Install deps
 npm install
-
-# 2. Run Ollama (either natively or via the shipped docker-compose)
-docker compose -f infra/docker-compose.yml up -d
-# or: ollama serve
-
-# 3. Pull the model
+npx playwright install chromium
+cp .env.example .env
+# edit .env if needed
 ollama pull llama3.2:1b
-
-# 4. Drop your sources into data/sources.json
-# 5. Try it
-npm start -- run
+npm run dev
 ```
 
-That's the whole setup. No Playwright browsers to install, no Python build deps for Sharp, no API keys.
-
-## npm scripts
-
-| Script | Does |
-|--------|------|
-| `npm run build` | `tsc` to `dist/` |
-| `npm start` | runs `dist/cli.js` — forward args with `--` |
-| `npm run dev` | `tsx src/cli.ts` for fast iteration |
-| `npm test` | `vitest` |
-| `npm run lint` | `eslint src/` |
-| `npm run fmt` | `prettier --write src/` |
-
-There are no convenience aliases per pipeline stage (`scrape`, `compose`, `render`) because the user-facing surface is just `run`.
+Open `http://localhost:4321` in a browser.

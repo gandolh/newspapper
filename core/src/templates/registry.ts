@@ -10,12 +10,23 @@
 
 import { readFileSync, writeFileSync, unlinkSync, readdirSync, mkdirSync, existsSync } from 'node:fs';
 import { resolve, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { TemplateDoc } from '../types.js';
 import { validateTemplateDoc } from './interpreter.js';
 
-// Path to assets/templates relative to CWD (repo root)
+/**
+ * Resolve the repo root from this file's location.
+ * core/src/templates/registry.ts → up 4 levels → repo root
+ * (registry.ts → templates/ → src/ → core/ → repo root)
+ */
+function repoRoot(): string {
+  const thisFile = fileURLToPath(import.meta.url);
+  return resolve(thisFile, '..', '..', '..', '..');
+}
+
+// Path to assets/templates, resolved from repo root (not process CWD)
 function templatesDir(theme: string): string {
-  return resolve('assets/templates', theme);
+  return resolve(repoRoot(), 'assets/templates', theme);
 }
 
 function templatePath(theme: string, id: string): string {

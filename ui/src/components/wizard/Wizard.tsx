@@ -4,7 +4,6 @@ import type { PostRow } from '../../lib/types';
 import { Stepper, ToastProvider } from '../ui';
 import { ScrapeStep } from './ScrapeStep';
 import { ComposeStep } from './ComposeStep';
-// TEMP STUB imports — replaced by agents 3B/3C when they land
 import { EditorStep } from '../editor/EditorStep';
 import { ExportStep } from '../export/ExportStep';
 import styles from './Wizard.module.css';

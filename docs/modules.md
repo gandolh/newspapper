@@ -1,142 +1,173 @@
 # Modules
 
-Module-by-module API reference. All paths under `src/`.
+All modules are in `@newspapper/core` (`core/src/`). Exported from `core/src/index.ts` (main entry) or `core/src/templates/index.ts` (browser-safe subpath).
 
-## `cli.ts`
-
-Entry point. Parses argv (using a small library like `cac` or hand-rolled), dispatches to `run`, `sources`, `list`, or `clean`. Loads config from `.env` once and passes it down.
-
-## `run.ts`
+## Scrape
 
 ```ts
-export async function run(opts: RunOptions): Promise<void>
+// core/src/scrape/index.ts
+export async function scrape(sources: SourceConfig[], opts: ScrapeOptions): Promise<ScrapeResult>
+export async function pingSource(source: SourceConfig): Promise<PingResult>
 ```
 
-Orchestrates the pipeline:
-
-1. `scrape(config, opts)` → returns count of new articles
-2. `compose(config, opts)` → returns the post payload
-3. `render(post, config, opts)` → writes PNGs and `slides.json` to disk
-
-Each step logs its progress. Failures abort the run; no partial recovery.
-
-## `scrape/`
+`scrape()` fetches each enabled source, trims to `maxPerSource` items for today's date, fetches article bodies, and upserts into SQLite.
 
 ```ts
-// scrape/index.ts
-export async function scrape(config: Config, opts: ScrapeOptions): Promise<{ inserted: number }>
+export async function fetchFeed(url: string): Promise<RssItem[]>   // scrape/rss.ts
+export async function fetchBody(url: string, opts?): Promise<string>  // scrape/body.ts
+export function stripHtml(html: string): string
 ```
 
-For each enabled source: fetch the feed via `scrape/rss.ts`, keep items with `pubDate` on today's local date, cap at `maxPerSource`. For each new item, fetch the article URL and reduce the response to plain text with `scrape/body.ts`. Insert into `articles` (skip on URL collision).
+## Compose
 
 ```ts
-// scrape/rss.ts
-export async function fetchFeed(url: string): Promise<RssItem[]>
+// core/src/compose/compose-post.ts
+export async function composePost(articles: Article[], cfg: OllamaConfig, opts: ComposePostOptions): Promise<PostPayload>
 ```
 
-Thin wrapper around `rss-parser`. Returns a normalized shape; no parsing logic lives elsewhere.
+Sends articles to Ollama, parses JSON response, retries once on parse failure.
 
 ```ts
-// scrape/body.ts
-export async function fetchBody(url: string, timeoutMs: number): Promise<string>
-```
-
-Fetches the article URL with native `fetch`, runs a regex pass to strip `<script>`/`<style>` blocks and all remaining tags, collapses whitespace, and returns plain text. Returns an empty string on network failure or non-2xx; the article is still inserted so we know we've seen the URL.
-
-## `compose/`
-
-```ts
-// compose/index.ts
-export async function compose(config: Config): Promise<Post>
-```
-
-1. Reads today's articles from the DB.
-2. Builds the prompt (a single string template, embedded in code — no Handlebars).
-3. Calls `ollama.generate(prompt)`.
-4. Parses the model's JSON output; validates against the slide-type schema in [data.md](data.md).
-5. Inserts a row into `posts` (with the next `run_number` for today) and returns the post.
-
-If parsing fails, the run aborts with the raw model output dumped to stderr. No auto-retry — a failed parse usually means the model needs a different prompt or a bigger model.
-
-```ts
-// compose/ollama.ts
-export async function generate(host: string, model: string, prompt: string): Promise<string>
-```
-
-POSTs to `${host}/api/generate` with `stream: false`. Returns the `response` field.
-
-## `render/`
-
-```ts
-// render/index.ts
-export async function render(post: Post, config: Config): Promise<{ outputDir: string }>
-```
-
-For each slide in `post.slides`: pick the JSX component by `variant`, call Satori to produce SVG, call resvg to produce PNG, write `output/<date>-<n>/<i>.png`. Also writes `slides.json`.
-
-```ts
-// render/satori.ts
-export async function toSvg(node: ReactNode, theme: Theme): Promise<string>
-```
-
-Configures Satori with the warm-industrial theme tokens and fonts from `fonts/`. The output is a 1080×1080 SVG string.
-
-```ts
-// render/resvg.ts
-export function toPng(svg: string): Buffer
-```
-
-Synchronous SVG → PNG via `@resvg/resvg-js`.
-
-```ts
-// render/slides/*.tsx
-export function TitleMain(props: TitleMainProps): JSX.Element
-export function BodyText(props: BodyTextProps): JSX.Element
-// … one per variant listed in data.md
-```
-
-Each component reads its layout from the theme tokens. They use **only flexbox** — Satori does not support CSS Grid or absolute positioning beyond what flex provides.
-
-## `storage/`
-
-```ts
-// storage/db.ts
-export function open(path: string): Database
-export function migrate(db: Database): void   // idempotent, runs on every open
+// core/src/compose/caption.ts
+export async function generateCaption(payload: PostPayload, cfg: OllamaConfig): Promise<CaptionResult>
 ```
 
 ```ts
-// storage/articles.ts
-export function insertMany(db: Database, rows: NewArticle[]): number   // returns insert count
-export function todays(db: Database, date: string): Article[]
+// core/src/compose/slide-ai.ts
+export async function slideAi(slide: SlideBlock, req: SlideAiAction, cfg: OllamaConfig): Promise<SlideBlock>
+```
+
+`SlideAiAction` union: `{action:'shorter'}`, `{action:'punchier'}`, `{action:'regenerate', articles}`, `{action:'remap', targetVariant}`.
+
+`remap` enforces `result.variant === targetVariant`; retries once on mismatch, then throws.
+
+```ts
+// core/src/compose/ollama.ts
+export class OllamaClient {
+  async generate(prompt: string, opts?: {json?:boolean; system?:string}): Promise<string>
+  async listModels(): Promise<string[]>
+  async testConnection(): Promise<{ok:boolean; error?:string; models?:string[]}>
+}
+export class OllamaError extends Error { status: number; body: string }
 ```
 
 ```ts
-// storage/posts.ts
-export function nextRunNumber(db: Database, date: string): number
-export function insert(db: Database, row: NewPost): Post
-export function recent(db: Database, limit: number): Post[]
+// core/src/compose/parse.ts
+export function parsePost(raw: string, date: string, theme: string): PostPayload
+export function parseSlide(value: unknown): SlideBlock
+export class ComposeParseError extends Error { raw: string }
 ```
 
-## `util/`
-
 ```ts
-// util/config.ts
-export function loadConfig(): Config
+// core/src/compose/prompt.ts
+export const DEFAULT_PROMPT: string
+export const VARIANT_SHAPES: Record<string, string>
+export function buildUserPrompt(articles: Article[]): string
 ```
 
-Reads `.env`, applies defaults, returns a frozen object. See [configuration.md](configuration.md) for the field list.
+## Render
 
 ```ts
-// util/logger.ts
+// core/src/render/index.ts
+export async function renderSlides(
+  htmlList: string[],
+  opts: { date: string; slidesJson: unknown; caption?: string; onProgress?: (done, total) => void }
+): Promise<{ dir: string; files: string[] }>
+
+export async function zipRun(outputDir: string): Promise<Uint8Array>
+```
+
+`renderSlides` launches a Playwright Chromium browser, screenshots each HTML string at 1080×1080, writes PNGs + `slides.json` + optional `caption.txt`.
+
+```ts
+// core/src/templates/interpreter.ts (also re-exported from @newspapper/core/templates)
+export function renderTemplate(doc: TemplateDoc, data: Record<string,unknown>, theme: Theme, opts: RenderTemplateOptions): string
+export function resolveStyle(style: TStyle, theme: Theme): Record<string, string>
+export function validateTemplateDoc(doc: unknown): TemplateDoc
+export function validateSlideData(doc: TemplateDoc, data: unknown): void
+```
+
+```ts
+// core/src/templates/registry.ts
+export function listTemplates(theme: string): TemplateDoc[]
+export function loadTemplate(theme: string, id: string): TemplateDoc
+export function saveTemplate(doc: TemplateDoc): void
+export function deleteTemplate(theme: string, id: string): void
+export function templatesForFamily(theme: string, family: TemplateDoc['family']): TemplateDoc[]
+```
+
+## Storage
+
+```ts
+// core/src/storage/db.ts
+export function getDb(dbPath?: string): DB
+export function migrate(db: DB): void
+```
+
+```ts
+// core/src/storage/articles.ts
+export function upsertArticles(db: DB, rows: NewArticle[]): number
+export function articlesForDate(db: DB, date: string): Article[]
+export function getArticlesByIds(db: DB, ids: number[]): Article[]
+```
+
+```ts
+// core/src/storage/posts.ts
+export function createDraft(db: DB, payload: PostPayload): PostRow
+export function getPost(db: DB, id: number): PostRow | null
+export function listPosts(db: DB): PostRow[]
+export function updatePostPayload(db: DB, id: number, payload: PostPayload): PostRow
+export function markRendered(db: DB, id: number, outputDir: string): PostRow
+export function deletePost(db: DB, id: number): PostRow | null
+```
+
+```ts
+// core/src/storage/settings.ts
+export function getSettings(dbPath?: string): Settings
+export function saveSettings(patch: Partial<Settings>, dbPath?: string): void
+```
+
+```ts
+// core/src/storage/sources.ts
+export function listSources(filePath?: string): SourceConfig[]
+export function addSource(src: SourceConfig, filePath?: string): SourceConfig[]
+export function updateSource(id, patch, filePath?): SourceConfig[]
+export function removeSource(id, filePath?): SourceConfig[]
+```
+
+```ts
+// core/src/storage/prompt.ts
+export function getPrompt(defaultText: string, filePath?: string): string
+export function savePrompt(text: string, filePath?: string): void
+export function resetPrompt(defaultText: string, filePath?: string): void
+```
+
+## Themes
+
+```ts
+// core/src/themes/index.ts
+export function loadTheme(name: string): Theme
+export function listThemes(): string[]
+```
+
+Theme JSON files live at `assets/design-systems/<name>.json`.
+
+## Util
+
+```ts
+// core/src/util/config.ts
+export function loadConfig(): Config   // reads .env, applies defaults
+```
+
+```ts
+// core/src/util/logger.ts
 export const log = { info, warn, error }
 ```
 
-Plain `console.*` wrapper with timestamps. No spinners, no levels beyond those three.
-
 ```ts
-// util/paths.ts
-export function outputDirFor(date: string, runNumber: number): string
+// core/src/util/paths.ts
+export function nextOutputDir(outputRoot: string, date: string): { dir: string; runNumber: number }
+export function todayLocal(): string
+export function ensureDir(path: string): void
+export function ensureParent(path: string): void
 ```
-
-Resolves `output/YYYY-MM-DD-N/`, ensures the parent exists.

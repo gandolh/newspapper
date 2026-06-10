@@ -1,85 +1,62 @@
-# Newspapper
+# Newspapper v3
 
-A minimal CLI that turns today's news into an Instagram-style slide post.
+A local web app that turns today's RSS news into an Instagram-style slide post (1080×1080 PNGs).
 
 ```
-sources.json (RSS)  →  scrape  →  compose (Ollama)  →  render (Satori → PNG)
+RSS feeds  →  scrape  →  compose (Ollama)  →  edit  →  render (Chromium)  →  ZIP
 ```
 
-One command — `newspapper run` — does the whole pipeline. No menus, no human-in-the-loop, no cloud services.
+Browser wizard at `http://localhost:4321`. No CLI, no cloud services (except optional Ollama Cloud).
 
 ## Prerequisites
 
-- **Node.js** v18+
-- **Ollama** running locally (`ollama serve`, or the shipped docker-compose)
+- **Node.js** v20+
+- **Ollama** running locally (`ollama serve` or the shipped docker-compose)
 
-## Install
+## Quick start
 
 ```bash
+# 1. Install
 npm install
-docker compose -f infra/docker-compose.yml up -d   # or `ollama serve`
+npx playwright install chromium
+
+# 2. Start Ollama and pull a model
+ollama serve                          # or: docker compose -f infra/docker-compose.yml up -d
 ollama pull llama3.2:1b
-cp .env.example .env                                          # tweak as needed
+
+# 3. Configure (optional — defaults work out of the box)
+cp .env.example .env
+
+# 4. Run
+npm run dev
+# open http://localhost:4321
 ```
 
-## Configure sources
+## Usage
 
-Edit `data/sources.json`. RSS feeds only:
+Open `http://localhost:4321` and follow the four-step wizard:
 
-```json
-[
-  {
-    "id": "bbc-world",
-    "name": "BBC World",
-    "rss": "https://feeds.bbci.co.uk/news/world/rss.xml",
-    "enabled": true
-  }
-]
-```
-
-## Run
-
-```bash
-npm start -- run
-```
-
-Today's RSS items get scraped (max 5 per source by default), Ollama composes a single Instagram-style post with 2–8 slides, and Satori renders each slide to a 1080×1080 PNG.
-
-Output lands in `output/YYYY-MM-DD-N/`:
-
-```
-output/2026-05-18-1/
-├── slides.json
-├── 1.png
-├── 2.png
-└── …
-```
-
-Re-running on the same day writes to `-2`, `-3`, etc. — nothing is overwritten.
-
-## Other commands
-
-```bash
-newspapper sources   # list and ping configured feeds
-newspapper list      # show recent posts
-newspapper clean     # delete old runs + DB rows
-```
+1. **Scrape** — fetch today's RSS articles (configure feeds in the Sources page)
+2. **Compose** — Ollama drafts a 2–8 slide post from the articles
+3. **Edit** — review and tweak each slide with AI assistance
+4. **Export** — render 1080×1080 PNGs and download as ZIP
 
 ## Theme
 
-One theme ships: `warm-industrial`. Soft brutalism, terracotta accent, Inter at six weights. Tokens live in `assets/design-systems/warm-industrial.json`; reference HTML in `assets/templates/warm-industrial/`.
+One theme ships: `warm-industrial`. Soft brutalism, terracotta accent (`#a2391a`), Inter typeface. JSON templates in `assets/templates/warm-industrial/`, editable in the visual Builder.
 
 ## Documentation
 
 Full docs in [`docs/`](docs/index.md):
 
-- [commands.md](docs/commands.md) — CLI reference
-- [architecture.md](docs/architecture.md) — pipeline and module layout
-- [data.md](docs/data.md) — SQLite schema and post JSON shape
-- [modules.md](docs/modules.md) — module APIs
+- [commands.md](docs/commands.md) — npm scripts and ports
+- [architecture.md](docs/architecture.md) — monorepo layout and pipeline
+- [api.md](docs/api.md) — HTTP route table
+- [data.md](docs/data.md) — SQLite schema and data formats
+- [modules.md](docs/modules.md) — core library APIs
 - [configuration.md](docs/configuration.md) — env vars and setup
-- [design-systems.md](docs/design-systems.md) — warm-industrial theme
-- [dependencies.md](docs/dependencies.md) — what's installed and why
+- [design-systems.md](docs/design-systems.md) — warm-industrial theme and template system
+- [dependencies.md](docs/dependencies.md) — package list per workspace
 
 ## License
 

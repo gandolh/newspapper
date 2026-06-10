@@ -1,10 +1,18 @@
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const DEFAULT_PROMPT_PATH = './data/prompt.md';
+/**
+ * Default prompt path, resolved from this file's location so it always points
+ * to repo_root/data/prompt.md regardless of the process CWD.
+ */
+function defaultPromptPath(): string {
+  const thisFile = fileURLToPath(import.meta.url);
+  return resolve(thisFile, '..', '..', '..', '..', 'data', 'prompt.md');
+}
 
 function resolvePath(p?: string): string {
-  return resolve(p ?? DEFAULT_PROMPT_PATH);
+  return resolve(p ?? defaultPromptPath());
 }
 
 function ensureParent(p: string): void {

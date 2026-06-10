@@ -10,12 +10,11 @@ import { writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-/** Resolve the repo root (three levels up from core/src/render). */
+/** Resolve the repo root (four levels up from core/src/render/output.ts). */
 function defaultOutputRoot(): string {
-  // __filename → /…/core/src/render/output.ts  → go up 4 dirs to repo root
+  // output.ts → render/ → src/ → core/ → repo root (4 x '..')
   const thisFile = fileURLToPath(import.meta.url);
-  // thisFile: core/src/render/output.ts — we need ../../../.. from here to reach repo root
-  return resolve(thisFile, '..', '..', '..', '..', '..', 'output');
+  return resolve(thisFile, '..', '..', '..', '..', 'output');
 }
 
 /**

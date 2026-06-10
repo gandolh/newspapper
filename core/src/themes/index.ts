@@ -7,10 +7,20 @@
 
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { Theme } from '../types.js';
 
+/**
+ * Resolve the repo root from this file's location.
+ * core/src/themes/index.ts → themes/ → src/ → core/ → repo root (4 levels up)
+ */
+function repoRoot(): string {
+  const thisFile = fileURLToPath(import.meta.url);
+  return resolve(thisFile, '..', '..', '..', '..');
+}
+
 function designSystemsDir(): string {
-  return resolve('assets/design-systems');
+  return resolve(repoRoot(), 'assets/design-systems');
 }
 
 /**

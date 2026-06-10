@@ -1,11 +1,19 @@
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { SourceConfig } from '../types.js';
 
-const DEFAULT_SOURCES_PATH = './data/sources.json';
+/**
+ * Default sources path, resolved from this file's location so it always points
+ * to repo_root/data/sources.json regardless of the process CWD.
+ */
+function defaultSourcesPath(): string {
+  const thisFile = fileURLToPath(import.meta.url);
+  return resolve(thisFile, '..', '..', '..', '..', 'data', 'sources.json');
+}
 
 function resolvePath(p?: string): string {
-  return resolve(p ?? DEFAULT_SOURCES_PATH);
+  return resolve(p ?? defaultSourcesPath());
 }
 
 function ensureParent(p: string): void {

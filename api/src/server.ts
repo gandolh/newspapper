@@ -1,5 +1,5 @@
-import { resolve } from 'node:path';
-import { existsSync } from 'node:fs';
+import { resolve, join } from 'node:path';
+import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
@@ -72,10 +72,23 @@ export async function buildApp() {
       wildcard: false,
     });
 
-    // Fallback to index.html for client-side routing
+    // Fallback to index.html for client-side routing (Astro static output)
     fastify.setNotFoundHandler(async (req, reply) => {
       if (!req.url.startsWith('/api/')) {
-        return reply.sendFile('index.html', uiDist);
+        // Try route-specific index.html first (Astro directory output)
+        const urlPath = req.url.split('?')[0].replace(/\/$/, '') || '/';
+        const routeFile = join(uiDist, urlPath, 'index.html');
+        if (existsSync(routeFile)) {
+          const html = readFileSync(routeFile, 'utf8');
+          return reply.type('text/html').send(html);
+        }
+        // Fall back to root index.html
+        const rootIndex = join(uiDist, 'index.html');
+        if (existsSync(rootIndex)) {
+          const html = readFileSync(rootIndex, 'utf8');
+          return reply.type('text/html').send(html);
+        }
+        return reply.status(404).send({ error: 'Not found' });
       }
       return reply.status(404).send({ error: 'Not found' });
     });

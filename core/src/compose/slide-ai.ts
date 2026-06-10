@@ -94,12 +94,27 @@ export async function slideAi(
       break;
   }
 
+  const isRemap = req.action === 'remap';
+  const targetVariant = isRemap ? req.targetVariant : undefined;
+
+  async function attempt(p: string): Promise<SlideBlock> {
+    const result = await generateSlide(client, p);
+    // For remap: enforce that the returned slide actually has the target variant.
+    if (isRemap && targetVariant !== undefined && result.variant !== targetVariant) {
+      throw new ComposeParseError(
+        `slideAi remap: expected variant "${targetVariant}" but got "${result.variant}"`,
+        JSON.stringify(result),
+      );
+    }
+    return result;
+  }
+
   try {
-    return await generateSlide(client, prompt);
+    return await attempt(prompt);
   } catch (err) {
     if (!(err instanceof ComposeParseError)) throw err;
     // Retry once with error feedback
     const retryPrompt = `${prompt}\n\nYour previous output was invalid: ${err.message}\nReturn only the JSON slide matching the required shape.`;
-    return await generateSlide(client, retryPrompt);
+    return await attempt(retryPrompt);
   }
 }

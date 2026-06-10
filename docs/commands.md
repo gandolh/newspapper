@@ -1,43 +1,52 @@
-# Commands
+# Running the App
 
-Newspapper exposes a single command. Subcommands exist only for inspection.
+Newspapper v3 is a local web app. There is no CLI. Everything runs through the browser UI or the HTTP API.
 
-## `newspapper run`
+## npm scripts
 
-Runs the full pipeline: scrape today's RSS feeds → compose a post via Ollama → render slides to PNG.
+| Script | What it does |
+|--------|-------------|
+| `npm install` | One-time dependency install from repo root |
+| `npm run dev` | Start API (port 3001) + UI dev server (port 4321) in parallel |
+| `npm run build` | Typecheck all workspaces + Astro production build → `ui/dist/` |
+| `npm test` | Run all tests (vitest) |
+| `npm run lint` | ESLint on `core/src/**/*.ts` and `api/src/**/*.ts` |
+| `npm run fmt` | Prettier format all source files |
+
+## Dev mode
 
 ```bash
-newspapper run
+npm run dev
 ```
 
-### Flags
+Opens two processes:
+- **API**: `tsx watch api/src/server.ts` on `http://localhost:3001`
+- **UI dev**: Astro dev server on `http://localhost:4321` (proxies `/api` to :3001)
 
-| Flag | Default | Meaning |
-|------|---------|---------|
-| `--max-per-source <n>` | `5` | Cap on articles taken from each source. Overrides `MAX_ARTICLES_PER_SOURCE`. |
-| `--theme <name>` | `warm-industrial` | Design system to render with. Only `warm-industrial` ships today. |
-| `--model <name>` | from `.env` | Override the Ollama model for this run. |
-| `--dry-run` | off | Run scrape + compose, print the post JSON, skip rendering. |
-| `--no-scrape` | off | Skip scraping; compose from whatever's already in the DB for today. |
+## Production mode
 
-### Behavior
+```bash
+npm run build          # builds ui/dist/
+# then start only the API — it serves ui/dist/ at /
+npm run dev --workspace=api
+# or: node api/dist/server.js   (if dist exists)
+```
 
-1. **Scrape.** Each enabled source in `data/sources.json` is fetched as RSS. Items dated today (local time) are kept, up to `--max-per-source`. New articles are inserted into the `articles` table; URL collisions are skipped (dedupe).
-2. **Compose.** All of today's articles are sent to Ollama in one prompt. The model returns a post: a title and 2–8 slide blocks. The post is written to the `posts` table.
-3. **Render.** Each slide block is rendered through Satori (HTML/JSX → SVG) and then resvg (SVG → PNG) at 1080×1080. PNGs are written to `output/YYYY-MM-DD-N/` where `N` is the next available run number for that day. `slides.json` (the post payload) is written alongside.
+When `ui/dist/` exists, the API serves the Astro static output at `/` and falls back to the correct `index.html` for each route.
 
-### Re-runs
+## Ports
 
-Running `newspapper run` twice on the same day produces two folders: `output/2026-05-18-1/` and `output/2026-05-18-2/`. Articles already seen are skipped during scrape, so the second run composes from any newly-published items plus whatever was already in the DB for today.
+| Service | Default | Override |
+|---------|---------|----------|
+| API | 3001 | `PORT=...` in `.env` |
+| UI dev proxy | 4321 | Set in `ui/astro.config.mjs` |
 
-## `newspapper sources`
+## Playwright Chromium
 
-Lists sources from `data/sources.json` and pings each RSS feed to confirm it responds. Read-only.
+The render pipeline uses Playwright's bundled Chromium. Install it once:
 
-## `newspapper list`
+```bash
+npx playwright install chromium
+```
 
-Shows recent posts from the DB (date, title, slide count, output path).
-
-## `newspapper clean`
-
-Deletes `output/` folders and DB rows older than `DEFAULT_RETENTION_DAYS` (default 30). Prompts before deleting.
+This is required for `POST /api/posts/:id/render` to work.

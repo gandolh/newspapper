@@ -2,14 +2,23 @@ import Database from 'better-sqlite3';
 import type { Database as DB } from 'better-sqlite3';
 import { ensureParent } from '../util/paths.js';
 import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 export type { DB };
 
-const DEFAULT_DB_PATH = './data/newspapper.db';
+/**
+ * Default DB path, resolved from this file's location so it always points to
+ * repo_root/data/newspapper.db regardless of the process CWD.
+ * (db.ts → storage/ → src/ → core/ → repo root)
+ */
+function defaultDbPath(): string {
+  const thisFile = fileURLToPath(import.meta.url);
+  return resolve(thisFile, '..', '..', '..', '..', 'data', 'newspapper.db');
+}
 const CURRENT_SCHEMA_VERSION = 2;
 
 export function getDb(dbPath?: string): DB {
-  const p = resolve(dbPath ?? DEFAULT_DB_PATH);
+  const p = resolve(dbPath ?? defaultDbPath());
   ensureParent(p);
   const db = new Database(p);
   db.pragma('journal_mode = WAL');

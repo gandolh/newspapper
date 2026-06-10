@@ -1,80 +1,93 @@
 # Architecture
 
-## Goals
+## Overview
 
-- **Minimal.** Few dependencies, no background jobs, no daemons, no web server.
-- **One command.** `newspapper run` does the whole job.
-- **Local-first.** Ollama for the LLM; SQLite on disk; no cloud services.
+Newspapper v3 is a **monorepo web app** with three npm workspaces:
+
+```
+newspapper/          ← repo root (concurrently, vitest, ts, eslint)
+  core/              ← @newspapper/core: pipeline library (Node-only)
+  api/               ← @newspapper/api: Fastify HTTP server (port 3001)
+  ui/                ← @newspapper/ui: Astro + React islands (port 4321)
+  assets/            ← fonts/, design-systems/, templates/
+  data/              ← sources.json, prompt.md, newspapper.db (gitignored)
+  output/            ← rendered PNGs per run (gitignored)
+  plans/swarm/       ← agent build plans (reference only)
+```
+
+## Workspaces
+
+### `core/` — pipeline library
+
+Pure library: no HTTP, no side effects at import time. Exports:
+- **templates** — JSON TemplateDoc registry + HTML interpreter (`renderTemplate`, `resolveStyle`)
+- **render** — Playwright screenshot pipeline (`renderSlides`, `zipRun`)
+- **compose** — Ollama client + JSON parser + `composePost`, `slideAi`, `generateCaption`
+- **scrape** — RSS + body fetch, article deduplication into SQLite
+- **storage** — SQLite CRUD for `articles`, `posts`, `settings`; sources.json + prompt.md helpers
+- **themes** — JSON design-system loader (`loadTheme`, `listThemes`)
+
+### `api/` — Fastify server
+
+Thin HTTP layer over `@newspapper/core`. Registers route plugins for every feature area. Uses SSE for long-running operations (scrape, compose, render). Serves:
+- `/api/*` — all endpoints
+- `/assets/fonts/*` — Inter TTF files (for `renderTemplate` font-face URLs)
+- `/output/*` — rendered PNGs
+- `/` — `ui/dist/` (prod only, when built)
+
+### `ui/` — Astro + React
+
+Static Astro site with React islands for interactive pages. Dev proxy sends `/api/*` to port 3001.
+
+Pages: `/` (wizard), `/history`, `/sources`, `/settings`, `/prompt`, `/builder`.
 
 ## Pipeline
 
 ```
-┌─────────────┐   ┌──────────────┐   ┌──────────────┐
-│   scrape    │ → │   compose    │ → │   render     │
-│ (RSS+fetch) │   │   (Ollama)   │   │  (Satori)    │
-└─────────────┘   └──────────────┘   └──────────────┘
-      │                  │                  │
-      ▼                  ▼                  ▼
-   articles            posts          output/<date>-<n>/
-   (SQLite)           (SQLite)            *.png
+POST /api/scrape (SSE)
+  → fetchFeed() per source
+  → fetchBody() per article
+  → upsertArticles() → SQLite articles
+
+POST /api/compose (SSE)
+  → getArticlesByIds()
+  → composePost(articles, ollama) → PostPayload JSON
+  → createDraft() → SQLite posts
+
+PUT /api/posts/:id  (edit slides)
+POST /api/slide-ai  (AI edit single slide)
+POST /api/posts/:id/caption
+
+POST /api/posts/:id/render (SSE)
+  → loadTemplate(theme, variant) per slide
+  → renderTemplate(doc, data, theme, {fontBaseUrl})  → HTML string
+  → renderSlides(htmlList) via Playwright Chromium → PNG files
+  → markRendered() → output/YYYY-MM-DD-N/
+
+GET /api/posts/:id/export.zip
+  → zipRun(outputDir) → fflate ZIP
 ```
 
-All three stages run sequentially in the same process. There is no queue, no worker, no retry loop beyond per-HTTP-request retries.
+## SSE protocol
 
-## Module layout
+Long-running POST endpoints stream Server-Sent Events:
 
 ```
-src/
-├── cli.ts              # entry point, argv → run/sources/list/clean
-├── run.ts              # the pipeline orchestrator
-├── scrape/
-│   ├── index.ts        # for each source: fetch feed, filter by date, fetch & strip article body, persist
-│   ├── rss.ts          # rss-parser wrapper
-│   └── body.ts         # fetch URL, regex-strip HTML to plain text
-├── compose/
-│   ├── index.ts        # build the prompt, call ollama, parse the post JSON
-│   └── ollama.ts       # thin HTTP client for /api/generate
-├── render/
-│   ├── index.ts        # post JSON → PNGs on disk
-│   ├── satori.ts       # Satori configuration, font loading
-│   ├── resvg.ts        # SVG → PNG
-│   └── slides/         # JSX components per slide type (title, body, quote)
-├── storage/
-│   ├── db.ts           # better-sqlite3 setup, migrations
-│   ├── articles.ts     # CRUD for articles
-│   └── posts.ts        # CRUD for posts
-└── util/
-    ├── config.ts       # .env loader + defaults
-    ├── logger.ts       # tiny console logger
-    └── paths.ts        # resolves output/<date>-<n>/
+event: progress
+data: {…}
+
+event: done
+data: {…}
+
+event: error
+data: {"message": "…"}
 ```
 
-## Key decisions
+The UI reads these with `fetch()` (not `EventSource`) and parses lines manually.
 
-- **RSS for discovery, fetch for body.** Sources without an RSS feed are not supported. RSS gives us the item list; the article HTML is then fetched once per new item and stripped to plain text with a regex (no `cheerio`, no headless browser). Imperfect but cheap and dependency-free.
-- **No entity extraction stage.** The old pipeline had a `compromise`-based entity step. v2 drops it — the LLM sees the raw articles and decides what to write about.
-- **One post per day, covering all today's news.** No clustering, no per-topic posts. Simpler prompt, predictable output.
-- **LLM picks slide count.** The prompt constrains the model to 2–8 slides; it chooses based on how much there is to say.
-- **Satori + resvg, not a browser.** Satori renders a subset of CSS (flexbox, no grid). Templates must respect that subset. In exchange we avoid a 300MB Chromium dependency.
-- **Versioned output folders.** Re-running on the same day writes to a new `YYYY-MM-DD-N/` — nothing is overwritten.
-- **SQLite for articles, FS for renders.** The DB exists for dedupe and history. PNGs and `slides.json` live on disk where they're easy to copy out.
+## Key constraints
 
-## What was removed from v1
-
-- Playwright (headless browser scraping)
-- `compromise` (entity extraction) and the entire entities table
-- `@napi-rs/canvas` and Sharp (replaced by Satori + resvg)
-- The `format` REPL command and the preview step
-- Handlebars prompt templating (a single string template in code is enough)
-- `inquirer` and `ora` (no interactive menus, no spinners)
-- The `digital-broadsheet` theme
-- OpenAI summarization path
-
-## What was kept
-
-- `data/sources.json` (now RSS-only entries)
-- `assets/design-systems/warm-industrial.json` (the visual spec)
-- `assets/templates/warm-industrial/*.html` (reference designs — rewritten as Satori JSX in `src/render/slides/`)
-- `assets/fonts/` (loaded by Satori at runtime)
-- Ollama as the LLM
-- `infra/docker-compose.yml` (local Ollama via Docker)
+- **Satori/resvg removed.** Rendering is Playwright Chromium screenshot of HTML produced by the template interpreter.
+- **ESM throughout.** All workspaces use `"type": "module"`. Paths are resolved from `import.meta.url` not `process.cwd()`.
+- **CWD-independent paths.** `assets/`, `data/`, `output/` are resolved relative to `__filename` (4 levels up from any core/src/*/*.ts file).
+- **No cloud services** except Ollama Cloud (optional Bearer token).

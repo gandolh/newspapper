@@ -21,3 +21,5 @@ Append-only. Format: `## [YYYY-MM-DD] action | summary`
 ## [2026-05-24] cleanup | removed dead v1 prompts/ dir (format-preview.hbs, format-slides.hbs), removed unused px() from src/render/theme.ts, deduped error-handling in src/cli.ts via shared handle() wrapper
 
 ## [2026-05-24] restructure | consolidated root: design-systems/ + templates/ + fonts/ → assets/, newspaper-infra/ → infra/, soul.md → docs/soul.md. Updated path refs in src/render/{theme,fonts}.ts and docs.
+
+## [2026-06-10] rebuild | v3: CLI → web app (Fastify API + Astro UI), Satori → Chromium, JSON template system + visual builder

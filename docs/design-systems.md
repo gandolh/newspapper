@@ -4,53 +4,52 @@ One theme ships: **warm-industrial**. The `digital-broadsheet` theme was removed
 
 ## warm-industrial
 
-Source of truth: `assets/design-systems/warm-industrial.json`. The renderer imports it directly via `resolveJsonModule` — no YAML parser involved.
+Source of truth: `assets/design-systems/warm-industrial.json`. Loaded at runtime via `loadTheme('warm-industrial')`.
 
 ### Vibe
 
-Soft brutalism. Rounded corners (8px default), bold display sans-serif, grounded sans for body, terracotta accent (`#a2391a`) on a warm off-white surface (`#fbf9f8`). Tactile, magazine-like.
+Soft brutalism. Rounded corners (8px default), bold display sans-serif, terracotta accent (`#a2391a`) on a warm off-white surface (`#fbf9f8`). Tactile, magazine-like.
 
-**Typeface.** The implementation uses **Inter** (400/500/600/700/800/900) for every text element. The original design brief specified Epilogue + Manrope + Newsreader, but Satori (via opentype.js) chokes on those families' variable-font fvar tables; static-instance TTFs aren't published for them. Inter ships static TTFs and renders cleanly at every weight. The visual character — bold display contrast, generous letter-spacing, tight tracking on large headlines — is preserved.
+**Typeface.** Inter (400/500/600/700/800/900 — static TTFs). Loaded from `assets/fonts/` and served at `/assets/fonts/` by the API; the template interpreter injects `@font-face` rules into every rendered HTML string.
 
 ### Tokens
 
 | Group | Examples |
 |-------|----------|
-| Colors | `surface`, `on-surface`, `primary` (`#a2391a`), `outline`, plus the full Material 3 surface/container ramp |
-| Typography | `display` (80px Inter 800), `headline-lg` (48px Inter 800), `headline-md` (32px Inter 700), `body-lg`/`body-md` (Inter 400), `label-bold` (Inter 700) |
-| Spacing | base 8px, scale: `xs=4`, `sm=12`, `md=24`, `lg=48`, `xl=80`. `container-margin=32`, `gutter=24`. |
-| Radius | `sm=0.25rem`, `DEFAULT=0.5rem`, `md=0.75rem`, `lg=1rem`, `xl=1.5rem` |
-| Shapes | `borderWidth=2px` |
+| `colors` | `surface`, `on-surface`, `primary` (`#a2391a`), `outline`, full Material 3 container ramp |
+| `typography` | `display` (80px/800), `headline-lg` (48px/800), `headline-md` (32px/700), `body-lg`, `body-md`, `label-bold` |
+| `spacing` | `xs=4px`, `sm=12px`, `md=24px`, `lg=48px`, `xl=80px` |
+| `rounded` | `sm=0.25rem`, `DEFAULT=0.5rem`, `md=0.75rem`, `lg=1rem`, `xl=1.5rem` |
+| `shapes` | `borderWidth=2px` |
 
-See the JSON for the full color ramp and exact values.
+See `assets/design-systems/warm-industrial.json` for all values.
 
-### Canvas
+## Template JSON system
 
-Every slide is **1080 × 1080 px**. That's Instagram's square post target; the renderer hard-codes it.
+In v3, slide rendering is done by the interpreter (`renderTemplate`), which evaluates a `TemplateDoc` JSON tree into a complete HTML document string, then Playwright screenshots it.
 
-### Slide variants
+### How it works
 
-Reference HTML lives in `assets/templates/warm-industrial/` — these are the visual specs, not runtime templates. The actual rendering happens through JSX components in `src/render/slides/`.
+1. `loadTemplate(theme, variant)` reads `assets/templates/warm-industrial/<variant>.json`
+2. `renderTemplate(doc, slideData, theme, {fontBaseUrl, index, total})` walks the TNode tree
+3. Style values are resolved: `$color.primary` → `theme.colors['primary']`, numbers get `px`, typography tokens expand
+4. `{{bindings}}` in text nodes are substituted from `slideData`
+5. The result is a self-contained HTML doc with embedded `@font-face` rules
 
-| File | Component | When to use |
-|------|-----------|-------------|
-| `title-main.html` | `TitleMain` | Headline slide with optional kicker label |
-| `title-statement.html` | `TitleStatement` | One bold declarative sentence, no kicker |
-| `title-question.html` | `TitleQuestion` | Question framing, oversized |
-| `body-text.html` | `BodyText` | Heading + paragraph |
-| `body-list.html` | `BodyList` | Heading + bullet list (3–6 items) |
-| `body-comparison.html` | `BodyComparison` | Two-column "this vs. that" |
-| `quote-classic.html` | `QuoteClassic` | Centered pullquote with attribution |
-| `quote-pullout.html` | `QuotePullout` | Quote with a large opening glyph |
-| `quote-reaction.html` | `QuoteReaction` | Quote framed as a response/clapback |
+### Visual builder (`/builder`)
 
-### Satori constraints
+The template builder lets you edit JSON templates visually:
+- **Preview mode** (iframe): sends the doc to `POST /api/preview`, shows a pixel-true render
+- **Edit mode** (React): renders the TNode tree directly in the browser using `resolveStyleBrowser` (Canvas.tsx)
 
-Components must respect what Satori supports:
+`resolveStyleBrowser` mirrors `resolveStyle` from core but returns React CSSProperties (camelCase keys) instead of a CSS string (kebab-case). Token resolution uses the same `$group.key` logic with a singular/plural fallback for group names.
 
-- **Flexbox only.** No CSS Grid, no `position: absolute` outside what flex provides.
-- **No pseudo-elements** (`::before`, `::after`).
-- **No background images via CSS.** Images must be passed as `<img>` with a URL or base64 source.
-- **Fonts must be loaded explicitly** from `assets/fonts/` as buffers and registered with Satori per weight.
+Save in the builder writes via `PUT /api/templates/:theme/:id`.
 
-Anything in the reference HTML that uses these features must be re-expressed with flex when porting to JSX.
+### Reference HTML
+
+Original visual-spec HTML files are archived at `plans/swarm/reference/html-specs/`. They are not used at runtime.
+
+## Canvas
+
+Every slide is **1080 × 1080 px** — Instagram square post format, hard-coded in the renderer.
