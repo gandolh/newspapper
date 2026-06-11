@@ -137,7 +137,7 @@ function SourceRow({ source, ping, onToggle, onPing, onEdit, onDelete }: SourceR
       <td style={{ textAlign: 'center' }}>
         <Toggle
           checked={source.enabled}
-          onChange={(e) => onToggle(source, e.target.checked)}
+          onCheckedChange={(c) => onToggle(source, c)}
           aria-label={`Enable ${source.name}`}
         />
       </td>
@@ -295,7 +295,7 @@ function SourceFormModal({ open, source, onClose, onSaved }: SourceFormModalProp
           <Toggle
             label="Enabled"
             checked={enabled}
-            onChange={(e) => setEnabled(e.target.checked)}
+            onCheckedChange={(c) => setEnabled(c)}
             hint="Disabled feeds are skipped during scraping"
           />
         </div>
@@ -509,7 +509,7 @@ function SourcesPage() {
                   <td style={{ padding: '12px 16px', textAlign: 'center' }}>
                     <Toggle
                       checked={source.enabled}
-                      onChange={(e) => handleToggle(source, e.target.checked)}
+                      onCheckedChange={(c) => handleToggle(source, c)}
                       aria-label={`Enable ${source.name}`}
                     />
                   </td>

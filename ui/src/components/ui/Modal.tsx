@@ -1,4 +1,5 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import { Dialog } from '@base-ui/react/dialog';
 import styles from './Modal.module.css';
 
 export interface ModalProps {
@@ -10,90 +11,36 @@ export interface ModalProps {
   width?: number | string;
 }
 
+/**
+ * Modal — Base UI `Dialog` styled with warm-industrial tokens.
+ * Base UI provides the focus trap, scroll lock, escape/outside-press dismissal,
+ * and portal; the public API (open/onClose/title/width) is unchanged.
+ */
 export default function Modal({ open, onClose, title, children, width = 480 }: ModalProps) {
-  const dialogRef = useRef<HTMLDivElement>(null);
-
-  // Focus trap
-  useEffect(() => {
-    if (!open) return;
-
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-
-    const focusable = dialog.querySelectorAll<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-    );
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-
-    first?.focus();
-
-    function onKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') {
-        onClose();
-        return;
-      }
-      if (e.key === 'Tab') {
-        if (e.shiftKey) {
-          if (document.activeElement === first) {
-            e.preventDefault();
-            last?.focus();
-          }
-        } else {
-          if (document.activeElement === last) {
-            e.preventDefault();
-            first?.focus();
-          }
-        }
-      }
-    }
-
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, [open, onClose]);
-
-  // Lock body scroll
-  useEffect(() => {
-    if (open) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [open]);
-
-  if (!open) return null;
-
   return (
-    <div
-      className={styles.backdrop}
-      role="presentation"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
+    <Dialog.Root
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) onClose();
       }}
     >
-      <div
-        ref={dialogRef}
-        className={styles.dialog}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={title ? 'modal-title' : undefined}
-        style={{ width: typeof width === 'number' ? `${width}px` : width }}
-      >
-        {title && (
-          <div className={styles.header}>
-            <h2 id="modal-title" className={styles.title}>
-              {title}
-            </h2>
-            <button className={styles.close} onClick={onClose} aria-label="Close dialog">
-              ✕
-            </button>
-          </div>
-        )}
-        <div className={styles.body}>{children}</div>
-      </div>
-    </div>
+      <Dialog.Portal>
+        <Dialog.Backdrop className={styles.backdrop} />
+        <Dialog.Popup
+          className={styles.dialog}
+          style={{ width: typeof width === 'number' ? `${width}px` : width }}
+        >
+          {title && (
+            <div className={styles.header}>
+              <Dialog.Title className={styles.title}>{title}</Dialog.Title>
+              <Dialog.Close className={styles.close} aria-label="Close dialog">
+                ✕
+              </Dialog.Close>
+            </div>
+          )}
+          <div className={styles.body}>{children}</div>
+        </Dialog.Popup>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }

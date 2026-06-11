@@ -9,6 +9,7 @@ import Button from '../ui/Button';
 import Modal from '../ui/Modal';
 import ConfirmDialog from '../ui/ConfirmDialog';
 import Input from '../ui/Input';
+import Select from '../ui/Select';
 import { api } from '@/lib/api';
 import { useToast } from '../ui/Toast';
 import { starterRoot } from './types';
@@ -17,9 +18,6 @@ interface TopBarProps {
   themes: string[];
   theme: string;
   onThemeChange: (t: string) => void;
-  templates: TemplateDoc[];
-  selectedId: string | null;
-  onSelectTemplate: (id: string) => void;
   onDocLoaded: (doc: TemplateDoc) => void;
   doc: TemplateDoc | null;
   dirty: boolean;
@@ -36,21 +34,10 @@ interface TopBarProps {
   onSampleChange: (sample: Record<string, unknown>) => void;
 }
 
-// Group templates by family
-function groupedOptions(templates: TemplateDoc[]) {
-  return templates.map((t) => ({
-    value: t.id,
-    label: `[${t.family}] ${t.name}`,
-  }));
-}
-
 export default function TopBar({
   themes,
   theme,
   onThemeChange,
-  templates,
-  selectedId,
-  onSelectTemplate,
   doc,
   dirty,
   canvasMode,
@@ -219,7 +206,6 @@ export default function TopBar({
   }
 
   const themeOptions = themes.map((t) => ({ value: t, label: t }));
-  const templateOptions = groupedOptions(templates);
 
   return (
     <div style={{
@@ -232,50 +218,16 @@ export default function TopBar({
       flexShrink: 0,
       flexWrap: 'wrap',
     }}>
-      {/* Theme picker */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 160 }}>
+      {/* Theme picker — templates are now chosen from the left-column list */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 200, flex: 1 }}>
         <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', whiteSpace: 'nowrap' }}>Theme</span>
-        <select
-          value={theme}
-          onChange={(e) => onThemeChange(e.target.value)}
-          style={{
-            height: 30,
-            padding: '0 6px',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-sm)',
-            background: 'var(--surface-card)',
-            fontSize: 13,
-            color: 'var(--on-surface)',
-          }}
-        >
-          {themeOptions.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
-      </div>
-
-      {/* Template picker */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 220, flex: 1 }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', whiteSpace: 'nowrap' }}>Template</span>
-        <select
-          value={selectedId ?? ''}
-          onChange={(e) => onSelectTemplate(e.target.value)}
-          style={{
-            height: 30,
-            padding: '0 6px',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-sm)',
-            background: 'var(--surface-card)',
-            fontSize: 13,
-            color: 'var(--on-surface)',
-            flex: 1,
-          }}
-        >
-          {templates.length === 0 && <option value="">No templates</option>}
-          {templateOptions.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
+        <div style={{ minWidth: 180 }}>
+          <Select
+            options={themeOptions}
+            value={theme}
+            onValueChange={(v) => onThemeChange(v)}
+          />
+        </div>
       </div>
 
       {/* Separator */}
@@ -480,25 +432,16 @@ export default function TopBar({
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
           />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <label style={{ fontSize: 13, fontWeight: 600 }}>Family</label>
-            <select
-              value={newFamily}
-              onChange={(e) => setNewFamily(e.target.value as 'title' | 'body' | 'quote')}
-              style={{
-                height: 36,
-                padding: '0 8px',
-                border: '1px solid var(--border)',
-                borderRadius: 'var(--radius-sm)',
-                background: 'var(--surface-card)',
-                fontSize: 13,
-              }}
-            >
-              <option value="title">title</option>
-              <option value="body">body</option>
-              <option value="quote">quote</option>
-            </select>
-          </div>
+          <Select
+            label="Family"
+            value={newFamily}
+            onValueChange={(v) => setNewFamily(v as 'title' | 'body' | 'quote')}
+            options={[
+              { value: 'title', label: 'title' },
+              { value: 'body', label: 'body' },
+              { value: 'quote', label: 'quote' },
+            ]}
+          />
           {newError && <p style={{ fontSize: 13, color: 'var(--error)' }}>{newError}</p>}
           <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
             <Button variant="ghost" size="sm" onClick={() => setNewOpen(false)}>Cancel</Button>

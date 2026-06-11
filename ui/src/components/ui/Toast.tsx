@@ -1,12 +1,5 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-  type ReactNode,
-} from 'react';
+import { useCallback, useMemo, type ReactNode } from 'react';
+import { Toast } from '@base-ui/react/toast';
 import styles from './Toast.module.css';
 
 export type ToastVariant = 'success' | 'error' | 'info';
@@ -21,77 +14,54 @@ interface ToastContextValue {
   addToast: (message: string, variant?: ToastVariant, duration?: number) => void;
 }
 
-const ToastContext = createContext<ToastContextValue | null>(null);
-
+/**
+ * ToastProvider / useToast — thin wrapper over Base UI's Toast.
+ * The public API (`useToast().addToast(message, variant, duration)`) is unchanged,
+ * so existing callers don't need updating; Base UI handles timers, the live region,
+ * stacking, swipe-to-dismiss, and animation lifecycle.
+ */
 export function ToastProvider({ children }: { children: ReactNode }) {
-  const [toasts, setToasts] = useState<ToastItem[]>([]);
-
-  const addToast = useCallback(
-    (message: string, variant: ToastVariant = 'info', duration = 4000) => {
-      const id = `toast-${Date.now()}-${Math.random()}`;
-      setToasts((prev) => [...prev, { id, message, variant }]);
-      setTimeout(() => {
-        setToasts((prev) => prev.filter((t) => t.id !== id));
-      }, duration);
-    },
-    [],
-  );
-
-  function dismiss(id: string) {
-    setToasts((prev) => prev.filter((t) => t.id !== id));
-  }
-
   return (
-    <ToastContext.Provider value={{ addToast }}>
+    <Toast.Provider>
       {children}
-      <div className={styles.region} role="log" aria-live="polite" aria-label="Notifications">
-        {toasts.map((toast) => (
-          <ToastCard key={toast.id} toast={toast} onDismiss={() => dismiss(toast.id)} />
-        ))}
-      </div>
-    </ToastContext.Provider>
+      <Toast.Viewport className={styles.region}>
+        <ToastList />
+      </Toast.Viewport>
+    </Toast.Provider>
   );
 }
 
 export function useToast(): ToastContextValue {
-  const ctx = useContext(ToastContext);
-  if (!ctx) {
-    throw new Error('useToast must be used within a ToastProvider');
-  }
-  return ctx;
+  const manager = Toast.useToastManager();
+  const addToast = useCallback(
+    (message: string, variant: ToastVariant = 'info', duration = 4000) => {
+      manager.add({ title: message, type: variant, timeout: duration });
+    },
+    [manager],
+  );
+  return useMemo(() => ({ addToast }), [addToast]);
 }
 
-function ToastCard({ toast, onDismiss }: { toast: ToastItem; onDismiss: () => void }) {
-  const [exiting, setExiting] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+const ICONS: Record<ToastVariant, string> = { success: '✓', error: '✕', info: 'i' };
 
-  function handleDismiss() {
-    setExiting(true);
-    timerRef.current = setTimeout(onDismiss, 200);
-  }
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, []);
-
-  const icon = toast.variant === 'success' ? '✓' : toast.variant === 'error' ? '✕' : 'i';
-
-  return (
-    <div
-      className={[styles.toast, styles[`toast--${toast.variant}`], exiting ? styles['toast--exit'] : '']
-        .filter(Boolean)
-        .join(' ')}
-      role="status"
-    >
-      <span className={styles.toastIcon} aria-hidden="true">
-        {icon}
-      </span>
-      <span className={styles.toastMessage}>{toast.message}</span>
-      <button className={styles.toastClose} onClick={handleDismiss} aria-label="Dismiss">
-        ✕
-      </button>
-    </div>
-  );
+function ToastList() {
+  const { toasts } = Toast.useToastManager();
+  return toasts.map((toast) => {
+    const variant: ToastVariant = (toast.type as ToastVariant) ?? 'info';
+    return (
+      <Toast.Root
+        key={toast.id}
+        toast={toast}
+        className={[styles.toast, styles[`toast--${variant}`]].filter(Boolean).join(' ')}
+      >
+        <span className={styles.toastIcon} aria-hidden="true">
+          {ICONS[variant] ?? 'i'}
+        </span>
+        <Toast.Title className={styles.toastMessage} />
+        <Toast.Close className={styles.toastClose} aria-label="Dismiss">
+          ✕
+        </Toast.Close>
+      </Toast.Root>
+    );
+  });
 }

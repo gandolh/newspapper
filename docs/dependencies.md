@@ -25,9 +25,10 @@ Per-workspace. Versions are locked in `package-lock.json`.
 
 | Package | Why |
 |---------|-----|
-| `astro` | Static site builder; React islands via `@astrojs/react`. |
+| `astro` | Static site builder; React islands via `@astrojs/react`; `<ClientRouter />` for view transitions between pages. |
 | `@astrojs/react` | Astro integration for React client components (wizard, builder, etc.). |
 | `react`, `react-dom` | UI islands (wizard, editor, builder, settings, history, prompt). |
+| `@base-ui/react` | Headless, accessible primitives behind the shared `components/ui/` library (Button, Input, Select, Toggle/Switch, Modal/Dialog, Toast). Styling-agnostic — styled with warm-industrial CSS-variable tokens. |
 | `@newspapper/core` | Type imports only (TemplateDoc, SlideBlock, etc.) — no Node APIs used. |
 
 ## Root dev deps

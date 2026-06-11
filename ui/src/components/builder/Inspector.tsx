@@ -10,6 +10,10 @@ import {
   getNodeAtPath,
   replaceNodeAtPath,
 } from './types';
+import Input from '../ui/Input';
+import Select from '../ui/Select';
+import Textarea from '../ui/Textarea';
+import Button from '../ui/Button';
 
 interface InspectorProps {
   doc: TemplateDoc;
@@ -41,13 +45,18 @@ function SectionHeader({ title }: { title: string }) {
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '3px 12px' }}>
-      <label style={{ fontSize: 11, color: 'var(--muted)', minWidth: 80, flexShrink: 0 }}>{label}</label>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '5px 12px' }}>
+      <label style={{ fontSize: 12, color: 'var(--muted)', minWidth: 78, flexShrink: 0 }}>{label}</label>
       <div style={{ flex: 1, minWidth: 0 }}>{children}</div>
     </div>
   );
 }
 
+/**
+ * Inline field controls delegate to the shared Base UI-backed Input/Select so
+ * the inspector uses one component vocabulary. They expose the small
+ * value-string callback the inspector rows expect.
+ */
 function InlineInput({
   value,
   onChange,
@@ -62,22 +71,12 @@ function InlineInput({
   style?: React.CSSProperties;
 }) {
   return (
-    <input
+    <Input
       type={type}
       value={value}
       placeholder={placeholder}
       onChange={(e) => onChange(e.target.value)}
-      style={{
-        width: '100%',
-        height: 26,
-        padding: '0 6px',
-        border: '1px solid var(--border)',
-        borderRadius: 'var(--radius-sm)',
-        background: 'var(--surface-card)',
-        color: 'var(--on-surface)',
-        fontSize: 12,
-        ...extraStyle,
-      }}
+      style={extraStyle}
     />
   );
 }
@@ -91,26 +90,7 @@ function InlineSelect({
   options: { value: string; label: string }[];
   onChange: (v: string) => void;
 }) {
-  return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      style={{
-        width: '100%',
-        height: 26,
-        padding: '0 4px',
-        border: '1px solid var(--border)',
-        borderRadius: 'var(--radius-sm)',
-        background: 'var(--surface-card)',
-        color: 'var(--on-surface)',
-        fontSize: 12,
-      }}
-    >
-      {options.map((o) => (
-        <option key={o.value} value={o.value}>{o.label}</option>
-      ))}
-    </select>
-  );
+  return <Select value={value} options={options} onValueChange={onChange} />;
 }
 
 // ---------------------------------------------------------------------------
@@ -290,10 +270,9 @@ interface StyleEditorProps {
   nodeKind: TNode['kind'];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   themeData: { name: string; tokens: Record<string, any> } | null;
-  fieldKeys: string[];
 }
 
-function StyleEditor({ style, onChange, nodeKind, themeData, fieldKeys }: StyleEditorProps) {
+function StyleEditor({ style, onChange, nodeKind, themeData }: StyleEditorProps) {
   const [rawOpen, setRawOpen] = useState(false);
   const [rawText, setRawText] = useState('');
   const [rawError, setRawError] = useState('');
@@ -571,52 +550,17 @@ function StyleEditor({ style, onChange, nodeKind, themeData, fieldKeys }: StyleE
         </button>
         {rawOpen && (
           <div style={{ marginTop: 6 }}>
-            <textarea
+            <Textarea
               value={rawText}
               onChange={(e) => setRawText(e.target.value)}
+              autoGrow={false}
               rows={8}
-              style={{
-                width: '100%',
-                fontFamily: 'monospace',
-                fontSize: 11,
-                padding: 6,
-                border: `1px solid ${rawError ? 'var(--error)' : 'var(--border)'}`,
-                borderRadius: 'var(--radius-sm)',
-                background: 'var(--surface-card)',
-                resize: 'vertical',
-                color: 'var(--on-surface)',
-              }}
+              error={rawError || undefined}
+              style={{ fontFamily: 'monospace', fontSize: 11 }}
             />
-            {rawError && <p style={{ fontSize: 11, color: 'var(--error)' }}>{rawError}</p>}
-            <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
-              <button
-                onClick={applyRaw}
-                style={{
-                  fontSize: 11,
-                  padding: '3px 8px',
-                  background: 'var(--primary)',
-                  color: 'var(--on-primary)',
-                  border: 'none',
-                  borderRadius: 3,
-                  cursor: 'pointer',
-                }}
-              >
-                Apply
-              </button>
-              <button
-                onClick={() => setRawOpen(false)}
-                style={{
-                  fontSize: 11,
-                  padding: '3px 8px',
-                  background: 'transparent',
-                  color: 'var(--muted)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 3,
-                  cursor: 'pointer',
-                }}
-              >
-                Cancel
-              </button>
+            <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+              <Button size="sm" variant="primary" onClick={applyRaw}>Apply</Button>
+              <Button size="sm" variant="ghost" onClick={() => setRawOpen(false)}>Cancel</Button>
             </div>
           </div>
         )}
@@ -730,28 +674,20 @@ function NodeInspector({ node, path, doc, onDocChange, themeData }: NodeInspecto
       {/* Repeat node controls */}
       {node.kind === 'repeat' && (
         <div style={{ padding: '0 12px 8px' }}>
-          <label style={{ fontSize: 11, fontWeight: 600, display: 'block', marginBottom: 4 }}>
+          <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 4, color: 'var(--on-surface)' }}>
             Source (list field)
           </label>
-          <select
+          <Select
             value={node.source}
-            onChange={(e) => updateNode((n) => n.kind === 'repeat' ? { ...n, source: e.target.value } : n)}
-            style={{
-              width: '100%',
-              height: 26,
-              padding: '0 4px',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-sm)',
-              background: 'var(--surface-card)',
-              fontSize: 12,
-            }}
-          >
-            {listFields.map((f) => (
-              <option key={f.key} value={f.key}>{f.key} ({f.label})</option>
-            ))}
-            {/* allow free entry */}
-            <option value={node.source}>{node.source}</option>
-          </select>
+            onValueChange={(v) => updateNode((n) => (n.kind === 'repeat' ? { ...n, source: v } : n))}
+            options={[
+              ...listFields.map((f) => ({ value: f.key, label: `${f.key} (${f.label})` })),
+              // keep the current source selectable even if it isn't a declared list field
+              ...(node.source && !listFields.some((f) => f.key === node.source)
+                ? [{ value: node.source, label: node.source }]
+                : []),
+            ]}
+          />
         </div>
       )}
 
@@ -761,7 +697,6 @@ function NodeInspector({ node, path, doc, onDocChange, themeData }: NodeInspecto
         onChange={(s) => updateNode((n) => ({ ...n, style: s } as TNode))}
         nodeKind={node.kind}
         themeData={themeData}
-        fieldKeys={allFieldKeys}
       />
     </div>
   );
@@ -839,74 +774,53 @@ function DocInspector({ doc, onDocChange }: DocInspectorProps) {
               background: 'var(--surface-low)',
             }}
           >
-            <div style={{ display: 'flex', gap: 6, marginBottom: 4 }}>
-              <input
-                value={f.key}
-                onChange={(e) => updateField(i, { key: e.target.value })}
-                placeholder="key"
-                style={{
-                  flex: 1,
-                  height: 24,
-                  padding: '0 4px',
-                  border: '1px solid var(--border)',
-                  borderRadius: 3,
-                  fontSize: 11,
-                  fontFamily: 'monospace',
-                  background: 'var(--surface-card)',
-                  color: 'var(--on-surface)',
-                }}
-              />
-              <input
-                value={f.label}
-                onChange={(e) => updateField(i, { label: e.target.value })}
-                placeholder="Label"
-                style={{
-                  flex: 1,
-                  height: 24,
-                  padding: '0 4px',
-                  border: '1px solid var(--border)',
-                  borderRadius: 3,
-                  fontSize: 11,
-                  background: 'var(--surface-card)',
-                  color: 'var(--on-surface)',
-                }}
-              />
+            <div style={{ display: 'flex', gap: 6, marginBottom: 6, alignItems: 'flex-start' }}>
+              <div style={{ flex: 1 }}>
+                <Input
+                  value={f.key}
+                  onChange={(e) => updateField(i, { key: e.target.value })}
+                  placeholder="key"
+                  style={{ fontFamily: 'monospace' }}
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <Input
+                  value={f.label}
+                  onChange={(e) => updateField(i, { label: e.target.value })}
+                  placeholder="Label"
+                />
+              </div>
               <button
                 onClick={() => removeField(i)}
+                aria-label="Remove field"
                 style={{
-                  width: 22,
-                  height: 24,
+                  width: 28,
+                  height: 36,
                   border: 'none',
                   background: 'transparent',
                   cursor: 'pointer',
-                  fontSize: 12,
+                  fontSize: 13,
                   color: 'var(--error)',
+                  flexShrink: 0,
                 }}
               >
                 ✕
               </button>
             </div>
-            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-              <select
-                value={f.kind}
-                onChange={(e) => updateField(i, { kind: e.target.value as FieldSpec['kind'] })}
-                style={{
-                  flex: 1,
-                  height: 24,
-                  padding: '0 4px',
-                  border: '1px solid var(--border)',
-                  borderRadius: 3,
-                  fontSize: 11,
-                  background: 'var(--surface-card)',
-                  color: 'var(--on-surface)',
-                }}
-              >
-                <option value="text">text</option>
-                <option value="textarea">textarea</option>
-                <option value="list">list</option>
-                <option value="pair">pair</option>
-              </select>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 11, color: 'var(--muted)' }}>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <div style={{ flex: 1 }}>
+                <Select
+                  value={f.kind}
+                  onValueChange={(v) => updateField(i, { kind: v as FieldSpec['kind'] })}
+                  options={[
+                    { value: 'text', label: 'text' },
+                    { value: 'textarea', label: 'textarea' },
+                    { value: 'list', label: 'list' },
+                    { value: 'pair', label: 'pair' },
+                  ]}
+                />
+              </div>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--muted)', flexShrink: 0 }}>
                 <input
                   type="checkbox"
                   checked={f.required}

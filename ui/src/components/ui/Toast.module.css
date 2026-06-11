@@ -17,12 +17,15 @@
   padding: 12px 14px;
   border-radius: var(--radius-md);
   border: 1px solid transparent;
-  animation: slideInRight 0.2s ease;
   box-shadow: 0 4px 16px rgba(27, 28, 28, 0.12);
+  transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
-.toast--exit {
-  animation: slideOutRight 0.2s ease forwards;
+/* Base UI drives the enter/leave lifecycle via these data attributes */
+.toast[data-starting-style],
+.toast[data-ending-style] {
+  transform: translateX(100%);
+  opacity: 0;
 }
 
 .toast--success {

@@ -25,3 +25,5 @@ Append-only. Format: `## [YYYY-MM-DD] action | summary`
 ## [2026-06-10] rebuild | v3: CLI → web app (Fastify API + Astro UI), Satori → Chromium, JSON template system + visual builder
 
 ## [2026-06-11] ui | design-system pass: tokenized color drift, centered content-width strategy, de-slop, responsive sidebar/stepper/table, skeletons + favicon + reduced-motion. Added DESIGN.md + PRODUCT.md + .impeccable/design.json; extracted PageHeader + Skeleton primitives. Updated design-systems.md.
+
+## [2026-06-11] ui | Base UI integration: added @base-ui/react@1.5.0; rebuilt shared primitives (Button, Input, Select, Toggle/Switch, Modal/Dialog, Toast) on Base UI with stable token-styled APIs (Select→onValueChange, Toggle→onCheckedChange). Extracted single Sidebar.astro (consistent Lucide icons) used by all pages; added ClientRouter view transitions. Builder: template picker → highlighted left-column list, Inspector fields routed through shared components + enlarged, removed dead StyleEditor prop + repeat-source duplicate-option bug. Updated dependencies.md + design-systems.md.

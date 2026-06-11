@@ -234,7 +234,7 @@ export default function EditPanel({
           label="Variant"
           options={groupedOptions}
           value={slide.variant}
-          onChange={(e) => handleVariantChange(e.target.value)}
+          onValueChange={(v) => handleVariantChange(v)}
         />
       </div>
 

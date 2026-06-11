@@ -102,7 +102,7 @@ export default function KitchenSinkIsland() {
             <Toggle
               label="Enable source"
               checked={toggleOn}
-              onChange={(e) => setToggleOn(e.target.checked)}
+              onCheckedChange={(c) => setToggleOn(c)}
               hint="Toggle this RSS feed on or off"
             />
           </div>

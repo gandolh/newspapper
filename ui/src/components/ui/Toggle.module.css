@@ -8,29 +8,23 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  cursor: pointer;
   user-select: none;
 }
 
-.input {
-  position: absolute;
-  opacity: 0;
-  width: 0;
-  height: 0;
-  pointer-events: none;
-}
-
+/* .track === Base UI Switch.Root (renders a <span> + hidden <input>) */
 .track {
   display: inline-flex;
   align-items: center;
   width: 36px;
   height: 20px;
+  padding: 0;
   border-radius: var(--radius-full);
   background: var(--surface-container-highest);
   border: 1px solid var(--border);
   transition: background 0.2s ease, border-color 0.2s ease;
   flex-shrink: 0;
   position: relative;
+  cursor: pointer;
 }
 
 .thumb {
@@ -43,22 +37,22 @@
   transition: transform 0.2s ease, background 0.2s ease;
 }
 
-.input:checked + .track {
+.track[data-checked] {
   background: var(--primary);
   border-color: var(--primary);
 }
 
-.input:checked + .track .thumb {
+.track[data-checked] .thumb {
   transform: translateX(16px);
   background: var(--on-primary);
 }
 
-.input:focus-visible + .track {
+.track:focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
 
-.input:disabled + .track {
+.track[data-disabled] {
   opacity: 0.5;
   cursor: not-allowed;
 }
@@ -66,6 +60,7 @@
 .label {
   font-size: var(--font-size-base);
   color: var(--on-surface);
+  cursor: pointer;
 }
 
 .hint {

@@ -8,6 +8,7 @@ import type { TemplateDoc } from '@/lib/types';
 import { ToastProvider, useToast } from '../ui/Toast';
 import { useBuilderStore } from './useBuilderStore';
 import TopBar from './TopBar';
+import TemplateList from './TemplateList';
 import TreePanel from './TreePanel';
 import Canvas from './Canvas';
 import Inspector from './Inspector';
@@ -144,9 +145,6 @@ function BuilderContent() {
           if (store.dirty && !window.confirm('Unsaved changes. Switch theme anyway?')) return;
           setTheme(t);
         }}
-        templates={templates}
-        selectedId={selectedId}
-        onSelectTemplate={handleSelectTemplate}
         onDocLoaded={store.loadDoc}
         doc={store.doc}
         dirty={store.dirty}
@@ -169,9 +167,9 @@ function BuilderContent() {
         overflow: 'hidden',
         minHeight: 0,
       }}>
-        {/* Left: Tree panel */}
+        {/* Left: template list (top) + node tree (bottom) */}
         <div style={{
-          width: 240,
+          width: 248,
           flexShrink: 0,
           borderRight: '1px solid var(--border)',
           background: 'var(--surface-card)',
@@ -179,22 +177,39 @@ function BuilderContent() {
           display: 'flex',
           flexDirection: 'column',
         }}>
-          {templatesLoading ? (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 80 }}>
-              <Spinner size={20} color="var(--primary)" />
-            </div>
-          ) : store.doc ? (
-            <TreePanel
-              doc={store.doc}
-              selectedPath={store.selectedPath}
-              onSelectPath={store.setSelectedPath}
-              onDocChange={store.applyChange}
+          <div style={{
+            flex: '0 0 auto',
+            maxHeight: '42%',
+            display: 'flex',
+            flexDirection: 'column',
+            minHeight: 0,
+            borderBottom: '1px solid var(--border)',
+          }}>
+            <TemplateList
+              templates={templates}
+              selectedId={selectedId}
+              onSelect={handleSelectTemplate}
+              loading={templatesLoading}
             />
-          ) : (
-            <div style={{ padding: 16, color: 'var(--muted)', fontSize: 13 }}>
-              No template loaded.
-            </div>
-          )}
+          </div>
+          <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+            {templatesLoading ? (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 80 }}>
+                <Spinner size={20} color="var(--primary)" />
+              </div>
+            ) : store.doc ? (
+              <TreePanel
+                doc={store.doc}
+                selectedPath={store.selectedPath}
+                onSelectPath={store.setSelectedPath}
+                onDocChange={store.applyChange}
+              />
+            ) : (
+              <div style={{ padding: 16, color: 'var(--muted)', fontSize: 13 }}>
+                No template loaded.
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Center: Canvas */}

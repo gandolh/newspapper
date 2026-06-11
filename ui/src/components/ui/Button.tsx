@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import { Button as BaseButton } from '@base-ui/react/button';
 import styles from './Button.module.css';
 import Spinner from './Spinner';
 
@@ -32,13 +33,13 @@ export default function Button({
     .join(' ');
 
   return (
-    <button className={cls} disabled={disabled || loading} {...rest}>
+    <BaseButton className={cls} disabled={disabled || loading} {...rest}>
       {loading && (
         <span className={styles.spinner}>
           <Spinner size={size === 'sm' ? 14 : 16} />
         </span>
       )}
       <span className={loading ? styles.hiddenText : ''}>{children}</span>
-    </button>
+    </BaseButton>
   );
 }

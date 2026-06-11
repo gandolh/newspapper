@@ -292,7 +292,7 @@ function SettingsPage() {
                     label="Model"
                     options={modelOptions}
                     value={ollamaModel}
-                    onChange={(e) => setOllamaModel(e.target.value)}
+                    onValueChange={(v) => setOllamaModel(v)}
                     hint="Ollama model used for composition"
                   />
                 </div>
@@ -314,7 +314,7 @@ function SettingsPage() {
                 label="Default theme"
                 options={themeOptions}
                 value={defaultTheme}
-                onChange={(e) => setDefaultTheme(e.target.value)}
+                onValueChange={(v) => setDefaultTheme(v)}
                 hint="Theme applied when running the pipeline"
               />
             ) : (
