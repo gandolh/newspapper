@@ -8,6 +8,7 @@ import {
   Spinner,
   EmptyState,
   Modal,
+  PageHeader,
   ToastProvider,
   useToast,
   ConfirmDialog,
@@ -417,47 +418,29 @@ function SourcesPage() {
   }
 
   return (
-    <div style={{ maxWidth: 900 }}>
+    <div>
       {/* Header */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: 28,
-        }}
-      >
-        <div>
-          <h1
-            style={{
-              fontSize: 26,
-              fontWeight: 800,
-              letterSpacing: '-0.03em',
-              color: 'var(--on-surface)',
-            }}
-          >
-            Sources
-          </h1>
-          <p style={{ marginTop: 4, fontSize: 14, color: 'var(--muted)' }}>
-            RSS feeds scraped daily during each run.
-          </p>
-        </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          {sources.length > 0 && (
-            <Button
-              variant="secondary"
-              size="sm"
-              loading={pingAllLoading}
-              onClick={handlePingAll}
-            >
-              Ping all
+      <PageHeader
+        title="Sources"
+        subtitle="RSS feeds scraped daily during each run."
+        actions={
+          <>
+            {sources.length > 0 && (
+              <Button
+                variant="secondary"
+                size="sm"
+                loading={pingAllLoading}
+                onClick={handlePingAll}
+              >
+                Ping all
+              </Button>
+            )}
+            <Button size="sm" onClick={handleAdd}>
+              + Add source
             </Button>
-          )}
-          <Button size="sm" onClick={handleAdd}>
-            + Add source
-          </Button>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {/* Empty state */}
       {sources.length === 0 ? (
@@ -469,9 +452,11 @@ function SourcesPage() {
         />
       ) : (
         <Card padding="none">
+          <div style={{ overflowX: 'auto' }}>
           <table
             style={{
               width: '100%',
+              minWidth: 640,
               borderCollapse: 'collapse',
               fontSize: 14,
             }}
@@ -558,6 +543,7 @@ function SourcesPage() {
               ))}
             </tbody>
           </table>
+          </div>
         </Card>
       )}
 

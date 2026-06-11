@@ -88,7 +88,7 @@
   background: var(--surface-card);
   border-color: var(--primary);
   color: var(--primary);
-  box-shadow: 0 0 0 3px #ffdbd1;
+  box-shadow: 0 0 0 3px var(--primary-soft);
 }
 
 .step--current .label {
@@ -100,4 +100,20 @@
   background: var(--surface-low);
   border-color: var(--border);
   color: var(--outline);
+}
+
+/* ---- Responsive: keep the horizontal stepper from overflowing.
+   Drop the per-step description and let short labels wrap so 4 steps
+   stay on one row at narrow widths. ---- */
+@media (max-width: 640px) {
+  .description {
+    display: none;
+  }
+  .label {
+    font-size: 11px;
+    line-height: 1.25;
+  }
+  .content {
+    padding: 0 2px;
+  }
 }

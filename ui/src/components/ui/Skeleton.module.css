@@ -1,0 +1,27 @@
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--surface-container) 25%,
+    var(--surface-container-high) 37%,
+    var(--surface-container) 63%
+  );
+  background-size: 400% 100%;
+  border-radius: var(--radius);
+  animation: shimmer 1.4s ease infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}
+
+/* Motion is not load-bearing here; hold a static placeholder instead. */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}

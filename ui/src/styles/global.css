@@ -76,6 +76,11 @@
   --primary-hover: #c3512f;
   --on-primary: #ffffff;
   --primary-container: #c3512f;
+  /* Soft terracotta tint — selection, focus glow, active nav, selected rows */
+  --primary-soft: #ffdbd1;
+  --primary-soft-hover: #ffd0c4;
+  /* Barely-there warm surface tint for hovered/selected list items */
+  --surface-tint: #fff5f2;
 
   /* Secondary */
   --secondary: #555f6a;
@@ -86,11 +91,19 @@
   --error: #ba1a1a;
   --on-error: #ffffff;
   --error-container: #ffdad6;
+  --error-emphasis: #b71c1c; /* darker text for legibility on --error-container */
+  --error-border: #ef9a9a;
 
   /* Success (not in design system, added for UI feedback) */
   --success: #2e7d32;
   --on-success: #ffffff;
   --success-container: #c8e6c9;
+  --success-emphasis: #1b5e20; /* darker text for legibility on --success-container */
+  --success-border: #a5d6a7;
+
+  /* Warning (not in design system, added for UI feedback) */
+  --warning: #7c5a00;
+  --warning-container: #fff3cd;
 
   /* Spacing (8px grid) */
   --sp-xs: 4px;
@@ -121,6 +134,10 @@
   /* Layout */
   --sidebar-width: 220px;
   --nav-item-height: 40px;
+  /* Centered content column. Lists/tables fill it; forms self-limit narrower
+     and center within it. Wizard + builder opt out (fluid, full-bleed). */
+  --content-max: 1080px;
+  --content-narrow: 720px;
 }
 
 /* ---- Reset ---- */
@@ -183,6 +200,20 @@ a {
   text-decoration: none;
 }
 
+/* ---- Reduced motion: neutralize all animation/transition for users who ask.
+   Component-level @media queries (e.g. Skeleton) provide tailored fallbacks;
+   this is the global backstop. ---- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* ---- Focus visible ring (terracotta) ---- */
 :focus-visible {
   outline: 2px solid var(--primary);
@@ -192,8 +223,16 @@ a {
 
 /* ---- Selection colour ---- */
 ::selection {
-  background: #ffdbd1;
+  background: var(--primary-soft);
   color: var(--on-surface);
+}
+
+/* ---- Responsive: hide the API-health label on the collapsed icon rail.
+   (Global, because ApiHealthDot is a client island outside Astro's scoped CSS.) ---- */
+@media (max-width: 768px) {
+  .apiHealthLabel {
+    display: none;
+  }
 }
 
 /* ---- Scrollbar (subtle) ---- */

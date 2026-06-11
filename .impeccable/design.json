@@ -1,0 +1,143 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-06-11T00:00:00Z",
+  "title": "Design System: Newspapper",
+  "extensions": {
+    "colorMeta": {
+      "terracotta": {
+        "role": "primary",
+        "displayName": "Press-Stamp Terracotta",
+        "canonical": "#a2391a",
+        "tonalRamp": ["#3d1509", "#5c200e", "#7a2b13", "#a2391a", "#c3512f", "#d97a5e", "#ecae9c", "#ffdbd1"]
+      },
+      "warm-white": {
+        "role": "neutral",
+        "displayName": "Warm Paper",
+        "canonical": "#fbf9f8",
+        "tonalRamp": ["#1b1c1c", "#3a3837", "#57423c", "#8b716b", "#b9a9a4", "#d6cfcc", "#efeded", "#fbf9f8"]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Press Ink",
+        "canonical": "#1b1c1c",
+        "tonalRamp": ["#1b1c1c", "#2e2c2b", "#443f3c", "#57423c", "#8b716b", "#b9a9a4", "#d6cfcc", "#efeded"]
+      },
+      "slate": {
+        "role": "secondary",
+        "displayName": "Cool Slate",
+        "canonical": "#555f6a",
+        "tonalRamp": ["#1f242a", "#333b42", "#475059", "#555f6a", "#7a838d", "#a3abb3", "#cdd2d7", "#e9ecee"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Page titles; the heaviest type on any screen." },
+      "title": { "displayName": "Title", "purpose": "Card and post titles, section sub-heads." },
+      "body": { "displayName": "Body", "purpose": "Default text and help copy; cap prose at 65–75ch." },
+      "label": { "displayName": "Label", "purpose": "UPPERCASE panel/table/section labels inside containers." },
+      "mono": { "displayName": "Mono", "purpose": "Prompt editor, JSON sample data, IDs, RSS URLs." }
+    },
+    "shadows": [
+      { "name": "hover-lift", "value": "0 4px 16px rgba(0,0,0,0.07)", "purpose": "Clickable cards on hover only — flat at rest." },
+      { "name": "floating-layer", "value": "0 4px 16px rgba(27,28,28,0.12)", "purpose": "Toasts and modal dialogs above the page." }
+    ],
+    "motion": [
+      { "name": "state-transition", "value": "0.15s ease", "purpose": "Default for background/color/border state changes." },
+      { "name": "reduced-motion", "value": "prefers-reduced-motion: reduce → 0.01ms", "purpose": "Global backstop neutralizing all animation/transition." }
+    ],
+    "breakpoints": [
+      { "name": "stepper-compact", "value": "640px" },
+      { "name": "sidebar-rail", "value": "768px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one high-emphasis action per view.",
+      "html": "<button class=\"ds-btn-primary\">Fetch today's news</button>",
+      "css": ".ds-btn-primary { display:inline-flex; align-items:center; height:36px; padding:0 16px; font-family:Inter,system-ui,sans-serif; font-weight:600; font-size:13px; color:#ffffff; background:#a2391a; border:1px solid #a2391a; border-radius:0.5rem; cursor:pointer; transition:background 0.15s ease, border-color 0.15s ease; } .ds-btn-primary:hover { background:#c3512f; border-color:#c3512f; } .ds-btn-primary:focus-visible { outline:2px solid #a2391a; outline-offset:2px; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Neutral default action.",
+      "html": "<button class=\"ds-btn-secondary\">+ Add manually</button>",
+      "css": ".ds-btn-secondary { display:inline-flex; align-items:center; height:36px; padding:0 16px; font-family:Inter,system-ui,sans-serif; font-weight:600; font-size:13px; color:#1b1c1c; background:#ffffff; border:1px solid #e4e2e2; border-radius:0.5rem; cursor:pointer; transition:background 0.15s ease, border-color 0.15s ease; } .ds-btn-secondary:hover { background:#f5f3f3; border-color:#dec0b8; }"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Destructive actions only.",
+      "html": "<button class=\"ds-btn-danger\">Delete</button>",
+      "css": ".ds-btn-danger { display:inline-flex; align-items:center; height:30px; padding:0 10px; font-family:Inter,system-ui,sans-serif; font-weight:600; font-size:12px; color:#ba1a1a; background:#ffdad6; border:1px solid #ffdad6; border-radius:0.25rem; cursor:pointer; transition:background 0.15s ease, color 0.15s ease; } .ds-btn-danger:hover { background:#ba1a1a; color:#ffffff; border-color:#ba1a1a; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Single-line field; focus shows a terracotta ring.",
+      "html": "<input class=\"ds-input\" placeholder=\"http://localhost:11434\" />",
+      "css": ".ds-input { width:260px; height:38px; padding:0 12px; font-family:Inter,system-ui,sans-serif; font-size:15px; color:#1b1c1c; background:#ffffff; border:1px solid #e4e2e2; border-radius:0.5rem; outline:none; transition:border-color 0.15s ease, box-shadow 0.15s ease; } .ds-input:focus { border-color:#a2391a; box-shadow:0 0 0 3px #ffdbd1; }"
+    },
+    {
+      "name": "Active Nav Item",
+      "kind": "nav",
+      "refersTo": "nav-item-active",
+      "description": "Selected sidebar row — terracotta-soft pill.",
+      "html": "<a class=\"ds-nav-active\"><span class=\"ds-nav-ico\">✦</span><span>Create</span></a>",
+      "css": ".ds-nav-active { display:flex; align-items:center; gap:10px; height:40px; padding:0 12px; font-family:Inter,system-ui,sans-serif; font-size:13px; font-weight:600; color:#a2391a; background:#ffdbd1; border-radius:0.5rem; text-decoration:none; } .ds-nav-active .ds-nav-ico { width:18px; text-align:center; opacity:0.9; }"
+    },
+    {
+      "name": "Primary Badge",
+      "kind": "chip",
+      "refersTo": "badge-primary",
+      "description": "Status / tag pill in the accent's quiet form.",
+      "html": "<span class=\"ds-badge\">rendered</span>",
+      "css": ".ds-badge { display:inline-flex; align-items:center; padding:2px 8px; font-family:Inter,system-ui,sans-serif; font-size:11px; font-weight:600; letter-spacing:0.02em; color:#a2391a; background:#ffdbd1; border-radius:9999px; }"
+    },
+    {
+      "name": "Content Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Flat-at-rest container; lifts on hover when clickable.",
+      "html": "<div class=\"ds-card\">Card content</div>",
+      "css": ".ds-card { padding:24px; background:#ffffff; color:#1b1c1c; border:1px solid #e4e2e2; border-radius:1rem; transition:box-shadow 0.15s ease; } .ds-card:hover { box-shadow:0 4px 16px rgba(0,0,0,0.07); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Warm Press Room",
+    "overview": "Newspapper is a focused editorial workstation: ink set on warm paper, with a single terracotta stamp standing in for the press. It is not a marketing surface and not a playful consumer app — it is the desk a person sits at, daily, to turn the day's news into a clean slide post. The visual system serves that task and then gets out of the way. Warmth comes from the paper-toned surface, the brown-tinted neutrals, and the one confident accent — never from gradients, glass, or ornament. Density is deliberate, and width is used intentionally: full-bleed where the work is, a narrow reading column where the content is prose.",
+    "keyCharacteristics": [
+      "One terracotta accent (#a2391a) on a warm off-white (#fbf9f8); accent ≤ ~10% of any screen.",
+      "Inter only, 400–900; hierarchy from weight and size, not from font pairing.",
+      "Flat by default; a single soft shadow appears on hover.",
+      "Intentional width: full-bleed work areas, centered columns for prose and forms."
+    ],
+    "rules": [
+      { "name": "The One Voice Rule", "body": "Terracotta is the only accent. It appears on ≤ ~10% of any screen — primary action, current selection, brand mark, focus. Its rarity is what makes it read as confident rather than loud.", "section": "colors" },
+      { "name": "The Warm Neutral Rule", "body": "Every neutral is tinted toward the brand's brown hue. Never reach for a cool/blue-gray neutral; it breaks the paper feeling.", "section": "colors" },
+      { "name": "The Weight-Not-Family Rule", "body": "Contrast comes from Inter's weight range, never from pairing a second font.", "section": "typography" },
+      { "name": "The Earned-Label Rule", "body": "All-caps labels belong inside panels and tables, one per region. They are forbidden as decorative eyebrows above page sections.", "section": "typography" },
+      { "name": "The Flat-By-Default Rule", "body": "Surfaces are flat at rest. A shadow is a response to state (hover) or a signal of layer (modal/toast) — never decoration on a resting element.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep terracotta to ≤ ~10% of a screen — primary action, current selection, brand, focus.",
+      "Do tint every neutral toward the brand's warm brown hue; use surface-low/container for tonal layering instead of shadow.",
+      "Do build type hierarchy from Inter's weight and size alone.",
+      "Do use width intentionally: full-bleed for work areas, a centered 720px column for forms/prose, a centered 1080px column for lists.",
+      "Do give every interactive element its full state set: default, hover, focus-visible, active, disabled, loading.",
+      "Do use skeletons for content loading, not a centered spinner."
+    ],
+    "donts": [
+      "Don't add an eyebrow kicker / all-caps label above every page section.",
+      "Don't use border-left greater than 1px as a colored accent stripe; use a full 1px border + a leading icon.",
+      "Don't introduce a second saturated accent color, gradients, gradient text, or glassmorphism.",
+      "Don't ship the SaaS-cream dashboard look, the over-decorated tool, or narrow content marooned in empty space.",
+      "Don't nest cards inside cards, or apply a resting shadow as decoration.",
+      "Don't reach for a cool/blue-gray neutral; it breaks the warm paper feeling."
+    ]
+  }
+}

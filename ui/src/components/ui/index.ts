@@ -22,8 +22,14 @@ export type { BadgeProps, BadgeVariant } from './Badge';
 export { default as Spinner } from './Spinner';
 export type { SpinnerProps } from './Spinner';
 
+export { default as Skeleton } from './Skeleton';
+export type { SkeletonProps } from './Skeleton';
+
 export { default as EmptyState } from './EmptyState';
 export type { EmptyStateProps } from './EmptyState';
+
+export { default as PageHeader } from './PageHeader';
+export type { PageHeaderProps } from './PageHeader';
 
 export { default as Modal } from './Modal';
 export type { ModalProps } from './Modal';

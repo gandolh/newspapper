@@ -27,14 +27,14 @@
 
 .toast--success {
   background: var(--success-container);
-  border-color: #a5d6a7;
-  color: #1b5e20;
+  border-color: var(--success-border);
+  color: var(--success-emphasis);
 }
 
 .toast--error {
   background: var(--error-container);
-  border-color: #ef9a9a;
-  color: #b71c1c;
+  border-color: var(--error-border);
+  color: var(--error-emphasis);
 }
 
 .toast--info {

@@ -122,7 +122,7 @@
 
 .articleCardChecked {
   border-color: var(--primary);
-  background: #fffaf9;
+  background: var(--surface-tint);
 }
 
 .articleCardRow {

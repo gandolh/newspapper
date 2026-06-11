@@ -22,10 +22,10 @@ export default function ApiHealthDot() {
 
   const dotColor =
     status === 'online'
-      ? '#2e7d32'
+      ? 'var(--success)'
       : status === 'offline'
-        ? '#ba1a1a'
-        : '#8b716b';
+        ? 'var(--error)'
+        : 'var(--outline)';
 
   const label = status === 'online' ? 'API online' : status === 'offline' ? 'API offline' : 'Checking…';
 
@@ -53,7 +53,7 @@ export default function ApiHealthDot() {
           transition: 'background-color 0.3s ease',
         }}
       />
-      <span>{label}</span>
+      <span className="apiHealthLabel">{label}</span>
     </span>
   );
 }

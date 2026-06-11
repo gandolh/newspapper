@@ -5,6 +5,7 @@ import {
   Input,
   Select,
   Spinner,
+  PageHeader,
   ToastProvider,
   useToast,
 } from '../ui';
@@ -149,22 +150,13 @@ function SettingsPage() {
   const themeOptions = themes.map((t) => ({ value: t.name, label: t.name }));
 
   return (
-    <form onSubmit={handleSave} style={{ maxWidth: 680 }} noValidate>
+    <form onSubmit={handleSave} style={{ maxWidth: 'var(--content-narrow)', marginInline: 'auto' }} noValidate>
       {/* Header */}
       <div style={{ marginBottom: 28 }}>
-        <h1
-          style={{
-            fontSize: 26,
-            fontWeight: 800,
-            letterSpacing: '-0.03em',
-            color: 'var(--on-surface)',
-          }}
-        >
-          Settings
-        </h1>
-        <p style={{ marginTop: 4, fontSize: 14, color: 'var(--muted)' }}>
-          Configure your Ollama connection and generation defaults.
-        </p>
+        <PageHeader
+          title="Settings"
+          subtitle="Configure your Ollama connection and generation defaults."
+        />
         <p
           style={{
             marginTop: 8,
@@ -173,10 +165,14 @@ function SettingsPage() {
             background: 'var(--surface-low)',
             padding: '8px 12px',
             borderRadius: 'var(--radius-sm)',
-            borderLeft: '3px solid var(--outline-variant)',
+            border: '1px solid var(--border)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
           }}
         >
-          Values from <code>.env</code> are used until overridden here.
+          <span aria-hidden="true" style={{ color: 'var(--secondary)', fontSize: 13, flexShrink: 0 }}>ⓘ</span>
+          <span>Values from <code>.env</code> are used until overridden here.</span>
         </p>
       </div>
 

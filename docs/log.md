@@ -23,3 +23,5 @@ Append-only. Format: `## [YYYY-MM-DD] action | summary`
 ## [2026-05-24] restructure | consolidated root: design-systems/ + templates/ + fonts/ → assets/, newspaper-infra/ → infra/, soul.md → docs/soul.md. Updated path refs in src/render/{theme,fonts}.ts and docs.
 
 ## [2026-06-10] rebuild | v3: CLI → web app (Fastify API + Astro UI), Satori → Chromium, JSON template system + visual builder
+
+## [2026-06-11] ui | design-system pass: tokenized color drift, centered content-width strategy, de-slop, responsive sidebar/stepper/table, skeletons + favicon + reduced-motion. Added DESIGN.md + PRODUCT.md + .impeccable/design.json; extracted PageHeader + Skeleton primitives. Updated design-systems.md.

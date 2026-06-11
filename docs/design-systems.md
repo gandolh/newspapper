@@ -53,3 +53,14 @@ Original visual-spec HTML files are archived at `plans/swarm/reference/html-spec
 ## Canvas
 
 Every slide is **1080 × 1080 px** — Instagram square post format, hard-coded in the renderer.
+
+## UI app design system (distinct from the slide theme)
+
+The tokens above (`assets/design-systems/warm-industrial.json`) drive **slide rendering**. The
+**UI chrome** (wizard, history, sources, settings, builder) has its own design system:
+
+- **Tokens:** CSS custom properties in `ui/src/styles/global.css` (`:root`). Includes surfaces, the terracotta accent + `--primary-soft`/`--surface-tint`, semantic `--success`/`--error`/`--warning` (each with `-emphasis`/`-container`), spacing, radii, and the `--content-max` (1080px) / `--content-narrow` (720px) layout columns.
+- **Canonical reference:** `DESIGN.md` at the repo root (Stitch format) documents the full system — palette, type scale, elevation, components, and the named rules ("The One Voice Rule", "The Earned-Label Rule", etc.). `PRODUCT.md` carries the strategic register. `.impeccable/design.json` is the machine-readable sidecar.
+- **Shared primitives:** `ui/src/components/ui/` — `Button`, `Card`, `Input`, `Badge`, `Skeleton`, `PageHeader`, `Stepper`, `Modal`, `Toast`, etc. Pages compose these; the page-top title/subtitle/actions pattern is `PageHeader`.
+
+When changing UI tokens or shared primitives, update `DESIGN.md` so generated screens stay on-brand.

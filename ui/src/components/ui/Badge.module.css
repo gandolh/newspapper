@@ -17,7 +17,7 @@
 }
 
 .badge--primary {
-  background: #ffdbd1;
+  background: var(--primary-soft);
   color: var(--primary);
 }
 
@@ -27,8 +27,8 @@
 }
 
 .badge--warning {
-  background: #fff3cd;
-  color: #7c5a00;
+  background: var(--warning-container);
+  color: var(--warning);
 }
 
 .badge--error {

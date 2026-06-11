@@ -155,7 +155,7 @@ function TreeItem({
           gap: 4,
           padding: `3px 8px 3px ${8 + indent}px`,
           cursor: 'pointer',
-          background: isSelected ? '#ffdbd1' : 'transparent',
+          background: isSelected ? 'var(--primary-soft)' : 'transparent',
           borderRadius: 'var(--radius-sm)',
           borderLeft: isSelected ? '2px solid var(--primary)' : '2px solid transparent',
           transition: 'background 0.1s',

@@ -106,7 +106,7 @@ export default function SlideList({
                 padding: '6px 8px',
                 borderRadius: 'var(--radius)',
                 border: `1.5px solid ${isSelected ? 'var(--primary)' : 'var(--border)'}`,
-                background: isSelected ? '#fff5f2' : 'var(--surface-card)',
+                background: isSelected ? 'var(--surface-tint)' : 'var(--surface-card)',
                 cursor: 'pointer',
                 transition: 'border-color 0.12s, background 0.12s',
                 minHeight: 64,

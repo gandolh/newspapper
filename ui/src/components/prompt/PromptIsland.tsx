@@ -4,6 +4,7 @@ import {
   Card,
   Badge,
   Spinner,
+  PageHeader,
   ToastProvider,
   useToast,
   ConfirmDialog,
@@ -217,28 +218,18 @@ function PromptPage() {
   const charCount = promptText.length;
 
   return (
-    <div style={{ maxWidth: 860 }}>
+    <div style={{ maxWidth: 860, marginInline: 'auto' }}>
       {/* Header */}
-      <div style={{ marginBottom: 24 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-          <h1
-            style={{
-              fontSize: 26,
-              fontWeight: 800,
-              letterSpacing: '-0.03em',
-              color: 'var(--on-surface)',
-            }}
-          >
+      <PageHeader
+        title={
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             Prompt
-          </h1>
-          {isDefault && <Badge variant="muted">default</Badge>}
-          {isDirty && <Badge variant="warning">unsaved</Badge>}
-        </div>
-        <p style={{ fontSize: 14, color: 'var(--muted)', lineHeight: 1.6 }}>
-          This is the system prompt that turns today's articles into slides — edit to tune voice,
-          tone, and slide-type choices.
-        </p>
-      </div>
+            {isDefault && <Badge variant="muted">default</Badge>}
+            {isDirty && <Badge variant="warning">unsaved</Badge>}
+          </span>
+        }
+        subtitle="This is the system prompt that turns today's articles into slides — edit to tune voice, tone, and slide-type choices."
+      />
 
       {/* Prompt editor */}
       <Card padding="none">

@@ -24,16 +24,26 @@ function isActive(href: string): boolean {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <title>Template Builder — newspapper</title>
+    <style>
+      /* Builder is a desktop-only 3-panel tool; on narrow widths we only
+         collapse the nav rail so it doesn't waste space. */
+      @media (max-width: 768px) {
+        .b-sidebar { width: 60px !important; }
+        .b-brandname,
+        .b-navlabel { display: none; }
+      }
+    </style>
   </head>
   <body style="margin:0; overflow: hidden;">
     <div style="display:flex; height:100vh; overflow:hidden;">
       <!-- Sidebar nav -->
-      <nav style="width:220px; min-height:100vh; background:var(--surface-card); border-right:1px solid var(--border); display:flex; flex-direction:column; flex-shrink:0; position:sticky; top:0; height:100vh; overflow-y:auto;">
+      <nav class="b-sidebar" style="width:220px; min-height:100vh; background:var(--surface-card); border-right:1px solid var(--border); display:flex; flex-direction:column; flex-shrink:0; position:sticky; top:0; height:100vh; overflow-y:auto;">
         <div style="padding:var(--sp-md) var(--sp-sm); border-bottom:1px solid var(--border);">
           <a href="/" style="display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--on-surface);">
             <span style="display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; background:var(--primary); color:var(--on-primary); border-radius:var(--radius); font-size:13px; font-weight:800; letter-spacing:-0.04em; flex-shrink:0;">np</span>
-            <span style="font-size:15px; font-weight:800; letter-spacing:-0.03em; color:var(--on-surface);">newspapper</span>
+            <span class="b-brandname" style="font-size:15px; font-weight:800; letter-spacing:-0.03em; color:var(--on-surface);">newspapper</span>
           </a>
         </div>
         <ul style="flex:1; padding:var(--sp-sm) var(--sp-xs); display:flex; flex-direction:column; gap:2px; list-style:none; margin:0; padding-top:12px;">
@@ -41,10 +51,10 @@ function isActive(href: string): boolean {
             <li>
               <a
                 href={href}
-                style={`display:flex; align-items:center; gap:10px; height:40px; padding:0 var(--sp-sm); border-radius:var(--radius); font-size:var(--font-size-sm); font-weight:500; text-decoration:none; color:var(--muted); transition:background 0.15s; ${isActive(href) ? 'background:#ffdbd1; color:var(--primary); font-weight:600;' : ''}`}
+                style={`display:flex; align-items:center; gap:10px; height:40px; padding:0 var(--sp-sm); border-radius:var(--radius); font-size:var(--font-size-sm); font-weight:500; text-decoration:none; color:var(--muted); transition:background 0.15s; ${isActive(href) ? 'background:var(--primary-soft); color:var(--primary); font-weight:600;' : ''}`}
               >
                 <span style="font-size:14px; width:18px; text-align:center; flex-shrink:0; opacity:0.8;">{icon}</span>
-                <span style="flex:1;">{label}</span>
+                <span class="b-navlabel" style="flex:1;">{label}</span>
               </a>
             </li>
           ))}

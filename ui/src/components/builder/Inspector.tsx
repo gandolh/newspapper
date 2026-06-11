@@ -247,7 +247,7 @@ function SpacingInput({
               padding: '0 5px',
               border: `1px solid ${value === `$spacing.${k}` ? 'var(--primary)' : 'var(--border)'}`,
               borderRadius: 3,
-              background: value === `$spacing.${k}` ? '#ffdbd1' : 'transparent',
+              background: value === `$spacing.${k}` ? 'var(--primary-soft)' : 'transparent',
               fontSize: 10,
               cursor: 'pointer',
               color: value === `$spacing.${k}` ? 'var(--primary)' : 'var(--muted)',
@@ -461,7 +461,7 @@ function StyleEditor({ style, onChange, nodeKind, themeData, fieldKeys }: StyleE
                   padding: '0 5px',
                   border: `1px solid ${get('borderRadius') === `$rounded.${k}` ? 'var(--primary)' : 'var(--border)'}`,
                   borderRadius: 3,
-                  background: get('borderRadius') === `$rounded.${k}` ? '#ffdbd1' : 'transparent',
+                  background: get('borderRadius') === `$rounded.${k}` ? 'var(--primary-soft)' : 'transparent',
                   fontSize: 10,
                   cursor: 'pointer',
                   color: get('borderRadius') === `$rounded.${k}` ? 'var(--primary)' : 'var(--muted)',
@@ -680,16 +680,6 @@ function NodeInspector({ node, path, doc, onDocChange, themeData }: NodeInspecto
 
   return (
     <div>
-      {/* Node kind header */}
-      <div style={{ padding: '10px 12px 6px', display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-          {node.kind} node
-        </span>
-        <span style={{ fontSize: 10, color: 'var(--muted)', fontFamily: 'monospace' }}>
-          [{path.join('.')}]
-        </span>
-      </div>
-
       {/* Text node controls */}
       {node.kind === 'text' && (
         <div style={{ padding: '0 12px 8px' }}>
@@ -815,12 +805,6 @@ function DocInspector({ doc, onDocChange }: DocInspectorProps) {
 
   return (
     <div>
-      <div style={{ padding: '10px 12px 6px' }}>
-        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-          Document
-        </span>
-      </div>
-
       <SectionHeader title="Info" />
       <Row label="id">
         <span style={{ fontSize: 12, fontFamily: 'monospace', color: 'var(--muted)' }}>{doc.id}</span>
@@ -976,8 +960,20 @@ export default function Inspector({ doc, selectedPath, onDocChange, themeData }:
         letterSpacing: '0.06em',
         borderBottom: '1px solid var(--border)',
         flexShrink: 0,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
       }}>
-        Inspector
+        {node && selectedPath.length > 0 ? (
+          <>
+            <span>{node.kind} node</span>
+            <span style={{ fontSize: 10, fontWeight: 500, fontFamily: 'monospace', textTransform: 'none', color: 'var(--muted)' }}>
+              [{selectedPath.join('.')}]
+            </span>
+          </>
+        ) : (
+          'Document'
+        )}
       </div>
       <div style={{ flex: 1, overflowY: 'auto' }}>
         {node && selectedPath.length > 0 ? (

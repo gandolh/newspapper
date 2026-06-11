@@ -6,6 +6,7 @@ import {
   Badge,
   Card,
   Spinner,
+  Skeleton,
   EmptyState,
   Modal,
   Input,
@@ -325,30 +326,30 @@ export function ScrapeStep({ onNext }: ScrapeStepProps) {
             </span>
           )}
         </div>
-        <div className={styles.headerActions}>
-          {articles.length > 0 && (
-            <>
-              <Button variant="ghost" size="sm" onClick={selectAll} disabled={scraping}>
-                All
-              </Button>
-              <Button variant="ghost" size="sm" onClick={selectNone} disabled={scraping}>
-                None
-              </Button>
-            </>
-          )}
-          <Button variant="secondary" size="sm" onClick={() => setAddModalOpen(true)} disabled={scraping}>
-            + Add manually
-          </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleScrape}
-            loading={scraping}
-            disabled={scraping}
-          >
-            {scraping ? 'Fetching…' : 'Fetch today\'s news'}
-          </Button>
-        </div>
+        {/* Persistent actions appear once there are articles to act on;
+            when empty, the empty-state hero carries the same CTAs (no dupes). */}
+        {articles.length > 0 && (
+          <div className={styles.headerActions}>
+            <Button variant="ghost" size="sm" onClick={selectAll} disabled={scraping}>
+              All
+            </Button>
+            <Button variant="ghost" size="sm" onClick={selectNone} disabled={scraping}>
+              None
+            </Button>
+            <Button variant="secondary" size="sm" onClick={() => setAddModalOpen(true)} disabled={scraping}>
+              + Add manually
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleScrape}
+              loading={scraping}
+              disabled={scraping}
+            >
+              {scraping ? 'Fetching…' : 'Fetch today\'s news'}
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Source progress panel */}
@@ -374,8 +375,19 @@ export function ScrapeStep({ onNext }: ScrapeStepProps) {
 
       {/* Loading skeleton / empty state */}
       {loading ? (
-        <div className={styles.loadingCenter}>
-          <Spinner size={24} color="var(--muted)" />
+        <div className={styles.articleList} aria-busy="true" aria-label="Loading articles">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i} padding="sm">
+              <div style={{ display: 'flex', gap: 'var(--sp-sm)', alignItems: 'flex-start' }}>
+                <Skeleton width={16} height={16} radius="var(--radius-sm)" />
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <Skeleton width={84} height={18} radius="var(--radius-full)" />
+                  <Skeleton width="80%" height={15} />
+                  <Skeleton width="55%" height={12} />
+                </div>
+              </div>
+            </Card>
+          ))}
         </div>
       ) : articles.length === 0 ? (
         <EmptyState
@@ -388,7 +400,7 @@ export function ScrapeStep({ onNext }: ScrapeStepProps) {
                 Fetch today's news
               </Button>
               <Button variant="secondary" onClick={() => setAddModalOpen(true)}>
-                Add manually
+                + Add manually
               </Button>
             </div>
           }
