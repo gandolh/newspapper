@@ -9,6 +9,14 @@ Definitions only. If an entry starts explaining *how* something works, that
 belongs on a concept page and this should link to it instead. `_Avoid_` is the
 load-bearing half — it names the synonyms that would otherwise drift back in.
 
+**Newspapper Wizard** (the language):
+The markup a post is written in — files end `.wzd`. A **wizard** in the magical
+sense: the thing that turns written words into designed slides. Explicitly
+**not** a wizard in the software sense — Newspapper has no step-by-step guided
+flow, and the four-step one it used to have is being deleted. If something in
+the UI ever needs that pattern, call it something else; this word is taken.
+_Avoid_: setup wizard, step flow, the wizard (for any UI), WZD (as a word)
+
 **Post**:
 One day's output as a single unit — an ordered set of slides plus a caption and
 hashtags. The thing the app produces, and one row in `posts`.
