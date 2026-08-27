@@ -15,7 +15,8 @@ export type WzdDiagnosticCode =
   | 'missing-head'
   | 'missing-title'
   | 'empty-slide'
-  | 'slide-count';
+  | 'slide-count'
+  | 'unknown-binding';
 
 export interface WzdDiagnostic {
   code: WzdDiagnosticCode;
@@ -88,6 +89,11 @@ export const WZD_RULES: Readonly<Record<WzdDiagnosticCode, WzdRule>> = Object.fr
     code: 'slide-count',
     severity: 'error',
     summary: 'A post needs at least one slide, and gets unwieldy past ten.',
+  },
+  'unknown-binding': {
+    code: 'unknown-binding',
+    severity: 'error',
+    summary: 'A {binding} with no <head> field behind it.',
   },
 });
 

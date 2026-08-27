@@ -13,6 +13,12 @@ import previewRoutes from './routes/preview.js';
 import templatesRoutes from './routes/templates.js';
 import sourcesRoutes from './routes/sources.js';
 import settingsRoutes from './routes/settings.js';
+import uploadsRoutes from './routes/uploads.js';
+import authRoutes from './routes/auth.js';
+import { db } from './lib/db.js';
+import { registerAuthGuard } from './auth/guard.js';
+import { seedAdminAccount } from './auth/seed.js';
+import { getSessionSecret, sessionSecretIsEphemeral } from './auth/secret.js';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const repoRoot = resolve(__dirname, '../..');
@@ -24,7 +30,21 @@ export async function buildApp() {
 
   await fastify.register(cors, {
     origin: ['http://localhost:4321', 'http://127.0.0.1:4321'],
+    credentials: true,
   });
+
+  // Auth: fail fast on a missing secret, seed the single account, then guard.
+  getSessionSecret();
+  if (sessionSecretIsEphemeral()) {
+    fastify.log.warn(
+      'SESSION_SECRET is unset — using a random per-boot secret. Every session ends when the server restarts.',
+    );
+  }
+  await seedAdminAccount(db(), {
+    info: (msg: string) => fastify.log.info(msg),
+    warn: (msg: string) => fastify.log.warn(msg),
+  });
+  registerAuthGuard(fastify);
 
   // Serve font assets at /assets/fonts/
   await fastify.register(staticPlugin, {
@@ -42,6 +62,7 @@ export async function buildApp() {
 
   // Register all API routes
   await fastify.register(health);
+  await fastify.register(authRoutes);
   await fastify.register(scrapeRoutes);
   await fastify.register(articlesRoutes);
   await fastify.register(postsRoutes);
@@ -50,6 +71,7 @@ export async function buildApp() {
   await fastify.register(templatesRoutes);
   await fastify.register(sourcesRoutes);
   await fastify.register(settingsRoutes);
+  await fastify.register(uploadsRoutes);
 
   // Global error handler
   fastify.setErrorHandler((err: Error & { statusCode?: number }, _req, reply) => {
@@ -94,7 +116,14 @@ export async function buildApp() {
 }
 
 const start = async () => {
-  const fastify = await buildApp();
+  let fastify: Awaited<ReturnType<typeof buildApp>>;
+  try {
+    fastify = await buildApp();
+  } catch (err) {
+    console.error(`Startup failed: ${err instanceof Error ? err.message : String(err)}`);
+    process.exit(1);
+    return;
+  }
   try {
     await fastify.listen({ port: PORT, host: '0.0.0.0' });
     console.log(`API server listening on http://localhost:${PORT}`);

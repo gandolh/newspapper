@@ -62,3 +62,39 @@ the rule with brief 53), not a silently empty string.
   interpreter without modification.
 - `PageCounter` produces correct `n/total` for every slide in a multi-slide doc.
 - `npm test` passes.
+
+---
+
+## Outcome — 2026-08-27
+
+Done, 73 tests. `core/src/wizard/` gained `compile.ts`, `bindings.ts` and
+`components/` (structure, content, accents, style, context).
+
+Two compile paths exist on purpose. `compileDocument` is **strict** — it lints
+and throws `WzdCompileError` on any error-severity diagnostic, and refuses a
+theme missing a token the library needs. That is what the render pipeline calls.
+`compile`/`compileSource` **never refuse**: an unknown component renders as
+nothing, an `<Image>` with no `src` renders as nothing, and an unresolvable
+`{binding}` stays on the slide as written so the author sees `{date}` rather
+than a gap. That is what the live preview calls, because errors are the normal
+state mid-keystroke.
+
+The compile is **browser-safe** — no `node:` built-ins, no `import.meta.url` —
+so brief 59 runs the identical code in the preview and pairs it with the
+existing `resolveStyle`. That is what makes the "no second copy of style
+resolution" requirement achievable rather than aspirational.
+
+The token invariant is enforced by exported production code, not a test helper:
+`unthemedStyleValues(nodes, theme)` returns any length, colour or font that is
+not a theme token, and the acceptance test asserts `[]` across all 45 prop
+combinations of every component.
+
+A twelfth lint rule, `unknown-binding`, was added here — brief 54 required
+unresolved bindings to be an error and 53 had shipped eleven rules without one.
+
+**Finding for brief 61.** `warm-industrial` ships only six typography tokens, so
+`Heading` resolves to `display` at *both* `lg` and `xl`, and `Stat` collides
+across `md`/`lg`/`xl`. Two different sizes in the markup produce identical
+output. The compiler is purely token-driven, so a richer ramp in the theme fixes
+it without touching this code. The theme's scale is also web-sized (body copy at
+16–18px), which is small for a 1080² canvas.

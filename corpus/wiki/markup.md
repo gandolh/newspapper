@@ -137,11 +137,16 @@ Wizard has a canonical printed form, the way JSX does under Prettier. The
 produces exactly the text a person would have typed, so the source pane never
 looks machine-generated. A manual format-and-lint action is available too.
 
-The formatter owns whitespace; the linter owns meaning. Eleven rules ship:
+The formatter owns whitespace; the linter owns meaning. Twelve rules ship:
 `syntax-error`, `unknown-component`, `unknown-prop`, `invalid-prop-value`,
 `missing-prop`, `duplicate-prop`, `misplaced-element`, `missing-head`,
-`missing-title`, `empty-slide`, `slide-count`. All are errors except
-`slide-count` above the maximum, which is a warning.
+`missing-title`, `empty-slide`, `slide-count`, `unknown-binding`. All are errors
+except `slide-count` above the maximum, which is a warning.
+
+`unknown-binding` fires when `{something}` in text names anything other than one
+of the six `<head>` fields, or names a field the head leaves empty. Bindings
+resolve in **text content only**, never in prop values — that is the one place
+the linter can see them.
 
 Concretely, the formatter's canonical form: LF only, trailing newline, 2-space
 indent, one blank line between top-level nodes, an element with no children

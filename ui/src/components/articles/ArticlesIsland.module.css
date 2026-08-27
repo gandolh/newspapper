@@ -1,0 +1,125 @@
+/* =============================================================
+   ArticlesIsland — search, library, and sources in one page
+   ============================================================= */
+
+.tabBar {
+  display: flex;
+  gap: var(--sp-xs);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: var(--sp-md);
+}
+
+.tab {
+  appearance: none;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: var(--sp-sm) var(--sp-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.tab:hover {
+  color: var(--on-surface);
+}
+
+.tabActive {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+.tabPanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-md);
+}
+
+/* ---- Search form ---- */
+.searchForm {
+  display: flex;
+  gap: var(--sp-sm);
+  align-items: flex-start;
+}
+
+.searchForm > *:first-child {
+  flex: 1;
+}
+
+.progressList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-xs);
+}
+
+.progressItem {
+  display: inline-flex;
+}
+
+/* ---- Filter bar (library) ---- */
+.filterBar {
+  display: flex;
+  gap: var(--sp-sm);
+  align-items: flex-start;
+}
+
+.filterBar > *:first-child {
+  flex: 1;
+}
+
+/* ---- Result cards (shared by search + library) ---- */
+.resultList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+}
+
+.resultCard {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.resultMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-xs);
+}
+
+.metaText {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.externalLink {
+  color: var(--muted);
+  text-decoration: none;
+  margin-left: auto;
+}
+
+.resultTitle {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.resultExcerpt {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.resultActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.centered {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 160px;
+}

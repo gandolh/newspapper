@@ -1,6 +1,6 @@
 ---
 summary: The locked product calls — no LLM, human-centred editing, the Wizard markup and its semantic component model, images, and where it runs.
-updated: 2026-08-27
+updated: 2026-08-28
 ---
 
 # Decisions — product
@@ -180,3 +180,23 @@ implements a subset of flexbox and no real CSS cascade, which capped how
 expressive a layout could be — and expressive layout is the product. The cost is
 a ~300MB browser download, accepted deliberately, and the reason Playwright is
 the one heavyweight dependency allowed.
+
+## Keyword matching is case-insensitive OR substring over title + body
+_2026-08-28_ — A search matches an article when **any** supplied keyword
+appears as a **case-insensitive substring** anywhere in its title or body;
+results rank by total match count (occurrences summed across all keywords, all
+fields). No fuzzy matching, no word-boundary requirement.
+- **Title + body, not title-only**: the keyword a person cares about is usually
+  in the copy, not just the headline — title-only would miss most of what
+  they're looking for.
+- **OR, not AND**: a person hunting news gives a few related terms and wants
+  broad recall (`budget, tax, economy`); requiring every term would turn a
+  three-keyword search into one that almost nothing survives.
+- **Plain substring, not word-boundary**: `tax` should catch `taxes` and
+  `taxation` — that's the whole point of typing a bare root rather than a full
+  word, and word-boundary matching would silently defeat it.
+- **Case-insensitive**: nobody typing a keyword box thinks about capitalization,
+  and there's no case where matching should fail because of it.
+Rejected: fuzzy/edit-distance matching (unpredictable — a person filtering
+today's news wants to know exactly why a result showed up) and AND semantics
+(too narrow for a handful of loosely related keywords).

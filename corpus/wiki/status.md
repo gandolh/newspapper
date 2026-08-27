@@ -74,10 +74,10 @@ nav/sidebar by 58, 62 and 64.
 | 1 | 51 | Strip the AI surface — **done** | — |
 | 2 | 52 | SQLite schema for authored posts — **done** | — |
 | 2 | 53 | Wizard parser, formatter, linter — **done** | — |
-| 3 | 54 | Component library + compile to `TNode` | 53 |
-| 3 | 55 | Single-account authentication | 52 |
-| 3 | 56 | Image uploads + Sharp pipeline | 52 |
-| 3 | 60 | Keyword RSS + article library | 52 |
+| 3 | 54 | Component library + compile to `TNode` — **done** | 53 |
+| 3 | 55 | Single-account authentication — **done** | 52 |
+| 3 | 56 | Image uploads + Sharp pipeline — **done** | 52 |
+| 3 | 60 | Keyword RSS + article library — **done** | 52 |
 | 4 | 57 | Render to JPEG + optimize on publish | 56 |
 | 4 | 58 | Retire templates and `/builder` | 54 |
 | 4 | 61 | Themes 2 and 3 | 54 |

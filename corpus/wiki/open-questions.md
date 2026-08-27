@@ -1,6 +1,6 @@
 ---
 summary: What's still unresolved after the pivot — theme palettes, auth details, and how the article library feeds authoring.
-updated: 2026-08-27
+updated: 2026-08-28
 ---
 
 # Open Questions
@@ -20,22 +20,13 @@ the component library to exist before there's anything to look at. Note this is
 the **slide** theme family, untouched by the workstation redesign; the chrome's
 palette is fixed in [`DESIGN.md`](../../DESIGN.md) and is not a variant of it.
 
-## Auth details
-
-Single account, username and password. Settled: `node:crypto` `scrypt` for the
-hash, a signed cookie session with a 30-day expiry, and the account seeded from
-environment variables at first boot. Still open: what happens on repeated failed
-attempts, and whether the password can be changed from inside the app.
-
 ## How does a saved article become a post?
 
-The RSS library saves articles you pick. Authoring happens in `.wzd`. Nothing
-connects them yet — copy and paste is the assumed answer, but a "start a post
-from this article" action is the obvious affordance and nobody has decided
-whether it exists.
-
-## Keyword matching in the scraper
-
-Scrapers are the declared RSS feeds, fetched and filtered by keywords you
-supply. Unspecified: which fields are matched (title only, or title + body),
-whether multiple keywords are AND or OR, and whether matching is fuzzy.
+The RSS library (brief 60) saves articles you pick. Authoring happens in
+`.wzd`. Nothing connects them yet — copy and paste is the assumed answer.
+Brief 60 deliberately did **not** build a "start a post from this article"
+action (it was in scope in the original brief text, but the dispatch for that
+wave withdrew it as undecided and left it for the editor brief, 59, to own).
+The API already has what such an action would need — `Article.title` and
+`Article.url` are enough to seed a starter `.wzd` document — so adding
+`POST /api/articles/:id/start-post` later is additive, not a redesign.

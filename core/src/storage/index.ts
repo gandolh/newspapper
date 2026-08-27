@@ -11,13 +11,6 @@ export {
   getArticlesByIds,
   removeArticle,
   countArticles,
-  // legacy
-  upsertArticles,
-  articlesForDate,
-  addManualArticle,
-  insertMany,
-  todays,
-  existsByUrl,
 } from './articles.js';
 export type { NewArticle, ArticleFilter } from './articles.js';
 

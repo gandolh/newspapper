@@ -359,3 +359,40 @@ on discipline alone; brief 52 then changed `Article` and added seven interfaces,
 and the mirror drifted silently. The entry is corrected, and brief 58 — which owns
 that file — has to both re-sync it and write the test the corpus has been claiming
 for months.
+
+## [2026-08-27] done | wave 3 — briefs 54, 55, 56, 60 in parallel
+
+Gates verified from the controller against the integrated tree: build passes,
+**546 tests pass** (up from 361), lint clean, and every new source directory
+confirmed tracked rather than gitignored.
+
+**54** compiled the language to `TNode`. Two compile paths, deliberately: the
+strict one lints and throws for the render pipeline, the forgiving one degrades
+in place for the live preview, because a document is broken most of the time
+while you are typing it. The compile is browser-safe, which is what makes brief
+59's "no second copy of style resolution" achievable rather than aspirational.
+
+**55** landed auth. Two questions `open-questions.md` had left open are now
+answered, and both went against the brief's own suggestion for good reasons —
+see `decisions-engineering.md`. It also found `/output/*` serving rendered
+slides to anyone who asked, and put them behind the guard.
+
+**56** landed uploads. The security work is in the brief's outcome note; the
+transferable lesson is the `.gitignore` one. `uploads/` unanchored also matches
+`core/src/uploads/`, so the entire new module would have gone invisible to git
+while building and testing green — and shipped as "done" until someone cloned
+the repo. Anchoring it to `/uploads/` fixes it, and the wave gate's
+tracked-not-just-on-disk check is what catches this class of thing.
+
+**60** turned `scrape()` into `searchArticles()` and stopped persisting scrape
+output, which let all six of brief 52's deprecated article shims be deleted.
+`/sources` is gone, folded into `/articles`.
+
+Two controller-lane integrations, because parallel briefs could not both edit
+the files: the uploads route registration into `api/src/server.ts`, and
+`UPLOADS_DIR`/`UPLOADS_BASE_URL` into `.env.example`.
+
+One deviation worth recording: brief 60's "start a post from this article" step
+was withdrawn at dispatch rather than implemented. It is genuinely undecided and
+the editor brief owns it; `open-questions.md` records that the API already
+carries what it would need.

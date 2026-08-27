@@ -1,8 +1,5 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { mkdtempSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
-import { scrape, pingSource } from './index.js';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { searchArticles, pingSource } from './index.js';
 import type { SourceConfig } from '../types.js';
 
 // Mock rss-parser and fetchBody so we don't hit the network
@@ -11,22 +8,13 @@ vi.mock('./rss.js', () => ({
 }));
 
 vi.mock('./body.js', () => ({
-  fetchBody: vi.fn().mockResolvedValue('article body text'),
+  fetchBody: vi.fn().mockResolvedValue(''),
   stripHtml: (html: string) => html,
 }));
 
-let tmpDir: string;
-
 beforeEach(() => {
-  tmpDir = mkdtempSync(join(tmpdir(), 'np-scrape-test-'));
   vi.clearAllMocks();
 });
-
-afterEach(() => {
-  rmSync(tmpDir, { recursive: true, force: true });
-});
-
-const TODAY = '2026-06-10';
 
 const sources: SourceConfig[] = [
   { id: 'bbc', name: 'BBC News', rss: 'https://bbc.co.uk/rss', enabled: true },
@@ -34,70 +22,132 @@ const sources: SourceConfig[] = [
   { id: 'rt', name: 'Reuters', rss: 'https://reuters.com/rss', enabled: true },
 ];
 
-function makeItem(title: string, url: string, date = TODAY) {
-  return { title, url, summary: `Summary of ${title}`, publishedAt: `${date}T10:00:00.000Z` };
+function makeItem(title: string, url: string, summary = '') {
+  return { title, url, summary, publishedAt: '2026-06-10T10:00:00.000Z' };
 }
 
-describe('scrape', () => {
-  it('only scrapes enabled sources', async () => {
+describe('searchArticles', () => {
+  it('only searches enabled sources', async () => {
     const { fetchFeed } = await import('./rss.js');
     const mockFetch = vi.mocked(fetchFeed);
-    mockFetch.mockResolvedValue([makeItem('BBC Article', 'https://bbc.co.uk/1')]);
+    mockFetch.mockResolvedValue([makeItem('BBC Article about budget', 'https://bbc.co.uk/1')]);
 
-    const result = await scrape(sources, { date: TODAY, dbPath: join(tmpDir, 'test.db') });
-    // CNN is disabled, so fetchFeed should only be called for bbc and rt
+    await searchArticles(sources, { keywords: ['budget'] });
     const calledUrls = mockFetch.mock.calls.map((c) => c[0]);
     expect(calledUrls).toContain('https://bbc.co.uk/rss');
     expect(calledUrls).not.toContain('https://cnn.com/rss');
     expect(calledUrls).toContain('https://reuters.com/rss');
   });
 
-  it('filters items to the given date', async () => {
+  it('matches case-insensitively across title and body', async () => {
     const { fetchFeed } = await import('./rss.js');
+    const { fetchBody } = await import('./body.js');
+    vi.mocked(fetchFeed).mockImplementation(async (url) => {
+      if (url.includes('bbc')) return [makeItem('Weather today', 'https://bbc.co.uk/1')];
+      return [];
+    });
+    vi.mocked(fetchBody).mockResolvedValue('A story about the BUDGET and taxes.');
+
+    const result = await searchArticles([sources[0]], { keywords: ['budget'] });
+    expect(result.articles).toHaveLength(1);
+    expect(result.articles[0].title).toBe('Weather today');
+  });
+
+  it('ORs multiple keywords — an article matching any one of them is included', async () => {
+    const { fetchFeed } = await import('./rss.js');
+    const { fetchBody } = await import('./body.js');
     vi.mocked(fetchFeed).mockImplementation(async (url) => {
       if (url.includes('bbc')) {
         return [
-          makeItem('Today Article', 'https://bbc.co.uk/today', TODAY),
-          makeItem('Old Article', 'https://bbc.co.uk/old', '2026-06-09'),
+          makeItem('Tax story', 'https://bbc.co.uk/1'),
+          makeItem('Sports story', 'https://bbc.co.uk/2'),
         ];
       }
       return [];
     });
+    vi.mocked(fetchBody).mockImplementation(async (url) => {
+      if (url.includes('/1')) return 'All about tax policy.';
+      return 'A football match report.';
+    });
 
-    const result = await scrape(sources, { date: TODAY, dbPath: join(tmpDir, 'test.db') });
-    // Only today's article should be in the result
+    const result = await searchArticles([sources[0]], { keywords: ['tax', 'football'] });
     const titles = result.articles.map((a) => a.title);
-    expect(titles).toContain('Today Article');
-    expect(titles).not.toContain('Old Article');
+    expect(titles).toContain('Tax story');
+    expect(titles).toContain('Sports story');
+  });
+
+  it('excludes items matching none of the keywords', async () => {
+    const { fetchFeed } = await import('./rss.js');
+    const { fetchBody } = await import('./body.js');
+    vi.mocked(fetchFeed).mockResolvedValue([makeItem('Unrelated', 'https://bbc.co.uk/1')]);
+    vi.mocked(fetchBody).mockResolvedValue('Nothing relevant here.');
+
+    const result = await searchArticles([sources[0]], { keywords: ['budget'] });
+    expect(result.articles).toHaveLength(0);
+  });
+
+  it('does not use word-boundary matching — a bare substring is enough', async () => {
+    const { fetchFeed } = await import('./rss.js');
+    const { fetchBody } = await import('./body.js');
+    vi.mocked(fetchFeed).mockResolvedValue([makeItem('Taxes are rising', 'https://bbc.co.uk/1')]);
+    vi.mocked(fetchBody).mockResolvedValue('');
+
+    const result = await searchArticles([sources[0]], { keywords: ['tax'] });
+    expect(result.articles).toHaveLength(1);
+  });
+
+  it('ranks by total keyword match count, highest first', async () => {
+    const { fetchFeed } = await import('./rss.js');
+    const { fetchBody } = await import('./body.js');
+    vi.mocked(fetchFeed).mockResolvedValue([
+      makeItem('One mention', 'https://bbc.co.uk/1'),
+      makeItem('Three mentions', 'https://bbc.co.uk/2'),
+    ]);
+    vi.mocked(fetchBody).mockImplementation(async (url) => {
+      if (url.includes('/1')) return 'budget once';
+      return 'budget budget budget';
+    });
+
+    const result = await searchArticles([sources[0]], { keywords: ['budget'] });
+    expect(result.articles[0].title).toBe('Three mentions');
+    expect(result.articles[0].matchCount).toBe(3);
+    expect(result.articles[1].matchCount).toBe(1);
+  });
+
+  it('rejects an empty keyword list', async () => {
+    await expect(searchArticles([sources[0]], { keywords: [] })).rejects.toThrow(
+      /keyword is required/,
+    );
+    await expect(searchArticles([sources[0]], { keywords: ['  '] })).rejects.toThrow(
+      /keyword is required/,
+    );
   });
 
   it('per-source failures are collected in errors without aborting', async () => {
     const { fetchFeed } = await import('./rss.js');
     vi.mocked(fetchFeed).mockImplementation(async (url) => {
       if (url.includes('bbc')) throw new Error('Connection refused');
-      return [makeItem('Reuters Article', 'https://reuters.com/1')];
+      return [makeItem('Reuters budget article', 'https://reuters.com/1')];
     });
 
-    const result = await scrape(sources, { date: TODAY, dbPath: join(tmpDir, 'test.db') });
+    const result = await searchArticles(sources, { keywords: ['budget'] });
     expect(result.errors).toHaveLength(1);
     expect(result.errors[0].sourceId).toBe('bbc');
     expect(result.errors[0].error).toContain('Connection refused');
-    // Reuters still scraped
     const titles = result.articles.map((a) => a.title);
-    expect(titles).toContain('Reuters Article');
+    expect(titles).toContain('Reuters budget article');
   });
 
   it('emits progress events for each source', async () => {
     const { fetchFeed } = await import('./rss.js');
     vi.mocked(fetchFeed).mockImplementation(async (url) => {
-      if (url.includes('bbc')) return [makeItem('BBC Item', 'https://bbc.co.uk/item')];
+      if (url.includes('bbc')) return [makeItem('BBC budget item', 'https://bbc.co.uk/item')];
       throw new Error('fail');
     });
 
     const events: Array<{ sourceId: string; status: string }> = [];
-    await scrape(sources, {
-      date: TODAY,
-      dbPath: join(tmpDir, 'test.db'),
+    await searchArticles(sources, {
+      keywords: ['budget'],
       onProgress: (e) => events.push(e),
     });
 
@@ -110,44 +160,29 @@ describe('scrape', () => {
     expect(rtEvents.find((e) => e.status === 'error')).toBeDefined();
   });
 
-  it('re-scraping accumulates articles (deduplication by URL)', async () => {
-    const { fetchFeed } = await import('./rss.js');
-    const dbPath = join(tmpDir, 'test.db');
-
-    vi.mocked(fetchFeed).mockResolvedValue([makeItem('Article 1', 'https://bbc.co.uk/art1')]);
-    const r1 = await scrape([sources[0]], { date: TODAY, dbPath });
-
-    // Second run returns same article plus a new one
-    vi.mocked(fetchFeed).mockResolvedValue([
-      makeItem('Article 1', 'https://bbc.co.uk/art1'),
-      makeItem('Article 2', 'https://bbc.co.uk/art2'),
-    ]);
-    const r2 = await scrape([sources[0]], { date: TODAY, dbPath });
-
-    // Both articles should be in r2 (accumulated)
-    const titles2 = r2.articles.map((a) => a.title);
-    expect(titles2).toContain('Article 1');
-    expect(titles2).toContain('Article 2');
-    // No duplicates
-    expect(titles2.filter((t) => t === 'Article 1')).toHaveLength(1);
-  });
-
-  it('respects maxPerSource limit', async () => {
+  it('respects maxPerSource — limits how many feed items are considered', async () => {
     const { fetchFeed } = await import('./rss.js');
     vi.mocked(fetchFeed).mockResolvedValue([
-      makeItem('A1', 'https://bbc.co.uk/a1'),
-      makeItem('A2', 'https://bbc.co.uk/a2'),
-      makeItem('A3', 'https://bbc.co.uk/a3'),
-      makeItem('A4', 'https://bbc.co.uk/a4'),
-      makeItem('A5', 'https://bbc.co.uk/a5'),
+      makeItem('A1 budget', 'https://bbc.co.uk/a1'),
+      makeItem('A2 budget', 'https://bbc.co.uk/a2'),
+      makeItem('A3 budget', 'https://bbc.co.uk/a3'),
+      makeItem('A4 budget', 'https://bbc.co.uk/a4'),
+      makeItem('A5 budget', 'https://bbc.co.uk/a5'),
     ]);
 
-    const result = await scrape([sources[0]], {
-      date: TODAY,
-      dbPath: join(tmpDir, 'test.db'),
+    const result = await searchArticles([sources[0]], {
+      keywords: ['budget'],
       maxPerSource: 2,
     });
     expect(result.articles.length).toBeLessThanOrEqual(2);
+  });
+
+  it('never calls into storage — a search is a read-only network operation', async () => {
+    const { fetchFeed } = await import('./rss.js');
+    vi.mocked(fetchFeed).mockResolvedValue([makeItem('Budget news', 'https://bbc.co.uk/1')]);
+    const result = await searchArticles([sources[0]], { keywords: ['budget'] });
+    expect(result.articles[0]).not.toHaveProperty('id');
+    expect(result.articles[0]).not.toHaveProperty('savedAt');
   });
 });
 

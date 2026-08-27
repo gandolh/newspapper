@@ -1,6 +1,6 @@
 ---
 summary: What each workspace depends on and why that package was chosen over the alternatives.
-updated: 2026-08-27
+updated: 2026-08-28
 ---
 
 # Dependencies
@@ -16,6 +16,7 @@ Per-workspace. Versions are locked in `package-lock.json`.
 | `fflate` | Pure-JS zip for `zipRun()` (no native binary needed). |
 | `playwright` | Headless Chromium for 1080×1080 slide screenshots. |
 | `rss-parser` | RSS/Atom feed parsing (normalized items, zero-config). |
+| `sharp` | Image normalization for uploads (auto-orient, downscale to 2160px, strip EXIF) and the optimization pass on publish. Pinned to `0.35.4`. Added 2026-08-27, when [the v2-era ban was lifted](./decisions.md#sharp-is-allowed-for-images-only) — that rule existed because the project had no images to process, and images are now a first-class component. The rest of the forbidden list (canvas, cheerio, Handlebars, inquirer, ora, axios, Satori) still stands. |
 
 ## `api/` — `@newspapper/api`
 
@@ -23,7 +24,8 @@ Per-workspace. Versions are locked in `package-lock.json`.
 |---------|-----|
 | `fastify` | HTTP server with schema-based request handling and plugin system. |
 | `@fastify/cors` | CORS for dev-mode Astro proxy requests from port 4321. |
-| `@fastify/static` | Serves `/assets/fonts/`, `/output/`, and `ui/dist/` in prod. |
+| `@fastify/static` | Serves `/assets/fonts/`, `/output/`, and `ui/dist/` in prod. Not used for `/uploads/` — that route resolves refs through the DB and streams the file itself. |
+| `@fastify/multipart` | Parses the single-file `POST /api/uploads` body, with a streaming 10 MB `fileSize` limit so an oversized upload is cut off rather than buffered. |
 | `@newspapper/core` | All pipeline logic. |
 
 ## `ui/` — `@newspapper/ui`
@@ -63,5 +65,6 @@ Per-workspace. Versions are locked in `package-lock.json`.
 
 - **`better-sqlite3`** — C++ toolchain needed on source build; prebuilt binaries ship for common platforms.
 - **`playwright`** — downloads Chromium on `npx playwright install chromium`; no toolchain needed at install time.
+- **`sharp`** — prebuilt libvips binaries ship per platform (`@img/sharp-*`); no toolchain needed on the supported ones.
 
 No Python. No system libraries beyond `libc`.

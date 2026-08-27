@@ -51,3 +51,28 @@ from. Scrape results are transient — only saved articles are persisted
 - "Start a post from this" produces a document that parses, lints clean, and
   renders.
 - `corpus/wiki/api.md` reflects the reworked routes.
+
+---
+
+## Outcome — 2026-08-27
+
+Done. `scrape()` became `searchArticles(sources, { keywords, ... })` and
+**persists nothing** — v3 saves only the articles you pick, which is what let the
+six deprecated shims 52 left behind (`upsertArticles`, `articlesForDate`,
+`addManualArticle`, `insertMany`, `todays`, `existsByUrl`) all be deleted.
+
+Keyword matching is settled and recorded in `wiki/decisions.md`: title + body,
+OR across keywords, case-insensitive substring, ranked by total occurrence count
+rather than by how many distinct keywords hit — that rewards an article actually
+about the topic over one mentioning it once.
+
+`/sources` is deleted and folded into `/articles` as a third tab, reusing
+`SourcesIsland` unchanged. Brief 62 needs to know when it builds the page map.
+
+**Scope withdrawn at dispatch:** "start a post from this article" was in the
+brief text but pulled for this wave — it is undecided and the editor (brief 59)
+owns it. `wiki/open-questions.md` notes the API already carries what it needs.
+
+`ui/src/components/wizard/ScrapeStep.tsx` still calls `/api/scrape` with the old
+`{ maxPerSource }` shape. Dead code, out of this brief's ownership; brief 62
+deletes `ui/src/components/wizard/**` wholesale.

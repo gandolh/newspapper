@@ -21,11 +21,25 @@ export class ApiError extends Error {
 // Core fetch wrapper
 // ---------------------------------------------------------------------------
 
+/** Where an unauthenticated browser is sent. */
+export const LOGIN_PATH = '/login';
+
+/** Routes that answer 401 as a normal outcome rather than a lost session. */
+const NO_REDIRECT = new Set(['/api/login', '/api/logout']);
+
+function redirectToLogin(path: string): void {
+  if (typeof window === 'undefined') return;
+  if (NO_REDIRECT.has(path)) return;
+  if (window.location.pathname === LOGIN_PATH) return;
+  const next = window.location.pathname + window.location.search;
+  window.location.assign(`${LOGIN_PATH}?next=${encodeURIComponent(next)}`);
+}
+
 export async function api<T = unknown>(
   path: string,
-  opts?: RequestInit & { json?: unknown },
+  opts?: RequestInit & { json?: unknown; skipAuthRedirect?: boolean },
 ): Promise<T> {
-  const { json, ...rest } = opts ?? {};
+  const { json, skipAuthRedirect, ...rest } = opts ?? {};
 
   const headers = new Headers(rest.headers);
   let body: BodyInit | undefined = rest.body as BodyInit | undefined;
@@ -46,6 +60,7 @@ export async function api<T = unknown>(
     } catch {
       // ignore parse failure
     }
+    if (res.status === 401 && !skipAuthRedirect) redirectToLogin(url);
     throw new ApiError(res.status, message);
   }
 
@@ -93,6 +108,7 @@ export async function sse(
     } catch {
       // ignore
     }
+    if (res.status === 401) redirectToLogin(url);
     throw new ApiError(res.status, message);
   }
 

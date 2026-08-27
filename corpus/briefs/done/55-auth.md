@@ -53,3 +53,31 @@ renderer.
 - Cookie is `httpOnly` and signed; tampering with it produces a 401.
 - `corpus/wiki/configuration.md` documents the new env vars, and `.env.example`
   lists them.
+
+---
+
+## Outcome — 2026-08-27
+
+Done, 65 tests, no new dependency — `node:crypto` throughout, cookies parsed and
+serialized by hand. scrypt with a per-user salt in a self-describing
+`scrypt$N$r$p$salt$hash` format so the cost can be raised later without
+invalidating accounts; `timingSafeEqual` for both the password and the session
+HMAC, with a length guard first so a truncated cookie returns 401 rather than
+throwing; a memoised dummy hash so a bad username costs the same wall-clock as a
+bad password; scrypt parameters bounds-checked on parse so a tampered stored hash
+cannot trigger memory exhaustion.
+
+The guard is a **root-level `onRequest` hook**, not a Fastify plugin and not
+`preHandler` as the brief worded it. A plugin would encapsulate the hook and miss
+other plugins' routes; `onRequest` rejects before body parsing, so an
+unauthenticated 20 MB upload is refused without being buffered.
+
+Both open questions from `wiki/open-questions.md` were answered here and are
+recorded in `wiki/decisions-engineering.md`: address-keyed lockout returning 429
+rather than an artificial delay, and password rotation via `POST /api/password`.
+
+Beyond the brief: `/output/*` was being served unauthenticated. The rendered
+slides are the app's content, so the guard covers them now too.
+
+Left open deliberately: no logout button (the sidebar belongs to brief 62) and
+no password-change form (the brief says not to; the endpoint is ready).

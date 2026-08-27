@@ -13,12 +13,14 @@ import {
   type WzdElement,
   type WzdLoc,
   type WzdNode,
+  type WzdText,
 } from './ast.js';
 import {
   WZD_REQUIRED_HEAD_FIELDS,
   getComponentSpec,
   type WzdComponentSpec,
 } from './catalogue.js';
+import { bindingMessage, unresolvedBindings } from './bindings.js';
 import {
   sortDiagnostics,
   type WzdDiagnostic,
@@ -49,8 +51,27 @@ function zeroWidth(loc: WzdLoc): WzdLoc {
   return { start: loc.start, end: loc.start };
 }
 
+/** A range inside a text node, mapped back to document coordinates. */
+function sliceLoc(node: WzdText, start: number, end: number): WzdLoc {
+  let line = node.loc.start.line;
+  let column = node.loc.start.column;
+  let startPos = node.loc.start;
+  for (let i = 0; i <= node.raw.length; i++) {
+    if (i === start) startPos = { offset: node.loc.start.offset + i, line, column };
+    if (i === end) return { start: startPos, end: { offset: node.loc.start.offset + i, line, column } };
+    if (node.raw[i] === '\n') {
+      line += 1;
+      column = 1;
+    } else {
+      column += 1;
+    }
+  }
+  return node.loc;
+}
+
 class Linter {
   private readonly findings: WzdDiagnostic[] = [];
+  private head: Record<string, string> = {};
   private readonly minSlides: number;
   private readonly maxSlides: number;
 
@@ -69,6 +90,7 @@ class Linter {
   }
 
   run(doc: WzdDocument): WzdDiagnostic[] {
+    this.head = doc.head;
     this.checkDocument(doc);
     this.checkNodes(doc.children, null, []);
     return sortDiagnostics(this.findings);
@@ -150,7 +172,7 @@ class Linter {
     for (const node of nodes) {
       if (node.kind === 'comment') continue;
       if (node.kind === 'text') {
-        this.checkText(node.loc, parent, parentSpec);
+        this.checkText(node, parent, parentSpec);
         continue;
       }
       this.checkElement(node, parent, parentSpec, ancestors);
@@ -159,7 +181,7 @@ class Linter {
   }
 
   private checkText(
-    loc: WzdLoc,
+    node: WzdText,
     parent: WzdElement | null,
     parentSpec: WzdComponentSpec | undefined,
   ): void {
@@ -168,7 +190,7 @@ class Linter {
         'misplaced-element',
         'error',
         'Text cannot sit at the top level. Put it inside a component, inside a <Slide>.',
-        loc,
+        node.loc,
       );
       return;
     }
@@ -177,7 +199,26 @@ class Linter {
         'misplaced-element',
         'error',
         `<${parent.type}> holds elements, not text. Wrap the words in a <Text> or <Heading>.`,
-        loc,
+        node.loc,
+      );
+      return;
+    }
+    this.checkBindings(node, parentSpec);
+  }
+
+  /**
+   * `{date}` resolves from `<head>`; one that cannot is an error rather than a
+   * silently empty slide. Bindings are a slide feature, so `<head>` text is
+   * not scanned.
+   */
+  private checkBindings(node: WzdText, parentSpec: WzdComponentSpec | undefined): void {
+    if (!parentSpec || parentSpec.role !== 'component') return;
+    for (const binding of unresolvedBindings(node.raw, this.head)) {
+      this.add(
+        'unknown-binding',
+        'error',
+        bindingMessage(binding),
+        sliceLoc(node, binding.start, binding.end),
       );
     }
   }

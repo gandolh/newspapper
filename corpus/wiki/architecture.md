@@ -1,6 +1,6 @@
 ---
 summary: How the three npm workspaces fit together and how a post flows scrape → compose → edit → render → ZIP.
-updated: 2026-08-27
+updated: 2026-08-28
 ---
 
 # Architecture
@@ -16,7 +16,8 @@ newspapper/          ← repo root (concurrently, vitest, ts, eslint)
   ui/                ← @newspapper/ui: Astro + React islands (port 4321)
   assets/            ← fonts/, design-systems/, templates/
   data/              ← sources.json, prompt.md, newspapper.db (gitignored)
-  output/            ← rendered PNGs per run (gitignored)
+  output/            ← rendered slide images per run (gitignored)
+  uploads/           ← originals/ + normalized/ image store (gitignored, UPLOADS_DIR)
   plans/swarm/       ← agent build plans (reference only)
 ```
 
@@ -31,13 +32,15 @@ Pure library: no HTTP, no side effects at import time. Exports:
 - **scrape** — RSS + body fetch, article deduplication into SQLite
 - **storage** — SQLite CRUD for `articles`, `posts`, `settings`; sources.json + prompt.md helpers
 - **themes** — JSON design-system loader (`loadTheme`, `listThemes`)
+- **uploads** — image store paths, ref generation, Sharp normalization (`saveUpload`, `deleteUpload`, `resolveUploadSrc`)
 
 ### `api/` — Fastify server
 
 Thin HTTP layer over `@newspapper/core`. Registers route plugins for every feature area. Uses SSE for long-running operations (scrape, compose, render). Serves:
 - `/api/*` — all endpoints
 - `/assets/fonts/*` — Inter TTF files (for `renderTemplate` font-face URLs)
-- `/output/*` — rendered PNGs
+- `/output/*` — rendered slide images
+- `/uploads/<ref>` — uploaded images; public, so headless Chromium can fetch them mid-render
 - `/` — `ui/dist/` (prod only, when built)
 
 ### `ui/` — Astro + React

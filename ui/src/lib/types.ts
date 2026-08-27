@@ -34,13 +34,26 @@ export interface PostPayload {
 
 export interface Article {
   id: number;
-  sourceId: string;
+  sourceId: string | null;
   sourceName: string;
+  guid: string;
   title: string;
   url: string | null;
   publishedAt: string;
   body: string;
-  createdAt: string;
+  savedAt: string;
+}
+
+/** A search hit — not yet saved. Returned by POST /api/scrape, never persisted. */
+export interface ScrapedArticle {
+  sourceId: string;
+  sourceName: string;
+  guid: string;
+  title: string;
+  url: string;
+  body: string;
+  publishedAt: string;
+  matchCount: number;
 }
 
 export interface PostRow {
@@ -88,4 +101,10 @@ export interface SourceConfig {
 
 export interface Settings {
   defaultTheme: string;
+}
+
+export interface User {
+  id: number;
+  username: string;
+  createdAt: string;
 }

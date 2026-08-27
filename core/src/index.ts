@@ -10,8 +10,8 @@ export * from './storage/index.js';
 export { fetchBody, stripHtml } from './scrape/body.js';
 export { fetchFeed } from './scrape/rss.js';
 export type { RssItem } from './scrape/rss.js';
-export { scrape, pingSource } from './scrape/index.js';
-export type { ScrapeOptions, ScrapeResult, ScrapeProgressEvent, PingResult } from './scrape/index.js';
+export { searchArticles, pingSource } from './scrape/index.js';
+export type { SearchOptions, SearchResult, ScrapedArticle, ScrapeProgressEvent, PingResult } from './scrape/index.js';
 
 // Util
 export { loadConfig } from './util/config.js';
@@ -42,3 +42,6 @@ export {
   deleteTemplate,
   templatesForFamily,
 } from './templates/registry.js';
+
+// Image uploads (Node-only) — store paths, Sharp normalization, ref resolution
+export * from './uploads/index.js';
