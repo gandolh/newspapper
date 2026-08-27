@@ -447,3 +447,26 @@ improvise.
 Brief 65 also picks up the every-theme `missingThemeTokens` acceptance test that
 61 verified by script but could not commit, since it belongs in `core/src/**`.
 It runs in wave 5 beside the editor; their file sets are disjoint.
+
+## [2026-08-27] resume | paused mid-wave-5; resume point written
+
+Paused at the user's request. Nine of fifteen briefs are done on
+`wizard-rebuild` at `fd96b9f`, whose gates were re-run in the same turn this was
+written: build passes, 526/526 tests, lint clean, corpus lint clean.
+
+Briefs 59 and 65 were **in flight** when the pause came, which is the one state
+the wave gate is designed to avoid. Brief 59 had already deleted the pre-pivot
+editor without landing its replacement, so the working tree did not build, and
+neither agent had produced a Handoff report — without those there is no record
+of what either intended.
+
+Rather than leave that for a fresh session, both agents were stopped, the partial
+diff was committed to a dead-end branch `wave5-partial-abandoned` (`11d78f8`, 30
+files, +688 −1891) so nothing is destroyed, and `wizard-rebuild` was returned to
+`fd96b9f`. **59 and 65 get re-dispatched from their briefs, not resumed.**
+
+The resume document is [`resume-2026-08-27.md`](resume-2026-08-27.md), linked
+from `index.md` and `wiki/status.md`. It carries the wave plan and why it differs
+from the filed one, the file-ownership collisions and the two lanes assigned
+around them, the ruling ledger, the two live defects (both filed as brief 65),
+and the three "green because nothing ran" incidents this run turned up.

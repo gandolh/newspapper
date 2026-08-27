@@ -7,6 +7,12 @@ updated: 2026-08-27
 
 _Snapshot: 2026-08-27_
 
+> **Paused mid-run.** Nine of fifteen briefs are done on branch `wizard-rebuild`
+> at `fd96b9f` (build, 526 tests, lint and corpus lint all verified green there).
+> Briefs 59 and 65 were stopped mid-flight and must be **re-dispatched from
+> scratch**, not resumed. Full state, rulings and restart steps:
+> [../resume-2026-08-27.md](../resume-2026-08-27.md).
+
 **Where things stand.** v3 is complete, verified, and **being replaced**. A
 grilling session on 2026-08-27 pivoted the product: Newspapper no longer
 generates copy with a model, and posts are now authored as

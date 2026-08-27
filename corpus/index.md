@@ -5,6 +5,7 @@ The project's knowledge and work, as an LLM-maintained wiki. Start here.
 - [CLAUDE.md](CLAUDE.md) — the conventions for this corpus. Read before editing it.
 - [routing.md](routing.md) — which layer answers which kind of question.
 - [log.md](log.md) — append-only record of every meaningful change.
+- **[resume-2026-08-27.md](resume-2026-08-27.md) — the rebuild is paused mid-run. Read this first if you are starting cold.**
 - [briefs/](briefs/) — work specs: [todo](briefs/todo/) · [done](briefs/done/) · [superseded](briefs/superseded/)
 - [todos/](todos/) — captured ideas, pre-spec.
 
