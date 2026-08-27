@@ -1,3 +1,8 @@
+---
+summary: The warm-industrial token set and how template JSON docs drive the renderer and the visual builder.
+updated: 2026-08-27
+---
+
 # Design Systems
 
 One theme ships: **warm-industrial**. The `digital-broadsheet` theme was removed in v2.
@@ -60,7 +65,7 @@ The tokens above (`assets/design-systems/warm-industrial.json`) drive **slide re
 **UI chrome** (wizard, history, sources, settings, builder) has its own design system:
 
 - **Tokens:** CSS custom properties in `ui/src/styles/global.css` (`:root`). Includes surfaces, the terracotta accent + `--primary-soft`/`--surface-tint`, semantic `--success`/`--error`/`--warning` (each with `-emphasis`/`-container`), spacing, radii, and the `--content-max` (1080px) / `--content-narrow` (720px) layout columns.
-- **Canonical reference:** `DESIGN.md` at the repo root (Stitch format) documents the full system — palette, type scale, elevation, components, and the named rules ("The One Voice Rule", "The Earned-Label Rule", etc.). `PRODUCT.md` carries the strategic register. `.impeccable/design.json` is the machine-readable sidecar.
+- **Canonical reference:** `DESIGN.md` at the repo root (Stitch format) documents the full system — palette, type scale, elevation, components, and the named rules ("The One Voice Rule", "The Earned-Label Rule", etc.). `PRODUCT.md` carries the strategic register.
 - **Shared primitives:** `ui/src/components/ui/` — `Button`, `Card`, `Input`, `Textarea`, `Select`, `Toggle`, `Badge`, `Skeleton`, `PageHeader`, `Stepper`, `Modal`, `ConfirmDialog`, `Toast`, etc. Pages and feature components compose these; the page-top title/subtitle/actions pattern is `PageHeader`. **Avoid raw `<input>`/`<select>`/`<button>`/dialog elements in feature components — route them through this library.** A native element is acceptable only when no primitive fits (e.g. `<input type="color">`, the cursor-aware text-node `<textarea>` in the builder Inspector).
 - **Base UI foundation:** the interactive/overlay primitives are built on [`@base-ui/react`](https://base-ui.com) (headless + accessible), styled with the tokens above. The wrapper APIs are stable, but two follow Base UI's value-callback convention: `Select` uses `value` + `onValueChange(value)` and `Toggle` (a Base UI `Switch`) uses `checked` + `onCheckedChange(checked)` — not the native `onChange`. `Modal` wraps `Dialog`; `Toast`'s `ToastProvider`/`useToast().addToast()` API is unchanged but backed by Base UI's toast manager.
 - **Navigation:** one shared `ui/src/components/Sidebar.astro` renders the nav rail for every page (App-layout pages and the full-screen builder). It owns the nav links, the Lucide SVG icon set, and `transition:persist` so it survives view transitions. Both layouts mount Astro's `<ClientRouter />`, so page changes crossfade instead of full-reloading.

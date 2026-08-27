@@ -1,3 +1,8 @@
+---
+summary: Every env var, where settings come from and which source wins, and the Playwright Chromium install step.
+updated: 2026-08-27
+---
+
 # Configuration
 
 ## `.env`

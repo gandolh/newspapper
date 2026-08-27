@@ -47,16 +47,19 @@ One theme ships: `warm-industrial`. Soft brutalism, terracotta accent (`#a2391a`
 
 ## Documentation
 
-Full docs in [`docs/`](docs/index.md):
+Everything lives in [`corpus/`](corpus/index.md) — start at the index.
 
-- [commands.md](docs/commands.md) — npm scripts and ports
-- [architecture.md](docs/architecture.md) — monorepo layout and pipeline
-- [api.md](docs/api.md) — HTTP route table
-- [data.md](docs/data.md) — SQLite schema and data formats
-- [modules.md](docs/modules.md) — core library APIs
-- [configuration.md](docs/configuration.md) — env vars and setup
-- [design-systems.md](docs/design-systems.md) — warm-industrial theme and template system
-- [dependencies.md](docs/dependencies.md) — package list per workspace
+- [overview.md](corpus/wiki/overview.md) — what this is and why it looks this way
+- [status.md](corpus/wiki/status.md) — where things stand right now
+- [commands.md](corpus/wiki/commands.md) — npm scripts and ports
+- [architecture.md](corpus/wiki/architecture.md) — monorepo layout and pipeline
+- [api.md](corpus/wiki/api.md) — HTTP route table
+- [data.md](corpus/wiki/data.md) — SQLite schema and data formats
+- [modules.md](corpus/wiki/modules.md) — core library APIs
+- [configuration.md](corpus/wiki/configuration.md) — env vars and setup
+- [design-systems.md](corpus/wiki/design-systems.md) — warm-industrial theme and template system
+- [dependencies.md](corpus/wiki/dependencies.md) — package list per workspace
+- [decisions.md](corpus/wiki/decisions.md) — the locked calls, and what they rejected
 
 ## License
 

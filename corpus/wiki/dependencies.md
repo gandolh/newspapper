@@ -1,3 +1,8 @@
+---
+summary: What each workspace depends on and why that package was chosen over the alternatives.
+updated: 2026-08-27
+---
+
 # Dependencies
 
 Per-workspace. Versions are locked in `package-lock.json`.

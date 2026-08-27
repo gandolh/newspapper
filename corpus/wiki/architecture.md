@@ -1,3 +1,8 @@
+---
+summary: How the three npm workspaces fit together and how a post flows scrape → compose → edit → render → ZIP.
+updated: 2026-08-27
+---
+
 # Architecture
 
 ## Overview
@@ -41,7 +46,7 @@ Static Astro site with React islands for interactive pages. Dev proxy sends `/ap
 
 Pages: `/` (wizard), `/history`, `/sources`, `/settings`, `/prompt`, `/builder`.
 
-Every page mounts Astro's `<ClientRouter />` for crossfade navigation and renders the shared `components/Sidebar.astro` nav rail (`transition:persist`). Interactive UI is built from the `components/ui/` primitive library, which wraps `@base-ui/react`. See `docs/design-systems.md` for the component conventions.
+Every page mounts Astro's `<ClientRouter />` for crossfade navigation and renders the shared `components/Sidebar.astro` nav rail (`transition:persist`). Interactive UI is built from the `components/ui/` primitive library, which wraps `@base-ui/react`. See [design-systems.md](./design-systems.md) for the component conventions.
 
 ## Pipeline
 

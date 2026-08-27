@@ -1,3 +1,8 @@
+---
+summary: The public API of @newspapper/core — what each module actually exports and from which entry point.
+updated: 2026-08-27
+---
+
 # Modules
 
 All modules are in `@newspapper/core` (`core/src/`). Exported from `core/src/index.ts` (main entry) or `core/src/templates/index.ts` (browser-safe subpath).

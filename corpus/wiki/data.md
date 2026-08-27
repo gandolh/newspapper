@@ -1,3 +1,8 @@
+---
+summary: On-disk and in-DB shapes: the SQLite schema, TemplateDoc, PostPayload, sources.json, and the output/ folder convention.
+updated: 2026-08-27
+---
+
 # Data
 
 ## SQLite — `data/newspapper.db`

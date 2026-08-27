@@ -1,3 +1,8 @@
+---
+summary: Which npm script to run for dev, build, test, lint, and format, and what ports they bind.
+updated: 2026-08-27
+---
+
 # Running the App
 
 Newspapper v3 is a local web app. There is no CLI. Everything runs through the browser UI or the HTTP API.

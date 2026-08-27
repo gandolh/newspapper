@@ -37,7 +37,7 @@ Three npm workspaces:
 
 Pipeline: scrape → compose → (edit slides) → render (Playwright Chromium) → ZIP.
 
-See [docs/architecture.md](docs/architecture.md) for the full module map and SSE protocol.
+See [corpus/wiki/architecture.md](corpus/wiki/architecture.md) for the full module map and SSE protocol.
 
 ## Data
 
@@ -53,7 +53,7 @@ See [docs/architecture.md](docs/architecture.md) for the full module map and SSE
 
 Both `data/` and `output/` are gitignored. The DB is auto-created.
 
-Full schemas: [docs/data.md](docs/data.md).
+Full schemas: [corpus/wiki/data.md](corpus/wiki/data.md).
 
 ## LLM
 
@@ -79,41 +79,47 @@ The `digital-broadsheet` theme was removed in v2. Satori/resvg rendering was rem
 ## Tests
 
 Co-located: `core/src/**/*.test.ts` and `api/src/**/*.test.ts`, run with `vitest`. Prefer unit tests on JSON parsing and date filtering over snapshot tests on rendered PNGs.
+## Corpus (the project wiki)
 
-## Wiki
+Project knowledge and work live in [`corpus/`](corpus/) — an LLM-maintained
+wiki. **[`corpus/index.md`](corpus/index.md) is the entry point; read it before
+anything else.**
+[`corpus/CLAUDE.md`](corpus/CLAUDE.md) carries the full rules.
 
-Project documentation lives in `docs/` and is maintained by Claude Code sessions. `docs/index.md` is the entry point.
+The short version:
 
-### Pages
-
-| File | Contents |
-|------|----------|
-| `docs/index.md` | Catalog — read this to find anything |
-| `docs/log.md` | Append-only change log |
-| `docs/commands.md` | Running the app (npm scripts, ports) |
-| `docs/architecture.md` | Monorepo layout, pipeline, SSE protocol |
-| `docs/data.md` | SQLite schema, TemplateDoc format, PostPayload |
-| `docs/modules.md` | core module APIs |
-| `docs/configuration.md` | Env vars, settings precedence, Playwright setup |
-| `docs/design-systems.md` | warm-industrial tokens, template JSON system |
-| `docs/dependencies.md` | Package list per workspace + rationale |
-| `docs/api.md` | Full HTTP route table |
+- **Retrieval budget** — `index.md`, then **at most 2–3 wiki pages**. Triage on
+  each page's `summary:` frontmatter instead of opening it. Needing a fourth
+  page means a page must split.
+- **Layers** — `corpus/wiki/` is curated synthesis (the LLM owns it and rewrites
+  it freely); `corpus/briefs/` holds immutable work specs; `corpus/todos/`
+  captures pre-spec ideas; `corpus/log.md` is the append-only history.
+- **Start cold at** [`corpus/wiki/overview.md`](corpus/wiki/overview.md), then
+  [`status.md`](corpus/wiki/status.md).
+- **Before changing an approach**, check
+  [`corpus/wiki/decisions.md`](corpus/wiki/decisions.md) — the constraints below
+  are the *what*; that page is the *why*, and it is not to be relitigated
+  without an explicit revisit plus a log entry.
+- **Never read `briefs/` or `todos/` wholesale.**
 
 ### Maintenance rules
 
-1. **When you change route behavior** → update `docs/api.md`.
-2. **When you change a schema** → update `docs/data.md`.
-3. **When you add, remove, or rename a module** → update `docs/modules.md` and `docs/architecture.md`.
-4. **When you add or drop a dependency** → update `docs/dependencies.md`.
-5. **When you change env vars or setup** → update `docs/configuration.md` and `.env.example`.
-6. **After any wiki update** → append one line to `docs/log.md`:
+1. **When you change route behavior** → update `corpus/wiki/api.md`.
+2. **When you change a schema** → update `corpus/wiki/data.md`.
+3. **When you add, remove, or rename a module** → update `corpus/wiki/modules.md` and `corpus/wiki/architecture.md`.
+4. **When you add or drop a dependency** → update `corpus/wiki/dependencies.md`.
+5. **When you change env vars or setup** → update `corpus/wiki/configuration.md` and `.env.example`.
+6. **When you lock a technical choice** → add an entry to `corpus/wiki/decisions.md` with what it rejected and why.
+7. **After any corpus change** → append one entry to `corpus/log.md`:
    ```
-   ## [YYYY-MM-DD] action | one-line summary
+   ## [YYYY-MM-DD] kind | one-line summary
    ```
-7. **If you add a wiki page** → register it in the `docs/index.md` table.
+8. **If you add a wiki page** → give it `summary:` + `updated:` frontmatter and run `bash corpus/lint.sh --index`.
+9. **Before committing corpus changes** → `bash corpus/lint.sh` must exit clean. Don't commit unless asked.
 
-### What NOT to put in the wiki
+### What NOT to put in the corpus
 
 - Contents of `data/` or `output/` — both gitignored, ephemeral.
-- In-progress task state — use TodoWrite.
+- In-progress task state — use TodoWrite. `corpus/` is for what outlives the session.
 - One-session debugging notes — put them in the PR description.
+- A code graph's output as fact. The corpus is the *why*; structural questions go to `grep` (see [`corpus/routing.md`](corpus/routing.md)).

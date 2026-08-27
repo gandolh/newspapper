@@ -19,3 +19,9 @@ build/
 # Temporary files
 *.tmp
 *.temp
+
+# Design tooling sidecar
+.impeccable/
+
+# Local-only skills (voice guide)
+.claude/skills/

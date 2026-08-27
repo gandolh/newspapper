@@ -1,3 +1,8 @@
+---
+summary: Every HTTP route the Fastify API exposes — method, path, body, response shape, and which ones stream SSE.
+updated: 2026-08-27
+---
+
 # HTTP API
 
 All endpoints are prefixed with `/api/`. The server runs on port 3001 by default.
