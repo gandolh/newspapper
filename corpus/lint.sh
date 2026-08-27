@@ -16,9 +16,7 @@ MAX_BODY_LINES=200
 # these is stale by definition. Add a root here when you retire a directory.
 ABANDONED_ROOTS=(
   "docs/"          # → corpus/ (2026-08-27)
-  ".impeccable/"   # removed 2026-08-27
-  ".windsurf/"     # removed 2026-08-27
-  ".claude/skills" # project-local skills removed 2026-08-27
+  ".claude/skills" # project-local skill copies removed 2026-08-27
   "plans/swarm/0"  # briefs → corpus/briefs/done/ (2026-08-27)
   "plans/swarm/1"
   "plans/swarm/2"
