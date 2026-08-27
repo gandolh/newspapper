@@ -1,6 +1,6 @@
 ---
 summary: Every HTTP route the Fastify API exposes — method, path, body, response shape, and which ones stream SSE.
-updated: 2026-08-27
+updated: 2026-08-28
 ---
 
 # HTTP API
@@ -14,7 +14,6 @@ SSE endpoints stream `event: <type>\ndata: <json>\n\n` frames. Long-running endp
 | Method | Path | Response |
 |--------|------|----------|
 | GET | `/api/health` | `{ ok: true }` |
-| GET | `/api/models` | `string[]` — model names from Ollama |
 
 ## Sources
 
@@ -48,18 +47,6 @@ SSE endpoints stream `event: <type>\ndata: <json>\n\n` frames. Long-running endp
 | PUT | `/api/posts/:id` | `{ payload: PostPayload }` | `PostRow` |
 | DELETE | `/api/posts/:id` | — | `{ ok: true }` |
 
-## Compose (SSE)
-
-| Method | Path | Body | SSE events |
-|--------|------|------|------------|
-| POST | `/api/compose` | `{ articleIds: number[], theme?: string }` | `progress: { stage }` · `done: PostRow` · `error: { message }` |
-
-## Caption
-
-| Method | Path | Body | Response |
-|--------|------|------|----------|
-| POST | `/api/posts/:id/caption` | — | `PostRow` (with caption + hashtags in payload) |
-
 ## Render (SSE)
 
 | Method | Path | Body | SSE events |
@@ -71,12 +58,6 @@ SSE endpoints stream `event: <type>\ndata: <json>\n\n` frames. Long-running endp
 | Method | Path | Response |
 |--------|------|----------|
 | GET | `/api/posts/:id/export.zip` | `application/zip` — PNGs + slides.json + caption.txt |
-
-## Slide AI
-
-| Method | Path | Body | Response |
-|--------|------|------|----------|
-| POST | `/api/slide-ai` | `{ slide: SlideBlock, action: 'shorter'\|'punchier'\|'regenerate'\|'remap', targetVariant?: string, articleIds?: number[] }` | `{ slide: SlideBlock }` |
 
 ## Preview
 
@@ -99,18 +80,8 @@ SSE endpoints stream `event: <type>\ndata: <json>\n\n` frames. Long-running endp
 
 | Method | Path | Body | Response |
 |--------|------|------|----------|
-| GET | `/api/settings` | — | `Settings` (API key masked as `"***"` if set) |
+| GET | `/api/settings` | — | `Settings` |
 | PUT | `/api/settings` | `Partial<Settings>` | `Settings` |
-| POST | `/api/settings/test` | — | `{ ok, error?, models? }` — tests Ollama connectivity |
-
-## Prompt
-
-| Method | Path | Body | Response |
-|--------|------|------|----------|
-| GET | `/api/prompt` | — | `{ text: string }` |
-| PUT | `/api/prompt` | `{ text: string }` | `{ text: string }` |
-| POST | `/api/prompt/reset` | — | `{ text: string }` (restored to default) |
-| POST | `/api/prompt/test` | `{ text: string, articleIds: number[] }` | SSE: `progress: {stage}` · `done: PostRow` · `error: {message}` |
 
 ## Static assets (not API routes)
 

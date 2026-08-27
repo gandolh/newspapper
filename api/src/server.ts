@@ -11,10 +11,8 @@ import postsRoutes from './routes/posts.js';
 import renderRoutes from './routes/render.js';
 import previewRoutes from './routes/preview.js';
 import templatesRoutes from './routes/templates.js';
-import slideAiRoutes from './routes/slide-ai.js';
 import sourcesRoutes from './routes/sources.js';
 import settingsRoutes from './routes/settings.js';
-import promptRoutes from './routes/prompt.js';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const repoRoot = resolve(__dirname, '../..');
@@ -50,10 +48,8 @@ export async function buildApp() {
   await fastify.register(renderRoutes);
   await fastify.register(previewRoutes);
   await fastify.register(templatesRoutes);
-  await fastify.register(slideAiRoutes);
   await fastify.register(sourcesRoutes);
   await fastify.register(settingsRoutes);
-  await fastify.register(promptRoutes);
 
   // Global error handler
   fastify.setErrorHandler((err: Error & { statusCode?: number }, _req, reply) => {

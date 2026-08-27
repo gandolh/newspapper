@@ -97,7 +97,7 @@ export default function KitchenSinkIsland() {
               label="Model"
               options={SELECT_OPTIONS}
               defaultValue="llama3.2:1b"
-              hint="Ollama model to use"
+              hint="Model to use"
             />
             <Toggle
               label="Enable source"

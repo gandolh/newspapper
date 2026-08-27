@@ -275,3 +275,30 @@ re-render of an existing post must be byte-identical, because
 The open question "which visual world does the workstation move to" is deleted
 from `wiki/open-questions.md`; the remaining themes question now says explicitly
 that it concerns the *slide* family, not the chrome.
+
+## [2026-08-27] done | brief 51 — the AI surface is gone
+
+Wave 1 of the Wizard rebuild. `core/src/compose/**`, the Ollama client, the
+`/prompt` page and `data/prompt.md`, slide-level AI, and generated captions are
+deleted. `Settings` is now `{ defaultTheme: string }`.
+
+Gates verified from the controller against the integrated tree: build passes,
+**142 tests pass** (down from 179 — every removed test covered deleted code, and
+the two Ollama-masking tests were replaced with `defaultTheme` round-trips
+rather than dropped), lint clean, `grep -ri ollama` over `core/src api/src
+ui/src` returns nothing.
+
+The executed wave order differs from the one originally filed. Dependencies
+alone were not enough: several briefs collide on files the DAG does not show —
+`core/src/types.ts` (51, 52), `core/src/index.ts` (51, 53, 58), `.env.example`
+(55, 56), the nav/sidebar (58, 62, 64), and `ui/src/components/editor/` (56, 59).
+The order is now `51 → 52‖53 → 54‖55‖56‖60 → 57‖58‖61 → 59 → 62 → 64 → 63`, and
+two lanes were assigned to keep parallel waves disjoint: **55 owns
+`.env.example`** and 56 reports its vars for the controller to add; **56 stays
+core+api only** and 59 builds the image picker.
+
+One deliberate deferral: `EditPanel.tsx` still calls the deleted
+`POST /api/slide-ai`. It was on 51's must-NOT-touch list, and removing the calls
+properly means deciding what cross-family variant switching does without an AI
+remap — a design question. Brief 59 rebuilds that directory wholesale and owns
+the answer.

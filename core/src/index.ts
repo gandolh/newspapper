@@ -13,27 +13,6 @@ export type { RssItem } from './scrape/rss.js';
 export { scrape, pingSource } from './scrape/index.js';
 export type { ScrapeOptions, ScrapeResult, ScrapeProgressEvent, PingResult } from './scrape/index.js';
 
-// Compose
-export {
-  OllamaClient,
-  OllamaError,
-  composePost,
-  generateCaption,
-  slideAi,
-  parseSlide,
-  parsePost,
-  ComposeParseError,
-  DEFAULT_PROMPT,
-  VARIANT_SHAPES,
-  buildUserPrompt,
-} from './compose/index.js';
-export type {
-  OllamaConfig,
-  ComposePostOptions,
-  CaptionResult,
-  SlideAiAction,
-} from './compose/index.js';
-
 // Util
 export { loadConfig } from './util/config.js';
 export type { Config } from './util/config.js';

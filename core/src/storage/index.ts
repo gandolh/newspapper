@@ -37,5 +37,3 @@ export {
   updateSource,
   removeSource,
 } from './sources.js';
-
-export { getPrompt, savePrompt, resetPrompt } from './prompt.js';

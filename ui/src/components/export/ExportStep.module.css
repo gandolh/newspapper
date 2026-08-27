@@ -198,21 +198,6 @@
   margin-bottom: 4px;
 }
 
-.generateBtn {
-  align-self: flex-start;
-}
-
-.generatingRow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--muted);
-}
-
-.generatingText {
-  font-size: var(--font-size-sm);
-}
-
 /* ---- Hashtag chips ---- */
 .tagsSection {
   display: flex;

@@ -1,8 +1,6 @@
 import 'dotenv/config';
 
 export interface Config {
-  ollamaHost: string;
-  ollamaModel: string;
   maxArticlesPerSource: number;
   userAgent: string;
   requestTimeoutMs: number;
@@ -21,8 +19,6 @@ function num(value: string | undefined, fallback: number): number {
 
 export function loadConfig(): Config {
   return Object.freeze({
-    ollamaHost: process.env.OLLAMA_HOST ?? 'http://localhost:11434',
-    ollamaModel: process.env.OLLAMA_MODEL ?? 'llama3.2:1b',
     maxArticlesPerSource: num(process.env.MAX_ARTICLES_PER_SOURCE, 5),
     userAgent: process.env.USER_AGENT ?? 'Newspapper/2.0',
     requestTimeoutMs: num(process.env.REQUEST_TIMEOUT, 30_000),

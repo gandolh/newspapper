@@ -11,7 +11,6 @@ import {
   renderSlides,
   zipRun,
   getSettings,
-  OllamaError,
 } from '@newspapper/core';
 import type { SlideBlock } from '@newspapper/core';
 import { db } from '../lib/db.js';
@@ -97,11 +96,7 @@ const renderRoutes: FastifyPluginAsync = async (fastify) => {
 
       sseDone(reply, { post: updatedPost, files });
     } catch (err) {
-      if (err instanceof OllamaError) {
-        sseError(reply, (err as Error).message);
-      } else {
-        sseError(reply, (err as Error).message);
-      }
+      sseError(reply, (err as Error).message);
     }
   });
 

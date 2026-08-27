@@ -1,6 +1,6 @@
 ---
 summary: The public API of @newspapper/core — what each module actually exports and from which entry point.
-updated: 2026-08-27
+updated: 2026-08-28
 ---
 
 # Modules
@@ -21,53 +21,6 @@ export async function pingSource(source: SourceConfig): Promise<PingResult>
 export async function fetchFeed(url: string): Promise<RssItem[]>   // scrape/rss.ts
 export async function fetchBody(url: string, opts?): Promise<string>  // scrape/body.ts
 export function stripHtml(html: string): string
-```
-
-## Compose
-
-```ts
-// core/src/compose/compose-post.ts
-export async function composePost(articles: Article[], cfg: OllamaConfig, opts: ComposePostOptions): Promise<PostPayload>
-```
-
-Sends articles to Ollama, parses JSON response, retries once on parse failure.
-
-```ts
-// core/src/compose/caption.ts
-export async function generateCaption(payload: PostPayload, cfg: OllamaConfig): Promise<CaptionResult>
-```
-
-```ts
-// core/src/compose/slide-ai.ts
-export async function slideAi(slide: SlideBlock, req: SlideAiAction, cfg: OllamaConfig): Promise<SlideBlock>
-```
-
-`SlideAiAction` union: `{action:'shorter'}`, `{action:'punchier'}`, `{action:'regenerate', articles}`, `{action:'remap', targetVariant}`.
-
-`remap` enforces `result.variant === targetVariant`; retries once on mismatch, then throws.
-
-```ts
-// core/src/compose/ollama.ts
-export class OllamaClient {
-  async generate(prompt: string, opts?: {json?:boolean; system?:string}): Promise<string>
-  async listModels(): Promise<string[]>
-  async testConnection(): Promise<{ok:boolean; error?:string; models?:string[]}>
-}
-export class OllamaError extends Error { status: number; body: string }
-```
-
-```ts
-// core/src/compose/parse.ts
-export function parsePost(raw: string, date: string, theme: string): PostPayload
-export function parseSlide(value: unknown): SlideBlock
-export class ComposeParseError extends Error { raw: string }
-```
-
-```ts
-// core/src/compose/prompt.ts
-export const DEFAULT_PROMPT: string
-export const VARIANT_SHAPES: Record<string, string>
-export function buildUserPrompt(articles: Article[]): string
 ```
 
 ## Render
@@ -138,13 +91,6 @@ export function listSources(filePath?: string): SourceConfig[]
 export function addSource(src: SourceConfig, filePath?: string): SourceConfig[]
 export function updateSource(id, patch, filePath?): SourceConfig[]
 export function removeSource(id, filePath?): SourceConfig[]
-```
-
-```ts
-// core/src/storage/prompt.ts
-export function getPrompt(defaultText: string, filePath?: string): string
-export function savePrompt(text: string, filePath?: string): void
-export function resetPrompt(defaultText: string, filePath?: string): void
 ```
 
 ## Themes

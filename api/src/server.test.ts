@@ -2,7 +2,6 @@
  * API integration tests using fastify.inject().
  * These tests spin up the full app in-process — no network calls.
  *
- * Ollama-bound routes are tested with vi.stubGlobal('fetch', ...) stubs.
  * The DB is ephemeral (in-memory via temp path).
  * Template tests exercise real wave-1 code.
  */
@@ -169,45 +168,26 @@ describe('API server', () => {
   });
 
   // =========================================================================
-  // Settings mask + sentinel
+  // Settings
   // =========================================================================
   describe('GET /api/settings', () => {
-    it('returns settings with ollamaApiKey masked', async () => {
+    it('returns settings with defaultTheme', async () => {
       const res = await app.inject({ method: 'GET', url: '/api/settings' });
       expect(res.statusCode).toBe(200);
       const s = res.json();
-      expect(s).toHaveProperty('ollamaHost');
-      expect(s).toHaveProperty('ollamaModel');
-      // Key should be masked or empty string — never a real key
-      expect(typeof s.ollamaApiKey).toBe('string');
-      // It should not be a long key — either empty or '***'
-      expect(['', '***']).toContain(s.ollamaApiKey);
+      expect(typeof s.defaultTheme).toBe('string');
     });
   });
 
   describe('PUT /api/settings', () => {
-    it('ignores *** sentinel for ollamaApiKey', async () => {
-      // First set a real key
+    it('persists a defaultTheme patch', async () => {
       await app.inject({
         method: 'PUT',
         url: '/api/settings',
-        payload: { ollamaApiKey: 'my-real-key' },
+        payload: { defaultTheme: 'warm-industrial' },
       });
-      // Now send the sentinel — should not overwrite
-      await app.inject({
-        method: 'PUT',
-        url: '/api/settings',
-        payload: { ollamaApiKey: '***' },
-      });
-      // Verify: the real key is still set (masked as '***' in response)
       const res = await app.inject({ method: 'GET', url: '/api/settings' });
-      expect(res.json().ollamaApiKey).toBe('***');
-      // Clean up
-      await app.inject({
-        method: 'PUT',
-        url: '/api/settings',
-        payload: { ollamaApiKey: '' },
-      });
+      expect(res.json().defaultTheme).toBe('warm-industrial');
     });
   });
 
@@ -321,12 +301,6 @@ describe('API server', () => {
       });
       const article = artRes.json();
 
-      // We can't compose without Ollama, so we manually insert a draft post
-      // by calling the storage directly through the test
-      // Instead, test via a PUT that creates a valid post then try to export it
-      // Actually, createDraft is only available via POST /api/compose (SSE).
-      // We can test the case that a draft export 404s by checking for a rendered one.
-      // For now just confirm 404 on nonexistent.
       expect(article.id).toBeGreaterThan(0);
       const res = await app.inject({ method: 'GET', url: `/api/posts/999998/export.zip` });
       expect(res.statusCode).toBe(404);
@@ -361,27 +335,6 @@ describe('API server', () => {
         payload: { id: 'test-src', name: 'Test' },
       });
       expect(res.statusCode).toBe(400);
-    });
-  });
-
-  // =========================================================================
-  // Prompt
-  // =========================================================================
-  describe('GET /api/prompt', () => {
-    it('returns prompt and isDefault flag', async () => {
-      const res = await app.inject({ method: 'GET', url: '/api/prompt' });
-      expect(res.statusCode).toBe(200);
-      const body = res.json();
-      expect(typeof body.prompt).toBe('string');
-      expect(typeof body.isDefault).toBe('boolean');
-    });
-  });
-
-  describe('POST /api/prompt/reset', () => {
-    it('resets prompt and returns isDefault:true', async () => {
-      const res = await app.inject({ method: 'POST', url: '/api/prompt/reset' });
-      expect(res.statusCode).toBe(200);
-      expect(res.json().isDefault).toBe(true);
     });
   });
 

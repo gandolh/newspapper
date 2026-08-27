@@ -133,7 +133,6 @@ interface CaptionPanelProps {
 
 function CaptionPanel({ post, onPostUpdated, captionChangedAfterRender }: CaptionPanelProps) {
   const { addToast } = useToast();
-  const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
 
   // Local editable state — initialised from payload
@@ -141,22 +140,6 @@ function CaptionPanel({ post, onPostUpdated, captionChangedAfterRender }: Captio
   const [hashtags, setHashtags] = useState<string[]>(post.payload.hashtags ?? []);
   const [tagInput, setTagInput] = useState('');
   const [dirty, setDirty] = useState(false);
-
-  const handleGenerateCaption = useCallback(async () => {
-    setGenerating(true);
-    try {
-      const updated = await api<PostRow>(`/api/posts/${post.id}/caption`, { method: 'POST' });
-      onPostUpdated(updated);
-      setCaption(updated.payload.caption ?? '');
-      setHashtags(updated.payload.hashtags ?? []);
-      setDirty(false);
-      addToast('Caption generated', 'success');
-    } catch (err) {
-      addToast(`Caption generation failed: ${(err as Error).message}`, 'error');
-    } finally {
-      setGenerating(false);
-    }
-  }, [post.id, onPostUpdated, addToast]);
 
   const handleSave = useCallback(async () => {
     setSaving(true);
@@ -209,113 +192,81 @@ function CaptionPanel({ post, onPostUpdated, captionChangedAfterRender }: Captio
     <div className={styles.captionPanel}>
       <h3 className={styles.panelHeading}>Caption &amp; Hashtags</h3>
 
-      {!hasCaption && !generating && (
-        <Button
-          variant="secondary"
-          onClick={handleGenerateCaption}
-          disabled={generating}
-          className={styles.generateBtn}
-        >
-          Generate caption
-        </Button>
-      )}
+      <Textarea
+        label="Caption"
+        value={caption}
+        onChange={(e) => {
+          setCaption(e.target.value);
+          setDirty(true);
+        }}
+        rows={4}
+        placeholder="Write a caption for this post…"
+      />
 
-      {generating && (
-        <div className={styles.generatingRow}>
-          <Spinner size={16} color="var(--primary)" />
-          <span className={styles.generatingText}>Generating caption…</span>
-        </div>
-      )}
-
-      {(hasCaption || generating) && (
-        <>
-          <Textarea
-            label="Caption"
-            value={caption}
-            onChange={(e) => {
-              setCaption(e.target.value);
-              setDirty(true);
+      <div className={styles.tagsSection}>
+        <label className={styles.tagsLabel}>Hashtags</label>
+        <div className={styles.tagsRow}>
+          {hashtags.map((tag) => (
+            <span key={tag} className={styles.tagChip}>
+              #{tag}
+              <button
+                className={styles.tagRemove}
+                onClick={() => removeTag(tag)}
+                aria-label={`Remove #${tag}`}
+                type="button"
+              >
+                ✕
+              </button>
+            </span>
+          ))}
+          <input
+            className={styles.tagInput}
+            value={tagInput}
+            onChange={(e) => setTagInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ',') {
+                e.preventDefault();
+                addTag(tagInput);
+              }
             }}
-            rows={4}
-            placeholder="Write a caption for this post…"
+            placeholder="Add tag + Enter"
+            aria-label="Add hashtag"
           />
+        </div>
+      </div>
 
-          <div className={styles.tagsSection}>
-            <label className={styles.tagsLabel}>Hashtags</label>
-            <div className={styles.tagsRow}>
-              {hashtags.map((tag) => (
-                <span key={tag} className={styles.tagChip}>
-                  #{tag}
-                  <button
-                    className={styles.tagRemove}
-                    onClick={() => removeTag(tag)}
-                    aria-label={`Remove #${tag}`}
-                    type="button"
-                  >
-                    ✕
-                  </button>
-                </span>
-              ))}
-              <input
-                className={styles.tagInput}
-                value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ',') {
-                    e.preventDefault();
-                    addTag(tagInput);
-                  }
-                }}
-                placeholder="Add tag + Enter"
-                aria-label="Add hashtag"
-              />
-            </div>
-          </div>
+      <div className={styles.captionActions}>
+        {dirty && (
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={handleSave}
+            loading={saving}
+          >
+            Save
+          </Button>
+        )}
+        {hasCaption && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleCopyCaption}
+          >
+            Copy caption
+          </Button>
+        )}
+      </div>
 
-          <div className={styles.captionActions}>
-            {dirty && (
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={handleSave}
-                loading={saving}
-              >
-                Save
-              </Button>
-            )}
-            {hasCaption && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleCopyCaption}
-              >
-                Copy caption
-              </Button>
-            )}
-            {hasCaption && !generating && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleGenerateCaption}
-                loading={generating}
-              >
-                Regenerate
-              </Button>
-            )}
-          </div>
+      {captionChangedAfterRender && (
+        <p className={styles.captionHint}>
+          Caption changed since last render — re-render to include it in the ZIP.
+        </p>
+      )}
 
-          {captionChangedAfterRender && (
-            <p className={styles.captionHint}>
-              Caption changed since last render — re-render to include it in the ZIP.
-            </p>
-          )}
-
-          {!captionChangedAfterRender && (
-            <p className={styles.captionNote}>
-              caption.txt is included in the ZIP when a caption exists.
-            </p>
-          )}
-        </>
+      {!captionChangedAfterRender && (
+        <p className={styles.captionNote}>
+          caption.txt is included in the ZIP when a caption exists.
+        </p>
       )}
     </div>
   );

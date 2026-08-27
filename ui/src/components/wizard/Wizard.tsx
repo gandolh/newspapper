@@ -3,7 +3,6 @@ import { api } from '@/lib/api';
 import type { PostRow } from '@/lib/types';
 import { Stepper, ToastProvider } from '../ui';
 import { ScrapeStep } from './ScrapeStep';
-import { ComposeStep } from './ComposeStep';
 import { EditorStep } from '../editor/EditorStep';
 import { ExportStep } from '../export/ExportStep';
 import styles from './Wizard.module.css';
@@ -13,23 +12,21 @@ import styles from './Wizard.module.css';
 // ---------------------------------------------------------------------------
 const STEPS = [
   { label: 'Scrape', description: 'Fetch & curate' },
-  { label: 'Compose', description: 'AI drafts post' },
   { label: 'Edit', description: 'Review slides' },
   { label: 'Export', description: 'Download PNGs' },
 ];
 
-type WizardStep = 1 | 2 | 3 | 4;
+type WizardStep = 1 | 2 | 3;
 
 // ---------------------------------------------------------------------------
 // Wizard container
 // ---------------------------------------------------------------------------
 export default function Wizard() {
   const [step, setStep] = useState<WizardStep>(1);
-  const [selectedArticleIds, setSelectedArticleIds] = useState<number[]>([]);
   const [post, setPost] = useState<PostRow | null>(null);
   const [initializing, setInitializing] = useState(true);
 
-  // Deep link: ?post=<id>[&step=4]
+  // Deep link: ?post=<id>[&step=3]
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const postId = params.get('post');
@@ -40,7 +37,7 @@ export default function Wizard() {
         try {
           const fetched = await api<PostRow>(`/api/posts/${postId}`);
           setPost(fetched);
-          const targetStep = stepParam === '4' ? 4 : 3;
+          const targetStep = stepParam === '3' ? 3 : 2;
           setStep(targetStep as WizardStep);
         } catch {
           // Post not found — stay on step 1
@@ -61,14 +58,8 @@ export default function Wizard() {
     }
   }
 
-  function handleScrapeNext(ids: number[]) {
-    setSelectedArticleIds(ids);
+  function handleScrapeNext(_ids: number[]) {
     setStep(2);
-  }
-
-  function handleComposeDone(p: PostRow) {
-    setPost(p);
-    setStep(3);
   }
 
   function handlePostUpdated(p: PostRow) {
@@ -96,26 +87,19 @@ export default function Wizard() {
           {step === 1 && (
             <ScrapeStep onNext={handleScrapeNext} />
           )}
-          {step === 2 && (
-            <ComposeStep
-              articleIds={selectedArticleIds}
-              onDone={handleComposeDone}
+          {step === 2 && post && (
+            <EditorStep
+              post={post}
+              onPostUpdated={handlePostUpdated}
+              onNext={() => setStep(3)}
               onBack={() => setStep(1)}
             />
           )}
           {step === 3 && post && (
-            <EditorStep
-              post={post}
-              onPostUpdated={handlePostUpdated}
-              onNext={() => setStep(4)}
-              onBack={() => setStep(2)}
-            />
-          )}
-          {step === 4 && post && (
             <ExportStep
               post={post}
               onPostUpdated={handlePostUpdated}
-              onBack={() => setStep(3)}
+              onBack={() => setStep(2)}
             />
           )}
         </div>

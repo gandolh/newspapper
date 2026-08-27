@@ -87,8 +87,5 @@ export interface SourceConfig {
 }
 
 export interface Settings {
-  ollamaHost: string;
-  ollamaApiKey: string;
-  ollamaModel: string;
   defaultTheme: string;
 }

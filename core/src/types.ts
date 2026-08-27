@@ -76,8 +76,5 @@ export interface RenderTemplateOptions { index: number; total: number; fontBaseU
 export interface SourceConfig { id: string; name: string; rss: string; enabled: boolean }
 
 export interface Settings {
-  ollamaHost: string;       // default http://localhost:11434, cloud: https://ollama.com
-  ollamaApiKey: string;     // empty = no auth header
-  ollamaModel: string;      // default llama3.2:1b
   defaultTheme: string;     // default warm-industrial
 }

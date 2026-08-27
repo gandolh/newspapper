@@ -59,27 +59,38 @@ storage · the npm workspace layout · the shared UI primitives on Base UI.
 Fourteen briefs in [`../briefs/todo/`](../briefs/todo/), in dependency waves.
 Each is self-contained — open only the one directing your work.
 
+Waves below are the **executed** order, which differs from the originally filed
+one: file-ownership collisions the dependency graph alone did not show forced
+several briefs apart. `core/src/types.ts` is claimed by both 51 and 52,
+`core/src/index.ts` by 51, 53 and 58, `.env.example` by 55 and 56, and the
+nav/sidebar by 58, 62 and 64.
+
+```
+51 → 52‖53 → 54‖55‖56‖60 → 57‖58‖61 → 59 → 62 → 64 → 63
+```
+
 | Wave | # | Brief | Depends on |
 |---|---|---|---|
-| 0 | 51 | Strip the AI surface | — |
-| 0 | 52 | SQLite schema for authored posts | — |
-| 1 | 53 | Wizard parser, formatter, linter | — |
-| 1 | 54 | Component library + compile to `TNode` | 53 |
-| 1 | 55 | Single-account authentication | 52 |
-| 1 | 56 | Image uploads + Sharp pipeline | 52 |
-| 2 | 57 | Render to JPEG + optimize on publish | 56 |
-| 2 | 58 | Retire templates and `/builder` | 54 |
-| 3 | 59 | The split-screen editor | 53, 54, 58 |
+| 1 | 51 | Strip the AI surface — **done** | — |
+| 2 | 52 | SQLite schema for authored posts | — |
+| 2 | 53 | Wizard parser, formatter, linter | — |
+| 3 | 54 | Component library + compile to `TNode` | 53 |
+| 3 | 55 | Single-account authentication | 52 |
+| 3 | 56 | Image uploads + Sharp pipeline | 52 |
 | 3 | 60 | Keyword RSS + article library | 52 |
-| 3 | 61 | Themes 2 and 3 | 54 |
-| 3 | 62 | API surface and page map | 55, 59, 60 |
-| 4 | 63 | Documentation pass | everything |
-| 4 | 64 | Rebuild the app chrome as The Mechanical | 59, 62 |
+| 4 | 57 | Render to JPEG + optimize on publish | 56 |
+| 4 | 58 | Retire templates and `/builder` | 54 |
+| 4 | 61 | Themes 2 and 3 | 54 |
+| 5 | 59 | The split-screen editor | 53, 54, 58 |
+| 6 | 62 | API surface and page map | 55, 59, 60 |
+| 7 | 64 | Rebuild the app chrome as The Mechanical | 59, 62 |
+| 8 | 63 | Documentation pass | everything |
 
-Two ordering constraints that will bite if ignored: **58 must not start before
-54 lands** (until the component library renders, the templates are the only
-thing that renders at all), and **63 runs last**, when the code it describes
-exists.
+Three ordering constraints that will bite if ignored: **58 must not start
+before 54 lands** (until the component library renders, the templates are the
+only thing that renders at all); **64 runs after 59 and 62**, because the
+editor's structure is what the world has to clothe; and **63 runs last**, when
+the code it describes exists.
 
 The 13 v3 briefs are archived in [`../briefs/done/`](../briefs/done/) —
 historical, and written against a product that no longer exists.
