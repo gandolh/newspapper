@@ -23,10 +23,76 @@ export interface PostPayload {
 }
 
 export interface Article {
-  id: number; sourceId: string; sourceName: string; title: string;
-  url: string | null; publishedAt: string; body: string; createdAt: string;
+  id: number; sourceId: string | null; sourceName: string; guid: string;
+  title: string; url: string | null; publishedAt: string; body: string; savedAt: string;
 }
 
+// ---- Authored posts (schema v3) ----
+// The `.wzd` markup is the source of truth; every other column on `posts` is
+// derived from its <head> block on save and exists only to index the library.
+
+export type PostStatus = 'draft' | 'published';
+
+export interface PostHead {
+  title: string;
+  description: string;
+  keywords: string[];
+  date?: string;
+  caption?: string;
+  hashtags?: string[];
+}
+
+export interface Post {
+  id: number;
+  title: string;
+  description: string;
+  markup: string;
+  theme: string;
+  status: PostStatus;
+  keywords: string[];
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string | null;
+}
+
+export interface Keyword {
+  id: number;
+  name: string;
+  postCount: number;
+}
+
+export interface User {
+  id: number;
+  username: string;
+  createdAt: string;
+}
+
+export interface UserRecord extends User {
+  passwordHash: string;
+}
+
+export interface Upload {
+  id: number;
+  filename: string;
+  storedPath: string;
+  normalizedPath: string | null;
+  mime: string;
+  width: number | null;
+  height: number | null;
+  bytes: number;
+  createdAt: string;
+}
+
+export interface RenderRecord {
+  id: number;
+  postId: number;
+  outputDir: string;
+  slideCount: number;
+  optimized: boolean;
+  createdAt: string;
+}
+
+/** @deprecated v2 payload post. Schema v3 stores markup; removed with the wizard routes. */
 export interface PostRow {
   id: number; date: string; title: string; theme: string;
   payload: PostPayload; status: 'draft' | 'rendered';

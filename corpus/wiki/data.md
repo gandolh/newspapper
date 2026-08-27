@@ -1,87 +1,154 @@
 ---
-summary: On-disk and in-DB shapes: the SQLite schema, TemplateDoc, PostPayload, sources.json, and the output/ folder convention.
-updated: 2026-08-27
+summary: On-disk and in-DB shapes: the v3 SQLite schema for authored posts, TemplateDoc, and the output/ folder convention.
+updated: 2026-08-28
 ---
 
 # Data
 
 ## SQLite — `data/newspapper.db`
 
-Schema version: 2. Auto-created on first run. Path resolved from `core/src/storage/db.ts` (not CWD).
+Schema version: **3**. Auto-created and migrated on boot. The path is resolved
+from `core/src/storage/db.ts` via `import.meta.url`, never from the CWD.
+Foreign keys are enforced (`PRAGMA foreign_keys = ON`).
 
-### `articles`
-
-| Column | Type | Notes |
-|--------|------|-------|
-| `id` | INTEGER PK | autoincrement |
-| `source_id` | TEXT | matches `sources.json.id` |
-| `source_name` | TEXT | matches `sources.json.name` |
-| `title` | TEXT | from RSS |
-| `url` | TEXT UNIQUE | dedupe key |
-| `published_at` | TEXT ISO-8601 | from RSS pubDate |
-| `body` | TEXT | full article body, fetched and regex-stripped |
-| `created_at` | TEXT ISO-8601 | when scraped |
+**The `.wzd` markup is the source of truth.** `posts.markup` is the document; every
+other column on `posts` — title, description, keywords — is *derived from its
+`<head>` block on save* and exists only so the library can be listed, filtered
+and searched without parsing every post. See
+[the decision](./decisions.md#the-markup-is-the-source-of-truth) and
+[markup.md](./markup.md) for the `<head>` shape.
 
 ### `posts`
 
 | Column | Type | Notes |
 |--------|------|-------|
 | `id` | INTEGER PK | autoincrement |
-| `date` | TEXT YYYY-MM-DD | run date |
-| `title` | TEXT | top-level post title |
-| `theme` | TEXT | e.g. `warm-industrial` |
-| `payload` | TEXT JSON | PostPayload (see below) |
-| `status` | TEXT | `draft` or `rendered` |
-| `output_dir` | TEXT | absolute path, null until rendered |
+| `title` | TEXT NOT NULL | derived from `<head><title>` |
+| `description` | TEXT NOT NULL DEFAULT `''` | derived from `<head><description>` |
+| `markup` | TEXT NOT NULL | the `.wzd` document — the source of truth |
+| `theme` | TEXT NOT NULL DEFAULT `warm-industrial` | |
+| `status` | TEXT NOT NULL DEFAULT `draft` | `CHECK (status IN ('draft','published'))` |
 | `created_at` | TEXT ISO-8601 | |
-| `updated_at` | TEXT ISO-8601 | updated on every payload write |
+| `updated_at` | TEXT ISO-8601 | bumped on every markup write |
+| `published_at` | TEXT ISO-8601 \| NULL | stamped on publish, cleared on unpublish |
+
+Index: `idx_posts_status_updated_at` on `(status, updated_at)`.
+
+`published` is a [manual state](./decisions.md#publishing-is-a-manual-state-that-optimizes-the-output),
+never automatic.
+
+### `keywords` / `post_keywords`
+
+| `keywords` | Type | Notes |
+|--------|------|-------|
+| `id` | INTEGER PK | |
+| `name` | TEXT NOT NULL UNIQUE COLLATE NOCASE | `Budget` and `budget` are one keyword |
+
+| `post_keywords` | Type | Notes |
+|--------|------|-------|
+| `post_id` | INTEGER → `posts(id)` ON DELETE CASCADE | |
+| `keyword_id` | INTEGER → `keywords(id)` ON DELETE CASCADE | |
+| | | PRIMARY KEY `(post_id, keyword_id)` |
+
+Index: `idx_post_keywords_keyword_id` on `(keyword_id)`.
+
+Normalized rather than a comma-joined column because keywords are shared across
+posts and used to filter the library — a text column would make that a scan.
+Derived from `<head><keywords>`; `setPostKeywords` upserts and replaces the join
+rows in one transaction.
+
+### `renders`
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | INTEGER PK | |
+| `post_id` | INTEGER → `posts(id)` ON DELETE CASCADE | |
+| `output_dir` | TEXT NOT NULL | absolute path |
+| `slide_count` | INTEGER NOT NULL DEFAULT 0 | |
+| `optimized` | INTEGER NOT NULL DEFAULT 0 | set by the publish-time pass |
+| `created_at` | TEXT ISO-8601 | |
+
+One row per render run; a post's export and thumbnail read the newest.
+
+### `users`
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | INTEGER PK | |
+| `username` | TEXT NOT NULL UNIQUE | |
+| `password_hash` | TEXT NOT NULL | hashing is the caller's job — storage never sees plaintext |
+| `created_at` | TEXT ISO-8601 | |
+
+### `sources`
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | TEXT PK | slug, e.g. `bbc` |
+| `name` | TEXT NOT NULL | |
+| `rss_url` | TEXT NOT NULL UNIQUE | |
+| `enabled` | INTEGER NOT NULL DEFAULT 1 | |
+| `created_at` | TEXT ISO-8601 | |
+
+Sources moved out of `data/sources.json` and into the DB in v3. The migration
+seeds this table from that file once, for the default installation DB only;
+nothing reads the JSON afterwards.
+
+### `articles`
+
+Holds only **saved** articles. Scrape results are transient — the API returns
+them and never persists them unless the user saves one.
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | INTEGER PK | |
+| `source_id` | TEXT → `sources(id)` ON DELETE SET NULL | NULL for manual or orphaned |
+| `source_name` | TEXT NOT NULL DEFAULT `''` | denormalized snapshot — survives the source being deleted |
+| `guid` | TEXT NOT NULL | feed guid, or the URL |
+| `title` | TEXT NOT NULL | |
+| `url` | TEXT | |
+| `body` | TEXT NOT NULL DEFAULT `''` | |
+| `published_at` | TEXT ISO-8601 | |
+| `saved_at` | TEXT ISO-8601 | |
+| | | UNIQUE `(source_id, guid)` |
+
+Index: `idx_articles_saved_at` on `(saved_at)`. SQLite treats NULLs as distinct,
+so the repository dedupes source-less articles on `guid` explicitly.
+
+### `uploads`
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | INTEGER PK | |
+| `filename` | TEXT NOT NULL | original name |
+| `stored_path` | TEXT NOT NULL | the kept original |
+| `normalized_path` | TEXT | the derived copy, NULL until made |
+| `mime` | TEXT NOT NULL | |
+| `width`, `height` | INTEGER | |
+| `bytes` | INTEGER NOT NULL DEFAULT 0 | |
+| `created_at` | TEXT ISO-8601 | |
+
+Rows only — the files live under `uploads/` and are the caller's to delete.
 
 ### `settings`
 
-Key-value store for user-configurable settings.
+Key-value store. One key: `defaultTheme`.
 
-| Key | Notes |
-|-----|-------|
-| `ollamaHost` | Ollama API base URL |
-| `ollamaApiKey` | Bearer token (Ollama Cloud only) |
-| `ollamaModel` | model name |
-| `defaultTheme` | template theme name |
+## Migration history
 
-## PostPayload JSON
+| Version | Shape |
+|---|---|
+| 1 | CLI era: `posts(date, run_number, payload, output_dir)`, `articles(scraped_at)` |
+| 2 | Web app: `posts.payload` + `status draft\|rendered` + `output_dir`, `settings` |
+| 3 | Authored posts: `posts.markup`, `keywords`, `post_keywords`, `renders`, `users`, `uploads`, `sources` in the DB |
 
-Stored in `posts.payload`, returned in API responses, and written to `output/<dir>/slides.json`.
+**v2 → v3 destroys rows on purpose.** A v2 post held a composed slide payload
+with no markup to derive it from, and v2 articles were transient scrape output.
+Both tables are dropped and recreated, so **every v2 post row and every v2
+article row is deleted**. `settings` survives untouched. A v1 database walks
+v1 → v2 → v3 in one boot and loses its posts the same way.
 
-```json
-{
-  "date": "2026-06-10",
-  "title": "Post Title",
-  "theme": "warm-industrial",
-  "slides": [
-    { "type": "title", "variant": "title-main", "text": "…", "kicker": "…" },
-    { "type": "body",  "variant": "body-text",  "heading": "…", "body": "…" },
-    { "type": "body",  "variant": "body-list",  "heading": "…", "items": ["…"] },
-    { "type": "quote", "variant": "quote-classic", "quote": "…", "attribution": "…" }
-  ],
-  "caption": "Optional Instagram caption",
-  "hashtags": ["optional", "tags"]
-}
-```
-
-### Slide variants
-
-| type | variant | Required fields |
-|------|---------|-----------------|
-| `title` | `title-main` | `text`, optional `kicker` |
-| `title` | `title-statement` | `text` |
-| `title` | `title-question` | `text` |
-| `body` | `body-text` | `heading`, `body` |
-| `body` | `body-list` | `heading`, `items: string[]` |
-| `body` | `body-comparison` | `heading`, `left: {label,body}`, `right: {label,body}` |
-| `quote` | `quote-classic` | `quote`, `attribution` |
-| `quote` | `quote-pullout` | `quote`, `attribution` |
-| `quote` | `quote-reaction` | `quote`, `attribution` |
-
-Slide count: 2–8 inclusive. First slide must be a title variant.
+The migration is keyed on `PRAGMA user_version` and uses `IF NOT EXISTS`
+throughout, so re-running it is a no-op.
 
 ## TemplateDoc format — `assets/templates/<theme>/<id>.json`
 
@@ -120,30 +187,15 @@ CSS property map. Supports:
 
 `{{fieldName}}`, `{{item.label}}`, `{{_index}}`, `{{_total}}`, `{{_date}}`
 
-## `data/sources.json`
-
-```json
-[
-  {
-    "id": "bbc",
-    "name": "BBC World",
-    "rss": "http://feeds.bbci.co.uk/news/world/rss.xml",
-    "enabled": true
-  }
-]
-```
-
-## `data/prompt.md`
-
-System prompt used by `composePost`. Reset via `POST /api/prompt/reset`.
-
 ## Output directory
 
 ```
 output/
   YYYY-MM-DD-1/
-    1.png, 2.png, …N.png   (1080×1080 PNG, one per slide)
-    slides.json             (PostPayload at render time)
-    caption.txt             (present only if caption was set before render)
+    1.png, 2.png, …N.png   (1080×1080, one per slide)
+    slides.json
+    caption.txt             (present only if a caption was set before render)
   YYYY-MM-DD-2/             (same-day re-render → increments N)
 ```
+
+Each directory is recorded as a row in `renders`.

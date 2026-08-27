@@ -71,8 +71,28 @@ Rejected: importing `@newspapper/core/templates` (which is genuinely
 browser-safe and exports these types). `core` ships raw `.ts` with no build step
 (`tsc --noEmit`), and while Vite resolves that through the `exports` field in
 dev, the types fight the Astro production build. The copy is the cheaper side of
-that trade — and it has held: after 2.5 months all eight shared interfaces are
-still field-identical. A guard test keeps it that way rather than trust.
+that trade.
+
+**Correction, 2026-08-27.** This entry claimed "a guard test keeps it that way
+rather than trust". There is no such test — grep for one and nothing comes back.
+The copy held for 2.5 months on discipline alone, and then brief 52 changed
+`Article` and added seven interfaces, at which point the mirror silently drifted.
+Brief 58 owns `ui/src/lib/types.ts` and must both re-sync it and add the guard
+test this entry always claimed existed.
+
+## The default database path is overridable, and tests must override it
+_2026-08-27_ — `getDb()` with no argument resolves `NEWSPAPPER_DB_PATH` first,
+and only falls back to `repo_root/data/newspapper.db` when it is unset.
+Found the expensive way. `api/src/server.test.ts` had set that env var since it
+was written, and `defaultDbPath()` never read it — it resolved from
+`import.meta.url` unconditionally. Every `npm test` run was therefore opening and
+migrating the developer's real database while the test file's own comment
+claimed "the DB is ephemeral". Harmless until brief 52 landed a v2→v3 migration
+that drops `posts` and `articles`, at which point one test run destroyed the dev
+database's contents. A regression test now asserts the override is honoured.
+
+The general lesson is worth more than the fix: a test harness that *sets* an
+environment variable is not evidence that anything *reads* it.
 
 ## SQLite (better-sqlite3) is the only datastore
 _2026-06-10_ — `data/newspapper.db` holds the post history and settings; it is

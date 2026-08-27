@@ -98,7 +98,8 @@ describe('API server', () => {
       const article = res.json();
       expect(article).toHaveProperty('id');
       expect(article.title).toBe('Test article');
-      expect(article.sourceId).toBe('manual');
+      expect(article.sourceId).toBeNull();
+      expect(article.sourceName).toBe('Manual');
     });
   });
 

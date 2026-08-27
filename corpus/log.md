@@ -302,3 +302,60 @@ One deliberate deferral: `EditPanel.tsx` still calls the deleted
 properly means deciding what cross-family variant switching does without an AI
 remap — a design question. Brief 59 rebuilds that directory wholesale and owns
 the answer.
+
+## [2026-08-27] done | briefs 52 + 53 — the schema and the language
+
+Wave 2, run in parallel. Gates verified from the controller against the
+integrated tree: build passes, **361 tests pass** (up from 142), lint clean.
+
+**52** landed schema v3 — `users`, markup-backed `posts` with a CHECK-constrained
+`draft`/`published` status, `keywords`/`post_keywords`, `renders`, `uploads`, and
+reworked `sources`/`articles`. The migration **drops every v2 `posts` and
+`articles` row on purpose**: a v2 post held a composed payload with no markup to
+derive it from, and v3 persists only the articles you save. `settings` survives.
+
+**53** landed the Wizard language with no new dependency: a hand-written
+recursive-descent parser, a canonical formatter, eleven lint rules, a data-shaped
+component catalogue, and 170 tests. Two properties were built in for downstream
+work — every AST node carries a source range verified against its own source
+slice, and the catalogue is data rather than code, so brief 59's bidirectional
+selection and its inspector both have something real to read.
+
+`wiki/markup.md` was rewritten to match what shipped. The substantive change: the
+page said props take "a value from a named scale or a short enum", which cannot
+express `<Image src="...">`. The catalogue now separates **scale props**
+(`size`/`align`/`emphasis` — still the only enums) from **content props**
+(`Image.src` required, `Image.alt`, `Quote.by`, `Stat.label`). The invariant that
+matters is unchanged and now asserted by a test: no prop ever carries a style
+value, and there is no `style` or `class` anywhere.
+
+## [2026-08-27] incident | npm test was destroying the developer's database
+
+Found while integrating wave 2, and older than the rebuild. `api/src/server.test.ts`
+has always set `NEWSPAPPER_DB_PATH` to a temp directory, and `defaultDbPath()` in
+`core/src/storage/db.ts` never read it — it resolved from `import.meta.url`
+unconditionally. So every `npm test` run opened and migrated the real
+`data/newspapper.db`, while the test file's own header comment claimed "the DB is
+ephemeral (in-memory via temp path)".
+
+Harmless for as long as migrations were additive. Brief 52's v2→v3 migration drops
+`posts` and `articles`, so the first test run after it landed destroyed the dev
+database's contents — 1 post and 33 articles. `data/` is gitignored, so nothing
+was lost from the repo, and `settings` and `sources` re-seeded correctly.
+
+Fixed: `getDb()` resolves `NEWSPAPPER_DB_PATH` first and falls back to the repo
+path only when it is unset, with a regression test asserting the override is
+honoured. Recorded in `wiki/decisions-engineering.md`.
+
+The lesson generalises past this bug: **a harness that sets an environment
+variable is not evidence that anything reads it.**
+
+## [2026-08-27] lint | the ui/lib/types guard test never existed
+
+`wiki/decisions-engineering.md` claimed "a guard test keeps it that way rather
+than trust" of the hand-maintained `ui/src/lib/types.ts` mirror of
+`core/src/types.ts`. Grepping for it returns nothing. The copy held for 2.5 months
+on discipline alone; brief 52 then changed `Article` and added seven interfaces,
+and the mirror drifted silently. The entry is corrected, and brief 58 — which owns
+that file — has to both re-sync it and write the test the corpus has been claiming
+for months.

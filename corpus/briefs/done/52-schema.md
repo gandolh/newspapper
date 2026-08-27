@@ -86,3 +86,36 @@ upsert into `keywords` and replace the join rows in one transaction.
   the status CHECK constraint.
 - `corpus/wiki/data.md` documents the new schema and states that `markup` is the
   source of truth.
+
+---
+
+## Outcome — 2026-08-27
+
+Done. Schema v3: `users`, `posts` (markup-backed, `status` CHECK-constrained to
+`draft`/`published`), `keywords` + `post_keywords`, `renders`, `uploads`, and
+reworked `sources`/`articles`. Storage modules added for each; the barrel
+`core/src/storage/index.ts` exports them all, so nothing needed adding to
+`core/src/index.ts`.
+
+**The migration drops data, on purpose.** v2 → v3 drops every `posts` row (a v2
+post held a composed payload with no markup to derive it from) and every
+`articles` row (v2 persisted all scrape output; v3 persists only what you save).
+`settings` survives. Keyed on `PRAGMA user_version` with `IF NOT EXISTS`
+throughout, and tested against a seeded v2 database *with rows*, opened twice.
+
+`articles.source_id` became a real FK, so the v2 sentinel string `'manual'` can
+no longer be stored — a manually added article stores `NULL` and keeps
+`source_name = 'Manual'` as the snapshot. One API test asserted the old
+behaviour; the controller updated it.
+
+Deprecated shims were left in `posts.ts` and `articles.ts` purely so `api/**`
+still compiles (`getPost`, `listPosts`, `deletePost`, `updatePostPayload`,
+`markRendered`, `upsertArticles`, `articlesForDate`, `addManualArticle`,
+`insertMany`, `todays`, `existsByUrl`). Briefs 60 and 62 delete them with the
+routes that call them. `core/src/scrape/index.ts` still persists scrape output
+through `upsertArticles` — brief 60 stops that.
+
+This brief also surfaced a pre-existing defect it did not cause: `npm test` was
+migrating the real `data/newspapper.db` because `defaultDbPath()` ignored the
+`NEWSPAPPER_DB_PATH` the harness set. Fixed by the controller; see
+`wiki/decisions-engineering.md`.

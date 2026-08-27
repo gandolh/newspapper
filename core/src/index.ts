@@ -25,6 +25,9 @@ export * from './render/index.js';
 // Themes (Node-only)
 export { loadTheme, listThemes } from './themes/index.js';
 
+// Newspapper Wizard (.wzd) — parser, formatter, linter, component catalogue
+export * from './wizard/index.js';
+
 // Template registry (Node-only) and interpreter
 export {
   renderTemplate,

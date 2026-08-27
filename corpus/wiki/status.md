@@ -72,8 +72,8 @@ nav/sidebar by 58, 62 and 64.
 | Wave | # | Brief | Depends on |
 |---|---|---|---|
 | 1 | 51 | Strip the AI surface — **done** | — |
-| 2 | 52 | SQLite schema for authored posts | — |
-| 2 | 53 | Wizard parser, formatter, linter | — |
+| 2 | 52 | SQLite schema for authored posts — **done** | — |
+| 2 | 53 | Wizard parser, formatter, linter — **done** | — |
 | 3 | 54 | Component library + compile to `TNode` | 53 |
 | 3 | 55 | Single-account authentication | 52 |
 | 3 | 56 | Image uploads + Sharp pipeline | 52 |

@@ -70,3 +70,27 @@ values), so both briefs read one definition. Props are exactly `size`
 - Every lint rule above has a test that triggers it and one that doesn't.
 - Parse errors and lint findings both carry accurate line/column.
 - `npm test` passes; no new runtime dependency added.
+
+---
+
+## Outcome — 2026-08-27
+
+Done, no new dependency. `core/src/wizard/` ships `ast.ts`, `catalogue.ts`,
+`diagnostics.ts`, `parse.ts` (hand-written recursive descent), `format.ts`,
+`lint.ts`, `samples.ts` (12 fixture documents) and a barrel — plus 170 tests.
+
+Two things were built in deliberately for downstream work: **every AST node
+carries a verified source range** (asserted against the source slice across the
+whole sample corpus), which is what makes brief 59's bidirectional selection
+possible at all; and **the catalogue is exported as data**, not encoded in code,
+so briefs 54 and 59 can both read components and their prop scales
+programmatically.
+
+Thirteen questions `markup.md` left open were decided here and folded back into
+that page. The one that changed the spec rather than filling a gap: the page said
+props take "a value from a named scale or a short enum", which cannot express
+`<Image src="...">`. The catalogue now distinguishes **scale props**
+(`size`/`align`/`emphasis`, the only enums) from **content props**
+(`Image.src` required, `Image.alt`, `Quote.by`, `Stat.label`, and nothing else).
+The invariant that actually matters — no prop ever carries a style value, no
+`style` or `class` anywhere — holds and is asserted by a test.
