@@ -93,10 +93,10 @@ Corrections from verifying the reconstructed rationales against the repo:
 rewritten around the pivot; the input contract's shape is now the decisive
 unknown.
 
-## [2026-08-27] decision | the Wizzard pivot — a markup language and a visual editor replace the pipeline
+## [2026-08-27] decision | the Wizard pivot — a markup language and a visual editor replace the pipeline
 
 Second half of the grilling session. The product is now a **document compiler**:
-a person writes a post in **Newspapper Wizzard** (`.wzd`), a JSX-flavoured markup
+a person writes a post in **Newspapper Wizard** (`.wzd`), a JSX-flavoured markup
 with `<head>` metadata and `<body>` slides, edited in a split-screen editor
 (source · live preview · inspector + component palette) where visual edits are
 written back through a formatter.
@@ -135,3 +135,20 @@ were added; `soul.md` left the corpus to become a gitignored local skill
 Not yet done: `CLAUDE.md` still carries the pre-pivot constraints (including the
 now-wrong Sharp ban), `PRODUCT.md`/`DESIGN.md` are still at the repo root, and
 no briefs have been written.
+
+## [2026-08-27] todo | thirteen briefs filed for the Wizard rebuild
+
+Briefs 51–63 written to `briefs/todo/`, in four dependency waves: strip the AI
+surface and land the new schema; then the language (parser/formatter/linter),
+the component library, auth and uploads; then JPEG output and the template
+teardown; then the editor, the article library, themes and the page map; and
+finally the documentation pass.
+
+The catalog with its dependency graph lives in `wiki/status.md`. Two ordering
+constraints are called out explicitly in the briefs themselves: 58 (retire
+templates) must not start before 54 (component library) lands, or the app has
+nothing that renders; and 63 (docs) runs last.
+
+Also this pass: the language is spelled **Wizard**; every reference to a
+deployment target was removed from the corpus at the owner's request, and the
+routing page was rewritten to describe practices rather than name tooling.

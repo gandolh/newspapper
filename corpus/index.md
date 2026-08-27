@@ -27,15 +27,15 @@ New here? [wiki/overview.md](wiki/overview.md), then
 | [configuration.md](wiki/configuration.md) | Every env var, where settings come from and which source wins, and the Playwright Chromium install step. |
 | [data.md](wiki/data.md) | On-disk and in-DB shapes: the SQLite schema, TemplateDoc, PostPayload, sources.json, and the output/ folder convention. |
 | [decisions-engineering.md](wiki/decisions-engineering.md) | The locked engineering calls — workspaces and ESM, pinned dependencies, SQLite, the UI's type copy, and where project knowledge lives. |
-| [decisions.md](wiki/decisions.md) | The locked product calls — no LLM, human-centred editing, the Wizzard markup and its semantic component model, images, and where it runs. |
+| [decisions.md](wiki/decisions.md) | The locked product calls — no LLM, human-centred editing, the Wizard markup and its semantic component model, images, and where it runs. |
 | [dependencies.md](wiki/dependencies.md) | What each workspace depends on and why that package was chosen over the alternatives. |
 | [design-systems.md](wiki/design-systems.md) | The warm-industrial token set and how template JSON docs drive the renderer and the visual builder. |
 | [glossary.md](wiki/glossary.md) | The project's vocabulary — one canonical definition per term Newspapper uses in a particular way, and the synonyms each one displaces. |
-| [markup.md](wiki/markup.md) | Newspapper Wizzard (.wzd) — the JSX-like markup a post is written in: document shape, the component catalogue, the props model, and how it compiles to images. |
+| [markup.md](wiki/markup.md) | Newspapper Wizard (.wzd) — the JSX-like markup a post is written in: document shape, the component catalogue, the props model, and how it compiles to images. |
 | [modules.md](wiki/modules.md) | The public API of @newspapper/core — what each module actually exports and from which entry point. |
-| [open-questions.md](wiki/open-questions.md) | What is genuinely unresolved after the 2026-08-27 pivot — the input contract's shape and the scope of the AI removal. |
+| [open-questions.md](wiki/open-questions.md) | What's still unresolved after the pivot — theme palettes, auth details, and how the article library feeds authoring. |
 | [overview.md](wiki/overview.md) | What Newspapper is, the v1→v2→v3 lineage that explains its shape, and what lives where at the top level. |
-| [status.md](wiki/status.md) | Dated snapshot of where the project stands — every brief's state in one line, and what is actually blocking. |
+| [status.md](wiki/status.md) | Dated snapshot — v3 shipped and is now being deliberately dismantled; the Wizard rebuild is specced but not started. |
 
 <!-- catalog:end -->
 

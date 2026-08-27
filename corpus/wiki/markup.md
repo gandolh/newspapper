@@ -1,9 +1,9 @@
 ---
-summary: Newspapper Wizzard (.wzd) — the JSX-like markup a post is written in: document shape, the component catalogue, the props model, and how it compiles to images.
+summary: Newspapper Wizard (.wzd) — the JSX-like markup a post is written in: document shape, the component catalogue, the props model, and how it compiles to images.
 updated: 2026-08-27
 ---
 
-# Newspapper Wizzard (`.wzd`)
+# Newspapper Wizard (`.wzd`)
 
 The markup a post is written in. Designed to be typed comfortably by a person
 **and** emitted reliably by a language model — which is what a person pastes
@@ -93,7 +93,7 @@ Output is [JPEG, not PNG](./decisions.md#output-is-jpeg-not-png), at 1080×1080.
 
 ## Formatter and linter
 
-Wizzard has a canonical printed form, the way JSX does under Prettier. The
+Wizard has a canonical printed form, the way JSX does under Prettier. The
 **visual editor writes through the formatter** — dragging a component in
 produces exactly the text a person would have typed, so the source pane never
 looks machine-generated. A manual format-and-lint action is available too.

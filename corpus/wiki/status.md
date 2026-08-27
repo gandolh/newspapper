@@ -1,5 +1,5 @@
 ---
-summary: Dated snapshot — v3 shipped and is now being deliberately dismantled; the Wizzard rebuild is specced but not started.
+summary: Dated snapshot — v3 shipped and is now being deliberately dismantled; the Wizard rebuild is specced but not started.
 updated: 2026-08-27
 ---
 
@@ -10,7 +10,7 @@ _Snapshot: 2026-08-27_
 **Where things stand.** v3 is complete, verified, and **being replaced**. A
 grilling session on 2026-08-27 pivoted the product: Newspapper no longer
 generates copy with a model, and posts are now authored as
-[Newspapper Wizzard](./markup.md) documents in a split-screen editor. The design
+[Newspapper Wizard](./markup.md) documents in a split-screen editor. The design
 is settled end to end — see [decisions.md](./decisions.md) — and **no code has
 been written against it yet**. No briefs are filed.
 
@@ -43,6 +43,29 @@ storage · the npm workspace layout · the shared UI primitives on Base UI.
 
 ## Briefs
 
-Nothing in [`../briefs/todo/`](../briefs/todo/). The 13 v3 briefs are archived in
-[`../briefs/done/`](../briefs/done/) — historical, and written against a product
-that no longer exists.
+Thirteen briefs in [`../briefs/todo/`](../briefs/todo/), in dependency waves.
+Each is self-contained — open only the one directing your work.
+
+| Wave | # | Brief | Depends on |
+|---|---|---|---|
+| 0 | 51 | Strip the AI surface | — |
+| 0 | 52 | SQLite schema for authored posts | — |
+| 1 | 53 | Wizard parser, formatter, linter | — |
+| 1 | 54 | Component library + compile to `TNode` | 53 |
+| 1 | 55 | Single-account authentication | 52 |
+| 1 | 56 | Image uploads + Sharp pipeline | 52 |
+| 2 | 57 | Render to JPEG + optimize on publish | 56 |
+| 2 | 58 | Retire templates and `/builder` | 54 |
+| 3 | 59 | The split-screen editor | 53, 54, 58 |
+| 3 | 60 | Keyword RSS + article library | 52 |
+| 3 | 61 | Themes 2 and 3 | 54 |
+| 3 | 62 | API surface and page map | 55, 59, 60 |
+| 4 | 63 | Documentation pass | everything |
+
+Two ordering constraints that will bite if ignored: **58 must not start before
+54 lands** (until the component library renders, the templates are the only
+thing that renders at all), and **63 runs last**, when the code it describes
+exists.
+
+The 13 v3 briefs are archived in [`../briefs/done/`](../briefs/done/) —
+historical, and written against a product that no longer exists.

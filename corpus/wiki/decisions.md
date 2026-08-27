@@ -1,5 +1,5 @@
 ---
-summary: The locked product calls — no LLM, human-centred editing, the Wizzard markup and its semantic component model, images, and where it runs.
+summary: The locked product calls — no LLM, human-centred editing, the Wizard markup and its semantic component model, images, and where it runs.
 updated: 2026-08-27
 ---
 
@@ -34,8 +34,8 @@ contradicted the shipped product. Approval gates remain rejected — no step
 blocks for a verdict. The distinction is vocabulary, not policy: see **editing**
 vs **approval gate** in [glossary.md](./glossary.md).
 
-## A post is a Newspapper Wizzard document
-_2026-08-27_ — Posts are authored as text in **Newspapper Wizzard**, a small
+## A post is a Newspapper Wizard document
+_2026-08-27_ — Posts are authored as text in **Newspapper Wizard**, a small
 JSX-flavoured markup. File extension `.wzd`.
 Rejected: **YAML** (indentation is the most common way a model emits a broken
 document); **Markdown with directives** (lovely for prose, awkward once layout
