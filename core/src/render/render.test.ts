@@ -1,19 +1,20 @@
 /**
  * Tests for the render service:
- *   - htmlToPng (Playwright / Chromium)
+ *   - htmlToJpeg (Playwright / Chromium)
  *   - nextOutputDir
  *   - renderSlides (orchestration)
+ *   - writeRun (stale-PNG cleanup)
  *   - zipRun
  */
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { mkdtemp, rm, readdir } from 'node:fs/promises';
+import { mkdtemp, rm, readdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { unzipSync } from 'fflate';
 
-import { htmlToPng } from './screenshot.js';
-import { nextOutputDir } from './output.js';
+import { htmlToJpeg } from './screenshot.js';
+import { nextOutputDir, writeRun } from './output.js';
 import { renderSlides, zipRun } from './index.js';
 import { getBrowser, closeBrowser } from './browser.js';
 
@@ -21,17 +22,26 @@ import { getBrowser, closeBrowser } from './browser.js';
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** Read IHDR chunk to get PNG width/height (bytes 16-23 after 8-byte sig). */
-function parsePngDimensions(buf: Buffer): { width: number; height: number } {
-  // PNG signature: 8 bytes
-  // IHDR chunk: 4 (length) + 4 (type) + 4 (width) + 4 (height) + ...
-  // Width starts at offset 16, height at offset 20 — both big-endian uint32.
-  const width = buf.readUInt32BE(16);
-  const height = buf.readUInt32BE(20);
-  return { width, height };
-}
+const JPEG_MAGIC = Buffer.from([0xff, 0xd8, 0xff]);
 
-const PNG_MAGIC = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+/** Scan JPEG markers for SOF0/SOF2 to read width/height. */
+function parseJpegDimensions(buf: Buffer): { width: number; height: number } {
+  let offset = 2; // skip SOI (0xFFD8)
+  while (offset < buf.length) {
+    if (buf[offset] !== 0xff) throw new Error('Malformed JPEG marker');
+    const marker = buf[offset + 1];
+    // SOF0..SOF3, SOF5..SOF7, SOF9..SOF11, SOF13..SOF15 all carry dimensions
+    // in the same layout; standard baseline/progressive JPEGs use C0 or C2.
+    if (marker === 0xc0 || marker === 0xc2) {
+      const height = buf.readUInt16BE(offset + 5);
+      const width = buf.readUInt16BE(offset + 7);
+      return { width, height };
+    }
+    const length = buf.readUInt16BE(offset + 2);
+    offset += 2 + length;
+  }
+  throw new Error('No SOF marker found');
+}
 
 // ---------------------------------------------------------------------------
 // Browser availability guard
@@ -59,25 +69,23 @@ afterAll(async () => {
 });
 
 // ---------------------------------------------------------------------------
-// htmlToPng
+// htmlToJpeg
 // ---------------------------------------------------------------------------
 
-describe('htmlToPng', () => {
-  it('returns a PNG with 1080×1080 dimensions', async () => {
+describe('htmlToJpeg', () => {
+  it('returns a JPEG with 1080×1080 dimensions', async () => {
     if (!browserAvailable) {
-      console.warn('skipping htmlToPng test — Chromium not available');
+      console.warn('skipping htmlToJpeg test — Chromium not available');
       return;
     }
 
     const html =
       '<html><body style="margin:0"><div style="width:1080px;height:1080px;background:#a2391a"></div></body></html>';
-    const buf = await htmlToPng(html);
+    const buf = await htmlToJpeg(html);
 
-    // PNG magic bytes
-    expect(buf.slice(0, 8)).toEqual(PNG_MAGIC);
+    expect(buf.subarray(0, 3)).toEqual(JPEG_MAGIC);
 
-    // Dimensions from IHDR
-    const { width, height } = parsePngDimensions(buf);
+    const { width, height } = parseJpegDimensions(buf);
     expect(width).toBe(1080);
     expect(height).toBe(1080);
   });
@@ -90,12 +98,31 @@ describe('htmlToPng', () => {
 
     const html =
       '<html><body style="margin:0"><div style="width:400px;height:300px;background:#111"></div></body></html>';
-    const buf = await htmlToPng(html, { width: 400, height: 300 });
+    const buf = await htmlToJpeg(html, { width: 400, height: 300 });
 
-    expect(buf.slice(0, 8)).toEqual(PNG_MAGIC);
-    const { width, height } = parsePngDimensions(buf);
+    expect(buf.subarray(0, 3)).toEqual(JPEG_MAGIC);
+    const { width, height } = parseJpegDimensions(buf);
     expect(width).toBe(400);
     expect(height).toBe(300);
+  });
+
+  it('a lower quality produces a smaller file for the same image', async () => {
+    if (!browserAvailable) {
+      console.warn('skipping quality test — Chromium not available');
+      return;
+    }
+
+    // A busy gradient so JPEG quality actually affects size (a flat fill
+    // compresses to roughly the same size at any quality).
+    const html =
+      '<html><body style="margin:0"><div style="width:600px;height:600px;' +
+      'background:repeating-linear-gradient(45deg,#a2391a,#1a3ba2 3px,#2f9e44 6px,#f2b705 9px)">' +
+      '</div></body></html>';
+
+    const high = await htmlToJpeg(html, { width: 600, height: 600, quality: 95 });
+    const low = await htmlToJpeg(html, { width: 600, height: 600, quality: 40 });
+
+    expect(low.length).toBeLessThan(high.length);
   });
 });
 
@@ -160,11 +187,34 @@ describe('nextOutputDir', () => {
 });
 
 // ---------------------------------------------------------------------------
+// writeRun
+// ---------------------------------------------------------------------------
+
+describe('writeRun', () => {
+  it('removes stale .png files already sitting in the target directory', async () => {
+    const tmpRoot = await mkdtemp(join(tmpdir(), 'write-run-stale-png-'));
+    try {
+      const dir = join(tmpRoot, 'run-1');
+      await import('node:fs').then(({ mkdirSync }) => mkdirSync(dir, { recursive: true }));
+      await writeFile(join(dir, '1.png'), Buffer.from('stale'));
+      await writeFile(join(dir, '2.png'), Buffer.from('stale'));
+
+      await writeRun(dir, [{ name: 'slide-01.jpg', data: Buffer.from('jpeg-bytes') }]);
+
+      const entries = await readdir(dir);
+      expect(entries).toEqual(['slide-01.jpg']);
+    } finally {
+      await rm(tmpRoot, { recursive: true, force: true });
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
 // renderSlides
 // ---------------------------------------------------------------------------
 
 describe('renderSlides', () => {
-  it('creates 1.png, 2.png, slides.json, caption.txt and fires progress', async () => {
+  it('creates slide-01.jpg, slide-02.jpg, slides.json, caption.txt and fires progress', async () => {
     if (!browserAvailable) {
       console.warn('skipping renderSlides test — Chromium not available');
       return;
@@ -193,16 +243,17 @@ describe('renderSlides', () => {
         [2, 2],
       ]);
 
-      // Output dir exists.
+      // Output dir exists, with JPEGs only.
       const entries = await readdir(result.dir);
-      expect(entries).toContain('1.png');
-      expect(entries).toContain('2.png');
+      expect(entries).toContain('slide-01.jpg');
+      expect(entries).toContain('slide-02.jpg');
       expect(entries).toContain('slides.json');
       expect(entries).toContain('caption.txt');
+      expect(entries.some((n) => n.endsWith('.png'))).toBe(false);
 
       // files array contains absolute paths in the right order.
-      expect(result.files[0]).toMatch(/1\.png$/);
-      expect(result.files[1]).toMatch(/2\.png$/);
+      expect(result.files[0]).toMatch(/slide-01\.jpg$/);
+      expect(result.files[1]).toMatch(/slide-02\.jpg$/);
     } finally {
       await rm(tmpRoot, { recursive: true, force: true });
     }
@@ -262,7 +313,7 @@ describe('zipRun', () => {
       const unzipped = unzipSync(new Uint8Array(zipBuf));
       const names = Object.keys(unzipped).sort();
 
-      expect(names).toContain('1.png');
+      expect(names).toContain('slide-01.jpg');
       expect(names).toContain('slides.json');
       expect(names).toContain('caption.txt');
     } finally {

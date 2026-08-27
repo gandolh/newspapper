@@ -1,8 +1,7 @@
 ---
 /**
- * Sidebar — the single navigation rail shared by every page (wizard pages via
- * App.astro and the full-screen builder via builder.astro). One source of truth
- * for the nav links, icons, brand, and styling.
+ * Sidebar — the single navigation rail shared by every page via App.astro.
+ * One source of truth for the nav links, icons, brand, and styling.
  *
  * Icons are a coherent Lucide (ISC) set: all 24×24, stroke-only, currentColor,
  * uniform 2px stroke. `transition:persist` keeps this rail mounted across view
@@ -25,11 +24,6 @@ const navLinks = [
     href: '/articles',
     label: 'Articles',
     icon: '<path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/>',
-  },
-  {
-    href: '/builder',
-    label: 'Templates',
-    icon: '<rect width="18" height="7" x="3" y="3" rx="1"/><rect width="9" height="7" x="3" y="14" rx="1"/><rect width="5" height="7" x="16" y="14" rx="1"/>',
   },
   {
     href: '/settings',

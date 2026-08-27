@@ -44,3 +44,35 @@ touches the output convention, the export, and the history UI.
 - Text on a rendered slide is legible at quality 85 — check a real slide by eye,
   not just the file size, and say so in the outcome note.
 - `npm test` passes.
+
+---
+
+## Outcome — 2026-08-27
+
+Done. `htmlToJpeg` via Playwright's own encoder at draft quality 92; output is
+`output/YYYY-MM-DD-N/slide-01.jpg … slide-NN.jpg`, zero-padded to the slide
+count's width, with `writeRun` deleting any stale `.png` in the target directory
+first. `publishPost(db, postId)` re-encodes at quality 85, flags the render
+`optimized`, and sets the post `published` — idempotent by construction, with a
+byte-identical-on-second-call test proving it.
+
+Quality 85 was checked by eye rather than by file size: a real headline-plus-body
+slide rendered through the actual path with Inter served over HTTP, then crops
+zoomed at the 84px headline and the 34px body. No blocking or ringing at 85, and
+none visible even at 60 for flat-background high-contrast text.
+
+**A security gap was closed on the way through.** `core/src/render/resolve-images.ts`
+walks the compiled tree and resolves `<Image>` refs to absolute URLs for
+Chromium — and **drops anything that is not a valid upload ref** rather than
+passing it along. The wizard's own `imageUrl` did not guard this, so a smuggled
+`http://` or `file://` in `src` would have had the render browser fetch it. That
+is an SSRF shape, and it is now refused at the render boundary as well as at the
+resolver.
+
+`core/package.json` gained a `"./publish"` export subpath rather than an entry in
+`core/src/index.ts`, because brief 58 owned that file this wave.
+
+**Old output is orphaned.** A pre-brief-57 render's `1.png`/`2.png` files are
+invisible to export and publish, which only look for `slide-*.jpg`. No migration
+was written; nothing in `output/` is tracked, so this only matters if a
+previously rendered post needs to survive.

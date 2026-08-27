@@ -1,12 +1,18 @@
 /**
- * Template interpreter — pure browser-safe module (no Node APIs).
+ * TNode interpreter — pure browser-safe module (no Node APIs).
  *
- * renderTemplate() → complete self-contained HTML document string.
- * resolveStyle()   → CSS property map for a single TStyle node (re-exported for the visual builder).
- * validateTemplateDoc() / validateSlideData() — throw with field-level messages on bad input.
+ * This is the compile target for `.wzd` documents (see `core/src/wizard/compile.ts`),
+ * not an authoring surface — the JSON template documents this used to interpret,
+ * and the type that described them, are gone (see decisions.md "The template
+ * system is removed").
+ *
+ * renderTemplate() → complete self-contained HTML document string from a TNode root.
+ * resolveStyle()   → CSS property map for a single TStyle node (also called directly
+ *                    by the browser preview — see decisions-engineering.md).
+ * validateSlideData() — throws if the data blob handed to renderTemplate isn't usable.
  */
 
-import type { TemplateDoc, TNode, TStyle, Theme, RenderTemplateOptions, FieldSpec } from '../types.js';
+import type { TNode, TStyle, Theme, RenderTemplateOptions } from '../types.js';
 
 // ---------------------------------------------------------------------------
 // Unitless CSS properties (no `px` suffix)
@@ -215,7 +221,7 @@ function fontFaceCss(fontBaseUrl: string): string {
 // renderTemplate — main export
 // ---------------------------------------------------------------------------
 export function renderTemplate(
-  doc: TemplateDoc,
+  root: TNode,
   data: Record<string, unknown>,
   theme: Theme,
   opts: RenderTemplateOptions,
@@ -228,7 +234,7 @@ export function renderTemplate(
     _date: (data['_date'] as string | undefined) ?? '',
   };
 
-  const bodyContent = renderNode(doc.root, fullData, theme);
+  const bodyContent = renderNode(root, fullData, theme);
   const fonts = fontFaceCss(opts.fontBaseUrl);
 
   return `<!doctype html><html lang="en"><head><meta charset="UTF-8"><style>${fonts}
@@ -238,62 +244,13 @@ body{margin:0;font-family:'Inter',sans-serif;}
 }
 
 // ---------------------------------------------------------------------------
-// validateTemplateDoc — throws with field-level messages
+// validateSlideData — guards the `data` argument handed to renderTemplate.
+// There is no more per-template field spec to check required-ness against —
+// the wizard compiler resolves every binding before a TNode exists, so this
+// is just the non-null-object precondition renderTemplate's substitution needs.
 // ---------------------------------------------------------------------------
-export function validateTemplateDoc(doc: unknown): TemplateDoc {
-  if (typeof doc !== 'object' || doc === null) throw new Error('TemplateDoc must be an object');
-  const d = doc as Record<string, unknown>;
-
-  const errors: string[] = [];
-
-  if (typeof d['id'] !== 'string' || !d['id']) errors.push('id: required string');
-  if (typeof d['theme'] !== 'string' || !d['theme']) errors.push('theme: required string');
-  if (!['title', 'body', 'quote'].includes(d['family'] as string)) errors.push(`family: must be 'title'|'body'|'quote', got ${JSON.stringify(d['family'])}`);
-  if (typeof d['name'] !== 'string' || !d['name']) errors.push('name: required string');
-  if (!Array.isArray(d['fields'])) errors.push('fields: must be an array');
-  if (typeof d['sample'] !== 'object' || d['sample'] === null || Array.isArray(d['sample'])) errors.push('sample: must be an object');
-  if (typeof d['root'] !== 'object' || d['root'] === null) errors.push('root: must be a TNode object');
-
-  if (errors.length) throw new Error(`Invalid TemplateDoc:\n  ${errors.join('\n  ')}`);
-
-  // Validate fields array
-  if (Array.isArray(d['fields'])) {
-    for (let i = 0; i < (d['fields'] as unknown[]).length; i++) {
-      const f = (d['fields'] as unknown[])[i] as Record<string, unknown>;
-      if (typeof f['key'] !== 'string') errors.push(`fields[${i}].key: required string`);
-      if (typeof f['label'] !== 'string') errors.push(`fields[${i}].label: required string`);
-      if (!['text', 'textarea', 'list', 'pair'].includes(f['kind'] as string))
-        errors.push(`fields[${i}].kind: must be text|textarea|list|pair`);
-      if (typeof f['required'] !== 'boolean') errors.push(`fields[${i}].required: must be boolean`);
-    }
+export function validateSlideData(data: unknown): void {
+  if (typeof data !== 'object' || data === null || Array.isArray(data)) {
+    throw new Error('Slide data must be an object');
   }
-
-  if (errors.length) throw new Error(`Invalid TemplateDoc fields:\n  ${errors.join('\n  ')}`);
-
-  return doc as TemplateDoc;
-}
-
-// ---------------------------------------------------------------------------
-// validateSlideData — checks required fields per FieldSpec
-// ---------------------------------------------------------------------------
-export function validateSlideData(doc: TemplateDoc, data: unknown): void {
-  if (typeof data !== 'object' || data === null) throw new Error('Slide data must be an object');
-  const d = data as Record<string, unknown>;
-  const errors: string[] = [];
-
-  for (const field of doc.fields as FieldSpec[]) {
-    if (!field.required) continue;
-    const value = d[field.key];
-    if (value === undefined || value === null || value === '') {
-      errors.push(`${field.key}: required field is missing or empty`);
-    } else if (field.kind === 'list' && !Array.isArray(value)) {
-      errors.push(`${field.key}: expected array for list field`);
-    } else if (field.kind === 'pair') {
-      if (typeof value !== 'object' || Array.isArray(value)) {
-        errors.push(`${field.key}: expected object with {label, body} for pair field`);
-      }
-    }
-  }
-
-  if (errors.length) throw new Error(`Invalid slide data for template "${doc.id}":\n  ${errors.join('\n  ')}`);
 }

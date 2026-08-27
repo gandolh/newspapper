@@ -109,7 +109,7 @@ export interface Theme {
   shapes: { borderRadius: string; borderWidth: string };
 }
 
-// ---- Template documents (the new source of truth for slide layouts) ----
+// ---- TNode — the compile target every `.wzd` slide compiles down to ----
 // Style values may reference theme tokens:
 //   "$color.primary"  "$spacing.lg"  "$rounded.md"
 // Special style key `typography: "display"` expands to the theme typography token
@@ -120,22 +120,6 @@ export type TNode =
   | { kind: 'box'; style?: TStyle; children?: TNode[] }
   | { kind: 'text'; style?: TStyle; text: string }                      // supports {{binding}}
   | { kind: 'repeat'; source: string; style?: TStyle; children: TNode[] }; // {{item}}, {{i}} inside
-
-export interface FieldSpec {
-  key: string; label: string;
-  kind: 'text' | 'textarea' | 'list' | 'pair';
-  required: boolean;
-}
-
-export interface TemplateDoc {
-  id: string;                          // === slide variant, e.g. "title-main"
-  theme: string;                       // "warm-industrial"
-  family: 'title' | 'body' | 'quote';
-  name: string;                        // display name
-  fields: FieldSpec[];                 // drives the editor form
-  sample: Record<string, unknown>;     // sample data for previews
-  root: TNode;
-}
 
 export interface RenderTemplateOptions { index: number; total: number; fontBaseUrl: string }
 

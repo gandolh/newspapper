@@ -15,7 +15,8 @@ import {
   useState,
   type ReactElement,
 } from 'react';
-import type { PostPayload, PostRow, SlideBlock, TemplateDoc } from '@/lib/types';
+import type { PostPayload, PostRow, SlideBlock } from '@/lib/types';
+import type { LegacySlideTemplate } from './legacyTemplate';
 import { api } from '@/lib/api';
 import Button from '../ui/Button';
 import Spinner from '../ui/Spinner';
@@ -167,7 +168,7 @@ export function EditorStep({
     slides: post.payload.slides.map((s) => ({ ...s })),
   }));
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [templates, setTemplates] = useState<TemplateDoc[]>([]);
+  const [templates, setTemplates] = useState<LegacySlideTemplate[]>([]);
   const [templatesLoading, setTemplatesLoading] = useState(true);
   const [saveState, setSaveState] = useState<SaveState>('idle');
 
@@ -185,7 +186,7 @@ export function EditorStep({
   useEffect(() => {
     let cancelled = false;
     setTemplatesLoading(true);
-    api<TemplateDoc[]>(`/api/templates?theme=${encodeURIComponent(payload.theme)}`)
+    api<LegacySlideTemplate[]>(`/api/templates?theme=${encodeURIComponent(payload.theme)}`)
       .then((docs) => {
         if (!cancelled) {
           setTemplates(docs);

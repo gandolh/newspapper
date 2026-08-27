@@ -43,19 +43,13 @@ export async function zipRun(outputDir: string): Promise<Uint8Array>
 
 ```ts
 // core/src/templates/interpreter.ts (also re-exported from @newspapper/core/templates)
-export function renderTemplate(doc: TemplateDoc, data: Record<string,unknown>, theme: Theme, opts: RenderTemplateOptions): string
+// The compile target for `.wzd` documents (core/src/wizard/compile.ts), not
+// an authoring surface. `TemplateDoc`, the JSON template files, the registry
+// below, and `/builder` were all removed in brief 58 — see decisions.md
+// "The template system is removed".
+export function renderTemplate(root: TNode, data: Record<string,unknown>, theme: Theme, opts: RenderTemplateOptions): string
 export function resolveStyle(style: TStyle, theme: Theme): Record<string, string>
-export function validateTemplateDoc(doc: unknown): TemplateDoc
-export function validateSlideData(doc: TemplateDoc, data: unknown): void
-```
-
-```ts
-// core/src/templates/registry.ts
-export function listTemplates(theme: string): TemplateDoc[]
-export function loadTemplate(theme: string, id: string): TemplateDoc
-export function saveTemplate(doc: TemplateDoc): void
-export function deleteTemplate(theme: string, id: string): void
-export function templatesForFamily(theme: string, family: TemplateDoc['family']): TemplateDoc[]
+export function validateSlideData(data: unknown): void
 ```
 
 ## Storage

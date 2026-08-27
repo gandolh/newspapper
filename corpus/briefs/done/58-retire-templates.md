@@ -55,3 +55,40 @@ Edit:
   returns nothing.
 - The app renders a post end to end with no `assets/templates/` directory present.
 - `/builder` is gone from the nav and returns 404.
+
+---
+
+## Outcome — 2026-08-27
+
+Done. Deleted the nine template JSON documents (copied to
+`briefs/superseded/templates-warm-industrial/` for reference), the registry,
+`api/src/routes/templates.ts`, `/builder` and `ui/src/components/builder/**`.
+`TemplateDoc` and `FieldSpec` are gone from both type files; `grep -rw TemplateDoc`
+over `core/src api/src ui/src` returns nothing.
+
+`renderTemplate` now takes `(root: TNode, data, theme, opts)` directly rather
+than a `TemplateDoc` wrapper. `resolveStyle` is untouched — brief 59 calls it
+from the browser.
+
+Two deletions beyond the brief's list, both forced and both correct:
+`api/src/routes/preview.ts` existed only to serve `TemplateDoc` previews for the
+builder, and with the compile now browser-safe there is nothing for a server
+preview to do. `GET /api/themes` was extracted to a new `api/src/routes/themes.ts`
+first — it was never part of the template registry and the settings page depends
+on it.
+
+**The guard test now exists**, and it is the real thing the corpus has been
+claiming for months: `ui/src/lib/types.test.ts` uses the TypeScript compiler API
+to parse both type files and diff every exported declaration's printed shape,
+so it catches missing, extra, *and* structurally changed types rather than
+comparing text. It also required adding `ui/**/*.test.ts` to `vitest.config.ts`'s
+`include` — the root config only ran `core` and `api`, so the test would have
+existed and never executed. It caught a real mismatch on its first run.
+
+Tests 546 → 526; this brief's own net was −34 (the 28 template-document tests,
+six `validateTemplateDoc` tests, the `/api/templates*` and `/api/preview` route
+blocks, plus six new guard tests), with waves' parallel briefs adding the rest
+back.
+
+`ui/src/components/editor/**` was kept compiling with a local
+`legacyTemplate.ts` shim rather than edited — brief 59 rebuilds that directory.

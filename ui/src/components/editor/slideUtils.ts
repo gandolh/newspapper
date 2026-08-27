@@ -1,7 +1,8 @@
 /**
  * Utility helpers for slide manipulation.
  */
-import type { SlideBlock, FieldSpec } from '@/lib/types';
+import type { SlideBlock } from '@/lib/types';
+import type { LegacySlideField } from './legacyTemplate';
 
 /** Convert a SlideBlock to a flat Record for POST /api/preview data param. */
 export function slideToData(slide: SlideBlock): Record<string, unknown> {
@@ -14,7 +15,7 @@ export function slideToData(slide: SlideBlock): Record<string, unknown> {
  * Used when inserting a new slide with a given template.
  */
 export function defaultsFromFields(
-  fields: FieldSpec[],
+  fields: LegacySlideField[],
   variant: string,
 ): Record<string, unknown> {
   const out: Record<string, unknown> = {};
@@ -30,7 +31,7 @@ export function defaultsFromFields(
 /** Build a new SlideBlock from a variant string and field defaults. */
 export function buildNewSlide(
   variant: string,
-  fields: FieldSpec[],
+  fields: LegacySlideField[],
 ): SlideBlock {
   const data = defaultsFromFields(fields, variant);
   const family = variant.split('-')[0] as 'title' | 'body' | 'quote';

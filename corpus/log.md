@@ -396,3 +396,54 @@ One deviation worth recording: brief 60's "start a post from this article" step
 was withdrawn at dispatch rather than implemented. It is genuinely undecided and
 the editor brief owns it; `open-questions.md` records that the API already
 carries what it would need.
+
+## [2026-08-27] done | wave 4 — briefs 57, 58, 61
+
+Gates verified from the controller: build passes, **526 tests pass**, lint and
+corpus lint clean, `grep -rw TemplateDoc` returns nothing, the render path is
+JPEG-only, and the new guard test genuinely executes.
+
+**57** moved rendering to JPEG and added the publish optimization pass. It also
+closed a security gap nobody had filed: `<Image src>` was resolved to a URL for
+Chromium without checking that it *was* an upload ref, so a smuggled `http://`
+or `file://` would have had the render browser fetch it. `resolve-images.ts` now
+drops anything that is not a valid ref, at the render boundary as well as in the
+resolver. Quality 85 was chosen by looking at zoomed crops of real type, not by
+comparing file sizes.
+
+**58** retired the template system. Two deletions beyond the brief, both forced
+and both right: `api/src/routes/preview.ts` had nothing left to do once the
+compile became browser-safe, and `GET /api/themes` had to be extracted to its
+own route first because it was never part of the registry.
+
+The `ui/src/lib/types.ts` guard test the corpus had claimed for months now
+exists, built on the TypeScript compiler API so it diffs exported *shapes*
+rather than text. Building it turned up a second silent failure: `ui/**/*.test.ts`
+was not in `vitest.config.ts`'s include list, so the test would have existed and
+never run. Same family as the `.gitignore` incident — green because nothing
+executed.
+
+**61** shipped the two sibling palettes and enlarged the type ramp for the 1080²
+canvas, with contrast measured rather than asserted. It correctly refused two
+items and they are now brief 65.
+
+## [2026-08-27] todo | brief 65 filed — the theme family is not finished
+
+Two things brief 61 could not reach from inside `assets/design-systems/**`.
+
+**The `size` prop is currently a lie for `Heading` and `Stat`.**
+`WZD_TYPOGRAPHY_SCALES` maps component + size to a *token name*, and it maps
+`Heading` `lg` and `xl` to the same `display` token. So a person writes
+`size="xl"`, the linter accepts it, and the slide does not change — no theme ramp
+can fix that. The controller routed brief 54's finding to 61 on the assumption it
+was a theme gap; it is half a theme gap and half a code one.
+
+**The rename never happened**, so the repo ships four themes where
+`decisions.md` says three. `warm-industrial` → `warm-industrial-1` touches ~15
+hardcoded call sites, the `posts.theme` column default, and existing rows — a
+data migration, which a junior-scoped brief was right to refuse rather than
+improvise.
+
+Brief 65 also picks up the every-theme `missingThemeTokens` acceptance test that
+61 verified by script but could not commit, since it belongs in `core/src/**`.
+It runs in wave 5 beside the editor; their file sets are disjoint.

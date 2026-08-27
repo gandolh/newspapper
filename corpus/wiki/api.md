@@ -108,21 +108,15 @@ distinct from the saved `Article` shape (no `id`, no `savedAt`) since it isn't a
 |--------|------|----------|
 | GET | `/api/posts/:id/export.zip` | `application/zip` — PNGs + slides.json + caption.txt |
 
-## Preview
+## Themes
+
+`/api/preview` and every `/api/templates*` route are gone with the template
+system (brief 58 — see decisions.md "The template system is removed"). Theme
+listing wasn't part of that registry, so it survives in its own
+`api/src/routes/themes.ts`:
 
 | Method | Path | Body | Response |
 |--------|------|------|----------|
-| POST | `/api/preview` | `{ doc: TemplateDoc, data: Record<string,unknown>, theme: string, index: number, total: number }` | `text/html` — complete HTML document |
-
-## Templates
-
-| Method | Path | Body | Response |
-|--------|------|------|----------|
-| GET | `/api/templates` | query `theme=` | `TemplateDoc[]` |
-| GET | `/api/templates/:theme/:id` | — | `TemplateDoc` |
-| POST | `/api/templates` | `TemplateDoc` | `TemplateDoc` (201) or 409 if exists |
-| PUT | `/api/templates/:theme/:id` | `TemplateDoc` | `TemplateDoc` |
-| DELETE | `/api/templates/:theme/:id` | — | `{ ok: true }` |
 | GET | `/api/themes` | — | `Array<{ name, tokens }>` |
 
 ## Settings

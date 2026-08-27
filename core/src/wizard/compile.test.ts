@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { TNode, TemplateDoc } from '../types.js';
+import type { TNode } from '../types.js';
 import { loadTheme } from '../themes/index.js';
 import { renderTemplate } from '../templates/interpreter.js';
 import { parse, parseOrThrow } from './parse.js';
@@ -18,16 +18,7 @@ import {
 const theme = loadTheme('warm-industrial');
 
 function render(root: TNode, index: number, total: number): string {
-  const doc: TemplateDoc = {
-    id: 'wizard',
-    theme: 'warm-industrial',
-    family: 'body',
-    name: 'Wizard',
-    fields: [],
-    sample: {},
-    root,
-  };
-  return renderTemplate(doc, {}, theme, { index, total, fontBaseUrl: '/assets/fonts' });
+  return renderTemplate(root, {}, theme, { index, total, fontBaseUrl: '/assets/fonts' });
 }
 
 describe('compileDocument', () => {

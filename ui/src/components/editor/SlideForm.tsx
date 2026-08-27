@@ -1,13 +1,14 @@
 /**
- * SlideForm — renders editable fields for a single slide based on its FieldSpec[].
+ * SlideForm — renders editable fields for a single slide based on its LegacySlideField[].
  */
-import type { SlideBlock, FieldSpec } from '@/lib/types';
+import type { SlideBlock } from '@/lib/types';
+import type { LegacySlideField } from './legacyTemplate';
 import Input from '../ui/Input';
 import Textarea from '../ui/Textarea';
 
 interface SlideFormProps {
   slide: SlideBlock;
-  fields: FieldSpec[];
+  fields: LegacySlideField[];
   onChange: (updated: SlideBlock) => void;
 }
 

@@ -25,11 +25,11 @@ New here? [wiki/overview.md](wiki/overview.md), then
 | [architecture.md](wiki/architecture.md) | How the three npm workspaces fit together and how a post flows scrape → compose → edit → render → ZIP. |
 | [commands.md](wiki/commands.md) | Which npm script to run for dev, build, test, lint, and format, and what ports they bind. |
 | [configuration.md](wiki/configuration.md) | Every env var, where settings come from and which source wins, and the Playwright Chromium install step. |
-| [data.md](wiki/data.md) | On-disk and in-DB shapes: the SQLite schema, TemplateDoc, PostPayload, sources.json, and the output/ folder convention. |
+| [data.md](wiki/data.md) | On-disk and in-DB shapes: the v3 SQLite schema for authored posts, the TNode compile-target shape, and the output/ folder convention. |
 | [decisions-engineering.md](wiki/decisions-engineering.md) | The locked engineering calls — workspaces and ESM, pinned dependencies, SQLite, the UI's type copy, and where project knowledge lives. |
 | [decisions.md](wiki/decisions.md) | The locked product calls — no LLM, human-centred editing, the Wizard markup and its semantic component model, images, and where it runs. |
 | [dependencies.md](wiki/dependencies.md) | What each workspace depends on and why that package was chosen over the alternatives. |
-| [design-systems.md](wiki/design-systems.md) | The warm-industrial token set and how template JSON docs drive the renderer and the visual builder. |
+| [design-systems.md](wiki/design-systems.md) | The warm-industrial-1/2/3 theme family (palettes + enlarged type ramp), how missingThemeTokens gates them, and the known Heading/Stat size-collision that still needs a code fix. |
 | [glossary.md](wiki/glossary.md) | The project's vocabulary — one canonical definition per term Newspapper uses in a particular way, and the synonyms each one displaces. |
 | [markup.md](wiki/markup.md) | Newspapper Wizard (.wzd) — the JSX-like markup a post is written in: document shape, the component catalogue, the props model, and how it compiles to images. |
 | [modules.md](wiki/modules.md) | The public API of @newspapper/core — what each module actually exports and from which entry point. |

@@ -2,7 +2,8 @@
  * EditPanel — right panel: field form, variant switcher, AI actions.
  */
 import { useRef, useState } from 'react';
-import type { SlideBlock, TemplateDoc } from '@/lib/types';
+import type { SlideBlock } from '@/lib/types';
+import type { LegacySlideTemplate } from './legacyTemplate';
 import Button from '../ui/Button';
 import Badge from '../ui/Badge';
 import Select from '../ui/Select';
@@ -19,7 +20,7 @@ import {
 interface EditPanelProps {
   slide: SlideBlock;
   slideIndex: number;
-  templates: TemplateDoc[];
+  templates: LegacySlideTemplate[];
   onChange: (updated: SlideBlock) => void;
   onUndo: (prev: SlideBlock) => void;
   onToast: (msg: string, variant?: 'success' | 'error' | 'info', action?: () => void, actionLabel?: string) => void;
@@ -33,9 +34,9 @@ const AI_ACTIONS = [
 
 type AiAction = (typeof AI_ACTIONS)[number]['action'];
 
-function groupByFamily(templates: TemplateDoc[]) {
-  const groups: { family: string; templates: TemplateDoc[] }[] = [];
-  const seen = new Map<string, TemplateDoc[]>();
+function groupByFamily(templates: LegacySlideTemplate[]) {
+  const groups: { family: string; templates: LegacySlideTemplate[] }[] = [];
+  const seen = new Map<string, LegacySlideTemplate[]>();
   for (const t of templates) {
     if (!seen.has(t.family)) {
       seen.set(t.family, []);

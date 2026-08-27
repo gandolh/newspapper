@@ -28,20 +28,14 @@ export { loadTheme, listThemes } from './themes/index.js';
 // Newspapper Wizard (.wzd) — parser, formatter, linter, component catalogue
 export * from './wizard/index.js';
 
-// Template registry (Node-only) and interpreter
+// TNode interpreter — the compile target `.wzd` documents render through.
+// The JSON template documents, their registry, and `/builder` are gone; see
+// decisions.md "The template system is removed".
 export {
   renderTemplate,
   resolveStyle,
-  validateTemplateDoc,
   validateSlideData,
 } from './templates/interpreter.js';
-export {
-  listTemplates,
-  loadTemplate,
-  saveTemplate,
-  deleteTemplate,
-  templatesForFamily,
-} from './templates/registry.js';
 
 // Image uploads (Node-only) — store paths, Sharp normalization, ref resolution
 export * from './uploads/index.js';

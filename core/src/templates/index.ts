@@ -1,8 +1,6 @@
 // Browser-safe subpath: no `fs`, `path`, or any Node API.
-// Re-exports template types and the pure interpreter.
+// Re-exports the compile-target types and the pure TNode interpreter.
 export type {
-  TemplateDoc,
-  FieldSpec,
   TNode,
   TStyle,
   RenderTemplateOptions,
@@ -14,6 +12,5 @@ export type {
 export {
   renderTemplate,
   resolveStyle,
-  validateTemplateDoc,
   validateSlideData,
 } from './interpreter.js';

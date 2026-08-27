@@ -1,5 +1,5 @@
 ---
-summary: On-disk and in-DB shapes: the v3 SQLite schema for authored posts, TemplateDoc, and the output/ folder convention.
+summary: On-disk and in-DB shapes: the v3 SQLite schema for authored posts, the TNode compile-target shape, and the output/ folder convention.
 updated: 2026-08-28
 ---
 
@@ -150,22 +150,14 @@ v1 → v2 → v3 in one boot and loses its posts the same way.
 The migration is keyed on `PRAGMA user_version` and uses `IF NOT EXISTS`
 throughout, so re-running it is a no-op.
 
-## TemplateDoc format — `assets/templates/<theme>/<id>.json`
+## TNode — the `.wzd` compile target
 
-```json
-{
-  "id": "title-main",
-  "theme": "warm-industrial",
-  "family": "title",
-  "name": "Title — Main",
-  "fields": [
-    { "key": "text", "label": "Headline", "kind": "textarea", "required": true },
-    { "key": "kicker", "label": "Kicker", "kind": "text", "required": false }
-  ],
-  "sample": { "text": "Big News Today", "kicker": "Breaking" },
-  "root": { /* TNode tree */ }
-}
-```
+No on-disk format anymore — `TemplateDoc` and the JSON template files under
+`assets/templates/<theme>/<id>.json` were removed with the template system
+(brief 58; see [decisions.md](decisions.md#the-template-system-is-removed)).
+`TNode` survives purely as an in-memory shape: `core/src/wizard/compile.ts`
+produces one per `<Slide>`, and `renderTemplate` (`core/src/templates/interpreter.ts`)
+walks it into HTML.
 
 ### TNode types
 
@@ -192,10 +184,16 @@ CSS property map. Supports:
 ```
 output/
   YYYY-MM-DD-1/
-    1.png, 2.png, …N.png   (1080×1080, one per slide)
+    slide-01.jpg, slide-02.jpg, …slide-NN.jpg   (1080×1080, one per slide)
     slides.json
     caption.txt             (present only if a caption was set before render)
   YYYY-MM-DD-2/             (same-day re-render → increments N)
 ```
+
+JPEG only, no `.png` ([decisions.md](decisions.md#output-is-jpeg-not-png)) —
+draft quality ~92; `writeRun` deletes any stale `.png` it finds in the target
+dir. `POST /api/posts/:id/publish` (`core/src/publish`) re-encodes in place at
+~85 and flags the render `optimized`, guarding a repeat publish from
+re-degrading the image.
 
 Each directory is recorded as a row in `renders`.

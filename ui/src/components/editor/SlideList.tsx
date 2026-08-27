@@ -2,7 +2,8 @@
  * SlideList — vertical list of slide cards with thumbnails, reorder, delete, and add.
  */
 import { useState } from 'react';
-import type { SlideBlock, TemplateDoc } from '@/lib/types';
+import type { SlideBlock } from '@/lib/types';
+import type { LegacySlideTemplate } from './legacyTemplate';
 import Badge from '../ui/Badge';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
@@ -16,7 +17,7 @@ interface SlideListProps {
   slides: SlideBlock[];
   selectedIndex: number;
   theme: string;
-  templates: TemplateDoc[];
+  templates: LegacySlideTemplate[];
   onSelect: (index: number) => void;
   onReorder: (from: number, to: number) => void;
   onDelete: (index: number) => void;
@@ -47,7 +48,7 @@ export default function SlideList({
   const [addFamily, setAddFamily] = useState<'title' | 'body' | 'quote' | null>(null);
 
   // Group templates by family for the Add modal
-  const byFamily: Record<string, TemplateDoc[]> = {};
+  const byFamily: Record<string, LegacySlideTemplate[]> = {};
   for (const t of templates) {
     (byFamily[t.family] ??= []).push(t);
   }
@@ -64,7 +65,7 @@ export default function SlideList({
     setDeleteIndex(null);
   }
 
-  function handleAddSlide(template: TemplateDoc) {
+  function handleAddSlide(template: LegacySlideTemplate) {
     if (slides.length >= MAX_SLIDES) {
       onToast('Maximum 8 slides allowed', 'error');
       setAddOpen(false);

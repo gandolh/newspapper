@@ -1,121 +1,134 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { resolve, basename } from 'node:path';
+import { resolve } from 'node:path';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import {
-  getPost,
-  markRendered,
-  loadTemplate,
+  findPost,
+  latestRender,
+  recordRender,
   loadTheme,
+  parseOrThrow,
+  compileDocument,
   renderTemplate,
   renderSlides,
+  resolveImageUrls,
   zipRun,
-  getSettings,
+  uploadsBaseUrl,
+  todayLocal,
 } from '@newspapper/core';
-import type { SlideBlock } from '@newspapper/core';
 import { db } from '../lib/db.js';
 import { sseHeaders, sseWrite, sseDone, sseError } from '../lib/sse.js';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const repoRoot = resolve(__dirname, '../../..');
+const outputPrefix = resolve(repoRoot, 'output');
 
 const PORT = Number(process.env.PORT ?? 3001);
 
-function formatCaption(payload: { caption?: string; hashtags?: string[] }): string | undefined {
-  if (!payload.caption) return undefined;
-  const tags = (payload.hashtags ?? []).map((t) => `#${t}`).join(' ');
-  if (tags) return `${payload.caption}\n\n${tags}`;
-  return payload.caption;
+function formatCaption(head: Record<string, string>): string | undefined {
+  const caption = head['caption'];
+  if (!caption) return undefined;
+  const hashtags = head['hashtags'];
+  return hashtags ? `${caption}\n\n${hashtags}` : caption;
 }
 
 const renderRoutes: FastifyPluginAsync = async (fastify) => {
   /**
    * POST /api/posts/:id/render  (SSE)
+   * Compiles the post's `.wzd` markup and renders every slide to JPEG.
    */
   fastify.post('/api/posts/:id/render', async (req, reply) => {
     sseHeaders(reply);
     const { id } = req.params as { id: string };
-    const post = getPost(db(), Number(id));
+    const post = findPost(db(), Number(id));
     if (!post) {
       sseError(reply, 'Post not found');
       return;
     }
 
-    const s = getSettings();
-    const theme = post.payload.theme ?? s.defaultTheme;
-    let themeObj;
+    let theme;
     try {
-      themeObj = loadTheme(theme);
+      theme = loadTheme(post.theme);
     } catch (err) {
       sseError(reply, `Theme not found: ${(err as Error).message}`);
       return;
     }
 
-    const slides = post.payload.slides as SlideBlock[];
-    const total = slides.length;
-    const fontBaseUrl = `http://localhost:${PORT}/assets/fonts`;
-    const htmlList: string[] = [];
-
+    let head: Record<string, string>;
+    let slides;
     try {
-      for (let i = 0; i < slides.length; i++) {
-        const slide = slides[i];
-        const doc = loadTemplate(theme, slide.variant);
-        const html = renderTemplate(doc, slide as unknown as Record<string, unknown>, themeObj, {
-          index: i + 1,
-          total,
-          fontBaseUrl,
-        });
-        htmlList.push(html);
-      }
+      const doc = parseOrThrow(post.markup);
+      head = doc.head;
+      slides = compileDocument(doc, theme);
     } catch (err) {
-      sseError(reply, `Template error: ${(err as Error).message}`);
+      sseError(reply, `Could not compile this post: ${(err as Error).message}`);
       return;
     }
 
+    if (slides.length === 0) {
+      sseError(reply, 'This post has no slides.');
+      return;
+    }
+
+    const total = slides.length;
+    const fontBaseUrl = `http://localhost:${PORT}/assets/fonts`;
+    const uploadBase = uploadsBaseUrl();
+    const htmlList = slides.map((root, i) =>
+      renderTemplate(resolveImageUrls(root, uploadBase), {}, theme, {
+        index: i + 1,
+        total,
+        fontBaseUrl,
+      }),
+    );
+
+    const date = head['date'] || todayLocal();
+    const caption = formatCaption(head);
+
     try {
-      const caption = formatCaption(post.payload);
       const result = await renderSlides(htmlList, {
-        date: post.date,
-        slidesJson: post.payload,
+        date,
+        slidesJson: { title: post.title, theme: post.theme, head },
         caption,
-        onProgress: (done, total) => {
-          sseWrite(reply, 'progress', { done, total });
+        onProgress: (done, doneTotal) => {
+          sseWrite(reply, 'progress', { done, total: doneTotal });
         },
       });
 
-      const updatedPost = markRendered(db(), Number(id), result.dir);
+      const render = recordRender(db(), {
+        postId: post.id,
+        outputDir: result.dir,
+        slideCount: total,
+      });
 
-      // Build URL paths for PNG files only
-      const outputPrefix = resolve(repoRoot, 'output');
       const files = result.files
-        .filter((f) => f.endsWith('.png'))
-        .map((f) => {
-          const rel = f.startsWith(outputPrefix) ? f.slice(outputPrefix.length) : `/${basename(f)}`;
-          return `/output${rel}`;
-        });
+        .filter((f) => f.endsWith('.jpg'))
+        .map((f) => `/output${f.slice(outputPrefix.length)}`);
 
-      sseDone(reply, { post: updatedPost, files });
+      sseDone(reply, { post, render, files });
     } catch (err) {
       sseError(reply, (err as Error).message);
     }
   });
 
   /**
-   * GET /api/posts/:id/export.zip
+   * GET /api/posts/:id/export.zip — the latest render's JPEGs + caption.
    */
   fastify.get('/api/posts/:id/export.zip', async (req, reply) => {
     const { id } = req.params as { id: string };
-    const post = getPost(db(), Number(id));
+    const post = findPost(db(), Number(id));
     if (!post) return reply.status(404).send({ error: 'Post not found' });
-    if (post.status !== 'rendered' || !post.outputDir) {
+
+    const render = latestRender(db(), post.id);
+    if (!render) {
       return reply.status(404).send({ error: 'Post has not been rendered yet' });
     }
-    if (!existsSync(post.outputDir)) {
+    if (!existsSync(render.outputDir)) {
       return reply.status(404).send({ error: 'Output directory no longer exists' });
     }
-    const buf = await zipRun(post.outputDir);
+
+    const buf = await zipRun(render.outputDir);
     reply.header('Content-Type', 'application/zip');
-    reply.header('Content-Disposition', `attachment; filename="newspapper-${post.date}.zip"`);
+    reply.header('Content-Disposition', `attachment; filename="newspapper-post-${post.id}.zip"`);
     return reply.send(buf);
   });
 };
