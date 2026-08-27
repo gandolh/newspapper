@@ -61,6 +61,24 @@ Every slide is **1080 × 1080 px** — Instagram square post format, hard-coded 
 
 ## UI app design system (distinct from the slide theme)
 
+> **Superseded, not yet replaced in code.** The tokens above drive **slide
+> rendering** and carry over untouched. Everything in this section describes the
+> **app chrome** built for the four-step pipeline. That chrome is being replaced
+> by **The Mechanical** — a paste-up board — chosen 2026-08-27; the system is
+> [`DESIGN.md`](../../DESIGN.md) and the rebuild is
+> [brief 64](../briefs/todo/64-workstation-chrome.md). Until 64 lands, the
+> description below is accurate for what `ui/` renders today, so keep building
+> against it.
+>
+> What changes when 64 lands: a 26px non-photo blue grid governs every surface;
+> `border-radius` is `0` throughout; state is carried by a **mark** (rubylith,
+> wax, rubber stamp, tissue corner, 45° hatch) rather than a coloured badge; the
+> chrome face becomes **Archivo** with **Spline Sans Mono** for the galley, and
+> Inter is confined to the rendered slide; the `Stepper` and `Badge` primitives
+> retire; `Sidebar.astro` becomes the tray; and animation arrives as
+> [anime.js](./decisions-engineering.md#animejs-is-the-motion-engine-tailwind-bound-kits-are-references-only)
+> — two moments, nothing else.
+
 The tokens above (`assets/design-systems/warm-industrial.json`) drive **slide rendering**. The
 **UI chrome** (wizard, history, sources, settings, builder) has its own design system:
 

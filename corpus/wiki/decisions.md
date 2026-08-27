@@ -88,6 +88,33 @@ and let each post drift further from the last); one theme (monotonous across a
 daily feed); a full theme editor (its own feature, and the component library
 needs the attention first).
 
+## The workstation is redesigned; the slide theme is not
+_2026-08-27_ — Two design systems live in this repo and only one of them
+changes. The **slide theme** (`warm-industrial`, terracotta on warm off-white,
+Inter 400–900) is what the renderer paints into the 1080² JPEG; it carries over
+untouched and gains two sibling palettes. The **app chrome** — the workstation
+the operator sits in — is replaced outright, because it was designed around a
+four-step pipeline that no longer exists, and its signature components (the
+stepper, the wizard shell, the builder toolbar) have nothing left to describe.
+Rejected: polishing the incumbent chrome, which would spend effort making a
+wizard look better at being a wizard.
+
+**The world is The Mechanical** — a paste-up board: a 26px non-photo blue grid
+under everything, the slide inside crop marks and register targets, the markup
+waxed on as a galley, the inspector on a tissue overlay that hinges off the
+canvas. Zero radius anywhere; state is a **mark** (rubylith, wax, stamp, tissue
+corner, hatch), never a coloured badge. Chosen 2026-08-27 from two rounds of
+fully-drawn editor screens, over The Forme (letterpress lock-up), The Wire Desk
+(teleprinter fanfold) and Page 101 (broadcast teletext). The system is
+[`DESIGN.md`](../../DESIGN.md); the build is
+[brief 64](../briefs/todo/64-workstation-chrome.md).
+
+Two consequences worth stating separately, because they are the parts most
+likely to be quietly undone: the chrome face is **Archivo**, and **Inter never
+appears in the chrome** — it is the artwork's voice, and that separation is what
+keeps the slide legible as a made thing. And a board has no rounded corners:
+`border-radius` is `0` throughout.
+
 ## The template system is removed
 _2026-08-27_ — `TemplateDoc`, the nine template JSON files, the registry, and
 the `/builder` page are deleted. Layout authoring is not a user activity.

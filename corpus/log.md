@@ -152,3 +152,126 @@ nothing that renders; and 63 (docs) runs last.
 Also this pass: the language is spelled **Wizard**; every reference to a
 deployment target was removed from the corpus at the owner's request, and the
 routing page was rewritten to describe practices rather than name tooling.
+
+## [2026-08-27] decision | direction round opened for the workstation redesign; anime.js locked as the motion engine
+
+The pivot retires the app chrome along with the pipeline it described: the
+four-step stepper, the wizard shell, and the builder toolbar are the signature
+components of a product that no longer exists. Recorded as a product decision
+(*The workstation is redesigned; the slide theme is not*) — the `warm-industrial`
+tokens that paint the 1080² output are a separate system and carry over untouched.
+
+Four replacement worlds were derived and drawn as complete editor screens, then
+put to the owner: **The Specimen** (a foundry specimen sheet made operable —
+leads), **The Cutting Bench** (a film editor's bench; beat the lead on both
+audience identification and product clarity), **Struck Cathode** (a nixie stack
+behind bronze gauze; held one axis), and **The Mechanical** (the paste-up board;
+the top-ranked grounded candidate, carrying a familiarity risk). Four further
+candidates were declined, each donating one discipline to the lead: the compile
+dramatised as an event, a rigid repeated label block per post, integer-only
+preview scaling, and selection drawn as a lit connection between source and
+canvas rather than two independent highlights.
+
+Nothing is chosen yet, so `DESIGN.md` was **not** rewritten — it carries a status
+block marking it superseded in intent but accurate for what `ui/` renders today.
+`PRODUCT.md` was rewritten in full: it had drifted badly, still describing the
+four-step wizard, PNG output, no auth, and an LLM writing the copy. Its brand
+personality section is deliberately left open pending the round.
+
+Settled independently of the round and recorded as an engineering decision:
+**`animejs` 4.5.0** (MIT, no dependencies, framework-agnostic ESM) is the motion
+engine. **motion-primitives** and **smoothui** were rejected — both are
+shadcn-style React kits requiring Tailwind CSS (v4 for smoothui) plus Motion, and
+this UI is Astro islands + CSS Modules + Base UI with no Tailwind. They remain
+pattern references. Standing rules: one authored motion moment per surface,
+everything behind `prefers-reduced-motion`, and no motion inside the slide canvas.
+
+Filed `todos/workstation-redesign.md` for the chrome rebuild, which runs against
+brief 59 rather than before it.
+
+Still not done, unchanged from the last entry: root `CLAUDE.md` carries the
+pre-pivot constraints (Ollama-only, the Sharp ban, one-post-per-day), and
+`PRODUCT.md`/`DESIGN.md` remain at the repo root rather than in the corpus.
+
+## [2026-08-27] decision | The Mechanical pinned; three alternates re-rolled under a "more structure" steer
+
+The owner picked **The Mechanical** — the paste-up board — from the first round
+and asked for the other three to be reloaded with more structure. A pin beats
+the roll, so it leads and is no longer up for re-decision; what remains is
+confirm-or-swap.
+
+The Mechanical came back **raised by five donations** from the declined hand,
+each written into the direction rather than left as a note: findings pin to
+their node on a leader line and carry the actual measurement; one universal
+diagonal means "held out" on every surface; every slide renders at one fixed
+scale on a shared baseline, with a registered overlay to compare two; selection
+is physical promotion rather than a highlight; and one grid governs everything.
+A **second surface** was drawn — the post library as a flat file of boards,
+where drafts keep their tissue corner, published boards carry the stamp, and a
+board that won't compile wears the same rubylith the editor uses.
+
+Three replacements were dealt, all in the same physical-production family and
+each enforcing structure through a different mechanism: **The Forme**
+(letterpress lock-up — nothing floats, empty space is visible wooden furniture,
+lock-up *is* publish), **The Wire Desk** (teleprinter fanfold — structure by
+fixed character pitch, two ribbon colours with red reserved for errors, and the
+only world that already knows what to do with the RSS side), and **Page 101**
+(broadcast teletext — every glyph on one lattice, three-digit page addresses as
+navigation, a fastext action bar). A hybrid was also put on the table: keep the
+board, adopt the furniture rule as its layout law.
+
+Declined this round — tensegrity column, industrial quote grammar, botanical
+folio, console void, live ASCII render — with each one's discipline extracted
+before it left; those are the five raises above.
+
+One finding worth carrying whatever wins: **teletext's eight colours give five
+usable text colours on black, not eight.** Blue fails contrast outright; green
+and red are only safe at weight. Any state system built on that palette is a
+five-slot system.
+
+Corpus updated: `wiki/open-questions.md` now frames the question as
+confirm-or-swap and carries the alternates and the raises; `wiki/status.md`
+records the pin; `todos/workstation-redesign.md` lists the five layout rules
+that ship with The Mechanical if it stands. `DESIGN.md` and `PRODUCT.md`'s
+brand section still wait on the confirmation, by design.
+
+## [2026-08-27] decision | The Mechanical chosen; DESIGN.md rewritten, brief 64 filed
+
+The owner confirmed **The Mechanical** — the paste-up board — as the
+workstation's visual world. The round is closed.
+
+`DESIGN.md` was rewritten in full, derived from the approved comps rather than
+from intentions: every colour, shadow and type value in it was measured off a
+rendered screen. The system in one line — a 26px non-photo blue grid under
+everything, the slide inside crop marks and register targets, the markup waxed
+on as a galley, the inspector on a tissue overlay that hinges off the canvas.
+
+Four things in it are load-bearing and easy to undo by accident, so each is
+written as a named rule: `border-radius` is **0** throughout; the blue grid may
+carry alignment and never information (**The Non-Photo Rule**); state is a
+**mark** — rubylith, wax, stamp, tissue corner, hatch — with one mark per idea
+and never a second treatment elsewhere (**The One Mark Rule**); and the chrome
+face is **Archivo**, with **Inter confined to the rendered slide**, because that
+separation is what keeps the artwork legible as a made thing.
+
+One correction fell out of measuring the build: `#7a7a76` reads 4.0:1 on board
+and therefore cannot carry text. `#6d6a62` is now the ink floor, and `#7a7a76`
+is demoted to rules and ticks.
+
+`PRODUCT.md`'s brand personality section — deliberately left open when the file
+was rewritten earlier today — is filled in: *flat, marked, square*. An
+anti-reference was added for the failure mode this world is most exposed to: the
+board wearing a costume, where a rounded corner or a coloured status pill turns
+it into a generic dashboard with production marks sprinkled on top.
+
+`todos/workstation-redesign.md` is promoted to **brief 64**, which owns the
+tokens, the shared primitives, the tray, the mark set, the two fonts, and
+`animejs`. It runs *after* briefs 59 and 62 — the editor's structure is what the
+world has to clothe, and styling a layout that is about to change wastes the
+work. Its acceptance criteria include one that matters more than the rest: a
+re-render of an existing post must be byte-identical, because
+`assets/design-systems/` is out of scope and the 1080² output does not change.
+
+The open question "which visual world does the workstation move to" is deleted
+from `wiki/open-questions.md`; the remaining themes question now says explicitly
+that it concerns the *slide* family, not the chrome.

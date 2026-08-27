@@ -35,6 +35,7 @@ Per-workspace. Versions are locked in `package-lock.json`.
 | `react`, `react-dom` | UI islands (wizard, editor, builder, settings, history, prompt). |
 | `@base-ui/react` | Headless, accessible primitives behind the shared `components/ui/` library (Button, Input, Select, Toggle/Switch, Modal/Dialog, Toast). Styling-agnostic — styled with warm-industrial CSS-variable tokens. |
 | `@newspapper/core` | Type imports only (TemplateDoc, SlideBlock, etc.) — no Node APIs used. |
+| `animejs` | **Approved, not yet installed.** 4.5.0, MIT, no dependencies. The motion engine — framework-agnostic, so one import serves both Astro scripts and React islands. Chosen over motion-primitives and smoothui, which require Tailwind CSS; [why](./decisions-engineering.md#animejs-is-the-motion-engine-tailwind-bound-kits-are-references-only). |
 
 ## Root dev deps
 

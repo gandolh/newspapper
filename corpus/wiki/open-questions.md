@@ -16,7 +16,9 @@ The pivot itself is settled: see [decisions.md](./decisions.md) and
 Three themes ship, sharing type/spacing/shape tokens and differing mainly in
 primary color. `warm-industrial-1` exists (terracotta `#a2391a`). The other two
 palettes have not been designed. This is design work, not a decision — it needs
-the component library to exist before there's anything to look at.
+the component library to exist before there's anything to look at. Note this is
+the **slide** theme family, untouched by the workstation redesign; the chrome's
+palette is fixed in [`DESIGN.md`](../../DESIGN.md) and is not a variant of it.
 
 ## Auth details
 

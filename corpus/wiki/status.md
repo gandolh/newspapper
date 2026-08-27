@@ -20,6 +20,19 @@ The v3 code still runs. Treat the descriptive wiki pages
 accurate for *what exists today* and superseded in intent by
 [decisions.md](./decisions.md). They get rewritten as the work lands, not before.
 
+## The design round — closed
+
+The app chrome is being replaced alongside the code, and the world is settled:
+**The Mechanical**, a paste-up board. Two rounds ran on 2026-08-27, both drawn
+as complete editor screens rather than described; the owner chose it and it was
+then raised by five donations from the declined hand. `DESIGN.md` is rewritten
+from the approved comps, `PRODUCT.md` carries the register, and the rebuild is
+[brief 64](../briefs/todo/64-workstation-chrome.md) — which runs *after* brief
+59, since the editor's structure is what the world has to clothe.
+
+Also settled: the slide theme is untouched and out of scope, and `animejs`
+4.5.0 is the motion engine.
+
 ## What the pivot removes
 
 Compose and the whole Ollama client · the `/prompt` page and `data/prompt.md` ·
@@ -43,7 +56,7 @@ storage · the npm workspace layout · the shared UI primitives on Base UI.
 
 ## Briefs
 
-Thirteen briefs in [`../briefs/todo/`](../briefs/todo/), in dependency waves.
+Fourteen briefs in [`../briefs/todo/`](../briefs/todo/), in dependency waves.
 Each is self-contained — open only the one directing your work.
 
 | Wave | # | Brief | Depends on |
@@ -61,6 +74,7 @@ Each is self-contained — open only the one directing your work.
 | 3 | 61 | Themes 2 and 3 | 54 |
 | 3 | 62 | API surface and page map | 55, 59, 60 |
 | 4 | 63 | Documentation pass | everything |
+| 4 | 64 | Rebuild the app chrome as The Mechanical | 59, 62 |
 
 Two ordering constraints that will bite if ignored: **58 must not start before
 54 lands** (until the component library renders, the templates are the only

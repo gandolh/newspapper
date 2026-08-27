@@ -33,6 +33,22 @@ fallback. The failure this closes: the builder would happily preview a template
 that the renderer refuses, so you could design something un-renderable and only
 find out at export.
 
+## anime.js is the motion engine; Tailwind-bound kits are references only
+_2026-08-27_ — Animation is `animejs` 4.5.0 (MIT, no dependencies,
+framework-agnostic ESM). It animates DOM nodes, so one import serves both an
+Astro `<script>` and a React island, and it has no opinion about how anything is
+styled.
+Rejected: **motion-primitives** and **smoothui**. Both are shadcn-style
+copy-paste React kits that require **Tailwind CSS** (v4 for smoothui) plus
+**Motion**, and this UI is Astro islands + CSS Modules + Base UI with no Tailwind
+anywhere. Adopting either means importing a second styling system to obtain
+animations, which is the wrong trade for a fixed component set. They stay useful
+as **pattern references** — read the interaction, reimplement it in CSS Modules.
+Standing rules: one authored motion moment per surface rather than scattered
+hover effects, everything gated behind `prefers-reduced-motion`, and **no motion
+inside the slide canvas** — the preview must never move in a way the renderer
+cannot reproduce.
+
 ## npm workspaces, three packages, ESM throughout
 _2026-06-10_ — `core` / `api` / `ui`, all `"type": "module"`.
 Every runtime path must resolve from `import.meta.url`, **never**
