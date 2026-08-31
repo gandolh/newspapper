@@ -42,9 +42,12 @@ describe('getDb — fresh install', () => {
   it('defaults posts.theme to the renamed theme', () => {
     const db = getDb(join(tmpDir, 'fresh.db'));
     const now = new Date().toISOString();
-    db.prepare(
-      `INSERT INTO posts (title, markup, created_at, updated_at) VALUES (?, ?, ?, ?)`,
-    ).run('T', '<head></head><body></body>', now, now);
+    db.prepare(`INSERT INTO posts (title, markup, created_at, updated_at) VALUES (?, ?, ?, ?)`).run(
+      'T',
+      '<head></head><body></body>',
+      now,
+      now,
+    );
     const row = db.prepare('SELECT theme FROM posts').get() as { theme: string };
     db.close();
     expect(row.theme).toBe('warm-industrial-1');
@@ -221,7 +224,10 @@ describe('migrate — v3 → v4 (the warm-industrial rename)', () => {
     db.prepare(
       `INSERT INTO renders (post_id, output_dir, slide_count, created_at) VALUES (1, ?, 3, ?)`,
     ).run('/output/2026-08-01-1', now);
-    db.prepare(`INSERT INTO settings (key, value) VALUES (?, ?)`).run('defaultTheme', 'warm-industrial');
+    db.prepare(`INSERT INTO settings (key, value) VALUES (?, ?)`).run(
+      'defaultTheme',
+      'warm-industrial',
+    );
     db.pragma('user_version = 3');
     db.close();
   }
@@ -265,7 +271,9 @@ describe('migrate — v3 → v4 (the warm-industrial rename)', () => {
       now,
       now,
     );
-    const row = db.prepare(`SELECT theme FROM posts WHERE title = 'Fresh'`).get() as { theme: string };
+    const row = db.prepare(`SELECT theme FROM posts WHERE title = 'Fresh'`).get() as {
+      theme: string;
+    };
     db.close();
     expect(row.theme).toBe('warm-industrial-1');
   });
@@ -377,7 +385,10 @@ describe('migrate — v2 schema (payload posts) with existing rows', () => {
       'body',
       '2026-06-10T09:00:00.000Z',
     );
-    db.prepare(`INSERT INTO settings (key, value) VALUES (?, ?)`).run('defaultTheme', 'warm-industrial');
+    db.prepare(`INSERT INTO settings (key, value) VALUES (?, ?)`).run(
+      'defaultTheme',
+      'warm-industrial',
+    );
     db.pragma('user_version = 2');
     db.close();
   }

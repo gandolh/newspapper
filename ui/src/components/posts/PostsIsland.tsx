@@ -118,8 +118,7 @@ function PostsPage() {
         {
           signal: abort.signal,
           onEvent: (event, data) => {
-            if (event === 'progress')
-              setRenderProgress(data as { done: number; total: number });
+            if (event === 'progress') setRenderProgress(data as { done: number; total: number });
           },
         },
       );
@@ -183,9 +182,7 @@ function PostsPage() {
       <PageHeader
         title="Posts"
         subtitle="Everything you have written. Open one to keep editing, or render it out."
-        actions={
-          <Button onClick={() => window.location.assign('/')}>New post</Button>
-        }
+        actions={<Button onClick={() => window.location.assign('/')}>New post</Button>}
       />
 
       <div className={styles.filters}>
@@ -236,21 +233,13 @@ function PostsPage() {
         </div>
       ) : posts.length === 0 ? (
         <EmptyState
-          title={
-            search || keyword || status !== 'all'
-              ? 'Nothing matches'
-              : 'No posts yet'
-          }
+          title={search || keyword || status !== 'all' ? 'Nothing matches' : 'No posts yet'}
           hint={
             search || keyword || status !== 'all'
               ? 'Try a wider filter.'
               : 'Start writing and the first save lands here.'
           }
-          action={
-            <Button onClick={() => window.location.assign('/')}>
-              New post
-            </Button>
-          }
+          action={<Button onClick={() => window.location.assign('/')}>New post</Button>}
         />
       ) : (
         <ul className={styles.list} role="list">
@@ -272,12 +261,7 @@ function PostsPage() {
                     tabIndex={-1}
                   >
                     {thumb ? (
-                      <img
-                        className={styles.thumb}
-                        src={thumb}
-                        alt=""
-                        loading="lazy"
-                      />
+                      <img className={styles.thumb} src={thumb} alt="" loading="lazy" />
                     ) : (
                       <span className={styles.thumbEmpty}>Not set</span>
                     )}
@@ -289,11 +273,7 @@ function PostsPage() {
                       <a className={styles.title} href={`/?post=${post.id}`}>
                         {post.title}
                       </a>
-                      {post.status === 'published' ? (
-                        <Stamp>Published</Stamp>
-                      ) : (
-                        <Mark>Draft</Mark>
-                      )}
+                      {post.status === 'published' ? <Stamp>Published</Stamp> : <Mark>Draft</Mark>}
                       {rendered ? (
                         <Mark bare>{render?.slideCount} slides</Mark>
                       ) : (
@@ -301,15 +281,11 @@ function PostsPage() {
                       )}
                     </div>
 
-                    {post.description && (
-                      <p className={styles.description}>{post.description}</p>
-                    )}
+                    {post.description && <p className={styles.description}>{post.description}</p>}
 
                     <p className={styles.dates}>
                       Updated {formatDate(post.updatedAt)}
-                      {post.publishedAt
-                        ? ` · published ${formatDate(post.publishedAt)}`
-                        : ''}
+                      {post.publishedAt ? ` · published ${formatDate(post.publishedAt)}` : ''}
                     </p>
 
                     {post.keywords.length > 0 && (
@@ -325,8 +301,7 @@ function PostsPage() {
                         <ProgressBar
                           value={
                             renderProgress && renderProgress.total > 0
-                              ? (renderProgress.done / renderProgress.total) *
-                                100
+                              ? (renderProgress.done / renderProgress.total) * 100
                               : 0
                           }
                           label={
@@ -343,9 +318,7 @@ function PostsPage() {
                     <Button
                       size="sm"
                       variant="secondary"
-                      onClick={() =>
-                        window.location.assign(`/?post=${post.id}`)
-                      }
+                      onClick={() => window.location.assign(`/?post=${post.id}`)}
                     >
                       Open
                     </Button>
@@ -362,11 +335,7 @@ function PostsPage() {
                       size="sm"
                       variant="secondary"
                       disabled={!rendered}
-                      onClick={() =>
-                        window.location.assign(
-                          `/api/posts/${post.id}/export.zip`,
-                        )
-                      }
+                      onClick={() => window.location.assign(`/api/posts/${post.id}/export.zip`)}
                     >
                       Export ZIP
                     </Button>
@@ -389,11 +358,7 @@ function PostsPage() {
                         Publish
                       </Button>
                     )}
-                    <Button
-                      size="sm"
-                      variant="danger"
-                      onClick={() => setConfirmDelete(post)}
-                    >
+                    <Button size="sm" variant="danger" onClick={() => setConfirmDelete(post)}>
                       Delete
                     </Button>
                   </div>

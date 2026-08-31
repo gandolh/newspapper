@@ -31,7 +31,16 @@ const theme: Theme = {
     },
   },
   rounded: { md: '0.75rem', sm: '0.25rem' },
-  spacing: { md: '24px', lg: '48px', sm: '12px', xl: '80px', xs: '4px', base: '8px', gutter: '24px', 'container-margin': '32px' },
+  spacing: {
+    md: '24px',
+    lg: '48px',
+    sm: '12px',
+    xl: '80px',
+    xs: '4px',
+    base: '8px',
+    gutter: '24px',
+    'container-margin': '32px',
+  },
   shapes: { borderRadius: '0.5rem', borderWidth: '2px' },
 };
 
@@ -57,7 +66,9 @@ describe('resolveStyle', () => {
   });
 
   it('throws for unknown token', () => {
-    expect(() => resolveStyle({ color: '$color.nonexistent' }, theme)).toThrow('Unknown color token');
+    expect(() => resolveStyle({ color: '$color.nonexistent' }, theme)).toThrow(
+      'Unknown color token',
+    );
   });
 
   it('converts camelCase to kebab-case', () => {
@@ -97,7 +108,9 @@ describe('resolveStyle', () => {
   });
 
   it('throws for unknown typography token', () => {
-    expect(() => resolveStyle({ typography: 'nonexistent' }, theme)).toThrow('Unknown typography token');
+    expect(() => resolveStyle({ typography: 'nonexistent' }, theme)).toThrow(
+      'Unknown typography token',
+    );
   });
 
   it('throws for unknown token group', () => {
@@ -112,9 +125,7 @@ describe('renderTemplate', () => {
   const simpleRoot: TNode = {
     kind: 'box',
     style: { width: 1080, height: 1080, display: 'flex' },
-    children: [
-      { kind: 'text', text: '{{text}}' },
-    ],
+    children: [{ kind: 'text', text: '{{text}}' }],
   };
 
   it('returns a complete HTML document', () => {
@@ -132,12 +143,81 @@ describe('renderTemplate', () => {
     expect(html).not.toContain('<script>');
   });
 
+  // -------------------------------------------------------------------------
+  // Style values reach a double-quoted `style="…"` attribute, so a value
+  // carrying a `"` would close it and everything after would parse as markup.
+  // Not reachable from the themes on disk — this is the guard that keeps it
+  // that way.
+  // -------------------------------------------------------------------------
+  describe('escapes style values into the style attribute', () => {
+    /** A theme whose tokens carry the characters that break out of an attribute. */
+    const hostileTheme: Theme = {
+      ...theme,
+      colors: {
+        ...theme.colors,
+        breakout: '#fff" onload="alert(1)',
+        ampersand: 'url(x.png?a=1&b=2)',
+        angled: '<script>',
+      },
+    };
+
+    /** The value of every `style` attribute in the document, unparsed. */
+    function styleAttrs(html: string): string[] {
+      return [...html.matchAll(/ style="([^"]*)"/g)].map((m) => m[1] ?? '');
+    }
+
+    it('a token containing a double quote cannot leave the attribute', () => {
+      const root: TNode = { kind: 'box', style: { background: '$color.breakout' } };
+      const html = renderTemplate(root, {}, hostileTheme, opts);
+
+      expect(html).toContain('background:#fff&quot; onload=&quot;alert(1)');
+      expect(html, 'the token escaped the attribute and became markup').not.toContain('onload="');
+      // The div is one tag with one attribute — parse the attribute out and
+      // nothing of the token is left loose in the markup.
+      expect(html).toContain('<div style="background:#fff&quot; onload=&quot;alert(1)"></div>');
+    });
+
+    it('escapes ampersands and angle brackets too, without double-escaping', () => {
+      const root: TNode = {
+        kind: 'box',
+        style: { background: '$color.ampersand' },
+        children: [{ kind: 'text', style: { color: '$color.angled' }, text: 'x' }],
+      };
+      const html = renderTemplate(root, {}, hostileTheme, opts);
+
+      expect(html).toContain('background:url(x.png?a=1&amp;b=2)');
+      expect(html).not.toContain('&amp;amp;');
+      expect(html).toContain('color:&lt;script&gt;');
+      expect(html).not.toContain('<script>');
+    });
+
+    it('a hostile style key is escaped as well as its value', () => {
+      const root: TNode = { kind: 'box', style: { 'x" onload="alert(1)': 'red' } };
+      const html = renderTemplate(root, {}, hostileTheme, opts);
+      expect(html).not.toContain('onload="');
+      expect(html).toContain('x&quot; onload=&quot;alert(1):red');
+    });
+
+    it('leaves ordinary declarations — quotes in font-family included — alone', () => {
+      const root: TNode = {
+        kind: 'text',
+        style: { typography: 'display', fontFamily: "'Inter'" },
+        text: 'x',
+      };
+      const html = renderTemplate(root, {}, theme, opts);
+      // Single quotes cannot close a double-quoted attribute, so they survive
+      // verbatim and CSS still sees a quoted family.
+      expect(html).toContain("font-family:'Inter',sans-serif");
+      for (const attr of styleAttrs(html)) {
+        expect(attr, `style attribute "${attr}" carries a raw quote`).not.toContain('"');
+      }
+    });
+  });
+
   it('substitutes _index and _total built-ins', () => {
     const root: TNode = {
       kind: 'box',
-      children: [
-        { kind: 'text', text: '{{_index}} of {{_total}}' },
-      ],
+      children: [{ kind: 'text', text: '{{_index}} of {{_total}}' }],
     };
     const html = renderTemplate(root, {}, theme, { index: 3, total: 7, fontBaseUrl: '/f' });
     expect(html).toContain('3 of 7');
@@ -165,9 +245,7 @@ describe('renderTemplate', () => {
     const root: TNode = {
       kind: 'repeat',
       source: 'items',
-      children: [
-        { kind: 'text', text: '{{i}}:{{item}}' },
-      ],
+      children: [{ kind: 'text', text: '{{i}}:{{item}}' }],
     };
     const html = renderTemplate(root, { items: ['alpha', 'beta'] }, theme, opts);
     expect(html).toContain('1:alpha');
@@ -178,9 +256,7 @@ describe('renderTemplate', () => {
     const root: TNode = {
       kind: 'repeat',
       source: 'items',
-      children: [
-        { kind: 'text', text: '{{item.label}}' },
-      ],
+      children: [{ kind: 'text', text: '{{item.label}}' }],
     };
     const html = renderTemplate(root, { items: [{ label: 'Foo' }, { label: 'Bar' }] }, theme, opts);
     expect(html).toContain('Foo');
@@ -189,7 +265,7 @@ describe('renderTemplate', () => {
 
   it('includes @font-face declarations for Inter', () => {
     const html = renderTemplate(simpleRoot, { text: 'x' }, theme, opts);
-    expect(html).toContain("@font-face");
+    expect(html).toContain('@font-face');
     expect(html).toContain('Inter-Regular.ttf');
     expect(html).toContain('Inter-Bold.ttf');
   });

@@ -29,17 +29,8 @@ export default function ApiHealthDot() {
   }, []);
 
   const label =
-    status === 'online'
-      ? 'API online'
-      : status === 'offline'
-        ? 'API offline'
-        : 'Checking…';
-  const word =
-    status === 'online'
-      ? 'API up'
-      : status === 'offline'
-        ? 'API down'
-        : 'API …';
+    status === 'online' ? 'API online' : status === 'offline' ? 'API offline' : 'Checking…';
+  const word = status === 'online' ? 'API up' : status === 'offline' ? 'API down' : 'API …';
 
   return (
     <span className={styles.probe} title={label}>

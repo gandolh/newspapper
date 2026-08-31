@@ -110,10 +110,7 @@ function SearchPanel() {
         },
       );
     } catch (err) {
-      addToast(
-        err instanceof ApiError ? err.message : 'Search failed',
-        'error',
-      );
+      addToast(err instanceof ApiError ? err.message : 'Search failed', 'error');
     } finally {
       setSearching(false);
     }
@@ -164,19 +161,10 @@ function SearchPanel() {
         <div className={styles.progressList}>
           {progressRows.map(([sourceId, p]) => (
             <span key={sourceId} className={styles.progressItem}>
-              <Mark
-                tone={
-                  p.status === 'error'
-                    ? 'rubylith'
-                    : p.status === 'done'
-                      ? 'ink'
-                      : 'dim'
-                }
-              >
+              <Mark tone={p.status === 'error' ? 'rubylith' : p.status === 'done' ? 'ink' : 'dim'}>
                 {sourceId}
                 {p.status === 'fetching' && ' …'}
-                {p.status === 'done' &&
-                  ` · ${p.count ?? 0} match${p.count === 1 ? '' : 'es'}`}
+                {p.status === 'done' && ` · ${p.count ?? 0} match${p.count === 1 ? '' : 'es'}`}
                 {p.status === 'error' && ' · failed'}
               </Mark>
             </span>
@@ -203,9 +191,7 @@ function SearchPanel() {
             >
               <div className={styles.resultMeta}>
                 <Mark>{article.sourceName}</Mark>
-                <span className={styles.metaText}>
-                  {formatDate(article.publishedAt)}
-                </span>
+                <span className={styles.metaText}>{formatDate(article.publishedAt)}</span>
                 <span className={styles.metaText}>
                   {article.matchCount} match
                   {article.matchCount === 1 ? '' : 'es'}
@@ -222,9 +208,7 @@ function SearchPanel() {
                 )}
               </div>
               <div className={styles.resultTitle}>{article.title}</div>
-              {article.body && (
-                <p className={styles.resultExcerpt}>{excerpt(article.body)}</p>
-              )}
+              {article.body && <p className={styles.resultExcerpt}>{excerpt(article.body)}</p>}
               <div className={styles.resultActions}>
                 <Button
                   size="sm"
@@ -311,11 +295,7 @@ function LibraryPanel() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <Select
-          options={sourceOptions}
-          value={sourceFilter}
-          onValueChange={setSourceFilter}
-        />
+        <Select options={sourceOptions} value={sourceFilter} onValueChange={setSourceFilter} />
       </div>
 
       {loading ? (
@@ -336,9 +316,7 @@ function LibraryPanel() {
             <Card key={article.id} padding="sm" className={styles.resultCard}>
               <div className={styles.resultMeta}>
                 <Mark>{article.sourceName || 'Manual'}</Mark>
-                <span className={styles.metaText}>
-                  {formatDate(article.publishedAt)}
-                </span>
+                <span className={styles.metaText}>{formatDate(article.publishedAt)}</span>
                 {article.url && (
                   <a
                     href={article.url}
@@ -351,15 +329,9 @@ function LibraryPanel() {
                 )}
               </div>
               <div className={styles.resultTitle}>{article.title}</div>
-              {article.body && (
-                <p className={styles.resultExcerpt}>{excerpt(article.body)}</p>
-              )}
+              {article.body && <p className={styles.resultExcerpt}>{excerpt(article.body)}</p>}
               <div className={styles.resultActions}>
-                <Button
-                  size="sm"
-                  variant="danger"
-                  onClick={() => setDeleteTarget(article)}
-                >
+                <Button size="sm" variant="danger" onClick={() => setDeleteTarget(article)}>
                   Delete
                 </Button>
               </div>

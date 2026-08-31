@@ -101,11 +101,18 @@ describe('authentication', () => {
       expect(wrong.statusCode).toBe(401);
       expect(unknown.json()).toEqual(wrong.json());
       expect(unknown.json().error).toBe('Invalid username or password');
-      expect(unknown.json().error).not.toMatch(/no such|not found|unknown user|incorrect password/i);
+      expect(unknown.json().error).not.toMatch(
+        /no such|not found|unknown user|incorrect password/i,
+      );
     });
 
     it('401s on a missing or malformed body', async () => {
-      for (const payload of [{}, { username: USERNAME }, { password: PASSWORD }, { username: 1, password: 2 }]) {
+      for (const payload of [
+        {},
+        { username: USERNAME },
+        { password: PASSWORD },
+        { username: 1, password: 2 },
+      ]) {
         resetLoginAttempts();
         const res = await app.inject({ method: 'POST', url: '/api/login', payload });
         expect(res.statusCode).toBe(401);
@@ -187,7 +194,10 @@ describe('authentication', () => {
     });
 
     it('401s a cookie signed with the wrong secret', async () => {
-      const forged = signSession({ userId: 1, expiresAt: Date.now() + 60_000 }, 'not-the-real-secret');
+      const forged = signSession(
+        { userId: 1, expiresAt: Date.now() + 60_000 },
+        'not-the-real-secret',
+      );
       const res = await app.inject({
         method: 'GET',
         url: '/api/articles',
@@ -322,7 +332,11 @@ async function sessionCookieValue2(
   password: string,
 ): Promise<string> {
   resetLoginAttempts();
-  const res = await app.inject({ method: 'POST', url: '/api/login', payload: { username, password } });
+  const res = await app.inject({
+    method: 'POST',
+    url: '/api/login',
+    payload: { username, password },
+  });
   return res.cookies.find((c) => c.name === SESSION_COOKIE)?.value ?? '';
 }
 

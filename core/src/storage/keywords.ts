@@ -84,9 +84,7 @@ export function listKeywords(db: DB): Keyword[] {
 /** Delete keywords no post references any more. Returns the number removed. */
 export function pruneKeywords(db: DB): number {
   const r = db
-    .prepare(
-      'DELETE FROM keywords WHERE id NOT IN (SELECT keyword_id FROM post_keywords)',
-    )
+    .prepare('DELETE FROM keywords WHERE id NOT IN (SELECT keyword_id FROM post_keywords)')
     .run();
   return r.changes;
 }

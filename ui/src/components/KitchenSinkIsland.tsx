@@ -40,13 +40,7 @@ const SELECT_OPTIONS = [
   { value: 'warm-industrial-3', label: 'warm-industrial-3' },
 ];
 
-function Section({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <Card>
       <h2 className={styles.sectionTitle}>{title}</h2>
@@ -59,25 +53,13 @@ function ToastDemo() {
   const { addToast } = useToast();
   return (
     <div className={styles.row}>
-      <Button
-        size="sm"
-        variant="secondary"
-        onClick={() => addToast('Post saved.', 'success')}
-      >
+      <Button size="sm" variant="secondary" onClick={() => addToast('Post saved.', 'success')}>
         Toast done
       </Button>
-      <Button
-        size="sm"
-        variant="secondary"
-        onClick={() => addToast('Render failed.', 'error')}
-      >
+      <Button size="sm" variant="secondary" onClick={() => addToast('Render failed.', 'error')}>
         Toast failed
       </Button>
-      <Button
-        size="sm"
-        variant="ghost"
-        onClick={() => addToast('Scraping articles…', 'info')}
-      >
+      <Button size="sm" variant="ghost" onClick={() => addToast('Scraping articles…', 'info')}>
         Toast note
       </Button>
     </div>
@@ -101,8 +83,7 @@ export default function KitchenSinkIsland() {
 
         <Section title="Marks">
           <p className={styles.note}>
-            One mark per idea. Rubylith is the only way this app says “held
-            out”.
+            One mark per idea. Rubylith is the only way this app says “held out”.
           </p>
           <div className={styles.row}>
             <Mark>Draft</Mark>
@@ -160,50 +141,24 @@ export default function KitchenSinkIsland() {
 
         <Section title="Fields">
           <div className={styles.fields}>
-            <Input
-              label="Title"
-              placeholder="Today’s lead"
-              hint="Sets the post’s index columns."
-            />
-            <Input
-              label="Feed"
-              defaultValue="not a url"
-              error="That is not a URL."
-            />
+            <Input label="Title" placeholder="Today’s lead" hint="Sets the post’s index columns." />
+            <Input label="Feed" defaultValue="not a url" error="That is not a URL." />
             <Textarea label="Caption" placeholder="What goes with the post…" />
-            <Select
-              label="Theme"
-              options={SELECT_OPTIONS}
-              value={theme}
-              onValueChange={setTheme}
-            />
+            <Select label="Theme" options={SELECT_OPTIONS} value={theme} onValueChange={setTheme} />
             <Toggle
               label="Enabled"
               checked={toggleOn}
               onCheckedChange={setToggleOn}
               hint="Disabled feeds are skipped."
             />
-            <Toggle
-              label="Unavailable"
-              disabled
-              hint="Held out, at switch scale."
-            />
+            <Toggle label="Unavailable" disabled hint="Held out, at switch scale." />
           </div>
         </Section>
 
         <Section title="Progress and placeholders">
           <div className={styles.fields}>
-            <ProgressBar
-              value={progress}
-              label="Rendering slides"
-              showPercent
-            />
-            <ProgressBar
-              value={30}
-              variant="error"
-              label="Failed at slide 2"
-              showPercent
-            />
+            <ProgressBar value={progress} label="Rendering slides" showPercent />
+            <ProgressBar value={30} variant="error" label="Failed at slide 2" showPercent />
             <div className={styles.row}>
               <Button
                 size="sm"
@@ -234,14 +189,10 @@ export default function KitchenSinkIsland() {
             </Button>
           </div>
           <ToastDemo />
-          <Modal
-            open={modalOpen}
-            onClose={() => setModalOpen(false)}
-            title="Example modal"
-          >
+          <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Example modal">
             <p className={styles.note}>
-              A modal has to pick one of the two shadows. It is a slip waxed
-              over the board, so it takes the hard short one.
+              A modal has to pick one of the two shadows. It is a slip waxed over the board, so it
+              takes the hard short one.
             </p>
             <Button onClick={() => setModalOpen(false)}>Close</Button>
           </Modal>

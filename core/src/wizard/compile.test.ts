@@ -31,7 +31,9 @@ describe('compileDocument', () => {
   });
 
   it('refuses a document with lint errors', () => {
-    const doc = parseOrThrow('<head><title>T</title></head><body><Slide><Marquee>a</Marquee></Slide></body>');
+    const doc = parseOrThrow(
+      '<head><title>T</title></head><body><Slide><Marquee>a</Marquee></Slide></body>',
+    );
     expect(() => compileDocument(doc, theme)).toThrow(WzdCompileError);
   });
 
@@ -47,20 +49,27 @@ describe('compileDocument', () => {
   });
 
   it('compiles a document whose only finding is a warning', () => {
-    const slides = Array.from({ length: 12 }, (_, i) => `<Slide><Heading>${i}</Heading></Slide>`).join('');
+    const slides = Array.from(
+      { length: 12 },
+      (_, i) => `<Slide><Heading>${i}</Heading></Slide>`,
+    ).join('');
     const doc = parseOrThrow(`<head><title>T</title></head><body>${slides}</body>`);
     expect(compileDocument(doc, theme)).toHaveLength(12);
   });
 
   it('refuses a theme that lacks the tokens the components need', () => {
-    const doc = parseOrThrow('<head><title>T</title></head><body><Slide><Heading>a</Heading></Slide></body>');
+    const doc = parseOrThrow(
+      '<head><title>T</title></head><body><Slide><Heading>a</Heading></Slide></body>',
+    );
     expect(() => compileDocument(doc, { ...theme, colors: {} })).toThrow(/missing tokens/);
   });
 });
 
 describe('compile', () => {
   it('never throws over a broken document, and says what it skipped', () => {
-    const { doc } = parse('<head><title>T</title></head><body><Slide><Marquee>a</Marquee></Slide></body>');
+    const { doc } = parse(
+      '<head><title>T</title></head><body><Slide><Marquee>a</Marquee></Slide></body>',
+    );
     const result = compile(doc, theme);
     expect(result.slides).toHaveLength(1);
     expect(result.diagnostics.map((d) => d.code)).toContain('unknown-component');
@@ -69,13 +78,16 @@ describe('compile', () => {
   });
 
   it('hands back the head as the binding scope it used', () => {
-    const doc = parseOrThrow('<head><title>T</title><date>2026-08-27</date></head><body><Slide><Heading>a</Heading></Slide></body>');
+    const doc = parseOrThrow(
+      '<head><title>T</title><date>2026-08-27</date></head><body><Slide><Heading>a</Heading></Slide></body>',
+    );
     expect(compile(doc, theme).head).toEqual({ title: 'T', date: '2026-08-27' });
   });
 });
 
 describe('bindings', () => {
-  const source = '<head><title>Daily</title><date>2026-08-27</date></head><body><Slide><Kicker>{date}</Kicker><Heading>{title}</Heading></Slide></body>';
+  const source =
+    '<head><title>Daily</title><date>2026-08-27</date></head><body><Slide><Kicker>{date}</Kicker><Heading>{title}</Heading></Slide></body>';
 
   it('resolve from <head> at compile time', () => {
     const [slide] = compileDocument(parseOrThrow(source), theme);
@@ -86,35 +98,44 @@ describe('bindings', () => {
   });
 
   it('are a lint error when nothing resolves them, not an empty slide', () => {
-    const bad = '<head><title>Daily</title></head><body><Slide><Kicker>{date}</Kicker></Slide></body>';
+    const bad =
+      '<head><title>Daily</title></head><body><Slide><Kicker>{date}</Kicker></Slide></body>';
     const doc = parseOrThrow(bad);
     expect(lint(doc).map((d) => d.code)).toContain('unknown-binding');
     expect(() => compileDocument(doc, theme)).toThrow(WzdCompileError);
   });
 
   it('stay on the slide as written when compiled leniently', () => {
-    const { doc } = parse('<head><title>Daily</title></head><body><Slide><Kicker>{date}</Kicker></Slide></body>');
+    const { doc } = parse(
+      '<head><title>Daily</title></head><body><Slide><Kicker>{date}</Kicker></Slide></body>',
+    );
     const slide = compile(doc, theme).slides[0];
     if (slide.kind !== 'box') throw new Error('slide is not a box');
     expect((slide.children ?? [])[0]).toMatchObject({ text: '{date}' });
   });
 
   it('report a field that is not in <head> at all', () => {
-    const doc = parseOrThrow('<head><title>T</title></head><body><Slide><Kicker>{author}</Kicker></Slide></body>');
+    const doc = parseOrThrow(
+      '<head><title>T</title></head><body><Slide><Kicker>{author}</Kicker></Slide></body>',
+    );
     const finding = lint(doc).find((d) => d.code === 'unknown-binding');
     expect(finding?.message).toContain('{author}');
     expect(finding?.loc.start.line).toBe(1);
   });
 
   it('are not scanned inside <head> itself', () => {
-    const doc = parseOrThrow('<head><title>{not a binding}</title></head><body><Slide><Heading>a</Heading></Slide></body>');
+    const doc = parseOrThrow(
+      '<head><title>{not a binding}</title></head><body><Slide><Heading>a</Heading></Slide></body>',
+    );
     expect(lint(doc).map((d) => d.code)).not.toContain('unknown-binding');
   });
 });
 
 describe('escaping', () => {
   it('escapes text the interpreter would otherwise drop into HTML raw', () => {
-    const doc = parseOrThrow('<head><title>T</title></head><body><Slide><Heading>Tom & Jerry > all</Heading></Slide></body>');
+    const doc = parseOrThrow(
+      '<head><title>T</title></head><body><Slide><Heading>Tom & Jerry > all</Heading></Slide></body>',
+    );
     const [slide] = compileDocument(doc, theme);
     const html = render(slide, 1, 1);
     expect(html).toContain('Tom &amp; Jerry &gt; all');
@@ -123,7 +144,9 @@ describe('escaping', () => {
 
 describe('compileSlide', () => {
   it('compiles one slide with the page numbers it was given', () => {
-    const doc = parseOrThrow('<head><title>T</title></head><body><Slide><PageCounter /></Slide></body>');
+    const doc = parseOrThrow(
+      '<head><title>T</title></head><body><Slide><PageCounter /></Slide></body>',
+    );
     const node = compileSlide(slideElements(doc)[0], theme, { head: doc.head, index: 3, total: 7 });
     if (node.kind !== 'box') throw new Error('slide is not a box');
     expect((node.children ?? [])[0]).toMatchObject({ text: '3/7' });
@@ -132,7 +155,10 @@ describe('compileSlide', () => {
 
 describe('compileSource', () => {
   it('reports syntax errors alongside the lint findings', () => {
-    const result = compileSource('<head><title>T</title></head><body><Slide><Heading>a</Slide></body>', theme);
+    const result = compileSource(
+      '<head><title>T</title></head><body><Slide><Heading>a</Slide></body>',
+      theme,
+    );
     expect(result.diagnostics.some((d) => d.code === 'syntax-error')).toBe(true);
   });
 });

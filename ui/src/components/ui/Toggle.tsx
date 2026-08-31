@@ -39,9 +39,7 @@ export default function Toggle({
       <div className={styles.toggle}>
         <Switch.Root
           id={toggleId}
-          className={[styles.track, disabled ? HATCH : '']
-            .filter(Boolean)
-            .join(' ')}
+          className={[styles.track, disabled ? HATCH : ''].filter(Boolean).join(' ')}
           checked={checked}
           defaultChecked={defaultChecked}
           onCheckedChange={(c) => onCheckedChange?.(c)}

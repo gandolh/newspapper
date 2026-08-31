@@ -15,7 +15,9 @@ let db: DB;
 
 async function noisyJpeg(width: number, height: number, quality: number): Promise<Buffer> {
   const raw = randomBytes(width * height * 3);
-  return sharp(raw, { raw: { width, height, channels: 3 } }).jpeg({ quality }).toBuffer();
+  return sharp(raw, { raw: { width, height, channels: 3 } })
+    .jpeg({ quality })
+    .toBuffer();
 }
 
 beforeEach(async () => {

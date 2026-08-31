@@ -50,7 +50,7 @@ const ATTR_NAME = /[A-Za-z_][A-Za-z0-9_-]*/y;
 
 /** Normalize line endings and strip a BOM. Offsets refer to the result. */
 export function normalizeSource(source: string): string {
-  return source.replace(/^﻿/, '').replace(/\r\n?/g, '\n');
+  return source.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n');
 }
 
 interface ChildrenResult {
@@ -151,10 +151,7 @@ class Parser {
           this.i = start;
           return { nodes, closeTagLoc: null, closed: false };
         }
-        this.error(
-          `Unexpected closing tag </${close.name}> — nothing here is open.`,
-          close.loc,
-        );
+        this.error(`Unexpected closing tag </${close.name}> — nothing here is open.`, close.loc);
         continue;
       }
       if (this.src[this.i] === '<') {
@@ -216,7 +213,10 @@ class Parser {
     TAG_NAME.lastIndex = this.i;
     const match = TAG_NAME.exec(this.src);
     if (!match) {
-      this.error('Malformed closing tag — expected a tag name after `</`.', this.loc(start, this.i));
+      this.error(
+        'Malformed closing tag — expected a tag name after `</`.',
+        this.loc(start, this.i),
+      );
       return null;
     }
     const name = match[0];

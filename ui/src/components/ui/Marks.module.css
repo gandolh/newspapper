@@ -99,11 +99,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    to bottom left,
-    rgba(43, 43, 43, 0.1) 0 50%,
-    transparent 50%
-  );
+  background: linear-gradient(to bottom left, rgba(43, 43, 43, 0.1) 0 50%, transparent 50%);
   clip-path: polygon(100% 0, 100% 100%, 0 0);
 }
 
@@ -145,7 +141,9 @@
 .wax {
   background: var(--wax);
   color: var(--wax-ink);
-  box-shadow: -0.35em 0 0 var(--wax), 0.35em 0 0 var(--wax);
+  box-shadow:
+    -0.35em 0 0 var(--wax),
+    0.35em 0 0 var(--wax);
 }
 
 /* ---- Selected (node) / anything waxed to the board ---------------------- */

@@ -91,7 +91,8 @@ export function parseUploadRef(src: unknown): string | null {
   if (typeof src !== 'string') return null;
   let value = src.trim();
   if (!value) return null;
-  if (value.startsWith(`${UPLOADS_URL_PREFIX}/`)) value = value.slice(UPLOADS_URL_PREFIX.length + 1);
+  if (value.startsWith(`${UPLOADS_URL_PREFIX}/`))
+    value = value.slice(UPLOADS_URL_PREFIX.length + 1);
   value = value.replace(/\.(jpg|jpeg|png|webp)$/i, '');
   return isValidRef(value) ? value : null;
 }

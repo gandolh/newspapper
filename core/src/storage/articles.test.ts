@@ -59,7 +59,12 @@ describe('articles — the saved library', () => {
   });
 
   it('stores an unknown source id as NULL but keeps the name snapshot', () => {
-    const a = saveArticle(db, { sourceId: 'gone', sourceName: 'Gone Daily', guid: 'g2', title: 'X' });
+    const a = saveArticle(db, {
+      sourceId: 'gone',
+      sourceName: 'Gone Daily',
+      guid: 'g2',
+      title: 'X',
+    });
     expect(a.sourceId).toBeNull();
     expect(a.sourceName).toBe('Gone Daily');
   });

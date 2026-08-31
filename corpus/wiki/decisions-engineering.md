@@ -5,12 +5,12 @@ updated: 2026-08-31
 
 # Decisions — engineering
 
-How the repo and the stack are put together. Product-shaping calls live in
-[decisions.md](./decisions.md), and the security posture — authentication,
-lockout, what is guarded and what is deliberately public — in
-[decisions-security.md](./decisions-security.md). The same rules apply to all
-three: don't reopen one without an explicit revisit and a
-[log.md](../log.md) entry.
+Runtime and library calls. Three sibling pages hold the rest:
+[decisions.md](./decisions.md) for product-shaping ones,
+[decisions-security.md](./decisions-security.md) for the security posture, and
+[decisions-tooling.md](./decisions-tooling.md) for how the repo itself is built,
+formatted, linted and pinned. The same rule applies to all four: don't reopen
+one without an explicit revisit and a [log.md](../log.md) entry.
 
 Reasons marked _(reconstructed)_ were recovered from `log.md` and the git
 history rather than recorded at the time.
@@ -35,27 +35,6 @@ Rejected: matching core's `resolveStyle`, which throws; and the previous silent
 fallback. The failure this closes: the builder would happily preview a template
 that the renderer refuses, so you could design something un-renderable and only
 find out at export.
-
-## The UI workspace is typechecked, not just bundled
-_2026-08-31_ — `ui` has a `typecheck` script (`tsc --noEmit`) alongside its
-`astro build`, and the root `build` chain runs it.
-Found because brief 59 left a dangling `import { EditorStep } from
-'../editor/EditorStep'` in `ui/src/components/wizard/Wizard.tsx` and **every gate
-stayed green.** `core` and `api` both build with `tsc --noEmit`; `ui` built with
-`astro build` alone, which bundles from the page entry points and tree-shakes —
-nothing imports `Wizard`, so the file was never reached, never typechecked, and
-never complained.
-
-Two things had to be fixed before the script could pass at all, and both were
-hiding the same way: `ui/tsconfig.json` set the deprecated `baseUrl`, which
-raised a **config-level** error that aborted the run before any file was
-checked — so even running `tsc -p ui` by hand caught nothing; and `types` was
-unset, so the eight UI test files importing `node:fs`/`node:url` could not
-resolve them.
-
-Same family as the `.gitignore` and vitest-include incidents: **green because
-nothing ran.** A tool that is not reaching a file cannot report on it, and a
-passing command is not evidence of coverage.
 
 ## use-gesture handles pointer interaction; anime.js handles motion
 _2026-08-27_ — `@use-gesture/react` 10.3.1 (MIT, one dependency, peer dep React
@@ -126,20 +105,6 @@ The guard, `core/src/render/fonts.test.ts`, compares a render against the same
 slide with Inter renamed out of existence. Without Chromium it reports
 **skipped**, not passed, banners to real stderr, and fails outright under `CI` —
 see the log's "green because nothing ran".
-
-## npm workspaces, three packages, ESM throughout
-_2026-06-10_ — `core` / `api` / `ui`, all `"type": "module"`.
-Every runtime path must resolve from `import.meta.url`, **never**
-`process.cwd()` — the app is started from several working directories and
-`cwd()`-relative paths broke in wave 5 (see the path-resolution fixes in
-`32af25e`). This is the single most repeated bug in the project's history.
-
-## Dependency versions are pinned exactly
-_2026-06-10_ (`5c7ca55`) — No `^` or `~` anywhere in a `package.json`; write the
-exact installed version when adding a dependency.
-Rejected: caret ranges. The reason is **reproducible installs** — the same
-checkout resolves to the same tree on any machine and at any later date, without
-a lockfile being the only thing standing between you and a silent upgrade.
 
 ## The UI keeps its own copy of the shared types
 _2026-08-27_ — `ui/src/lib/types.ts` is a hand-maintained copy of

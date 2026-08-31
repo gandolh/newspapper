@@ -10,10 +10,9 @@ _Snapshot: 2026-08-31_
 > **Fifteen of sixteen briefs are done** on branch `wizard-rebuild`. The
 > wave-7 gate is verified green there: `npm run build`, **637 tests**,
 > `npm run lint`, `npx tsc -p ui --noEmit` (0 errors) and `corpus/lint.sh`.
-> Of the original backlog only **63** (the documentation pass) is left. Filed
-> from findings and still open: **68** (`fmt`/`lint` coverage), **71** (the
-> typeface guard's control, and escaping style values). Also open by the owner's
-> request: **70**, replacing Astro with Vite + React.
+> Of the original backlog only **63** (the documentation pass) is left. Also
+> open: **70**, replacing Astro with Vite + React (owner's request), and **72**,
+> the ten React effect findings brief 68 had to suppress.
 
 **Where things stand.** The pivot has landed. Newspapper no longer generates
 copy with a model; a post is authored as a [Newspapper Wizard](./markup.md)
@@ -67,11 +66,11 @@ storage · the npm workspace layout · the shared UI primitives on Base UI.
 
 ## Briefs
 
-Four briefs remain in [`../briefs/todo/`](../briefs/todo/): **63** from the
-original backlog, **68** and **71** filed from findings, and **70** — replace
-Astro with Vite + React — requested by the owner on 2026-08-31. Seventeen are in
-[`../briefs/done/`](../briefs/done/) with an outcome note each. Each brief is
-self-contained — open only the one directing your work.
+Three briefs remain in [`../briefs/todo/`](../briefs/todo/): **70** (replace
+Astro with Vite + React, requested by the owner on 2026-08-31), **72** (the
+React effect findings), and **63** (the documentation pass, which runs last).
+Nineteen are in [`../briefs/done/`](../briefs/done/) with an outcome note each.
+Each brief is self-contained — open only the one directing your work.
 
 Waves below are the **executed** order, which differs from the originally filed
 one: file-ownership collisions the dependency graph alone did not show forced
@@ -102,9 +101,10 @@ nav/sidebar by 58, 62 and 64.
 | 7 | 66 | Fix the render typeface — **done** | — |
 | 8 | 67 | The slide's font fallback stack — **done** | 66 |
 | 8 | 69 | Two loose ends in `ui/` — **done** | 64 |
-| 9 | 68 | `fmt` and `lint` cover what they claim | — |
-| 9 | 71 | The typeface guard's control; escaping style values | 67 |
+| 9 | 68 | `fmt` and `lint` cover what they claim — **done** | — |
+| 9 | 71 | The typeface guard's control; escaping style values — **done** | 67 |
 | 10 | 70 | Replace Astro with Vite + React | 68, 69 |
+| 10 | 72 | The React effect findings 68 suppressed | 68 |
 | 11 | 63 | Documentation pass | everything |
 
 Three ordering constraints that will bite if ignored: **58 must not start

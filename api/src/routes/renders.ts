@@ -61,7 +61,8 @@ const rendersRoutes: FastifyPluginAsync = async (fastify) => {
 
     if (postId !== undefined) {
       const id = Number(postId);
-      if (!Number.isInteger(id)) return reply.status(400).send({ error: 'postId must be an integer' });
+      if (!Number.isInteger(id))
+        return reply.status(400).send({ error: 'postId must be an integer' });
       const render = latestRender(db(), id);
       return reply.send(render ? [toSummary(render)] : []);
     }

@@ -200,7 +200,11 @@ export function deletePost(_db: DB, _id: number): PostRow | undefined {
 }
 
 /** @deprecated Payload posts no longer exist. Use updatePost with `.wzd` markup. */
-export function updatePostPayload(_db: DB, _id: number, _payload: PostPayload): PostRow | undefined {
+export function updatePostPayload(
+  _db: DB,
+  _id: number,
+  _payload: PostPayload,
+): PostRow | undefined {
   throw new Error('posts.payload was removed in schema v3 — use updatePost with .wzd markup');
 }
 

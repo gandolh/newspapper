@@ -15,11 +15,7 @@ import {
   type WzdNode,
   type WzdText,
 } from './ast.js';
-import {
-  WZD_REQUIRED_HEAD_FIELDS,
-  getComponentSpec,
-  type WzdComponentSpec,
-} from './catalogue.js';
+import { WZD_REQUIRED_HEAD_FIELDS, getComponentSpec, type WzdComponentSpec } from './catalogue.js';
 import { bindingMessage, unresolvedBindings } from './bindings.js';
 import {
   sortDiagnostics,
@@ -58,7 +54,8 @@ function sliceLoc(node: WzdText, start: number, end: number): WzdLoc {
   let startPos = node.loc.start;
   for (let i = 0; i <= node.raw.length; i++) {
     if (i === start) startPos = { offset: node.loc.start.offset + i, line, column };
-    if (i === end) return { start: startPos, end: { offset: node.loc.start.offset + i, line, column } };
+    if (i === end)
+      return { start: startPos, end: { offset: node.loc.start.offset + i, line, column } };
     if (node.raw[i] === '\n') {
       line += 1;
       column = 1;
@@ -80,12 +77,7 @@ class Linter {
     this.maxSlides = options.maxSlides ?? WZD_LINT_DEFAULTS.maxSlides;
   }
 
-  private add(
-    code: WzdDiagnosticCode,
-    severity: WzdSeverity,
-    message: string,
-    loc: WzdLoc,
-  ): void {
+  private add(code: WzdDiagnosticCode, severity: WzdSeverity, message: string, loc: WzdLoc): void {
     this.findings.push({ code, severity, message, loc });
   }
 
@@ -390,7 +382,6 @@ class Linter {
         return;
       }
     }
-
   }
 }
 

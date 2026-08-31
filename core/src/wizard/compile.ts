@@ -15,7 +15,12 @@ import { elementChildren, type WzdDocument, type WzdElement } from './ast.js';
 import { hasErrors, type WzdDiagnostic } from './diagnostics.js';
 import { lint, type WzdLintOptions } from './lint.js';
 import { parse } from './parse.js';
-import { baseContext, missingThemeTokens, renderSlide, type WzdRenderContext } from './components/index.js';
+import {
+  baseContext,
+  missingThemeTokens,
+  renderSlide,
+  type WzdRenderContext,
+} from './components/index.js';
 
 export interface WzdCompileOptions {
   /** Prefix an `<Image src>` is resolved against. Default `/uploads`. */

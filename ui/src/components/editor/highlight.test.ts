@@ -26,7 +26,8 @@ describe('tokenize', () => {
   });
 
   it('separates capitalized components from lowercase structure', () => {
-    const source = '<head>\n  <title>Hi</title>\n</head>\n\n<body>\n  <Slide>\n    <Heading size="lg">Hi</Heading>\n  </Slide>\n</body>\n';
+    const source =
+      '<head>\n  <title>Hi</title>\n</head>\n\n<body>\n  <Slide>\n    <Heading size="lg">Hi</Heading>\n  </Slide>\n</body>\n';
     const tokens = tokenize(source);
     expect(new Set(slice(source, tokens, 'component'))).toEqual(new Set(['Slide', 'Heading']));
     expect(new Set(slice(source, tokens, 'structure'))).toEqual(new Set(['head', 'title', 'body']));

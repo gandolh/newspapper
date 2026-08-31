@@ -12,6 +12,9 @@ export const NORMALIZED_DIR = 'normalized';
 /** The only shape an upload reference may take, in markup or in a URL. */
 export const REF_PATTERN = /^[a-z0-9](?:[a-z0-9-]{0,94}[a-z0-9])?$/;
 
+// Stripping control characters is the entire point of this pattern; it guards
+// upload display names.
+// eslint-disable-next-line no-control-regex
 const CONTROL_CHARS = /[\u0000-\u001f\u007f]/g;
 const COMBINING_MARKS = /[\u0300-\u036f]/g;
 const MAX_SLUG_LENGTH = 48;

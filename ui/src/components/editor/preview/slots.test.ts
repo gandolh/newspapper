@@ -68,7 +68,9 @@ describe('slotsForSubtree', () => {
   });
 
   it('gives an empty container one slot covering it', () => {
-    const empty = parse('<head>\n  <title>x</title>\n</head>\n\n<body>\n  <Slide>\n    <Stack />\n  </Slide>\n</body>\n');
+    const empty = parse(
+      '<head>\n  <title>x</title>\n</head>\n\n<body>\n  <Slide>\n    <Stack />\n  </Slide>\n</body>\n',
+    );
     const seen = new Set<number>();
     walk(empty.doc, (node) => {
       if (isElement(node)) seen.add(node.loc.start.offset);

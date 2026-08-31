@@ -31,6 +31,26 @@ const CORE_ONLY = new Set(['Theme', 'RenderTemplateOptions', 'UserRecord']);
 // module directly rather than against the core/types.ts ↔ ui diff.
 const MIRRORED_FROM_SCRAPE = new Set(['ScrapedArticle']);
 
+/**
+ * Print one declaration as a comparable shape.
+ *
+ * The declaration is re-emitted from the AST, so indentation, line breaks and
+ * member separators are already normalized away — but TypeScript's printer
+ * re-uses the *original source text* for literals, so a string-literal union
+ * carries whatever quote character the file happens to use. That made this
+ * guard sensitive to formatting: reformat one side and not the other and every
+ * union type mismatches. `'a' | 'b'` and `"a" | "b"` are the same type, so the
+ * quote character is normalized out here (brief 68). Nothing else about a
+ * declaration's text is allowed to matter.
+ */
+function shapeOf(stmt: ts.Node, sf: ts.SourceFile, printer: ts.Printer): string {
+  return printer
+    .printNode(ts.EmitHint.Unspecified, stmt, sf)
+    .replace(/"/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function exportedDecls(filePath: string): Map<string, string> {
   const source = readFileSync(filePath, 'utf8');
   const sf = ts.createSourceFile(filePath, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
@@ -41,8 +61,7 @@ function exportedDecls(filePath: string): Map<string, string> {
     if (!ts.isInterfaceDeclaration(stmt) && !ts.isTypeAliasDeclaration(stmt)) continue;
     const isExported = stmt.modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword) ?? false;
     if (!isExported) continue;
-    const shape = printer.printNode(ts.EmitHint.Unspecified, stmt, sf).replace(/\s+/g, ' ').trim();
-    decls.set(stmt.name.text, shape);
+    decls.set(stmt.name.text, shapeOf(stmt, sf, printer));
   }
   return decls;
 }

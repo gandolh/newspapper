@@ -138,7 +138,10 @@ describe('posts repository', () => {
   it('queryPosts searches title, description and markup', () => {
     createPost(db, makeInput({ title: 'Needle in the title' }));
     createPost(db, makeInput({ title: 'Other', description: 'needle in the description' }));
-    createPost(db, makeInput({ title: 'Third', description: '', markup: '<head></head><body>needle</body>' }));
+    createPost(
+      db,
+      makeInput({ title: 'Third', description: '', markup: '<head></head><body>needle</body>' }),
+    );
 
     expect(queryPosts(db, { search: 'needle' })).toHaveLength(3);
     expect(queryPosts(db, { search: 'haystack' })).toHaveLength(0);

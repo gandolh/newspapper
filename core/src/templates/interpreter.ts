@@ -18,14 +18,21 @@ import type { TNode, TStyle, Theme, RenderTemplateOptions } from '../types.js';
 // Unitless CSS properties (no `px` suffix)
 // ---------------------------------------------------------------------------
 const UNITLESS = new Set([
-  'lineHeight', 'line-height',
-  'fontWeight', 'font-weight',
+  'lineHeight',
+  'line-height',
+  'fontWeight',
+  'font-weight',
   'opacity',
-  'flex', 'flexGrow', 'flex-grow',
-  'flexShrink', 'flex-shrink',
-  'zIndex', 'z-index',
+  'flex',
+  'flexGrow',
+  'flex-grow',
+  'flexShrink',
+  'flex-shrink',
+  'zIndex',
+  'z-index',
   'order',
-  'flexOrder', 'flex-order',
+  'flexOrder',
+  'flex-order',
 ]);
 
 // ---------------------------------------------------------------------------
@@ -44,10 +51,24 @@ const UNITLESS = new Set([
 
 /** CSS generic families. A stack ending in one of these is already complete. */
 const GENERIC_FAMILIES = new Set([
-  'serif', 'sans-serif', 'monospace', 'cursive', 'fantasy',
-  'system-ui', 'ui-serif', 'ui-sans-serif', 'ui-monospace', 'ui-rounded',
-  'math', 'emoji', 'fangsong',
-  'inherit', 'initial', 'unset', 'revert', 'revert-layer',
+  'serif',
+  'sans-serif',
+  'monospace',
+  'cursive',
+  'fantasy',
+  'system-ui',
+  'ui-serif',
+  'ui-sans-serif',
+  'ui-monospace',
+  'ui-rounded',
+  'math',
+  'emoji',
+  'fangsong',
+  'inherit',
+  'initial',
+  'unset',
+  'revert',
+  'revert-layer',
 ]);
 
 /**
@@ -66,17 +87,23 @@ function unquoteFamily(name: string): string {
  * Ensure a declared `font-family` ends in a generic.
  *
  * Every family the theme authored is passed through **verbatim** — this appends
- * a tail and nothing else. It deliberately does not add quotes: the render's
- * typeface guard (`core/src/render/fonts.test.ts`) builds its no-Inter control
- * document by renaming `'Inter'` in the `@font-face` rule only, and quoting the
- * inline family here would rename that too, handing the text back the very face
- * the control is meant to be missing.
+ * a tail and nothing else, and in particular does not add quotes. That is now a
+ * style choice rather than a constraint: it used to be load-bearing, because
+ * the render's typeface guard built its no-Inter control by renaming `'Inter'`
+ * in the HTML and quoting the inline family here would have renamed the text
+ * along with the `@font-face`, collapsing the control into its subject. The
+ * guard's control no longer works that way (brief 71) — it defines no
+ * `@font-face` at all and names Inter nowhere, asserted on the finished
+ * document — so quoting families here would be safe, if a reason to appears.
  *
  * A stack that already ends in a generic keeps it — that is how a future serif
  * or monospace theme opts out of the sans tail.
  */
 export function withFallbackFamily(value: string): string {
-  const families = value.split(',').map((s) => s.trim()).filter((s) => s !== '');
+  const families = value
+    .split(',')
+    .map((s) => s.trim())
+    .filter((s) => s !== '');
   if (families.length === 0) return FALLBACK_FAMILY;
   const last = unquoteFamily(families[families.length - 1] as string).toLowerCase();
   if (GENERIC_FAMILIES.has(last)) return families.join(',');
@@ -175,9 +202,33 @@ export function resolveStyle(style: TStyle, theme: Theme): Record<string, string
 // ---------------------------------------------------------------------------
 // Convert a resolved style map to an inline CSS string
 // ---------------------------------------------------------------------------
+
+/**
+ * Escape a fragment destined for a double-quoted `style="…"` attribute.
+ *
+ * Style values are data — a theme token, a `$color.*` lookup, a `.wzd`-authored
+ * literal — and one containing a `"` would close the attribute early, leaving
+ * everything after it to be parsed as markup. Keys go through the same funnel:
+ * `toKebab` does not constrain them to identifiers.
+ *
+ * `&` is replaced first, or the escaping would re-escape its own output. Single
+ * quotes are deliberately left alone: the attribute is always double-quoted, so
+ * an apostrophe cannot close it, and `font-family:'Inter'` has to survive
+ * verbatim. `<` and `>` cannot terminate an attribute value either, but they
+ * are escaped anyway — cheap, and it keeps a value from reading as markup to
+ * anything less careful than a spec-compliant parser.
+ */
+function escapeStyle(fragment: string): string {
+  return fragment
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 function styleToString(styleMap: Record<string, string>): string {
   return Object.entries(styleMap)
-    .map(([k, v]) => `${k}:${v}`)
+    .map(([k, v]) => `${escapeStyle(k)}:${escapeStyle(v)}`)
     .join(';');
 }
 
@@ -232,25 +283,31 @@ function renderNode(node: TNode, data: Record<string, unknown>, theme: Theme): s
     const cssStr = styleToString(styleMap);
     const styleAttr = cssStr ? ` style="${cssStr}"` : '';
 
-    const items = (node.source === 'items' && Array.isArray(data['items']))
-      ? (data['items'] as unknown[])
-      : [];
+    const items =
+      node.source === 'items' && Array.isArray(data['items']) ? (data['items'] as unknown[]) : [];
 
-    const rendered = items.map((item, idx) => {
-      // Build per-item data context
-      const itemData: Record<string, unknown> = {
-        ...data,
-        i: idx + 1,
-        item: typeof item === 'object' && item !== null
-          ? { ...data['item'] as Record<string, unknown>, ...(item as Record<string, unknown>), toString: () => JSON.stringify(item) }
-          : item,
-      };
-      // Allow {{item}} to resolve to stringified value for non-object items
-      if (typeof item !== 'object' || item === null) {
-        (itemData['item'] as unknown) = item;
-      }
-      return node.children.map((c) => renderNode(c, itemData, theme)).join('');
-    }).join('');
+    const rendered = items
+      .map((item, idx) => {
+        // Build per-item data context
+        const itemData: Record<string, unknown> = {
+          ...data,
+          i: idx + 1,
+          item:
+            typeof item === 'object' && item !== null
+              ? {
+                  ...(data['item'] as Record<string, unknown>),
+                  ...(item as Record<string, unknown>),
+                  toString: () => JSON.stringify(item),
+                }
+              : item,
+        };
+        // Allow {{item}} to resolve to stringified value for non-object items
+        if (typeof item !== 'object' || item === null) {
+          (itemData['item'] as unknown) = item;
+        }
+        return node.children.map((c) => renderNode(c, itemData, theme)).join('');
+      })
+      .join('');
 
     return `<div${styleAttr}>${rendered}</div>`;
   }
@@ -273,7 +330,10 @@ function fontFaceCss(fontBaseUrl: string): string {
     ['900', 'Black'],
   ];
   return weights
-    .map(([weight, name]) => `@font-face{font-family:'Inter';font-weight:${weight};src:url('${fontBaseUrl}/Inter-${name}.ttf') format('truetype');}`)
+    .map(
+      ([weight, name]) =>
+        `@font-face{font-family:'Inter';font-weight:${weight};src:url('${fontBaseUrl}/Inter-${name}.ttf') format('truetype');}`,
+    )
     .join('\n');
 }
 

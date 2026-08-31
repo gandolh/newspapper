@@ -45,6 +45,12 @@
   transition: width 200ms ease;
 }
 
-.fill--default { background: var(--graphite); }
-.fill--success { background: var(--graphite); }
-.fill--error   { background: var(--rubylith-ink); }
+.fill--default {
+  background: var(--graphite);
+}
+.fill--success {
+  background: var(--graphite);
+}
+.fill--error {
+  background: var(--rubylith-ink);
+}

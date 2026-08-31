@@ -23,9 +23,15 @@
   border-left: 3px solid var(--graphite);
 }
 
-.toast--success { border-left-color: var(--graphite); }
-.toast--error   { border-left-color: var(--rubylith-ink); }
-.toast--info    { border-left-color: var(--process-blue); }
+.toast--success {
+  border-left-color: var(--graphite);
+}
+.toast--error {
+  border-left-color: var(--rubylith-ink);
+}
+.toast--info {
+  border-left-color: var(--process-blue);
+}
 
 /* The kind, said in words in the mark face — not by hue alone. */
 .toastIcon {
@@ -39,8 +45,12 @@
   color: var(--graphite-soft);
 }
 
-.toast--error .toastIcon { color: var(--rubylith-ink); }
-.toast--info .toastIcon  { color: var(--process-blue); }
+.toast--error .toastIcon {
+  color: var(--rubylith-ink);
+}
+.toast--info .toastIcon {
+  color: var(--process-blue);
+}
 
 .toastMessage {
   flex: 1;

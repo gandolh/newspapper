@@ -108,7 +108,10 @@ describe('API server', () => {
       const titles = (bySearch.json() as Array<{ title: string }>).map((a) => a.title);
       expect(titles).toContain('Budget day');
 
-      const bySource = await inject({ method: 'GET', url: '/api/articles?sourceId=no-such-source' });
+      const bySource = await inject({
+        method: 'GET',
+        url: '/api/articles?sourceId=no-such-source',
+      });
       expect(bySource.json()).toEqual([]);
     });
   });
@@ -295,7 +298,11 @@ describe('API server', () => {
     });
 
     it('treats a blank theme as "use the default" rather than rejecting it', async () => {
-      const res = await inject({ method: 'POST', url: '/api/posts', payload: { markup, theme: '' } });
+      const res = await inject({
+        method: 'POST',
+        url: '/api/posts',
+        payload: { markup, theme: '' },
+      });
       expect(res.statusCode).toBe(201);
       expect(res.json().theme).toBe('warm-industrial-1');
       await inject({ method: 'DELETE', url: `/api/posts/${res.json().id}` });

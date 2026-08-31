@@ -60,7 +60,10 @@ describe('typography scales', () => {
 
   it('name only components the catalogue knows', () => {
     for (const name of scaled) {
-      expect(isKnownComponent(name), `${name} has a typography scale but is not in the catalogue`).toBe(true);
+      expect(
+        isKnownComponent(name),
+        `${name} has a typography scale but is not in the catalogue`,
+      ).toBe(true);
       expect(WZD_RENDERABLE_NAMES).toContain(name);
     }
   });
@@ -97,9 +100,10 @@ describe('typography scales', () => {
   it('give every step of a component its own token', () => {
     for (const name of scaled) {
       const tokens = sizesFor(name).map((size) => WZD_TYPOGRAPHY_SCALES[name][size]);
-      expect(new Set(tokens).size, `${name} repeats a token across its scale: ${tokens.join(', ')}`).toBe(
-        tokens.length,
-      );
+      expect(
+        new Set(tokens).size,
+        `${name} repeats a token across its scale: ${tokens.join(', ')}`,
+      ).toBe(tokens.length);
     }
   });
 
@@ -137,7 +141,10 @@ describe('every shipped theme', () => {
 
 describe('unthemedStyleValues', () => {
   it('catches a raw colour', () => {
-    const offenders = unthemedStyleValues([{ kind: 'text', text: 'x', style: { color: '#ff0000' } }], theme);
+    const offenders = unthemedStyleValues(
+      [{ kind: 'text', text: 'x', style: { color: '#ff0000' } }],
+      theme,
+    );
     expect(offenders).toEqual(['color: #ff0000']);
   });
 

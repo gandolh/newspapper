@@ -88,7 +88,9 @@ describe('Heading', () => {
   });
 
   it('selects a colour token per emphasis', () => {
-    expect(first('<Heading emphasis="muted">a</Heading>').style?.['color']).toBe('$color.on-surface-variant');
+    expect(first('<Heading emphasis="muted">a</Heading>').style?.['color']).toBe(
+      '$color.on-surface-variant',
+    );
     expect(first('<Heading>a</Heading>').style?.['color']).toBe('$color.on-surface');
     expect(first('<Heading emphasis="strong">a</Heading>').style?.['color']).toBe('$color.primary');
   });
@@ -108,7 +110,11 @@ describe('Text', () => {
 describe('List and Item', () => {
   it('renders a bulleted column and passes its size down to the items', () => {
     const list = first('<List size="sm"><Item>one</Item><Item emphasis="strong">two</Item></List>');
-    expect(list.style).toMatchObject({ display: 'flex', flexDirection: 'column', gap: '$spacing.xs' });
+    expect(list.style).toMatchObject({
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '$spacing.xs',
+    });
     if (list.kind !== 'box') throw new Error('List is not a box');
     const [one, two] = list.children ?? [];
     if (one.kind !== 'box' || two.kind !== 'box') throw new Error('Item is not a box');
@@ -121,7 +127,9 @@ describe('List and Item', () => {
 
 describe('Quote', () => {
   it('carries its attribution under the words', () => {
-    const quote = first('<Quote size="lg" by="The Chancellor">We are backing working people.</Quote>');
+    const quote = first(
+      '<Quote size="lg" by="The Chancellor">We are backing working people.</Quote>',
+    );
     if (quote.kind !== 'box') throw new Error('Quote is not a box');
     const [body, attribution] = quote.children ?? [];
     expect(body.style?.['typography']).toBe('display');
@@ -174,7 +182,10 @@ describe('Image', () => {
     );
     const root = compile(doc, theme).slides[0];
     if (root.kind !== 'box') throw new Error('slide is not a box');
-    expect((root.children ?? [])[0].style).toMatchObject({ marginLeft: 'auto', marginRight: 'auto' });
+    expect((root.children ?? [])[0].style).toMatchObject({
+      marginLeft: 'auto',
+      marginRight: 'auto',
+    });
   });
 });
 
@@ -221,7 +232,10 @@ describe('PageCounter', () => {
   it('renders n/total for every slide in the document', () => {
     const source = ['<head><title>T</title></head><body>']
       .concat(
-        Array.from({ length: 5 }, (_, i) => `<Slide><Heading>${i}</Heading><PageCounter /></Slide>`),
+        Array.from(
+          { length: 5 },
+          (_, i) => `<Slide><Heading>${i}</Heading><PageCounter /></Slide>`,
+        ),
       )
       .concat(['</body>'])
       .join('');

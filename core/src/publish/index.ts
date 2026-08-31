@@ -8,7 +8,12 @@ import type { DB } from '../storage/index.js';
 import type { Post, RenderRecord } from '../types.js';
 import { optimizeOutputDir, PUBLISH_JPEG_QUALITY } from './optimize.js';
 
-export { optimizeOutputDir, optimizeSlideFile, slideFilesIn, PUBLISH_JPEG_QUALITY } from './optimize.js';
+export {
+  optimizeOutputDir,
+  optimizeSlideFile,
+  slideFilesIn,
+  PUBLISH_JPEG_QUALITY,
+} from './optimize.js';
 
 export interface PublishResult {
   post: Post;

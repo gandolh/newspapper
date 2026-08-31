@@ -68,10 +68,7 @@ async function withRenderedPage<T>(
   }
 }
 
-export async function htmlToPng(
-  html: string,
-  opts?: HtmlToPngOptions,
-): Promise<Buffer> {
+export async function htmlToPng(html: string, opts?: HtmlToPngOptions): Promise<Buffer> {
   const width = opts?.width ?? DEFAULT_WIDTH;
   const height = opts?.height ?? DEFAULT_HEIGHT;
 
@@ -84,10 +81,7 @@ export async function htmlToPng(
 /**
  * Render straight to JPEG via Playwright's own encoder — no PNG intermediate.
  */
-export async function htmlToJpeg(
-  html: string,
-  opts?: HtmlToJpegOptions,
-): Promise<Buffer> {
+export async function htmlToJpeg(html: string, opts?: HtmlToJpegOptions): Promise<Buffer> {
   const width = opts?.width ?? DEFAULT_WIDTH;
   const height = opts?.height ?? DEFAULT_HEIGHT;
   const quality = opts?.quality ?? DEFAULT_JPEG_QUALITY;

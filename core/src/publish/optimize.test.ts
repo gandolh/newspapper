@@ -4,13 +4,20 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import sharp from 'sharp';
-import { optimizeOutputDir, optimizeSlideFile, PUBLISH_JPEG_QUALITY, slideFilesIn } from './optimize.js';
+import {
+  optimizeOutputDir,
+  optimizeSlideFile,
+  PUBLISH_JPEG_QUALITY,
+  slideFilesIn,
+} from './optimize.js';
 
 const JPEG_MAGIC = Buffer.from([0xff, 0xd8, 0xff]);
 
 async function noisyJpeg(width: number, height: number, quality: number): Promise<Buffer> {
   const raw = randomBytes(width * height * 3);
-  return sharp(raw, { raw: { width, height, channels: 3 } }).jpeg({ quality }).toBuffer();
+  return sharp(raw, { raw: { width, height, channels: 3 } })
+    .jpeg({ quality })
+    .toBuffer();
 }
 
 let tmpDir: string;

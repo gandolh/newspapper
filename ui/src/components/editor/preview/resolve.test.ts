@@ -25,7 +25,11 @@ const DOC = `<head>
 
 describe('resolveTolerant', () => {
   it('is core resolveStyle, verbatim, when the theme has every token', () => {
-    const style: TStyle = { color: '$color.on-surface', padding: '$spacing.xl', typography: 'display' };
+    const style: TStyle = {
+      color: '$color.on-surface',
+      padding: '$spacing.xl',
+      typography: 'display',
+    };
     const result = resolveTolerant(style, theme);
     expect(result.problems).toEqual([]);
     expect(result.css).toEqual(resolveStyle(style, theme));
@@ -42,7 +46,10 @@ describe('resolveTolerant', () => {
   });
 
   it('reports a missing typography token without losing the rest', () => {
-    const result = resolveTolerant({ typography: 'no-such-scale', color: '$color.on-surface' }, theme);
+    const result = resolveTolerant(
+      { typography: 'no-such-scale', color: '$color.on-surface' },
+      theme,
+    );
     expect(result.problems[0]).toContain('typography');
     expect(result.css['color']).toBe(theme.colors['on-surface']);
   });
@@ -64,9 +71,7 @@ describe('collectStyleProblems', () => {
   it('names the offending node by its source offset', () => {
     const stripped: Theme = {
       ...theme,
-      colors: Object.fromEntries(
-        Object.entries(theme.colors).filter(([k]) => k !== 'on-surface'),
-      ),
+      colors: Object.fromEntries(Object.entries(theme.colors).filter(([k]) => k !== 'on-surface')),
     };
     const { slides } = compileTraced(parse(DOC).doc, theme);
     const problems = collectStyleProblems(slides, stripped);
@@ -79,7 +84,9 @@ describe('collectStyleProblems', () => {
 
 describe('toReactStyle', () => {
   it('camelCases standard properties and leaves custom ones alone', () => {
-    expect(toReactStyle({ 'font-size': '12px', 'aspect-ratio': '3 / 2', '--wzd-src': '4' })).toEqual({
+    expect(
+      toReactStyle({ 'font-size': '12px', 'aspect-ratio': '3 / 2', '--wzd-src': '4' }),
+    ).toEqual({
       fontSize: '12px',
       aspectRatio: '3 / 2',
       '--wzd-src': '4',

@@ -86,11 +86,7 @@ export interface SseHandlers {
  * Resolves on a `done` event; rejects with an ApiError on an `error` event or
  * a non-2xx HTTP status. Aborted via `handlers.signal`.
  */
-export async function sse(
-  path: string,
-  body: unknown,
-  handlers: SseHandlers,
-): Promise<void> {
+export async function sse(path: string, body: unknown, handlers: SseHandlers): Promise<void> {
   const url = path.startsWith('/') ? path : `/${path}`;
 
   const res = await fetch(url, {

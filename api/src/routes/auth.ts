@@ -43,13 +43,10 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
 
     const verdict = checkLoginAttempt(req.ip);
     if (!verdict.allowed) {
-      return reply
-        .header('Retry-After', String(verdict.retryAfterSeconds))
-        .status(429)
-        .send({
-          error: 'Too many failed sign-in attempts. Try again shortly.',
-          retryAfterSeconds: verdict.retryAfterSeconds,
-        });
+      return reply.header('Retry-After', String(verdict.retryAfterSeconds)).status(429).send({
+        error: 'Too many failed sign-in attempts. Try again shortly.',
+        retryAfterSeconds: verdict.retryAfterSeconds,
+      });
     }
 
     const record = username ? findUserByUsername(db(), username) : undefined;
@@ -59,13 +56,10 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
     if (!record || !matched) {
       const after = recordLoginFailure(req.ip);
       if (!after.allowed) {
-        return reply
-          .header('Retry-After', String(after.retryAfterSeconds))
-          .status(429)
-          .send({
-            error: 'Too many failed sign-in attempts. Try again shortly.',
-            retryAfterSeconds: after.retryAfterSeconds,
-          });
+        return reply.header('Retry-After', String(after.retryAfterSeconds)).status(429).send({
+          error: 'Too many failed sign-in attempts. Try again shortly.',
+          retryAfterSeconds: after.retryAfterSeconds,
+        });
       }
       return reply.status(401).send({ error: INVALID_CREDENTIALS });
     }
@@ -79,9 +73,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
    * POST /api/logout
    */
   fastify.post('/api/logout', { config: { public: true } }, async (req, reply) => {
-    return reply
-      .header('Set-Cookie', clearedSessionCookie(secureFor(req)))
-      .send({ ok: true });
+    return reply.header('Set-Cookie', clearedSessionCookie(secureFor(req))).send({ ok: true });
   });
 
   /**

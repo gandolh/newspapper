@@ -1,4 +1,8 @@
-export async function fetchBody(url: string, userAgent: string, timeoutMs: number): Promise<string> {
+export async function fetchBody(
+  url: string,
+  userAgent: string,
+  timeoutMs: number,
+): Promise<string> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {

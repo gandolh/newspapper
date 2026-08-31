@@ -65,7 +65,8 @@ describe('tree helpers', () => {
     const { doc } = parse(source);
     const seen: string[] = [];
     walk(doc, (node, ctx) => {
-      if (node.kind === 'element') seen.push(`${ctx.ancestors.map((a) => a.type).join('/')}>${node.type}`);
+      if (node.kind === 'element')
+        seen.push(`${ctx.ancestors.map((a) => a.type).join('/')}>${node.type}`);
     });
     expect(seen).toEqual([
       '>head',

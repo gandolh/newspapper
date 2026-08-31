@@ -54,9 +54,7 @@ export function countUsers(db: DB): number {
 }
 
 export function setUserPassword(db: DB, id: number, passwordHash: string): User | undefined {
-  const r = db
-    .prepare('UPDATE users SET password_hash = ? WHERE id = ?')
-    .run(passwordHash, id);
+  const r = db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(passwordHash, id);
   if (r.changes === 0) return undefined;
   return findUser(db, id);
 }

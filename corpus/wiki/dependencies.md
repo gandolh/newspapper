@@ -38,7 +38,7 @@ Per-workspace. Versions are locked in `package-lock.json`.
 | `@base-ui/react` | Headless, accessible primitives behind the shared `components/ui/` library (Button, Input, Select, Toggle/Switch, Modal/Dialog, Toast). Styling-agnostic — styled with warm-industrial CSS-variable tokens. |
 | `@newspapper/core` | Types, plus the browser-safe `./wizard` subpath — the editor parses, lints and compiles with the same code the renderer uses. No Node APIs. |
 | `@use-gesture/react` | Pointer gestures in the editor: the split-screen divider drag and slide reordering. Replaced a half-built HTML5 drag-and-drop; pointer events give one code path for mouse, touch and pen, and drag-and-drop cannot express a resize handle at all. |
-| `animejs` | **Approved, still not installed** — brief 64 installs it and builds the one authored motion moment (the compile: typed source settling into a set slide). 4.5.0, MIT, no dependencies. The motion engine — framework-agnostic, so one import serves both Astro scripts and React islands. Chosen over motion-primitives and smoothui, which require Tailwind CSS; [why](./decisions-engineering.md#animejs-is-the-motion-engine-tailwind-bound-kits-are-references-only). |
+| `animejs` | **4.5.0, installed by brief 64.** Drives the two authored motion moments — the compile and the tissue hinge — and nothing else; the canvas never animates. MIT, no dependencies, framework-agnostic. Chosen over motion-primitives and smoothui, which require Tailwind CSS; [why](./decisions-engineering.md#animejs-is-the-motion-engine-tailwind-bound-kits-are-references-only). |
 
 ## Root dev deps
 
@@ -48,7 +48,9 @@ Per-workspace. Versions are locked in `package-lock.json`.
 | `tsx` | Dev runner — `tsx watch` for the API; used in test runner. |
 | `vitest` | Test framework (co-located `*.test.ts`). |
 | `concurrently` | Runs API + UI dev servers in parallel (`npm run dev`). |
-| `eslint`, `prettier` | Lint and format. |
+| `eslint`, `prettier` | Lint and format — both **enforced**: `npm run build` runs `fmt:check` first, and `npm run lint` covers all three workspaces. Until brief 68 there was no Prettier config at all and `eslint.config.js` enabled **zero rules**; [why the current shape](./decisions-tooling.md#the-formatter-and-the-linter-are-enforced-and-configured-to-do-something). |
+| `@eslint/js` | The recommended JS ruleset. Was a transitive dependency; declared explicitly by brief 68 when the config started importing it. |
+| `eslint-plugin-react-hooks` | Hook correctness in `ui/`. `rules-of-hooks` and `exhaustive-deps` are on and clean; ten React Compiler findings are suppressed pending brief 72. |
 | `@types/node`, `@types/react`, `@types/better-sqlite3`, `@types/react-dom` | Type declarations. |
 
 ## What changed from v2

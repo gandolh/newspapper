@@ -29,7 +29,10 @@ export function getSettings(dbPath?: string): Settings {
     const envOverrides = fromEnv();
     const merged: Settings = { ...DEFAULTS, ...envOverrides };
 
-    const rows = db.prepare('SELECT key, value FROM settings').all() as Array<{ key: string; value: string }>;
+    const rows = db.prepare('SELECT key, value FROM settings').all() as Array<{
+      key: string;
+      value: string;
+    }>;
     const mergedRec = merged as unknown as Record<string, string>;
     for (const row of rows) {
       if (row.key in merged) {

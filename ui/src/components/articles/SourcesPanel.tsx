@@ -109,11 +109,7 @@ function CopyableUrl({ url }: { url: string }) {
 
   return (
     <span className={styles.copyable}>
-      <span
-        className={styles.copyableUrl}
-        title={`Click to copy: ${url}`}
-        onClick={handleCopy}
-      >
+      <span className={styles.copyableUrl} title={`Click to copy: ${url}`} onClick={handleCopy}>
         {truncateUrl(url)}
       </span>
       {copied && <span className={styles.copiedNote}>copied!</span>}
@@ -132,12 +128,7 @@ interface SourceFormModalProps {
   onSaved: (sources: SourceConfig[]) => void;
 }
 
-function SourceFormModal({
-  open,
-  source,
-  onClose,
-  onSaved,
-}: SourceFormModalProps) {
+function SourceFormModal({ open, source, onClose, onSaved }: SourceFormModalProps) {
   const isEdit = source !== null;
   const { addToast } = useToast();
 
@@ -219,12 +210,7 @@ function SourceFormModal({
   }
 
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title={isEdit ? 'Edit source' : 'Add source'}
-      width={520}
-    >
+    <Modal open={open} onClose={onClose} title={isEdit ? 'Edit source' : 'Add source'} width={520}>
       <form onSubmit={handleSubmit} noValidate>
         <div className={styles.formFields}>
           <Input
@@ -264,12 +250,7 @@ function SourceFormModal({
           />
         </div>
         <div className={styles.formActions}>
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={onClose}
-            disabled={loading}
-          >
+          <Button type="button" variant="ghost" onClick={onClose} disabled={loading}>
             Cancel
           </Button>
           <Button type="submit" loading={loading}>
@@ -326,18 +307,14 @@ export default function SourcesPanel() {
 
   // Toggle enabled
   async function handleToggle(source: SourceConfig, enabled: boolean) {
-    setSources((prev) =>
-      prev.map((s) => (s.id === source.id ? { ...s, enabled } : s)),
-    );
+    setSources((prev) => prev.map((s) => (s.id === source.id ? { ...s, enabled } : s)));
     try {
       await api(`/api/sources/${source.id}`, {
         method: 'PUT',
         json: { enabled },
       });
     } catch {
-      setSources((prev) =>
-        prev.map((s) => (s.id === source.id ? { ...s, enabled: !enabled } : s)),
-      );
+      setSources((prev) => prev.map((s) => (s.id === source.id ? { ...s, enabled: !enabled } : s)));
       addToast('Failed to update source', 'error');
     }
   }
@@ -385,12 +362,9 @@ export default function SourcesPanel() {
     if (!deleteTarget) return;
     setDeleteLoading(true);
     try {
-      const result = await api<SourceConfig[]>(
-        `/api/sources/${deleteTarget.id}`,
-        {
-          method: 'DELETE',
-        },
-      );
+      const result = await api<SourceConfig[]>(`/api/sources/${deleteTarget.id}`, {
+        method: 'DELETE',
+      });
       setSources(result);
       addToast(`"${deleteTarget.name}" deleted`, 'success');
       setDeleteTarget(null);
@@ -452,11 +426,7 @@ export default function SourcesPanel() {
                   {COLUMNS.map((col) => (
                     <th
                       key={col.label}
-                      className={
-                        col.center
-                          ? `${styles.th} ${styles.thCenter}`
-                          : styles.th
-                      }
+                      className={col.center ? `${styles.th} ${styles.thCenter}` : styles.th}
                     >
                       {col.label}
                     </th>
@@ -498,18 +468,10 @@ export default function SourcesPanel() {
                         >
                           Ping
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          onClick={() => handleEdit(source)}
-                        >
+                        <Button size="sm" variant="secondary" onClick={() => handleEdit(source)}>
                           Edit
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="danger"
-                          onClick={() => setDeleteTarget(source)}
-                        >
+                        <Button size="sm" variant="danger" onClick={() => setDeleteTarget(source)}>
                           Delete
                         </Button>
                       </div>

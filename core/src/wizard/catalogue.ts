@@ -29,7 +29,13 @@ export type WzdChildModel =
   /** Element children only. */
   | 'elements';
 
-export type WzdComponentGroup = 'document' | 'metadata' | 'structure' | 'content' | 'accent' | 'generated';
+export type WzdComponentGroup =
+  | 'document'
+  | 'metadata'
+  | 'structure'
+  | 'content'
+  | 'accent'
+  | 'generated';
 
 export interface WzdComponentSpec {
   name: string;
@@ -77,7 +83,8 @@ function text(name: string, description: string, required = false): WzdPropSpec 
 
 const SIZE = (): WzdPropSpec => scale('size', 'md', 'Type or spacing step from the theme scale.');
 const ALIGN = (): WzdPropSpec => scale('align', 'left', 'Horizontal alignment within the flow.');
-const EMPHASIS = (): WzdPropSpec => scale('emphasis', 'normal', 'Relative weight and colour from the theme.');
+const EMPHASIS = (): WzdPropSpec =>
+  scale('emphasis', 'normal', 'Relative weight and colour from the theme.');
 
 /** The `<head>` fields, in canonical order. */
 export const WZD_HEAD_FIELDS = [

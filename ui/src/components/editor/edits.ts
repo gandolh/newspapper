@@ -54,7 +54,13 @@ function attr(name: string, value: string): WzdAttribute {
 }
 
 function text(value: string): WzdText {
-  return { kind: 'text', value: sanitizeText(value), raw: value, blankLineBefore: false, loc: ZERO };
+  return {
+    kind: 'text',
+    value: sanitizeText(value),
+    raw: value,
+    blankLineBefore: false,
+    loc: ZERO,
+  };
 }
 
 export function makeElement(
@@ -162,12 +168,7 @@ function writeProp(el: WzdElement, name: string, value: string | null): void {
 }
 
 /** Set a prop, or remove it when `value` is null or empty. */
-export function setProp(
-  source: string,
-  path: WzdPath,
-  name: string,
-  value: string | null,
-): string {
+export function setProp(source: string, path: WzdPath, name: string, value: string | null): string {
   return applyEdit(source, (doc) => {
     const el = elementAtPath(doc, path);
     if (!el) return false;

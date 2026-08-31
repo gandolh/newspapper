@@ -43,7 +43,10 @@ describe('unknown-component', () => {
   });
 
   it('triggers on an unknown lowercase tag and says lowercase is structure', () => {
-    const found = only('<head>\n  <author>me</author>\n  <title>t</title>\n</head>\n<body><Slide><Text>a</Text></Slide></body>', 'unknown-component');
+    const found = only(
+      '<head>\n  <author>me</author>\n  <title>t</title>\n</head>\n<body><Slide><Text>a</Text></Slide></body>',
+      'unknown-component',
+    );
     expect(found).toHaveLength(1);
     expect(found[0].message).toContain('document structure');
   });
@@ -55,7 +58,10 @@ describe('unknown-component', () => {
 
 describe('unknown-prop', () => {
   it('triggers on a prop the component does not take', () => {
-    const found = only(inSlide('<Item2 />'.replace('Item2', 'Spacer align="left"')), 'unknown-prop');
+    const found = only(
+      inSlide('<Item2 />'.replace('Item2', 'Spacer align="left"')),
+      'unknown-prop',
+    );
     expect(found).toHaveLength(1);
     expect(found[0].message).toContain('<Spacer> has no `align` prop');
     expect(found[0].message).toContain('It takes: size.');
@@ -68,7 +74,9 @@ describe('unknown-prop', () => {
   });
 
   it('does not trigger on a prop the component takes', () => {
-    expect(codes(inSlide('<Heading size="lg" align="center" emphasis="strong">Hi</Heading>'))).toEqual([]);
+    expect(
+      codes(inSlide('<Heading size="lg" align="center" emphasis="strong">Hi</Heading>')),
+    ).toEqual([]);
   });
 });
 
@@ -82,8 +90,12 @@ describe('invalid-prop-value', () => {
   });
 
   it('triggers for each scale', () => {
-    expect(only(inSlide('<Heading align="middle">a</Heading>'), 'invalid-prop-value')).toHaveLength(1);
-    expect(only(inSlide('<Heading emphasis="bold">a</Heading>'), 'invalid-prop-value')).toHaveLength(1);
+    expect(only(inSlide('<Heading align="middle">a</Heading>'), 'invalid-prop-value')).toHaveLength(
+      1,
+    );
+    expect(
+      only(inSlide('<Heading emphasis="bold">a</Heading>'), 'invalid-prop-value'),
+    ).toHaveLength(1);
   });
 
   it('triggers on a free-text value carrying both quote characters', () => {
@@ -145,13 +157,19 @@ describe('misplaced-element', () => {
   });
 
   it('triggers for content outside <body>', () => {
-    const found = only('<head>\n  <title>t</title>\n</head>\n<Slide><Text>a</Text></Slide>\n', 'misplaced-element');
+    const found = only(
+      '<head>\n  <title>t</title>\n</head>\n<Slide><Text>a</Text></Slide>\n',
+      'misplaced-element',
+    );
     expect(found).toHaveLength(1);
     expect(found[0].message).toContain('<Slide> must be a direct child of <body>');
   });
 
   it('triggers for text outside an element', () => {
-    const found = only('<head>\n  <title>t</title>\n</head>\nloose words\n<body><Slide><Text>a</Text></Slide></body>', 'misplaced-element');
+    const found = only(
+      '<head>\n  <title>t</title>\n</head>\nloose words\n<body><Slide><Text>a</Text></Slide></body>',
+      'misplaced-element',
+    );
     expect(found).toHaveLength(1);
     expect(found[0].message).toContain('cannot sit at the top level');
   });
@@ -163,7 +181,10 @@ describe('misplaced-element', () => {
   });
 
   it('triggers for a component outside any Slide', () => {
-    const found = only('<head>\n  <title>t</title>\n</head>\n<body>\n  <Heading>a</Heading>\n</body>\n', 'misplaced-element');
+    const found = only(
+      '<head>\n  <title>t</title>\n</head>\n<body>\n  <Heading>a</Heading>\n</body>\n',
+      'misplaced-element',
+    );
     expect(found.some((f) => f.message.includes('must be inside a <Slide>'))).toBe(true);
   });
 
@@ -186,7 +207,10 @@ describe('misplaced-element', () => {
   });
 
   it('triggers on a second <head>', () => {
-    const found = only('<head><title>a</title></head>\n<head><title>b</title></head>\n<body><Slide><Text>x</Text></Slide></body>', 'misplaced-element');
+    const found = only(
+      '<head><title>a</title></head>\n<head><title>b</title></head>\n<body><Slide><Text>x</Text></Slide></body>',
+      'misplaced-element',
+    );
     expect(found).toHaveLength(1);
     expect(found[0].message).toContain('one <head>');
   });
@@ -205,13 +229,21 @@ describe('missing-head and missing-title', () => {
   });
 
   it('missing-title triggers when head declares none', () => {
-    const found = only('<head>\n  <date>2026-08-27</date>\n</head>\n<body><Slide><Text>a</Text></Slide></body>', 'missing-title');
+    const found = only(
+      '<head>\n  <date>2026-08-27</date>\n</head>\n<body><Slide><Text>a</Text></Slide></body>',
+      'missing-title',
+    );
     expect(found).toHaveLength(1);
     expect(found[0].loc.start.line).toBe(1);
   });
 
   it('missing-title triggers on an empty title', () => {
-    expect(only('<head><title></title></head><body><Slide><Text>a</Text></Slide></body>', 'missing-title')).toHaveLength(1);
+    expect(
+      only(
+        '<head><title></title></head><body><Slide><Text>a</Text></Slide></body>',
+        'missing-title',
+      ),
+    ).toHaveLength(1);
   });
 
   it('neither triggers on a document with a head and a title', () => {
@@ -226,7 +258,9 @@ describe('empty-slide', () => {
   });
 
   it('triggers on a slide holding only a comment', () => {
-    expect(only('<head><title>t</title></head><body><Slide><!-- todo --></Slide></body>', 'empty-slide')).toHaveLength(1);
+    expect(
+      only('<head><title>t</title></head><body><Slide><!-- todo --></Slide></body>', 'empty-slide'),
+    ).toHaveLength(1);
   });
 
   it('does not trigger on a slide with content', () => {
@@ -249,7 +283,9 @@ describe('slide-count', () => {
   });
 
   it('warns above ten slides', () => {
-    const slides = Array.from({ length: 11 }, (_, i) => `<Slide><Text>${i}</Text></Slide>`).join('');
+    const slides = Array.from({ length: 11 }, (_, i) => `<Slide><Text>${i}</Text></Slide>`).join(
+      '',
+    );
     const found = only(`<head><title>t</title></head><body>${slides}</body>`, 'slide-count');
     expect(found).toHaveLength(1);
     expect(found[0].severity).toBe('warning');
@@ -257,8 +293,12 @@ describe('slide-count', () => {
   });
 
   it('does not trigger at exactly ten', () => {
-    const slides = Array.from({ length: 10 }, (_, i) => `<Slide><Text>${i}</Text></Slide>`).join('');
-    expect(only(`<head><title>t</title></head><body>${slides}</body>`, 'slide-count')).toHaveLength(0);
+    const slides = Array.from({ length: 10 }, (_, i) => `<Slide><Text>${i}</Text></Slide>`).join(
+      '',
+    );
+    expect(only(`<head><title>t</title></head><body>${slides}</body>`, 'slide-count')).toHaveLength(
+      0,
+    );
   });
 
   it('honours the bounds options', () => {
@@ -297,6 +337,10 @@ describe('linter contract', () => {
 
   it('lints an already-parsed document', () => {
     const { doc } = parse('<body><Slide /></body>');
-    expect(lint(doc).map((d) => d.code).sort()).toEqual(['empty-slide', 'missing-head']);
+    expect(
+      lint(doc)
+        .map((d) => d.code)
+        .sort(),
+    ).toEqual(['empty-slide', 'missing-head']);
   });
 });

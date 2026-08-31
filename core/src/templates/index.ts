@@ -9,8 +9,4 @@ export type {
   Theme,
 } from '../types.js';
 
-export {
-  renderTemplate,
-  resolveStyle,
-  validateSlideData,
-} from './interpreter.js';
+export { renderTemplate, resolveStyle, validateSlideData } from './interpreter.js';

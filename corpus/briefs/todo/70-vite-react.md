@@ -66,7 +66,14 @@ production, so deep links are served today. Verify it, don't assume it.
    proxies for `/api`, `/output`, `/uploads`, `/assets` to `localhost:3001`.
 6. **Keep the build contract.** `npm run build` must still typecheck `ui` and
    emit to `ui/dist`, and `npm run dev` must still run API + UI together.
-7. Rewrite `corpus/wiki/architecture.md`'s description of the UI layer.
+   **Critically: `npm run build` begins with `npm run fmt:check &&`, added by
+   brief 68 to stop formatting drift. You are rewriting that script — carry it
+   forward, or brief 68 regresses the day this lands.**
+7. **`.astro` is currently uncovered by the formatter.** Brief 68 dropped it
+   from the `fmt` glob rather than install `prettier-plugin-astro`, on the
+   explicit reasoning that you were about to delete every `.astro` file. Deleting
+   them closes that gap; leaving any behind reopens it.
+8. Rewrite `corpus/wiki/architecture.md`'s description of the UI layer.
 
 ## Acceptance
 
@@ -82,6 +89,11 @@ production, so deep links are served today. Verify it, don't assume it.
 - The tray stays mounted across navigation (it should now be structural, not a
   directive).
 - `npm run build`, `npm test`, `npm run lint` pass; `npx tsc -p ui --noEmit` is 0.
+- `npm run build` still runs `fmt:check` first, and `npm run fmt` is still a
+  no-op on a clean tree.
+- `npm run lint` still covers `ui/src` — brief 68 extended it there, and the
+  ESLint config it fixed had enabled **zero rules** before that. Do not let a
+  config rewrite quietly undo it.
 - Every dependency added is pinned exactly — no `^`, no `~`.
 
 ## A caution

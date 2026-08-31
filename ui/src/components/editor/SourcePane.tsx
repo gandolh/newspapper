@@ -17,8 +17,7 @@ const SELECTED_MARK = 'selected';
 
 function lineOf(source: string, offset: number): number {
   let line = 1;
-  for (let i = 0; i < offset && i < source.length; i += 1)
-    if (source[i] === '\n') line += 1;
+  for (let i = 0; i < offset && i < source.length; i += 1) if (source[i] === '\n') line += 1;
   return line;
 }
 
@@ -71,13 +70,9 @@ export default function SourcePane({
   const messageAt = useCallback(
     (start: number, end: number): string | undefined => {
       const hits = diagnostics.filter(
-        (d) =>
-          d.loc.start.offset < Math.max(end, start + 1) &&
-          d.loc.end.offset + 1 > start,
+        (d) => d.loc.start.offset < Math.max(end, start + 1) && d.loc.end.offset + 1 > start,
       );
-      return hits.length
-        ? hits.map((d) => `${d.code}: ${d.message}`).join('\n')
-        : undefined;
+      return hits.length ? hits.map((d) => `${d.code}: ${d.message}`).join('\n') : undefined;
     },
     [diagnostics],
   );
@@ -102,10 +97,7 @@ export default function SourcePane({
     const line = lineOf(source, selectionRange[0]);
     const lineHeight = parseFloat(getComputedStyle(el).lineHeight) || 20;
     const target = (line - 4) * lineHeight;
-    if (
-      target < el.scrollTop ||
-      target > el.scrollTop + el.clientHeight - lineHeight * 4
-    ) {
+    if (target < el.scrollTop || target > el.scrollTop + el.clientHeight - lineHeight * 4) {
       el.scrollTop = Math.max(0, target);
       if (preRef.current) preRef.current.scrollTop = el.scrollTop;
     }
@@ -122,23 +114,12 @@ export default function SourcePane({
       <div className={styles.bar}>
         <span className={styles.barTitle}>post.wzd</span>
         <span className={styles.barMarks}>
-          {errors.length > 0 && (
-            <Mark tone="rubylith">{errors.length} errors</Mark>
-          )}
-          {warnings.length > 0 && (
-            <Mark tone="ink">{warnings.length} warnings</Mark>
-          )}
-          {errors.length === 0 && warnings.length === 0 && (
-            <Mark>Sets clean</Mark>
-          )}
+          {errors.length > 0 && <Mark tone="rubylith">{errors.length} errors</Mark>}
+          {warnings.length > 0 && <Mark tone="ink">{warnings.length} warnings</Mark>}
+          {errors.length === 0 && warnings.length === 0 && <Mark>Sets clean</Mark>}
         </span>
         <span className={styles.barSpacer} />
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onFormat}
-          disabled={formatted}
-        >
+        <Button variant="ghost" size="sm" onClick={onFormat} disabled={formatted}>
           {formatted ? 'Formatted' : 'Format'}
         </Button>
       </div>
@@ -150,9 +131,7 @@ export default function SourcePane({
               key={`${span.start}-${span.end}`}
               className={[
                 styles[span.kind],
-                ...span.marks.map((m) =>
-                  m === SELECTED_MARK ? WAX : styles[m],
-                ),
+                ...span.marks.map((m) => (m === SELECTED_MARK ? WAX : styles[m])),
               ]
                 .filter(Boolean)
                 .join(' ')}

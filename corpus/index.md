@@ -30,6 +30,7 @@ New here? [wiki/overview.md](wiki/overview.md), then
 | [data.md](wiki/data.md) | On-disk and in-DB shapes: the v4 SQLite schema for authored posts, the TNode compile-target shape, and the output/ folder convention. |
 | [decisions-engineering.md](wiki/decisions-engineering.md) | The locked engineering calls — workspaces and ESM, pinned dependencies, SQLite, the UI's type copy, and where project knowledge lives. |
 | [decisions-security.md](wiki/decisions-security.md) | The locked security calls — single-account auth and its lockout, password rotation, and which paths are guarded versus deliberately public. |
+| [decisions-tooling.md](wiki/decisions-tooling.md) | The locked calls about the repo itself — workspaces and ESM, exact dependency pinning, the enforced formatter and the linter that once enabled no rules, and typechecking the UI. |
 | [decisions.md](wiki/decisions.md) | The locked product calls — no LLM, human-centred editing, the Wizard markup and its semantic component model, images, and where it runs. |
 | [dependencies.md](wiki/dependencies.md) | What each workspace depends on and why that package was chosen over the alternatives. |
 | [design-systems.md](wiki/design-systems.md) | The warm-industrial-1/2/3 slide themes — palettes, the eleven-step type ramp, the TNode compile target, and the missingThemeTokens gate. The app chrome is a separate system, in chrome.md. |
@@ -38,7 +39,7 @@ New here? [wiki/overview.md](wiki/overview.md), then
 | [modules.md](wiki/modules.md) | The public API of @newspapper/core — what each module actually exports and from which entry point. |
 | [open-questions.md](wiki/open-questions.md) | What's still unresolved after the pivot — theme palettes, auth details, and how the article library feeds authoring. |
 | [overview.md](wiki/overview.md) | What Newspapper is, the v1→v2→v3 lineage that explains its shape, and what lives where at the top level. |
-| [status.md](wiki/status.md) | Dated snapshot — the Wizard rebuild is thirteen of sixteen briefs in; the chrome, the render typeface and the docs pass remain. |
+| [status.md](wiki/status.md) | Dated snapshot — the Wizard rebuild is fifteen of sixteen briefs in; only the documentation pass remains, plus three briefs filed from findings. |
 
 <!-- catalog:end -->
 

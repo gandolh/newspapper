@@ -71,3 +71,53 @@ sanitizing quote logic rather than half-fix this.
   passing otherwise — quote both outputs in the outcome note.
 - A theme token containing `"` cannot escape the `style` attribute, with a test.
 - `npm run build`, `npm test`, `npm run lint` pass; `npx tsc -p ui --noEmit` at 0.
+
+---
+
+## Outcome — 2026-08-31
+
+Both fixed. Gate verified by the controller: build ✓, **657 tests / 46 files** ✓,
+lint ✓, `tsc -p ui` at 0 ✓, corpus lint ✓.
+
+**The control is now structurally incapable of loading Inter, and the guarantee
+is checked on the product rather than trusted from the process.** `noInterHtml()`
+takes the subject document itself, deletes every `@font-face` block and renames
+the face on a word boundary (`\bInter\b`, case-insensitive, so `Inter`, `'Inter'`
+and `"Inter"` all go) — then `assertCannotLoadInter()` reads the finished string
+and throws unless it contains **no `@font-face` at all** and **no occurrence of
+the substring `inter` in any case**. Neither edit is trusted; the assertion is.
+Because the control *is* the subject document, everything else is identical by
+construction, so a pixel difference is Inter and only Inter. Three no-browser
+tests assert the control's property, so it is never part of a Chromium skip.
+
+**The guard was demonstrated failing.** With `installFontRoute` temporarily
+neutered — reproducing brief 66's original CORS defect — both pixel assertions
+fail: *"the rendered slide is pixel-identical to a document that does not contain
+Inter at all"* and *"the render browser fetched fonts over HTTP"*. Restored, 7
+passed. `core/src/render/fonts.ts` ends **byte-identical to HEAD** despite being
+used as the lever.
+
+**The quoting experiment found a real defect in the agent's own first cut**,
+which is the best argument for having run it. That cut used
+`.replace(/'Inter',/g, '')`; under a quoted family it ate the *inline*
+declaration too, leaving `font-family:sans-serif` rather than the renamed face.
+**The pixel guard still passed — only the structural test caught it.** That is
+the same failure mode one level up, and it is why the final construction renames
+on a word boundary instead of deleting on quote characters.
+
+For the record, the old mechanism measured under quoting: the control's text
+asked for `'NoSuchFaceOnThisMachine'` and the control's own `@font-face` defined
+that family **from the real `Inter-Regular.ttf`**. Same typeface, same pixels —
+the control had become the subject, invisibly.
+
+`withFallbackFamily`'s doc comment is rewritten: the no-quoting rule is now
+recorded as history and a style choice, not a live constraint.
+
+**Escaping:** `escapeStyle()` escapes `&` first (so it cannot re-escape its own
+output), then `"`, `<`, `>`, applied to both key and value in `styleToString` —
+the single funnel for all three `renderNode` sites. Single quotes are left alone
+deliberately: the attribute is always double-quoted and `font-family:'Inter'`
+must survive verbatim. Four tests; three fail without the fix. The themes on disk
+are untouched, so this stays hardening rather than a live fix.
+
+Chromium was available and every test genuinely executed.

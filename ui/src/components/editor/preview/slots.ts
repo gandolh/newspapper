@@ -9,7 +9,12 @@
  * will accept what is being dragged.
  */
 
-import { getComponentSpec, isElement, type WzdDocument, type WzdElement } from '@newspapper/core/wizard';
+import {
+  getComponentSpec,
+  isElement,
+  type WzdDocument,
+  type WzdElement,
+} from '@newspapper/core/wizard';
 import { elementAtPath, type WzdPath } from '../paths.js';
 
 export interface SlotDescriptor {
@@ -63,9 +68,7 @@ export function slotsForSubtree(
       const accepts = canContain(el.type, dragType);
       const kids = el.children
         .map((child, index) => ({ child, index }))
-        .filter(
-          (entry) => isElement(entry.child) && rendered.has(entry.child.loc.start.offset),
-        );
+        .filter((entry) => isElement(entry.child) && rendered.has(entry.child.loc.start.offset));
       if (accepts) {
         if (!kids.length) {
           out.push({

@@ -214,16 +214,23 @@ describe('saveUpload', () => {
   });
 
   it.each([
-    ['gif', async () => sharp({ create: { width: 4, height: 4, channels: 3, background: '#fff' } }).gif().toBuffer()],
+    [
+      'gif',
+      async () =>
+        sharp({ create: { width: 4, height: 4, channels: 3, background: '#fff' } })
+          .gif()
+          .toBuffer(),
+    ],
     [
       'svg',
       async () =>
         Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"></svg>'),
     ],
   ])('rejects %s, which sharp can decode but we do not accept', async (_name, make) => {
-    await expect(
-      saveUpload(db, { filename: 'x.png', data: await make() }),
-    ).rejects.toMatchObject({ code: 'unsupported_format', statusCode: 415 });
+    await expect(saveUpload(db, { filename: 'x.png', data: await make() })).rejects.toMatchObject({
+      code: 'unsupported_format',
+      statusCode: 415,
+    });
   });
 
   it('rejects a small file that decodes to an enormous bitmap', async () => {

@@ -768,3 +768,74 @@ GETs, so deep links are already served.
 Ordered after **68** so the migration's new code is the first `ui/` code this
 repo has ever actually linted, and before **63**, since documenting Astro
 immediately before removing it would waste the pass.
+
+## [2026-08-31] finding | `npm run lint` had never linted anything — the seventh, and the worst
+
+Brief 68 was filed to fix three things in `package.json`. It found a fourth in
+`eslint.config.js`: the file registered the TypeScript parser and plugin, then
+set `no-unused-vars`, `@typescript-eslint/no-unused-vars` and `no-undef` all to
+`'off'` and imported no recommended config. **Zero rules were enabled.**
+`npm run lint` has reported green for this project's entire history while
+checking nothing.
+
+Verified rather than accepted: a file containing a plain unused variable draws
+**exit 0 and no output** from the old config, and an error from the new one.
+
+This is the seventh *green because nothing ran*, and it differs from the other
+six in kind. Those were tools pointed at the wrong place — a DB path nothing
+read, a `.gitignore` pattern, a vitest `include`, a workspace that was bundled
+but not typechecked, a `fmt` with no config, a test control that collapsed into
+its subject. This one was **configured to do nothing**, which no amount of
+pointing it correctly would have fixed.
+
+There was a tell, and it had been sitting in the tree: `SourcePane.tsx:114`
+carries an `eslint-disable-next-line react-hooks/exhaustive-deps` for a rule
+that did not exist. **A disable comment is evidence that someone expected a rule
+to run.** Worth grepping for suppressions of rules a config does not define —
+it is a cheap check and it would have caught this.
+
+Only 16 findings appeared once the rules were real, all resolved. Ten React
+Compiler findings are suppressed at config level pending brief 72, because every
+fix restructures an effect and brief 68 was tooling-only.
+
+## [2026-08-31] brief | 68 + 71: the tooling actually runs, and the guard actually guards
+
+**68** landed `{ singleQuote: true, printWidth: 100 }`, **derived by measuring**
+— a search over 12 Prettier options against all 158 committed files, scored by
+files already clean. Prettier's defaults, which `npm run fmt` had been using,
+scored **1 of 158**. The chosen config scores 88 and sits at the minimum of the
+changed-line curve. Picking a house style by preference would have made the diff
+a matter of taste; measuring made it a matter of fit.
+
+`npm run build` now runs `fmt:check` first, with the cost stated honestly: an
+agent running `build` for type feedback mid-refactor hits a formatting failure
+before any type error. Accepted, because a formatter nobody runs is how 106
+files drifted.
+
+`.astro` was dropped from the `fmt` glob rather than plugged, since brief 70
+deletes every `.astro` file. That requirement — and carrying `fmt:check` forward
+through the build-script rewrite — is now written into brief 70, because a
+migration that quietly drops either would undo this within days.
+
+**71** rebuilt the typeface guard's control so it is structurally incapable of
+loading Inter, and checks that on the *product*: `assertCannotLoadInter` throws
+unless the finished document contains no `@font-face` and no occurrence of
+`inter` in any case. The agent then demonstrated the guard failing by neutering
+the disk route, and ran the quoting experiment — which caught a real defect in
+its own first cut, where a delete-based regex ate the inline declaration under a
+quoted family. **The pixel guard still passed; only the structural test caught
+it.** The same failure one level up, which is exactly why the experiment was
+worth doing rather than asserting.
+
+## [2026-08-31] corpus | decisions-tooling.md split out; third split this session
+
+`decisions-engineering.md` hit the 200-line cap for the second time today. The
+seam that had formed was between **runtime and library** calls and calls about
+**the repo itself** — workspaces and ESM, exact pinning, the enforced formatter,
+typechecking the UI. Those four moved to `decisions-tooling.md`, whose preamble
+notes that three of them exist because a tool was reporting success while
+reaching nothing.
+
+Third split this session, after `decisions-security.md` and `chrome.md`. The
+pattern is worth naming: pages hit the cap when a *second subject* has grown
+inside them, and shaving prose to fit is how the second subject stays hidden.

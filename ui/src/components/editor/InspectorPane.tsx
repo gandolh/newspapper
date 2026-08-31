@@ -143,8 +143,8 @@ export default function InspectorPane(props: InspectorPaneProps) {
       <section className={styles.section}>
         <h3 className={styles.sectionTitle}>Post</h3>
         <p className={styles.sectionHint}>
-          The <code>&lt;head&gt;</code> block. Title, description and keywords
-          also drive the saved post's index columns.
+          The <code>&lt;head&gt;</code> block. Title, description and keywords also drive the saved
+          post's index columns.
         </p>
         {WZD_HEAD_FIELDS.map((field) => (
           <DraftField
@@ -190,9 +190,7 @@ export default function InspectorPane(props: InspectorPaneProps) {
 
             <div className={styles.headline}>
               <h4 className={styles.nodeName}>{element.type}</h4>
-              {spec && (
-                <span className={styles.description}>{spec.description}</span>
-              )}
+              {spec && <span className={styles.description}>{spec.description}</span>}
             </div>
 
             <div className={styles.actions}>
@@ -266,9 +264,7 @@ export default function InspectorPane(props: InspectorPaneProps) {
                       options={values.map((value) => ({ value, label: value }))}
                       value={effective}
                       disabled={disabled}
-                      onValueChange={(value) =>
-                        onSetProp(selectedPath, propSpec.name, value)
-                      }
+                      onValueChange={(value) => onSetProp(selectedPath, propSpec.name, value)}
                     />
                     <Button
                       variant="ghost"
@@ -276,9 +272,7 @@ export default function InspectorPane(props: InspectorPaneProps) {
                       className={styles.reset}
                       disabled={disabled || !isSet}
                       aria-label={`Reset ${propSpec.name} to the default`}
-                      onClick={() =>
-                        onSetProp(selectedPath, propSpec.name, null)
-                      }
+                      onClick={() => onSetProp(selectedPath, propSpec.name, null)}
                     >
                       Reset
                     </Button>
@@ -293,11 +287,7 @@ export default function InspectorPane(props: InspectorPaneProps) {
                       label="src"
                       value={written ?? ''}
                       readOnly
-                      hint={
-                        written
-                          ? 'The upload this references.'
-                          : 'No image chosen yet.'
-                      }
+                      hint={written ? 'The upload this references.' : 'No image chosen yet.'}
                     />
                     <Button
                       variant="secondary"
@@ -315,15 +305,11 @@ export default function InspectorPane(props: InspectorPaneProps) {
               return (
                 <DraftField
                   key={propSpec.name}
-                  label={
-                    propSpec.name + (propSpec.required ? ' (required)' : '')
-                  }
+                  label={propSpec.name + (propSpec.required ? ' (required)' : '')}
                   value={written ?? ''}
                   hint={propSpec.description}
                   disabled={disabled}
-                  onCommit={(next) =>
-                    onSetProp(selectedPath, propSpec.name, next)
-                  }
+                  onCommit={(next) => onSetProp(selectedPath, propSpec.name, next)}
                 />
               );
             })}

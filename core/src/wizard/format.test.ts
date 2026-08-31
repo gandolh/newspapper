@@ -32,9 +32,16 @@ describe('canonical form', () => {
   it('indents two spaces per level and ends with a newline', () => {
     const out = format('<body><Slide><List><Item>a</Item></List></Slide></body>');
     expect(out).toBe(
-      ['<body>', '  <Slide>', '    <List>', '      <Item>a</Item>', '    </List>', '  </Slide>', '</body>', ''].join(
-        '\n',
-      ),
+      [
+        '<body>',
+        '  <Slide>',
+        '    <List>',
+        '      <Item>a</Item>',
+        '    </List>',
+        '  </Slide>',
+        '</body>',
+        '',
+      ].join('\n'),
     );
   });
 
@@ -63,9 +70,17 @@ describe('canonical form', () => {
       printWidth: 24,
     });
     expect(narrow).toBe(
-      ['<body>', '  <Heading', '    size="lg"', '    align="center"', '  >', '    a', '  </Heading>', '</body>', ''].join(
-        '\n',
-      ),
+      [
+        '<body>',
+        '  <Heading',
+        '    size="lg"',
+        '    align="center"',
+        '  >',
+        '    a',
+        '  </Heading>',
+        '</body>',
+        '',
+      ].join('\n'),
     );
   });
 
@@ -111,7 +126,9 @@ describe('blank lines', () => {
 
   it('keeps at most one blank line between siblings', () => {
     const out = format('<body><Slide><Heading>a</Heading>\n\n\n\n<Text>b</Text></Slide></body>');
-    expect(out).toBe('<body>\n  <Slide>\n    <Heading>a</Heading>\n\n    <Text>b</Text>\n  </Slide>\n</body>\n');
+    expect(out).toBe(
+      '<body>\n  <Slide>\n    <Heading>a</Heading>\n\n    <Text>b</Text>\n  </Slide>\n</body>\n',
+    );
   });
 
   it('drops a blank line before the first child', () => {

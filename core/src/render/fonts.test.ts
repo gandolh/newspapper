@@ -13,9 +13,20 @@
  * with the *same* CORS posture as the API, and assert the pixels are not the
  * fallback's.
  *
- * If Chromium is missing these are reported SKIPPED (never passed), a banner
- * goes to stderr, and in CI they fail outright — "green because nothing ran" is
- * the failure mode this file exists to avoid.
+ * The comparison is only worth anything if the control genuinely cannot be set
+ * in Inter. The first version of this file built its control by renaming
+ * `'Inter'` in the HTML, which worked only while the inline `font-family` was
+ * unquoted — quote it and the rename reached the text too, the `@font-face`
+ * still loaded the real TTF, and control and subject became the same document.
+ * The control is now a document that **never names Inter at all**, checked
+ * after it is built (`assertCannotLoadInter`) rather than assumed from how it
+ * was built. See `noInterHtml` below.
+ *
+ * If Chromium is missing the pixel tests are reported SKIPPED (never passed), a
+ * banner goes to stderr, and in CI they fail outright — "green because nothing
+ * ran" is the failure mode this file exists to avoid. The control's own
+ * structural property is asserted without a browser, so that half is never
+ * skipped.
  */
 
 import { describe, it, expect, afterAll } from 'vitest';
@@ -43,7 +54,7 @@ try {
   browserError = (err as Error).message.split('\n')[0] ?? String(err);
 }
 
-const SKIP_NOTE = 'Chromium unavailable — the typeface guard did NOT verify anything';
+const SKIP_NOTE = 'Chromium unavailable — the typeface guard did NOT verify any pixels';
 
 function unavailableBanner(): string {
   const rule = '='.repeat(78);
@@ -127,28 +138,47 @@ async function startFontOrigin(): Promise<FontOrigin> {
 // A slide whose only interesting property is its text
 // ---------------------------------------------------------------------------
 
-const theme: Theme = {
-  name: 'font-guard',
-  colors: { surface: '#ffffff', 'on-surface': '#000000' },
-  typography: {
-    display: {
-      fontFamily: 'Inter',
-      fontSize: '96px',
-      fontWeight: '800',
-      lineHeight: '1.1',
-      letterSpacing: '-0.04em',
+/**
+ * The family the subject's typography tokens declare.
+ *
+ * The one knob in this file. Quoting it (`"'Inter'"`) must change nothing about
+ * whether the guard works — that is the property brief 71 exists to establish,
+ * and the way to re-check it by hand is to quote this string, run the file, and
+ * put it back.
+ */
+const FACE = 'Inter';
+
+/** `FACE` without whatever quoting the theme puts around it. */
+const FACE_NAME = FACE.replace(/^['"]|['"]$/g, '');
+
+/** A family name nothing on any machine answers to, and nothing here defines. */
+const ABSENT_NAME = 'NoSuchFaceOnThisMachine';
+
+/** The guard's slide theme, parameterised by the family its text asks for. */
+function themeWithFamily(fontFamily: string): Theme {
+  return {
+    name: 'font-guard',
+    colors: { surface: '#ffffff', 'on-surface': '#000000' },
+    typography: {
+      display: {
+        fontFamily,
+        fontSize: '96px',
+        fontWeight: '800',
+        lineHeight: '1.1',
+        letterSpacing: '-0.04em',
+      },
+      'body-md': {
+        fontFamily,
+        fontSize: '48px',
+        fontWeight: '400',
+        lineHeight: '1.4',
+      },
     },
-    'body-md': {
-      fontFamily: 'Inter',
-      fontSize: '48px',
-      fontWeight: '400',
-      lineHeight: '1.4',
-    },
-  },
-  rounded: { md: '0.75rem' },
-  spacing: { md: '24px' },
-  shapes: { borderRadius: '0.5rem', borderWidth: '2px' },
-};
+    rounded: { md: '0.75rem' },
+    spacing: { md: '24px' },
+    shapes: { borderRadius: '0.5rem', borderWidth: '2px' },
+  };
+}
 
 const slide: TNode = {
   kind: 'box',
@@ -175,26 +205,117 @@ const slide: TNode = {
   ],
 };
 
+/** The subject: the real interpreter output, asking for the real face. */
 function slideHtml(fontBaseUrl: string): string {
-  return renderTemplate(slide, {}, theme, { index: 1, total: 1, fontBaseUrl });
+  return renderTemplate(slide, {}, themeWithFamily(FACE), { index: 1, total: 1, fontBaseUrl });
 }
 
 /**
- * The same document with Inter renamed out of existence — what the slide looks
- * like when the @font-face never resolves. Renaming the family in the
- * `@font-face` rule *and* in every `font-family` keeps the fallback stack
- * ('…, sans-serif') identical, so any pixel difference is Inter and only Inter.
+ * Throw unless `html` is *structurally* incapable of being set in Inter: it
+ * defines no font face at all, and it does not name the face anywhere, in any
+ * case or quoting. A document that never asks for a family cannot be drawn in
+ * it — no reasoning about quoting or the cascade required.
+ *
+ * This checks the finished string, not the edits that produced it. That is the
+ * whole point: the previous control was correct only as a side effect of a
+ * regex matching less than its author thought, and the way that goes wrong is
+ * silent.
  */
-function fallbackHtml(html: string): string {
-  return html.replace(/'Inter'/g, "'NoSuchFaceOnThisMachine'");
+function assertCannotLoadInter(html: string): void {
+  if (/@font-face/i.test(html)) {
+    throw new Error(
+      'the no-Inter control still defines an @font-face — it can load a face, so it is not a control',
+    );
+  }
+  const at = html.toLowerCase().indexOf(FACE_NAME.toLowerCase());
+  if (at !== -1) {
+    const around = html.slice(Math.max(0, at - 60), at + 60);
+    throw new Error(
+      `the no-Inter control names "${FACE_NAME}" at offset ${at} — it could be set in ` +
+        `${FACE_NAME}, so it is not a control. Context: …${around}…`,
+    );
+  }
 }
+
+/**
+ * The control, derived from the subject document itself by two unconditional,
+ * quoting-blind edits:
+ *
+ *   1. every `@font-face` block is deleted, so the document defines no face at
+ *      all and there is nothing for the disk route in `fonts.ts` to fulfil;
+ *   2. every mention of the face is renamed to a family nothing answers to —
+ *      matched as a word, so `Inter`, `'Inter'` and `"Inter"` all go.
+ *
+ * Because the control *is* the subject document, everything that is not the
+ * face — the text, the colours, the sizes, the `,sans-serif` fallback tail —
+ * is identical by construction, so a pixel difference is Inter and only Inter.
+ *
+ * The guarantee is not those two edits. It is `assertCannotLoadInter`, which
+ * reads the finished string and refuses to hand back a document that still
+ * defines a face or still names Inter. However the interpreter chooses to
+ * quote, order or spell what it emits, a control that came back from here
+ * cannot be set in Inter.
+ */
+function noInterHtml(fontBaseUrl: string): string {
+  const control = slideHtml(fontBaseUrl)
+    .replace(/@font-face\{[^}]*\}/g, '')
+    .replace(new RegExp(`\\b${FACE_NAME}\\b`, 'gi'), ABSENT_NAME);
+  assertCannotLoadInter(control);
+  return control;
+}
+
+/** Every `font-family` declared after the `<style>` block — i.e. the inline ones. */
+function inlineFamilies(html: string): string[] {
+  const body = html.slice(html.indexOf('</style>'));
+  return [...body.matchAll(/font-family:([^;"]*)/g)].map((m) => (m[1] ?? '').trim());
+}
+
+// ---------------------------------------------------------------------------
+// The control itself — asserted with no browser, so it is never skipped
+// ---------------------------------------------------------------------------
+
+describe('the no-Inter control', () => {
+  it('defines no font face and never names Inter', () => {
+    const control = noInterHtml('/assets/fonts');
+    expect(control, 'the control still defines a face it could be drawn in').not.toMatch(
+      /@font-face/i,
+    );
+    expect(
+      control.toLowerCase(),
+      'the control names the face somewhere — it is not a no-Inter document',
+    ).not.toContain(FACE_NAME.toLowerCase());
+  });
+
+  it("keeps the slide, and the subject's fallback tail, so the two fall back alike", () => {
+    const subject = inlineFamilies(slideHtml('/assets/fonts'));
+    const control = inlineFamilies(noInterHtml('/assets/fonts'));
+
+    expect(subject.length, 'the slide declares no inline font-family at all').toBeGreaterThan(0);
+    expect(
+      control,
+      'control and subject declare different font stacks — a pixel difference ' +
+        'between them would not be attributable to the face alone',
+    ).toEqual(subject.map((f) => f.replace(FACE_NAME, ABSENT_NAME)));
+
+    for (const family of control) {
+      expect(family.endsWith(',sans-serif'), `control declares "${family}"`).toBe(true);
+    }
+    expect(noInterHtml('/assets/fonts')).toContain('Handgloves 0123');
+  });
+
+  it('the subject, unlike the control, does define the face and ask for it', () => {
+    const subject = slideHtml('/assets/fonts');
+    expect(subject, 'the interpreter stopped emitting @font-face').toMatch(/@font-face/);
+    expect(subject).toContain('Inter-Regular.ttf');
+  });
+});
 
 // ---------------------------------------------------------------------------
 // The guard
 // ---------------------------------------------------------------------------
 
 describe('rendered slides are set in Inter', () => {
-  it('a rendered slide does not match the no-Inter fallback', async (ctx) => {
+  it('a rendered slide does not match the same slide with no Inter in it', async (ctx) => {
     if (!browserOrSkip((note) => ctx.skip(note))) return;
 
     const origin = await startFontOrigin();
@@ -202,7 +323,7 @@ describe('rendered slides are set in Inter', () => {
 
     const inter = await htmlToJpeg(html);
     const interAgain = await htmlToJpeg(html);
-    const fallback = await htmlToJpeg(fallbackHtml(html));
+    const control = await htmlToJpeg(noInterHtml(origin.baseUrl));
 
     // Rendering is deterministic, so the comparison below means something.
     expect(
@@ -211,9 +332,9 @@ describe('rendered slides are set in Inter', () => {
     ).toBe(true);
 
     expect(
-      inter.equals(fallback),
-      'the rendered slide is pixel-identical to the same slide with Inter removed: ' +
-        'Inter did not load and the render fell back to the default sans',
+      inter.equals(control),
+      'the rendered slide is pixel-identical to a document that does not contain ' +
+        'Inter at all: Inter did not load and the render fell back to the default sans',
     ).toBe(false);
   }, 60_000);
 

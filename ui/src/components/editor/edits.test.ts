@@ -114,7 +114,20 @@ describe('insertComponent', () => {
 
   it('starts every catalogue component in a state the linter accepts', () => {
     const slide = firstSlide(DOC);
-    for (const name of ['Stack', 'Row', 'List', 'Quote', 'Stat', 'Kicker', 'Source', 'Divider', 'Spacer', 'PageCounter', 'Heading', 'Text']) {
+    for (const name of [
+      'Stack',
+      'Row',
+      'List',
+      'Quote',
+      'Stat',
+      'Kicker',
+      'Source',
+      'Divider',
+      'Spacer',
+      'PageCounter',
+      'Heading',
+      'Text',
+    ]) {
       const next = insertComponent(DOC, slide, 0, name);
       expect(lintSource(next), name).toEqual([]);
       expect(isFormatted(next), name).toBe(true);
@@ -143,7 +156,9 @@ describe('removeNode / duplicateNode / moveNode', () => {
     expect((target?.children.filter((c) => c.kind === 'element')[0] as { type: string }).type).toBe(
       'Kicker',
     );
-    expect(elementAtPath(doc(next), first)?.children.filter((c) => c.kind === 'element')).toHaveLength(2);
+    expect(
+      elementAtPath(doc(next), first)?.children.filter((c) => c.kind === 'element'),
+    ).toHaveLength(2);
   });
 
   it('refuses to move a node into itself', () => {
@@ -188,7 +203,11 @@ describe('setHeadField', () => {
   });
 
   it('creates <head> when the document has none', () => {
-    const next = setHeadField('<body>\n  <Slide>\n    <Heading>Hi</Heading>\n  </Slide>\n</body>\n', 'title', 'Hi');
+    const next = setHeadField(
+      '<body>\n  <Slide>\n    <Heading>Hi</Heading>\n  </Slide>\n</body>\n',
+      'title',
+      'Hi',
+    );
     expect(parse(next).doc.head['title']).toBe('Hi');
     expect(isFormatted(next)).toBe(true);
   });
@@ -204,7 +223,7 @@ describe('sanitizers', () => {
 });
 
 describe('every edit over every sample leaves canonical source', () => {
-  it('holds for a prop write on each sample\'s first slide', () => {
+  it("holds for a prop write on each sample's first slide", () => {
     for (const sample of WZD_SAMPLES) {
       const paths = slidePaths(doc(sample.source));
       if (!paths.length) continue;

@@ -38,16 +38,29 @@ import { getBrowser, closeBrowser } from '../render/browser.js';
 // ---------------------------------------------------------------------------
 
 const GENERICS = new Set([
-  'serif', 'sans-serif', 'monospace', 'cursive', 'fantasy',
-  'system-ui', 'ui-serif', 'ui-sans-serif', 'ui-monospace', 'ui-rounded',
-  'math', 'emoji', 'fangsong',
+  'serif',
+  'sans-serif',
+  'monospace',
+  'cursive',
+  'fantasy',
+  'system-ui',
+  'ui-serif',
+  'ui-sans-serif',
+  'ui-monospace',
+  'ui-rounded',
+  'math',
+  'emoji',
+  'fangsong',
 ]);
 
 /** The generics that are actually sans. A slide of text must not land on serif. */
 const SANS_GENERICS = new Set(['sans-serif', 'ui-sans-serif', 'system-ui', 'ui-rounded']);
 
 function families(decl: string): string[] {
-  return decl.split(',').map((s) => s.trim()).filter((s) => s !== '');
+  return decl
+    .split(',')
+    .map((s) => s.trim())
+    .filter((s) => s !== '');
 }
 
 function bare(name: string): string {
@@ -77,7 +90,10 @@ const themeNames = listThemes();
 
 describe('no emitted font-family is a bare family name', () => {
   it('there is at least one theme on disk to check', () => {
-    expect(themeNames.length, 'assets/design-systems is empty — this guard checked nothing').toBeGreaterThan(0);
+    expect(
+      themeNames.length,
+      'assets/design-systems is empty — this guard checked nothing',
+    ).toBeGreaterThan(0);
   });
 
   for (const name of themeNames) {

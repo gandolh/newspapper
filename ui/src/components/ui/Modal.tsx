@@ -16,13 +16,7 @@ export interface ModalProps {
  * Base UI provides the focus trap, scroll lock, escape/outside-press dismissal,
  * and portal; the public API (open/onClose/title/width) is unchanged.
  */
-export default function Modal({
-  open,
-  onClose,
-  title,
-  children,
-  width = 480,
-}: ModalProps) {
+export default function Modal({ open, onClose, title, children, width = 480 }: ModalProps) {
   return (
     <Dialog.Root
       open={open}

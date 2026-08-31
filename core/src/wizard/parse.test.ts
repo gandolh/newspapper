@@ -64,7 +64,10 @@ describe('tags and props', () => {
   });
 
   it('keeps attribute order and records every attribute', () => {
-    const el = firstElement('<body><Heading size="lg" align="center">x</Heading></body>', 'Heading');
+    const el = firstElement(
+      '<body><Heading size="lg" align="center">x</Heading></body>',
+      'Heading',
+    );
     expect(el.attributes.map((a) => a.name)).toEqual(['size', 'align']);
     expect(Object.keys(el.props)).toEqual(['size', 'align']);
   });

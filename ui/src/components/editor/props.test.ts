@@ -8,7 +8,9 @@ import { elementAtPath, slidePaths } from './paths.js';
 
 const theme = JSON.parse(
   readFileSync(
-    fileURLToPath(new URL('../../../../assets/design-systems/warm-industrial-1.json', import.meta.url)),
+    fileURLToPath(
+      new URL('../../../../assets/design-systems/warm-industrial-1.json', import.meta.url),
+    ),
     'utf8',
   ),
 ) as Theme;
@@ -43,9 +45,13 @@ describe('inheritedAlign', () => {
   it('agrees with what the compiler puts on the node', () => {
     const { slides } = compile(doc, theme);
     const styles: string[] = [];
-    const visit = (node: { kind: string; style?: Record<string, unknown>; children?: unknown[] }): void => {
+    const visit = (node: {
+      kind: string;
+      style?: Record<string, unknown>;
+      children?: unknown[];
+    }): void => {
       if (node.style?.['textAlign']) styles.push(String(node.style['textAlign']));
-      (node.children as typeof node[] | undefined)?.forEach(visit);
+      (node.children as (typeof node)[] | undefined)?.forEach(visit);
     };
     visit(slides[0] as never);
     expect(styles).toContain('center');
@@ -54,7 +60,9 @@ describe('inheritedAlign', () => {
   });
 
   it('falls back to left with no ancestor stating one', () => {
-    const plain = parse('<head>\n  <title>x</title>\n</head>\n\n<body>\n  <Slide>\n    <Text>Hi</Text>\n  </Slide>\n</body>\n').doc;
+    const plain = parse(
+      '<head>\n  <title>x</title>\n</head>\n\n<body>\n  <Slide>\n    <Text>Hi</Text>\n  </Slide>\n</body>\n',
+    ).doc;
     expect(inheritedAlign(plain, [...slidePaths(plain)[0], 0])).toBe('left');
   });
 

@@ -1,14 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import {
-  Button,
-  Card,
-  Input,
-  PageHeader,
-  Select,
-  Skeleton,
-  ToastProvider,
-  useToast,
-} from '../ui';
+import { Button, Card, Input, PageHeader, Select, Skeleton, ToastProvider, useToast } from '../ui';
 import { api } from '@/lib/api';
 import type { Settings } from '@/lib/types';
 import styles from './SettingsIsland.module.css';
@@ -78,9 +69,8 @@ function ThemeSection() {
       <form onSubmit={save} noValidate>
         <h2 className={styles.sectionTitle}>Theme</h2>
         <p className={styles.sectionHint}>
-          The theme a new post starts on. The three warm-industrial palettes are
-          identical apart from their accent colour, so that swatch is the whole
-          difference.
+          The theme a new post starts on. The three warm-industrial palettes are identical apart
+          from their accent colour, so that swatch is the whole difference.
         </p>
 
         <div className={styles.themeRow}>
@@ -101,9 +91,7 @@ function ThemeSection() {
             }}
             aria-hidden="true"
           />
-          <code className={styles.swatchValue}>
-            {selected?.tokens?.colors['primary'] ?? '—'}
-          </code>
+          <code className={styles.swatchValue}>{selected?.tokens?.colors['primary'] ?? '—'}</code>
         </div>
 
         <div className={styles.formActions}>
@@ -154,8 +142,8 @@ function PasswordSection() {
       <form onSubmit={save} noValidate>
         <h2 className={styles.sectionTitle}>Password</h2>
         <p className={styles.sectionHint}>
-          Changing it signs this browser back in with a fresh cookie; any other
-          browser is signed out.
+          Changing it signs this browser back in with a fresh cookie; any other browser is signed
+          out.
         </p>
 
         <div className={styles.fields}>

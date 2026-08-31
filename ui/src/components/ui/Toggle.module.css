@@ -23,7 +23,9 @@
   flex-shrink: 0;
   position: relative;
   cursor: pointer;
-  transition: background 120ms ease, border-color 120ms ease;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease;
 }
 
 .thumb {
@@ -33,7 +35,9 @@
   width: 10px;
   height: 10px;
   background: var(--graphite-tint);
-  transition: transform 120ms ease, background 120ms ease;
+  transition:
+    transform 120ms ease,
+    background 120ms ease;
 }
 
 .track[data-checked] {

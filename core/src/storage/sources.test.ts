@@ -3,7 +3,14 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { getDb, type DB } from './db.js';
-import { listSources, getSource, saveSources, addSource, updateSource, removeSource } from './sources.js';
+import {
+  listSources,
+  getSource,
+  saveSources,
+  addSource,
+  updateSource,
+  removeSource,
+} from './sources.js';
 import type { SourceConfig } from '../types.js';
 
 let tmpDir: string;
@@ -19,7 +26,12 @@ afterEach(() => {
   rmSync(tmpDir, { recursive: true, force: true });
 });
 
-const src1: SourceConfig = { id: 'bbc', name: 'BBC News', rss: 'https://bbc.co.uk/rss', enabled: true };
+const src1: SourceConfig = {
+  id: 'bbc',
+  name: 'BBC News',
+  rss: 'https://bbc.co.uk/rss',
+  enabled: true,
+};
 const src2: SourceConfig = { id: 'cnn', name: 'CNN', rss: 'https://cnn.com/rss', enabled: false };
 
 describe('sources — DB-backed CRUD', () => {

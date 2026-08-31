@@ -6,7 +6,15 @@
   box-shadow: var(--shadow-waxed);
 }
 
-.card--pad-none { padding: 0; }
-.card--pad-sm   { padding: var(--sp-half); }
-.card--pad-md   { padding: var(--sp-unit); }
-.card--pad-lg   { padding: var(--sp-double); }
+.card--pad-none {
+  padding: 0;
+}
+.card--pad-sm {
+  padding: var(--sp-half);
+}
+.card--pad-md {
+  padding: var(--sp-unit);
+}
+.card--pad-lg {
+  padding: var(--sp-double);
+}

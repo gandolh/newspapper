@@ -17,7 +17,10 @@
   white-space: nowrap;
   user-select: none;
   text-decoration: none;
-  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+  transition:
+    background 120ms ease,
+    color 120ms ease,
+    border-color 120ms ease;
 }
 
 .btn:disabled {

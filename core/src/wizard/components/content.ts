@@ -30,7 +30,11 @@ import {
 } from './style.js';
 
 /** A run of words: a typography token, a colour token, an alignment. */
-function words(el: Parameters<WzdComponentRenderer>[0], ctx: WzdRenderContext, text: string): TNode {
+function words(
+  el: Parameters<WzdComponentRenderer>[0],
+  ctx: WzdRenderContext,
+  text: string,
+): TNode {
   return textNode(text, {
     typography: WZD_TYPOGRAPHY_SCALES[el.type][sizeOf(el)],
     color: colorToken(WZD_TEXT_COLORS[emphasisOf(el)]),

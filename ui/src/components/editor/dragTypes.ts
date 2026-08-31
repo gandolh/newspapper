@@ -38,7 +38,9 @@ export function zoneKey(slideKey: string, slot: SlotDescriptor, edge: string): s
 }
 
 function contains(rect: ZoneRect, x: number, y: number): boolean {
-  return x >= rect.left && x <= rect.left + rect.width && y >= rect.top && y <= rect.top + rect.height;
+  return (
+    x >= rect.left && x <= rect.left + rect.width && y >= rect.top && y <= rect.top + rect.height
+  );
 }
 
 /** The innermost zone under the pointer — nested containers win their parent. */

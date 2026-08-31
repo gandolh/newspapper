@@ -59,7 +59,11 @@ describe('compileTraced', () => {
     const rows: TNode[] = [];
     traced.slides.forEach((slide) =>
       every(slide, (n) => {
-        if (n.kind === 'box' && (n.children?.length ?? 0) > 1 && n.style?.['flexDirection'] === 'row')
+        if (
+          n.kind === 'box' &&
+          (n.children?.length ?? 0) > 1 &&
+          n.style?.['flexDirection'] === 'row'
+        )
           rows.push(n);
       }),
     );

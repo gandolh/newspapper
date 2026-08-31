@@ -36,7 +36,13 @@ type ByEmphasis = Readonly<Record<WzdEmphasis, string>>;
  * `style.catalogue.test.ts` walks the catalogue and asserts it.
  */
 export const WZD_TYPOGRAPHY_SCALES: Readonly<Record<string, BySize<string>>> = Object.freeze({
-  Heading: { xs: 'headline-sm', sm: 'headline-md', md: 'headline-lg', lg: 'display', xl: 'display-lg' },
+  Heading: {
+    xs: 'headline-sm',
+    sm: 'headline-md',
+    md: 'headline-lg',
+    lg: 'display',
+    xl: 'display-lg',
+  },
   Text: { xs: 'body-md', sm: 'body-lg', md: 'headline-md', lg: 'headline-lg', xl: 'display' },
   Item: { xs: 'body-md', sm: 'body-lg', md: 'headline-md', lg: 'headline-lg', xl: 'display' },
   Quote: { xs: 'body-lg', sm: 'headline-md', md: 'headline-lg', lg: 'display', xl: 'display-lg' },
@@ -68,17 +74,29 @@ export const WZD_CAPTION_COLOR = 'on-surface-variant';
 
 /** `size` → spacing token. Gaps, and the height of a `Spacer`. */
 export const WZD_SPACING_BY_SIZE: BySize<string> = Object.freeze({
-  xs: 'xs', sm: 'sm', md: 'md', lg: 'lg', xl: 'xl',
+  xs: 'xs',
+  sm: 'sm',
+  md: 'md',
+  lg: 'lg',
+  xl: 'xl',
 });
 
 /** A list's rows sit tighter than free-standing blocks at the same size. */
 export const WZD_LIST_GAP_BY_SIZE: BySize<string> = Object.freeze({
-  xs: 'xs', sm: 'xs', md: 'sm', lg: 'md', xl: 'lg',
+  xs: 'xs',
+  sm: 'xs',
+  md: 'sm',
+  lg: 'md',
+  xl: 'lg',
 });
 
 /** `size` → width, for the two components that occupy a fraction of the column. */
 export const WZD_FRACTION_BY_SIZE: BySize<string> = Object.freeze({
-  xs: '25%', sm: '40%', md: '60%', lg: '80%', xl: '100%',
+  xs: '25%',
+  sm: '40%',
+  md: '60%',
+  lg: '80%',
+  xl: '100%',
 });
 
 /** The slide padding, and the gap between a slide's blocks. */
@@ -86,7 +104,9 @@ export const WZD_SLIDE_PADDING = 'xl';
 export const WZD_SLIDE_GAP = 'md';
 
 export const WZD_TEXT_ALIGN: Readonly<Record<WzdAlign, string>> = Object.freeze({
-  left: 'left', center: 'center', right: 'right',
+  left: 'left',
+  center: 'center',
+  right: 'right',
 });
 
 /** The aspect an `<Image>` box is held to. */
@@ -182,7 +202,8 @@ export function requiredThemeTokens(): {
 export function missingThemeTokens(theme: Theme): string[] {
   const required = requiredThemeTokens();
   const missing: string[] = [];
-  for (const name of required.typography) if (!theme.typography[name]) missing.push(`typography.${name}`);
+  for (const name of required.typography)
+    if (!theme.typography[name]) missing.push(`typography.${name}`);
   for (const name of required.colors) if (!theme.colors[name]) missing.push(`color.${name}`);
   for (const name of required.spacing) if (!theme.spacing[name]) missing.push(`spacing.${name}`);
   for (const name of required.rounded) if (!theme.rounded[name]) missing.push(`rounded.${name}`);

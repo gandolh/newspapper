@@ -18,8 +18,12 @@ function makeReply(): { raw: MockRaw } {
   const mock: MockRaw = {
     written: [],
     ended: false,
-    write(chunk: string) { this.written.push(chunk); },
-    end() { this.ended = true; },
+    write(chunk: string) {
+      this.written.push(chunk);
+    },
+    end() {
+      this.ended = true;
+    },
     setHeader() {},
     writeHead() {},
   };

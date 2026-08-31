@@ -199,7 +199,9 @@ function migrateV1ToV2(db: DB): void {
     );
   `);
 
-  const articleCols = (db.pragma('table_info(articles)') as Array<{ name: string }>).map((c) => c.name);
+  const articleCols = (db.pragma('table_info(articles)') as Array<{ name: string }>).map(
+    (c) => c.name,
+  );
   if (!articleCols.includes('source_name')) {
     db.exec(`ALTER TABLE articles ADD COLUMN source_name TEXT NOT NULL DEFAULT ''`);
   }

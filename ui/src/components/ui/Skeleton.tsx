@@ -15,12 +15,7 @@ export interface SkeletonProps {
  * the galley's line pitch, on board, inside a hairline. It is static on
  * purpose — a shimmer would be a third animation, and this world has two.
  */
-export default function Skeleton({
-  width = '100%',
-  height = 26,
-  className,
-  style,
-}: SkeletonProps) {
+export default function Skeleton({ width = '100%', height = 26, className, style }: SkeletonProps) {
   return (
     <div
       className={`${styles.skeleton} ${className ?? ''}`}

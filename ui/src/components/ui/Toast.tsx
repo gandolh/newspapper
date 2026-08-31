@@ -11,11 +11,7 @@ export interface ToastItem {
 }
 
 interface ToastContextValue {
-  addToast: (
-    message: string,
-    variant?: ToastVariant,
-    duration?: number,
-  ) => void;
+  addToast: (message: string, variant?: ToastVariant, duration?: number) => void;
 }
 
 /**
@@ -61,9 +57,7 @@ function ToastList() {
       <Toast.Root
         key={toast.id}
         toast={toast}
-        className={[styles.toast, styles[`toast--${variant}`]]
-          .filter(Boolean)
-          .join(' ')}
+        className={[styles.toast, styles[`toast--${variant}`]].filter(Boolean).join(' ')}
       >
         <span className={styles.toastIcon} aria-hidden="true">
           {MARKS[variant] ?? 'Note'}

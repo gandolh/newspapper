@@ -101,14 +101,12 @@ export async function probeImage(data: Buffer): Promise<ProbedImage> {
  * source format. Re-encoding drops every metadata block, EXIF included.
  */
 export async function normalizeImage(data: Buffer, format: UploadFormat): Promise<NormalizedImage> {
-  const pipeline = sharp(data, { limitInputPixels: MAX_SOURCE_PIXELS })
-    .rotate()
-    .resize({
-      width: MAX_NORMALIZED_DIMENSION,
-      height: MAX_NORMALIZED_DIMENSION,
-      fit: 'inside',
-      withoutEnlargement: true,
-    });
+  const pipeline = sharp(data, { limitInputPixels: MAX_SOURCE_PIXELS }).rotate().resize({
+    width: MAX_NORMALIZED_DIMENSION,
+    height: MAX_NORMALIZED_DIMENSION,
+    fit: 'inside',
+    withoutEnlargement: true,
+  });
 
   const encoded =
     format === 'jpeg'

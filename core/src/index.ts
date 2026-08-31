@@ -11,7 +11,13 @@ export { fetchBody, stripHtml } from './scrape/body.js';
 export { fetchFeed } from './scrape/rss.js';
 export type { RssItem } from './scrape/rss.js';
 export { searchArticles, pingSource } from './scrape/index.js';
-export type { SearchOptions, SearchResult, ScrapedArticle, ScrapeProgressEvent, PingResult } from './scrape/index.js';
+export type {
+  SearchOptions,
+  SearchResult,
+  ScrapedArticle,
+  ScrapeProgressEvent,
+  PingResult,
+} from './scrape/index.js';
 
 // Util
 export { loadConfig } from './util/config.js';
@@ -31,11 +37,7 @@ export * from './wizard/index.js';
 // TNode interpreter — the compile target `.wzd` documents render through.
 // The JSON template documents, their registry, and `/builder` are gone; see
 // decisions.md "The template system is removed".
-export {
-  renderTemplate,
-  resolveStyle,
-  validateSlideData,
-} from './templates/interpreter.js';
+export { renderTemplate, resolveStyle, validateSlideData } from './templates/interpreter.js';
 
 // Image uploads (Node-only) — store paths, Sharp normalization, ref resolution
 export * from './uploads/index.js';

@@ -83,12 +83,7 @@ export default function PreviewPane(props: PreviewPaneProps) {
     const el = columnRef.current;
     if (!el) return;
     const observer = new ResizeObserver(([entry]) => {
-      setWidth(
-        Math.max(
-          MIN_SLIDE_PX,
-          Math.min(MAX_SLIDE_PX, entry.contentRect.width - 8),
-        ),
-      );
+      setWidth(Math.max(MIN_SLIDE_PX, Math.min(MAX_SLIDE_PX, entry.contentRect.width - 8)));
     });
     observer.observe(el);
     return () => observer.disconnect();
@@ -109,15 +104,11 @@ export default function PreviewPane(props: PreviewPaneProps) {
   // Memoized as one array so each canvas gets a stable `slots` identity and
   // does not re-measure its drop zones on every render of the pane.
   const slotsPerSlide = useMemo<SlotDescriptor[][]>(
-    () =>
-      doc
-        ? paths.map((path) => slotsForSubtree(doc, path, dragType, rendered))
-        : [],
+    () => (doc ? paths.map((path) => slotsForSubtree(doc, path, dragType, rendered)) : []),
     [doc, paths, dragType, rendered],
   );
 
-  const scale =
-    FACTORS.find((f) => 1080 * f <= width) ?? FACTORS[FACTORS.length - 1];
+  const scale = FACTORS.find((f) => 1080 * f <= width) ?? FACTORS[FACTORS.length - 1];
 
   // The compile: the stage frame re-sets around slides that have just been
   // set. The artwork inside the crop marks is never animated — see
@@ -134,17 +125,12 @@ export default function PreviewPane(props: PreviewPaneProps) {
         {stale && <Mark tone="ink">Last good set</Mark>}
         {problems.length > 0 && (
           <Mark tone="rubylith">
-            {problems.length} unthemed{' '}
-            {problems.length === 1 ? 'node' : 'nodes'}
+            {problems.length} unthemed {problems.length === 1 ? 'node' : 'nodes'}
           </Mark>
         )}
         <Mark bare>1 : {Math.round(1 / scale)}</Mark>
         <span className={styles.barSpacer} />
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onAddSlide(paths.length)}
-        >
+        <Button variant="ghost" size="sm" onClick={() => onAddSlide(paths.length)}>
           Add slide
         </Button>
       </div>
@@ -157,12 +143,9 @@ export default function PreviewPane(props: PreviewPaneProps) {
 
       {problems.length > 0 && (
         <p className={styles.warning} role="alert">
-          The theme does not define every token these slides ask for. The marked
-          nodes render incompletely here, and the renderer will refuse them
-          outright.
-          <span className={styles.warningDetail}>
-            {problems[0].problems[0]}
-          </span>
+          The theme does not define every token these slides ask for. The marked nodes render
+          incompletely here, and the renderer will refuse them outright.
+          <span className={styles.warningDetail}>{problems[0].problems[0]}</span>
         </p>
       )}
 
@@ -237,10 +220,7 @@ export default function PreviewPane(props: PreviewPaneProps) {
                   <span className={styles.dimension} aria-hidden="true">
                     1080 × 1080
                   </span>
-                  <div
-                    className={styles.frame}
-                    ref={i === 0 ? frameRef : undefined}
-                  >
+                  <div className={styles.frame} ref={i === 0 ? frameRef : undefined}>
                     <CropMarks />
                     <RegisterTargets />
                   </div>

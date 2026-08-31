@@ -5,7 +5,7 @@
  * Same-day re-runs never overwrite existing directories.
  */
 
-import { existsSync, readdirSync, mkdirSync, unlinkSync, writeFileSync } from 'node:fs';
+import { existsSync, readdirSync, mkdirSync, unlinkSync } from 'node:fs';
 import { writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -63,13 +63,8 @@ function removeStalePngs(dir: string): void {
 /**
  * mkdir -p `dir`, clear any stale `.png` files, then write every file in `files`.
  */
-export async function writeRun(
-  dir: string,
-  files: OutputFile[],
-): Promise<void> {
+export async function writeRun(dir: string, files: OutputFile[]): Promise<void> {
   mkdirSync(dir, { recursive: true });
   removeStalePngs(dir);
-  await Promise.all(
-    files.map((f) => writeFile(join(dir, f.name), f.data)),
-  );
+  await Promise.all(files.map((f) => writeFile(join(dir, f.name), f.data)));
 }

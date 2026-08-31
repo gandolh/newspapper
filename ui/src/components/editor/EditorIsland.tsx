@@ -98,16 +98,10 @@ function postIdFromUrl(): number | null {
   return Number.isInteger(id) && id > 0 ? id : null;
 }
 
-function Editor({
-  postId: propPostId,
-  initialMarkup,
-  initialTheme,
-}: EditorIslandProps) {
+function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslandProps) {
   const { addToast } = useToast();
 
-  const [source, setSource] = useState(
-    () => initialMarkup ?? starterDocument(),
-  );
+  const [source, setSource] = useState(() => initialMarkup ?? starterDocument());
   const [previewSource, setPreviewSource] = useState(source);
   const [selectedPath, setSelectedPath] = useState<WzdPath | null>(null);
   const [revealToken, setRevealToken] = useState(0);
@@ -124,9 +118,7 @@ function Editor({
   const [activeZoneKey, setActiveZoneKey] = useState<string | null>(null);
 
   const [pickerOpen, setPickerOpen] = useState(false);
-  const pendingImage = useRef<
-    { path: WzdPath } | { insert: InsertionPoint } | null
-  >(null);
+  const pendingImage = useRef<{ path: WzdPath } | { insert: InsertionPoint } | null>(null);
 
   // Both on the 26px grid: 15 and 13 units.
   const [leftWidth, setLeftWidth] = useState(390);
@@ -170,10 +162,7 @@ function Editor({
 
   useEffect(() => {
     if (broken) return;
-    const timer = setTimeout(
-      () => setPreviewSource(source),
-      PREVIEW_DEBOUNCE_MS,
-    );
+    const timer = setTimeout(() => setPreviewSource(source), PREVIEW_DEBOUNCE_MS);
     return () => clearTimeout(timer);
   }, [source, broken]);
 
@@ -252,10 +241,10 @@ function Editor({
         setPickerOpen(true);
         return;
       }
-      write(
-        insertComponent(sourceRef.current, at.parentPath, at.index, component),
-        [...at.parentPath, at.index],
-      );
+      write(insertComponent(sourceRef.current, at.parentPath, at.index, component), [
+        ...at.parentPath,
+        at.index,
+      ]);
     },
     [write],
   );
@@ -277,13 +266,10 @@ function Editor({
 
   // ---- drag --------------------------------------------------------------
 
-  const onZonesMeasured = useCallback(
-    (slideKey: string, zones: MeasuredZone[]) => {
-      if (zones.length) zonesRef.current.set(slideKey, zones);
-      else zonesRef.current.delete(slideKey);
-    },
-    [],
-  );
+  const onZonesMeasured = useCallback((slideKey: string, zones: MeasuredZone[]) => {
+    if (zones.length) zonesRef.current.set(slideKey, zones);
+    else zonesRef.current.delete(slideKey);
+  }, []);
 
   const onDragMove = useCallback((x: number, y: number) => {
     // The ghost follows the pointer through the DOM rather than through state:
@@ -308,27 +294,18 @@ function Editor({
     setDrag(null);
     if (!zone || !payload) return;
     if (payload.kind === 'new') {
-      insertAt(
-        { parentPath: zone.slot.parentPath, index: zone.slot.index },
-        payload.component,
-      );
+      insertAt({ parentPath: zone.slot.parentPath, index: zone.slot.index }, payload.component);
       return;
     }
     write(
-      moveNode(
-        sourceRef.current,
-        payload.path,
-        zone.slot.parentPath,
-        zone.slot.index,
-      ),
+      moveNode(sourceRef.current, payload.path, zone.slot.parentPath, zone.slot.index),
       movedPath(payload.path, zone.slot.parentPath, zone.slot.index),
     );
   }, [insertAt, write]);
 
   const gestures = useMemo(
     () => ({
-      onSelect: (offset: number) =>
-        selectFromView(elementPathAtOffset(previewDoc, offset)),
+      onSelect: (offset: number) => selectFromView(elementPathAtOffset(previewDoc, offset)),
       onDragStart: (offset: number) => {
         const path = elementPathAtOffset(previewDoc, offset);
         const el = path ? elementAtPath(previewDoc, path) : null;
@@ -352,10 +329,7 @@ function Editor({
         index >= slides.length
           ? (body?.children.length ?? 0)
           : slides[index][slides[index].length - 1];
-      write(insertComponent(sourceRef.current, at, childIndex, 'Slide'), [
-        ...at,
-        childIndex,
-      ]);
+      write(insertComponent(sourceRef.current, at, childIndex, 'Slide'), [...at, childIndex]);
     },
     [doc, write],
   );
@@ -379,8 +353,7 @@ function Editor({
         const list = await api<ThemeRecord[]>('/api/themes');
         setThemes(list);
         setThemeName((current) => {
-          if (current && list.some((t) => t.name === current && t.tokens))
-            return current;
+          if (current && list.some((t) => t.name === current && t.tokens)) return current;
           return list.find((t) => t.tokens)?.name ?? current;
         });
       } catch {
@@ -417,10 +390,7 @@ function Editor({
         setDirty(false);
         setSaveState('clean');
       } catch (err) {
-        addToast(
-          err instanceof ApiError ? err.message : 'Could not open that post.',
-          'error',
-        );
+        addToast(err instanceof ApiError ? err.message : 'Could not open that post.', 'error');
       } finally {
         setLoading(false);
       }
@@ -444,10 +414,7 @@ function Editor({
       setSaveState('saved');
     } catch (err) {
       setSaveState('error');
-      addToast(
-        err instanceof ApiError ? err.message : 'Could not save this post.',
-        'error',
-      );
+      addToast(err instanceof ApiError ? err.message : 'Could not save this post.', 'error');
     }
   }, [postId, themeName, addToast]);
 
@@ -461,17 +428,10 @@ function Editor({
     if (!postId) return;
     setRendering(true);
     try {
-      await sse(
-        `/api/posts/${postId}/render`,
-        {},
-        { onEvent: () => undefined },
-      );
+      await sse(`/api/posts/${postId}/render`, {}, { onEvent: () => undefined });
       addToast('Rendered. The JPEGs are in the output folder.', 'success');
     } catch (err) {
-      addToast(
-        err instanceof ApiError ? err.message : 'Render failed.',
-        'error',
-      );
+      addToast(err instanceof ApiError ? err.message : 'Render failed.', 'error');
     } finally {
       setRendering(false);
     }
@@ -535,15 +495,9 @@ function Editor({
         doc={doc}
         selectedPath={selectedPath}
         onSelectPath={selectFromView}
-        onSetProp={(path, name, value) =>
-          write(setProp(sourceRef.current, path, name, value))
-        }
-        onSetText={(path, value) =>
-          write(setTextContent(sourceRef.current, path, value))
-        }
-        onSetHead={(field, value) =>
-          write(setHeadField(sourceRef.current, field, value))
-        }
+        onSetProp={(path, name, value) => write(setProp(sourceRef.current, path, name, value))}
+        onSetText={(path, value) => write(setTextContent(sourceRef.current, path, value))}
+        onSetHead={(field, value) => write(setHeadField(sourceRef.current, field, value))}
         onRemove={(path) => write(removeNode(sourceRef.current, path), null)}
         onDuplicate={(path) => write(duplicateNode(sourceRef.current, path))}
         onNudge={nudge}
@@ -561,9 +515,7 @@ function Editor({
       <header className={styles.header}>
         <h1 className={styles.title}>{doc.head['title'] || 'Untitled post'}</h1>
         <Mark tone={errorCount ? 'rubylith' : 'ink'}>
-          {errorCount
-            ? `${errorCount} ${errorCount === 1 ? 'error' : 'errors'}`
-            : 'Compiles'}
+          {errorCount ? `${errorCount} ${errorCount === 1 ? 'error' : 'errors'}` : 'Compiles'}
         </Mark>
         <Mark tone={saveState === 'error' ? 'rubylith' : 'dim'}>
           {saveState === 'saving'
@@ -578,9 +530,7 @@ function Editor({
         </Mark>
         <span className={styles.spacer} />
         <Select
-          options={themes
-            .filter((t) => t.tokens)
-            .map((t) => ({ value: t.name, label: t.name }))}
+          options={themes.filter((t) => t.tokens).map((t) => ({ value: t.name, label: t.name }))}
           value={themeName}
           placeholder="Theme"
           onValueChange={(value) => {
@@ -590,12 +540,7 @@ function Editor({
           }}
           className={styles.themeSelect}
         />
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => void save()}
-          disabled={!dirty}
-        >
+        <Button variant="secondary" size="sm" onClick={() => void save()} disabled={!dirty}>
           Save
         </Button>
         <Button
@@ -627,9 +572,7 @@ function Editor({
           <div className={styles.singlePane}>
             {pane === 'source' && sourcePane}
             {pane === 'preview' && previewPane}
-            {pane === 'inspector' && (
-              <div className={styles.scroller}>{inspectorPane}</div>
-            )}
+            {pane === 'inspector' && <div className={styles.scroller}>{inspectorPane}</div>}
           </div>
         </>
       )}

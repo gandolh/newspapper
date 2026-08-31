@@ -105,12 +105,7 @@
   flex-shrink: 0;
   height: var(--sp-hair);
   background:
-    repeating-linear-gradient(
-      135deg,
-      var(--paper) 0 4px,
-      transparent 4px 5px
-    ),
-    var(--hairline);
+    repeating-linear-gradient(135deg, var(--paper) 0 4px, transparent 4px 5px), var(--hairline);
   clip-path: polygon(
     0 0,
     100% 0,
