@@ -1,0 +1,20 @@
+.splitter {
+  flex: 0 0 6px;
+  cursor: col-resize;
+  touch-action: none;
+  background: var(--border);
+  border: none;
+  transition: background 120ms ease;
+}
+
+.splitter:hover,
+.splitter:focus-visible {
+  background: var(--primary);
+  outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splitter {
+    transition: none;
+  }
+}

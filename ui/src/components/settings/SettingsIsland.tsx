@@ -126,7 +126,7 @@ function SettingsPage() {
             ) : (
               <Input
                 label="Default theme"
-                placeholder="warm-industrial"
+                placeholder="warm-industrial-1"
                 value={defaultTheme}
                 onChange={(e) => setDefaultTheme(e.target.value)}
                 hint="Theme applied when running the pipeline"

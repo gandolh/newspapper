@@ -58,7 +58,7 @@ The type ramp was enlarged for the 1080² canvas — display 96px, headline-lg
 64px, headline-md 44px, body-lg 30px, body-md 26px, label-bold 20px, roughly
 1.4–2× the previous web-sized scale.
 
-**Two items were correctly left undone and are now [brief 65](../todo/65-theme-family-finish.md).**
+**Two items were correctly left undone and are now [brief 65](./65-theme-family-finish.md).**
 
 The `Heading`/`Stat` size collision is *not* fixable from a theme, which is what
 this brief was asked to do. `WZD_TYPOGRAPHY_SCALES` in

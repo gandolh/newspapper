@@ -42,7 +42,7 @@ function makeInput(override: Partial<Parameters<typeof createPost>[1]> = {}) {
     title: 'Three Things About the Budget',
     description: 'What actually changed, minus the spin.',
     markup: MARKUP,
-    theme: 'warm-industrial',
+    theme: 'warm-industrial-1',
     keywords: ['budget', 'economy'],
     ...override,
   };
@@ -67,7 +67,7 @@ describe('posts repository', () => {
   it('defaults description, theme and keywords', () => {
     const created = createPost(db, { title: 'Bare', markup: '<head></head><body></body>' });
     expect(created.description).toBe('');
-    expect(created.theme).toBe('warm-industrial');
+    expect(created.theme).toBe('warm-industrial-1');
     expect(created.keywords).toEqual([]);
   });
 

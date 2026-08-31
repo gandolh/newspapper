@@ -33,6 +33,30 @@ fallback. The failure this closes: the builder would happily preview a template
 that the renderer refuses, so you could design something un-renderable and only
 find out at export.
 
+## use-gesture handles pointer interaction; anime.js handles motion
+_2026-08-27_ — `@use-gesture/react` 10.3.1 (MIT, one dependency, peer dep React
+≥16.8) normalizes the editor's pointer interactions: dragging a component from
+the palette into a slot, and the resizable pane dividers.
+Rejected: **native HTML5 drag-and-drop**, which gives a poor drag image,
+awkward drop-target math, and no pointer/touch parity; and **hand-rolled
+mousedown/mousemove/mouseup**, which means re-implementing pointer capture and
+cleanup badly.
+
+The two libraries do not overlap and neither is a substitute for the other:
+use-gesture turns pointer events into coordinates and deltas, anime.js turns
+values into animation over time. Nothing about this reopens
+[the motion decision](#animejs-is-the-motion-engine-tailwind-bound-kits-are-references-only).
+
+It also passes the test that **motion-primitives and smoothui failed**, and for
+the same reason those were rejected: use-gesture ships no styles, no components
+and no rendering opinions, so it brings no second styling system with it. A
+library that only reads input is cheap in a way a component kit is not.
+
+Constraint it does not relax: drops are still **slots between existing
+children**, never free positions. The gesture changes how the drop is captured,
+not the drop model — layout is flow, and
+[absolute positioning is ruled out](./decisions.md#flow-layout-with-stacks--never-absolute-positioning).
+
 ## anime.js is the motion engine; Tailwind-bound kits are references only
 _2026-08-27_ — Animation is `animejs` 4.5.0 (MIT, no dependencies,
 framework-agnostic ESM). It animates DOM nodes, so one import serves both an

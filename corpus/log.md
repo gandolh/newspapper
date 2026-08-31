@@ -470,3 +470,56 @@ from `index.md` and `wiki/status.md`. It carries the wave plan and why it differ
 from the filed one, the file-ownership collisions and the two lanes assigned
 around them, the ruling ledger, the two live defects (both filed as brief 65),
 and the three "green because nothing ran" incidents this run turned up.
+
+## [2026-08-31] done | wave 5 — briefs 59 and 65, after the pause
+
+Re-dispatched from a clean tree rather than resumed; the abandoned partial work
+from before the pause was not salvaged. Gates verified from the controller:
+build passes, **619 tests pass** (up from 526), lint and corpus lint clean.
+
+**59** landed the editor. The preview needed no server route — it runs in the
+browser off the same compile the renderer uses, via a new `"./wizard"`
+browser-safe subpath. The guarantee is mechanical rather than promised: a test
+asserts the preview's tree equals core's `compile()` output across every sample
+fixture, so the two cannot drift apart silently. Selection is a **path**, not an
+offset, because a reformat moves every offset. `api/src/routes/posts.ts` was
+rewritten from the dead v2 payload contract to schema v3 — it had been calling a
+stub that throws.
+
+**65** fixed the `size="xl"` no-op at both ends and landed schema v4 for the
+theme rename. The migration rebuilds `posts` to change its column default, which
+meant discovering that with foreign keys on, `DROP TABLE posts` cascades and
+takes `post_keywords` and `renders` with it. That was probed against a real
+SQLite file before the migration was written, and FKs are dropped and restored
+in a `finally`.
+
+The type ramp was extended **upward rather than re-centred**, so `md` — the
+default every existing post uses — is unchanged. A re-centred ramp would have
+silently reflowed every slide already written.
+
+## [2026-08-31] decision | use-gesture handles pointer interaction
+
+Adopted mid-flight at the owner's request while brief 59 was running, which
+replaced a half-built HTML5 drag-and-drop before it spread. `@use-gesture/react`
+10.3.1, MIT, one dependency.
+
+It passes the test motion-primitives and smoothui failed, for the same reason
+those were rejected: it ships no styles, no components and no rendering
+opinions, so it brings no second styling system. A library that only reads input
+is cheaper than a component kit. It does not overlap anime.js — one turns
+pointer events into deltas, the other turns values into motion over time.
+
+Recorded in `wiki/decisions-engineering.md`. The constraint it does not relax:
+drops are still slots between existing children, never free positions.
+
+## [2026-08-31] todo | brief 66 — the rendered slide is in the wrong typeface
+
+Found by brief 59 while verifying end to end. **Every rendered JPEG comes out in
+a serif fallback while the preview of the same document shows Inter.** The
+tokens are right, the font serves 200 with its full bytes, and the preview is
+correct — so the compile, the tokens and the static serving are all fine.
+Headless Chromium is screenshotting before the injected `@font-face` resolves.
+
+This is a shipping-quality defect rather than a polish item: the product is one
+square image and it is currently being published in the wrong face. Brief 59
+could not fix it — `core/src/render/**` was outside its ownership.

@@ -153,7 +153,7 @@ describe('authentication', () => {
       const res = await app.inject({
         method: 'PUT',
         url: '/api/settings',
-        payload: { defaultTheme: 'warm-industrial' },
+        payload: { defaultTheme: 'warm-industrial-1' },
       });
       expect(res.statusCode).toBe(401);
     });

@@ -34,7 +34,7 @@ export interface PostFilter {
   offset?: number;
 }
 
-const DEFAULT_THEME = 'warm-industrial';
+const DEFAULT_THEME = 'warm-industrial-1';
 
 function rowToPost(db: DB, r: PostDbRow): Post {
   return {

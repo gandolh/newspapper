@@ -11,15 +11,6 @@ page** — the history belongs in [../log.md](../log.md).
 The pivot itself is settled: see [decisions.md](./decisions.md) and
 [markup.md](./markup.md). What follows is the residue.
 
-## What are themes 2 and 3?
-
-Three themes ship, sharing type/spacing/shape tokens and differing mainly in
-primary color. `warm-industrial-1` exists (terracotta `#a2391a`). The other two
-palettes have not been designed. This is design work, not a decision — it needs
-the component library to exist before there's anything to look at. Note this is
-the **slide** theme family, untouched by the workstation redesign; the chrome's
-palette is fixed in [`DESIGN.md`](../../DESIGN.md) and is not a variant of it.
-
 ## How does a saved article become a post?
 
 The RSS library (brief 60) saves articles you pick. Authoring happens in

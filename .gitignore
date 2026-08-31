@@ -21,6 +21,11 @@ build/
 *.tmp
 *.temp
 
+# Agent scratch space — unanchored on purpose: nothing in this repo is ever a
+# source directory named .scratch, so catching it at any depth is safe. Contrast
+# /uploads/ above, which must stay anchored or it also swallows core/src/uploads/.
+.scratch/
+
 # Design tooling sidecar
 .impeccable/
 

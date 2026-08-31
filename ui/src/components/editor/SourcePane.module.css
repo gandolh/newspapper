@@ -1,0 +1,178 @@
+.pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  background: var(--surface-card);
+  border-right: 1px solid var(--border);
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-base);
+  padding: var(--sp-xs) var(--sp-sm);
+  border-bottom: 1px solid var(--border);
+}
+
+.barTitle {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--on-surface-variant);
+}
+
+.barSpacer {
+  flex: 1;
+}
+
+/* The overlay and the textarea must agree on every metric that affects where a
+   glyph lands, or the paint drifts from the caret. */
+.code {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.highlight,
+.input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: var(--sp-sm);
+  border: 0;
+  font-family: ui-monospace, 'SFMono-Regular', 'Menlo', monospace;
+  font-size: 13px;
+  line-height: 20px;
+  tab-size: 2;
+  white-space: pre;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+.highlight {
+  overflow: hidden;
+  color: var(--on-surface);
+  background: var(--surface-card);
+  pointer-events: none;
+}
+
+.input {
+  overflow: auto;
+  resize: none;
+  color: transparent;
+  background: transparent;
+  caret-color: var(--on-surface);
+  outline: none;
+}
+
+.input::selection {
+  background: var(--primary-soft);
+}
+
+/* ---- token colours ---- */
+.text {
+  color: var(--on-surface);
+}
+
+.punct {
+  color: var(--outline);
+}
+
+.component {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.structure {
+  color: var(--secondary);
+  font-weight: 600;
+}
+
+.attr {
+  color: var(--muted);
+}
+
+.value {
+  color: var(--success-emphasis);
+}
+
+.comment {
+  color: var(--outline);
+  font-style: italic;
+}
+
+.binding {
+  color: var(--warning);
+  font-weight: 600;
+}
+
+/* ---- marks ---- */
+.error {
+  text-decoration: underline wavy var(--error);
+  text-underline-offset: 3px;
+}
+
+.warning {
+  text-decoration: underline wavy var(--warning);
+  text-underline-offset: 3px;
+}
+
+.selected {
+  background: var(--primary-soft);
+  border-radius: 2px;
+}
+
+/* ---- findings ---- */
+.findings {
+  flex: 0 0 auto;
+  max-height: 30%;
+  overflow: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--border);
+}
+
+.finding {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-xs);
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+  font-weight: 400;
+}
+
+.findingWhere {
+  font-family: ui-monospace, monospace;
+  font-size: var(--font-size-xs);
+  color: var(--on-surface-variant);
+  flex-shrink: 0;
+}
+
+.findingText {
+  font-size: var(--font-size-xs);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dotError,
+.dotWarning {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.dotError {
+  background: var(--error);
+}
+
+.dotWarning {
+  background: var(--warning);
+}

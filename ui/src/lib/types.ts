@@ -32,7 +32,7 @@ export type SlideBlock =
 export interface PostPayload {
   date: string; // YYYY-MM-DD
   title: string;
-  theme: string; // e.g. "warm-industrial"
+  theme: string; // e.g. "warm-industrial-1"
   slides: SlideBlock[]; // 2–8
   caption?: string;
   hashtags?: string[];

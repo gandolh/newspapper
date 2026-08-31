@@ -15,7 +15,7 @@ import {
   slideElements,
 } from './compile.js';
 
-const theme = loadTheme('warm-industrial');
+const theme = loadTheme('warm-industrial-1');
 
 function render(root: TNode, index: number, total: number): string {
   return renderTemplate(root, {}, theme, { index, total, fontBaseUrl: '/assets/fonts' });
@@ -162,6 +162,6 @@ describe('the rendered HTML', () => {
     const html = render(compileDocument(doc, theme)[0], 1, 1);
     expect(html).toContain(theme.colors['surface']);
     expect(html).toContain(theme.spacing['xl']);
-    expect(html).toContain(theme.typography['display'].fontSize);
+    expect(html).toContain(theme.typography['display-lg'].fontSize);
   });
 });

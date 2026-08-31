@@ -91,3 +91,41 @@ about **slide** themes only)
 - The migration is idempotent, runs clean against a database whose posts hold `'warm-industrial'`, and is tested against one.
 - `grep -rw "warm-industrial" core/src api/src ui/src` returns nothing outside a migration's historical string.
 - `npm run build`, `npm test`, `npm run lint` pass.
+
+---
+
+## Outcome — 2026-08-31
+
+Done, +16 tests. All three parts landed.
+
+Five typography tokens added (`display-xl`, `display-lg`, `headline-sm`,
+`label-sm`, `label-xs`), identical across all three themes since type is the
+family invariant. The ramp is now eleven monotone steps. It was extended
+**upward rather than re-centred**, so `md` — the default every existing post
+uses — renders exactly as before; a re-centred ramp would have silently reflowed
+every slide already written.
+
+The no-collision invariant is proved by a test that discovers components from
+`WZD_TYPOGRAPHY_SCALES` and steps from `allowedValues`, names none of them, and
+asserts adjacent steps differ both in token name **and in resolved `fontSize`
+across every theme `listThemes()` returns** — the second is what actually proves
+the slide changes. A coverage guard fails the suite if a new text component
+arrives without a scale. Verified by injection: reverting `Quote.xl` fails three
+tests with `Quote size="lg" and size="xl" both render at 96px`.
+
+**Schema v4** renames `warm-industrial` → `warm-industrial-1` in `posts.theme`
+and `settings`, and rebuilds `posts` to change the column default — but only when
+`sqlite_master` still shows the old default, which is what makes the expensive
+half a no-op on re-run. **The rebuild drops foreign keys for its duration and
+restores them in a `finally`:** with FKs on, `DROP TABLE posts` fires
+`ON DELETE CASCADE` and silently takes `post_keywords` and `renders` with it.
+That was probed against a real SQLite file before the migration was written.
+Tested against a database seeded from the literal v3 schema with legacy rows, a
+`warm-industrial-2` row that must be left alone, a keyword link and a render row.
+
+The acceptance grep this brief was given was itself wrong: `grep -rw
+"warm-industrial"` also matches the suffixed names, because `-` is a non-word
+character. The useful form is `grep -rnE "warm-industrial([^-0-9]|$)"`.
+
+`listThemes()` returns exactly three ids and a test asserts that list, so a
+fourth theme is a deliberate act that fails the suite.

@@ -1,0 +1,79 @@
+.pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  background: var(--surface-low);
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-base);
+  padding: var(--sp-xs) var(--sp-sm);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-card);
+}
+
+.barTitle {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--on-surface-variant);
+}
+
+.barSpacer {
+  flex: 1;
+}
+
+.themeError,
+.warning {
+  margin: 0;
+  padding: var(--sp-sm);
+  font-size: var(--font-size-sm);
+  color: var(--error-emphasis);
+  background: var(--error-container);
+  border-bottom: 1px solid var(--error-border);
+}
+
+.warningDetail {
+  display: block;
+  margin-top: var(--sp-xs);
+  font-family: ui-monospace, monospace;
+  font-size: var(--font-size-xs);
+  opacity: 0.85;
+}
+
+.column {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--sp-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-md);
+}
+
+.hint {
+  color: var(--on-surface-variant);
+  font-size: var(--font-size-sm);
+}
+
+.slide {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-xs);
+}
+
+.slideBar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.slideLabel {
+  font-weight: 700;
+}

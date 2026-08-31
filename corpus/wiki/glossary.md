@@ -1,6 +1,6 @@
 ---
 summary: The project's vocabulary — one canonical definition per term Newspapper uses in a particular way, and the synonyms each one displaces.
-updated: 2026-08-27
+updated: 2026-08-31
 ---
 
 # Glossary
@@ -44,7 +44,8 @@ _Avoid_: layout file, component, schema
 
 **Theme**:
 A named set of design tokens — colors, typography, spacing, shapes — that
-templates resolve `$token` references against. One ships: `warm-industrial`.
+components resolve `$token` references against. Three ship:
+`warm-industrial-1`, `-2`, `-3`.
 _Avoid_: design system (that is the broader discipline), skin, palette
 
 **Component**:

@@ -69,3 +69,56 @@ metadata columns. New post opens a hello-world starter document.
   warning in the preview rather than rendering happily.
 - Selection round-trips both ways.
 - No second copy of style resolution exists in `ui/`.
+
+---
+
+## Outcome — 2026-08-31
+
+Done, +77 tests. The editor is `EditorIsland.tsx` over `SourcePane` (left),
+`PreviewPane` (centre) and `PalettePane`/`InspectorPane` (right), with
+`Splitter` dividers and a narrow-mode tab collapse below 1180px. No tests were
+deleted with the pre-pivot editor — it had none, and nothing imported it but the
+dead wizard.
+
+**No server preview route was recreated.** The preview runs in the browser off
+the same code the renderer uses, via a new `"./wizard"` browser-safe subpath in
+`core/package.json` mirroring the existing `"./templates"`. The guarantee is
+mechanical rather than asserted: `preview/compileTraced.test.ts` asserts the
+preview's tree `toEqual`s core's `compile()` output across every `WZD_SAMPLES`
+fixture, so the two cannot silently diverge. **No `resolveStyleBrowser` exists** —
+`preview/resolve.ts` calls core's `resolveStyle` verbatim, and only re-runs it
+declaration-by-declaration *when core throws*, to find which tokens the theme
+lacks and paint them as a red hatched warning on the node while keeping the rest
+visible.
+
+**Selection is a path (`readonly number[]`), not an offset** — a reformat moves
+every offset, and a path survives it. Offsets are the wire format at the two
+boundaries only. Preview→source works by stamping each `TNode` with its source
+element's offset inside the node's own style map under `--wzd-src`, rather than a
+`Map` keyed on node identity, because `Row` clones its children's styles and
+identity lookup would not survive that. The stamp is stripped before
+`resolveStyle` sees it.
+
+**use-gesture was adopted mid-flight**, replacing a half-built HTML5 DnD.
+Gotcha worth keeping: every ancestor node runs its own recognizer on the same
+bubbling `pointerdown`, so `TNodeView` calls `stopPropagation()` before handing
+the event to `bind()` — without it the outermost `Slide` wins every click.
+
+`api/src/routes/posts.ts` was rewritten from the dead v2 payload contract to
+schema v3; it had been calling the `updatePostPayload` stub that throws. Both
+write paths take only `{markup, theme?}` and derive `title`/`description`/
+`keywords` server-side from the parsed `<head>`, so the database cannot disagree
+with the document. **Brief 62 extends this rather than rewriting it.**
+
+Design calls the brief left open: cross-family variant switching — the AI-remap
+gap brief 51 deferred — was **removed, not replaced**, because with semantic
+components there is no variant to switch, only an element or a prop to change.
+`<Image>` opens the picker before insertion, since `src` is required and
+inserting `<Image src="" />` would plant a lint error. The preview lags 200ms and
+only advances when the source parses, so half-typed markup shows the last good
+render behind a badge instead of a collapsing slide.
+
+**Two findings outside this brief's ownership**, both filed: the rendered JPEG
+uses a serif fallback instead of Inter (brief 66), and `Wizard.tsx` carries a
+dangling import that no gate catches (fixed by the controller; brief 62 deletes
+the file).

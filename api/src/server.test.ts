@@ -210,42 +210,66 @@ describe('API server', () => {
     });
   });
 
-  describe('PUT /api/posts/:id', () => {
-    it('400 when slides has only 1 slide', async () => {
-      const res = await inject({
-        method: 'PUT',
-        url: '/api/posts/1',
-        payload: {
-          payload: {
-            date: '2024-01-01',
-            title: 'Test',
-            theme: 'warm-industrial',
-            slides: [
-              { type: 'title', variant: 'title-main', text: 'Only slide' },
-            ],
-          },
-        },
-      });
+  describe('POST /api/posts + PUT /api/posts/:id', () => {
+    const markup = `<head>
+  <title>A saved post</title>
+  <description>Derived, not sent.</description>
+  <keywords>budget, tax</keywords>
+</head>
+
+<body>
+  <Slide>
+    <Heading>A saved post</Heading>
+  </Slide>
+</body>
+`;
+
+    it('400 when the body carries no markup', async () => {
+      const res = await inject({ method: 'POST', url: '/api/posts', payload: { theme: 'x' } });
       expect(res.statusCode).toBe(400);
-      expect(res.json().error).toMatch(/2.8/);
+      expect(res.json().error).toMatch(/markup/);
     });
 
-    it('404 for non-existent post even with valid payload', async () => {
-      const res = await inject({
+    it('derives the index columns from the markup head', async () => {
+      const created = await inject({ method: 'POST', url: '/api/posts', payload: { markup } });
+      expect(created.statusCode).toBe(201);
+      const post = created.json();
+      expect(post.title).toBe('A saved post');
+      expect(post.description).toBe('Derived, not sent.');
+      expect(post.keywords.sort()).toEqual(['budget', 'tax']);
+      expect(post.markup).toBe(markup);
+
+      const renamed = markup.replace('<title>A saved post</title>', '<title>Renamed</title>');
+      const updated = await inject({
         method: 'PUT',
-        url: '/api/posts/999999',
-        payload: {
-          payload: {
-            date: '2024-01-01',
-            title: 'Test',
-            theme: 'warm-industrial',
-            slides: [
-              { type: 'title', variant: 'title-main', text: 'Slide 1' },
-              { type: 'body', variant: 'body-text', heading: 'H', body: 'B' },
-            ],
-          },
-        },
+        url: `/api/posts/${post.id}`,
+        payload: { markup: renamed },
       });
+      expect(updated.statusCode).toBe(200);
+      expect(updated.json().title).toBe('Renamed');
+
+      const removed = await inject({ method: 'DELETE', url: `/api/posts/${post.id}` });
+      expect(removed.statusCode).toBe(200);
+    });
+
+    it('falls back rather than refusing a half-typed head', async () => {
+      const res = await inject({
+        method: 'POST',
+        url: '/api/posts',
+        payload: { markup: '<body>\n  <Slide />\n</body>\n' },
+      });
+      expect(res.statusCode).toBe(201);
+      expect(res.json().title).toBe('Untitled post');
+      await inject({ method: 'DELETE', url: `/api/posts/${res.json().id}` });
+    });
+
+    it('400 when markup is missing on an update', async () => {
+      const res = await inject({ method: 'PUT', url: '/api/posts/1', payload: {} });
+      expect(res.statusCode).toBe(400);
+    });
+
+    it('404 for a non-existent post even with valid markup', async () => {
+      const res = await inject({ method: 'PUT', url: '/api/posts/999999', payload: { markup } });
       expect(res.statusCode).toBe(404);
     });
   });
@@ -274,10 +298,10 @@ describe('API server', () => {
       await inject({
         method: 'PUT',
         url: '/api/settings',
-        payload: { defaultTheme: 'warm-industrial' },
+        payload: { defaultTheme: 'warm-industrial-1' },
       });
       const res = await inject({ method: 'GET', url: '/api/settings' });
-      expect(res.json().defaultTheme).toBe('warm-industrial');
+      expect(res.json().defaultTheme).toBe('warm-industrial-1');
     });
   });
 
@@ -340,13 +364,13 @@ describe('API server', () => {
   // Themes
   // =========================================================================
   describe('GET /api/themes', () => {
-    it('returns array with warm-industrial', async () => {
+    it('returns array with warm-industrial-1', async () => {
       const res = await inject({ method: 'GET', url: '/api/themes' });
       expect(res.statusCode).toBe(200);
       const themes = res.json() as Array<{ name: string; tokens: unknown }>;
       expect(Array.isArray(themes)).toBe(true);
       const names = themes.map((t) => t.name);
-      expect(names).toContain('warm-industrial');
+      expect(names).toContain('warm-industrial-1');
     });
   });
 });

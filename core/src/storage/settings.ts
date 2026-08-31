@@ -2,7 +2,7 @@ import type { Settings } from '../types.js';
 import { getDb } from './db.js';
 
 const DEFAULTS: Settings = {
-  defaultTheme: 'warm-industrial',
+  defaultTheme: 'warm-industrial-1',
 };
 
 const ENV_MAP: Record<keyof Settings, string> = {

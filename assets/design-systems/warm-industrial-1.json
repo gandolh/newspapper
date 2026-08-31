@@ -50,6 +50,20 @@
     "surface-variant": "#e4e2e2"
   },
   "typography": {
+    "display-xl": {
+      "fontFamily": "Inter",
+      "fontSize": "160px",
+      "fontWeight": "900",
+      "lineHeight": "0.92",
+      "letterSpacing": "-0.05em"
+    },
+    "display-lg": {
+      "fontFamily": "Inter",
+      "fontSize": "128px",
+      "fontWeight": "900",
+      "lineHeight": "0.95",
+      "letterSpacing": "-0.045em"
+    },
     "display": {
       "fontFamily": "Inter",
       "fontSize": "96px",
@@ -71,6 +85,13 @@
       "lineHeight": "1.2",
       "letterSpacing": "-0.01em"
     },
+    "headline-sm": {
+      "fontFamily": "Inter",
+      "fontSize": "36px",
+      "fontWeight": "700",
+      "lineHeight": "1.25",
+      "letterSpacing": "-0.005em"
+    },
     "body-lg": {
       "fontFamily": "Inter",
       "fontSize": "30px",
@@ -88,6 +109,20 @@
       "fontSize": "20px",
       "fontWeight": "700",
       "lineHeight": "1.2"
+    },
+    "label-sm": {
+      "fontFamily": "Inter",
+      "fontSize": "16px",
+      "fontWeight": "700",
+      "lineHeight": "1.2",
+      "letterSpacing": "0.04em"
+    },
+    "label-xs": {
+      "fontFamily": "Inter",
+      "fontSize": "14px",
+      "fontWeight": "700",
+      "lineHeight": "1.2",
+      "letterSpacing": "0.06em"
     }
   },
   "rounded": {

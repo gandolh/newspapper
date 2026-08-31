@@ -1,13 +1,13 @@
 ---
-summary: On-disk and in-DB shapes: the v3 SQLite schema for authored posts, the TNode compile-target shape, and the output/ folder convention.
-updated: 2026-08-28
+summary: On-disk and in-DB shapes: the v4 SQLite schema for authored posts, the TNode compile-target shape, and the output/ folder convention.
+updated: 2026-08-31
 ---
 
 # Data
 
 ## SQLite — `data/newspapper.db`
 
-Schema version: **3**. Auto-created and migrated on boot. The path is resolved
+Schema version: **4**. Auto-created and migrated on boot. The path is resolved
 from `core/src/storage/db.ts` via `import.meta.url`, never from the CWD.
 Foreign keys are enforced (`PRAGMA foreign_keys = ON`).
 
@@ -26,13 +26,18 @@ and searched without parsing every post. See
 | `title` | TEXT NOT NULL | derived from `<head><title>` |
 | `description` | TEXT NOT NULL DEFAULT `''` | derived from `<head><description>` |
 | `markup` | TEXT NOT NULL | the `.wzd` document — the source of truth |
-| `theme` | TEXT NOT NULL DEFAULT `warm-industrial` | |
+| `theme` | TEXT NOT NULL DEFAULT `warm-industrial-1` | one of [the three themes](./design-systems.md) |
 | `status` | TEXT NOT NULL DEFAULT `draft` | `CHECK (status IN ('draft','published'))` |
-| `created_at` | TEXT ISO-8601 | |
-| `updated_at` | TEXT ISO-8601 | bumped on every markup write |
+| `created_at` / `updated_at` | TEXT ISO-8601 | `updated_at` bumped on every markup write |
 | `published_at` | TEXT ISO-8601 \| NULL | stamped on publish, cleared on unpublish |
 
 Index: `idx_posts_status_updated_at` on `(status, updated_at)`.
+
+**v3 → v4** (brief 65) rewrote `posts.theme`, the `defaultTheme` setting and the
+column default to `'warm-industrial-1'`. The default needs a table rebuild, so
+`posts` is copied and renamed with `PRAGMA foreign_keys` briefly off — `DROP
+TABLE posts` would cascade `post_keywords` and `renders` away. Skipped unless
+`sqlite_master` still holds the legacy default, so a re-run is a no-op.
 
 `published` is a [manual state](./decisions.md#publishing-is-a-manual-state-that-optimizes-the-output),
 never automatic.

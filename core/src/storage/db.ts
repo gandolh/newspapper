@@ -26,7 +26,7 @@ function defaultSourcesPath(): string {
   return resolve(thisFile, '..', '..', '..', '..', 'data', 'sources.json');
 }
 
-const CURRENT_SCHEMA_VERSION = 3;
+const CURRENT_SCHEMA_VERSION = 4;
 
 export function getDb(dbPath?: string): DB {
   const p = resolve(dbPath ?? defaultDbPath());
@@ -43,7 +43,7 @@ export function open(path: string): DB {
   return getDb(path);
 }
 
-const SCHEMA_V3 = `
+const SCHEMA_CURRENT = `
   CREATE TABLE IF NOT EXISTS users (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
     username      TEXT NOT NULL UNIQUE,
@@ -56,7 +56,7 @@ const SCHEMA_V3 = `
     title        TEXT NOT NULL,
     description  TEXT NOT NULL DEFAULT '',
     markup       TEXT NOT NULL,
-    theme        TEXT NOT NULL DEFAULT 'warm-industrial',
+    theme        TEXT NOT NULL DEFAULT 'warm-industrial-1',
     status       TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'published')),
     created_at   TEXT NOT NULL,
     updated_at   TEXT NOT NULL,
@@ -230,7 +230,64 @@ function migrateV2ToV3(db: DB): void {
     DROP INDEX IF EXISTS idx_articles_published_at;
     DROP INDEX IF EXISTS idx_articles_source_id;
   `);
-  db.exec(SCHEMA_V3);
+  db.exec(SCHEMA_CURRENT);
+}
+
+/**
+ * v3 → v4: the single `warm-industrial` theme became the three-strong family
+ * `warm-industrial-{1,2,3}`, and the unsuffixed JSON is gone — so a stored
+ * `'warm-industrial'` would now throw `Theme not found` at render time.
+ *
+ * Rewrites the stored rows, the `defaultTheme` setting, and the `posts.theme`
+ * column default. Only the column default needs a table rebuild, so that half
+ * is skipped unless the legacy default is actually still in the schema, which
+ * makes re-running this a no-op. Foreign keys go off for the rebuild: with
+ * them on, `DROP TABLE posts` would cascade `post_keywords` and `renders` away.
+ */
+const LEGACY_THEME = 'warm-industrial';
+const RENAMED_THEME = 'warm-industrial-1';
+
+function migrateV3ToV4(db: DB): void {
+  db.prepare(`UPDATE posts SET theme = ? WHERE theme = ?`).run(RENAMED_THEME, LEGACY_THEME);
+  db.prepare(`UPDATE settings SET value = ? WHERE key = 'defaultTheme' AND value = ?`).run(
+    RENAMED_THEME,
+    LEGACY_THEME,
+  );
+
+  const schema = db
+    .prepare(`SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'posts'`)
+    .get() as { sql: string } | undefined;
+  if (!schema?.sql.includes(`DEFAULT '${LEGACY_THEME}'`)) return;
+
+  const foreignKeys = db.pragma('foreign_keys', { simple: true }) === 1;
+  if (foreignKeys) db.pragma('foreign_keys = OFF');
+  try {
+    db.exec(`
+      CREATE TABLE posts_migrating (
+        id           INTEGER PRIMARY KEY AUTOINCREMENT,
+        title        TEXT NOT NULL,
+        description  TEXT NOT NULL DEFAULT '',
+        markup       TEXT NOT NULL,
+        theme        TEXT NOT NULL DEFAULT '${RENAMED_THEME}',
+        status       TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'published')),
+        created_at   TEXT NOT NULL,
+        updated_at   TEXT NOT NULL,
+        published_at TEXT
+      );
+
+      INSERT INTO posts_migrating
+        (id, title, description, markup, theme, status, created_at, updated_at, published_at)
+        SELECT id, title, description, markup, theme, status, created_at, updated_at, published_at
+        FROM posts;
+
+      DROP TABLE posts;
+      ALTER TABLE posts_migrating RENAME TO posts;
+
+      CREATE INDEX IF NOT EXISTS idx_posts_status_updated_at ON posts(status, updated_at);
+    `);
+  } finally {
+    if (foreignKeys) db.pragma('foreign_keys = ON');
+  }
 }
 
 export function migrate(db: DB): void {
@@ -238,7 +295,7 @@ export function migrate(db: DB): void {
   if (version >= CURRENT_SCHEMA_VERSION) return;
 
   if (version === 0) {
-    db.exec(SCHEMA_V3);
+    db.exec(SCHEMA_CURRENT);
     db.pragma(`user_version = ${CURRENT_SCHEMA_VERSION}`);
     seedSourcesFromJson(db);
     return;
@@ -252,6 +309,11 @@ export function migrate(db: DB): void {
   if (version === 2) {
     migrateV2ToV3(db);
     version = 3;
+  }
+
+  if (version === 3) {
+    migrateV3ToV4(db);
+    version = 4;
   }
 
   db.pragma(`user_version = ${CURRENT_SCHEMA_VERSION}`);

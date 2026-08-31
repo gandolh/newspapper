@@ -27,18 +27,23 @@ type ByEmphasis = Readonly<Record<WzdEmphasis, string>>;
 /**
  * `size` → typography token, per component. Written out rather than derived
  * from a ramp so the steps are visible and a theme can be retuned against
- * them. The warm-industrial theme ships six steps, so the largest components
- * repeat `display` at the top of their scale.
+ * them.
+ *
+ * The invariant: **no component maps two adjacent sizes to the same token.**
+ * A `size` a person can write is a size the slide has to honour, so a row that
+ * repeats a token makes a documented, lint-validated prop a no-op. The themes
+ * ship eleven steps so every row here has five distinct ones;
+ * `style.catalogue.test.ts` walks the catalogue and asserts it.
  */
 export const WZD_TYPOGRAPHY_SCALES: Readonly<Record<string, BySize<string>>> = Object.freeze({
-  Heading: { xs: 'body-lg', sm: 'headline-md', md: 'headline-lg', lg: 'display', xl: 'display' },
+  Heading: { xs: 'headline-sm', sm: 'headline-md', md: 'headline-lg', lg: 'display', xl: 'display-lg' },
   Text: { xs: 'body-md', sm: 'body-lg', md: 'headline-md', lg: 'headline-lg', xl: 'display' },
   Item: { xs: 'body-md', sm: 'body-lg', md: 'headline-md', lg: 'headline-lg', xl: 'display' },
-  Quote: { xs: 'body-lg', sm: 'headline-md', md: 'headline-lg', lg: 'display', xl: 'display' },
-  Stat: { xs: 'headline-md', sm: 'headline-lg', md: 'display', lg: 'display', xl: 'display' },
-  Kicker: { xs: 'label-bold', sm: 'label-bold', md: 'label-bold', lg: 'body-md', xl: 'body-lg' },
-  Source: { xs: 'label-bold', sm: 'label-bold', md: 'label-bold', lg: 'body-md', xl: 'body-lg' },
-  PageCounter: { xs: 'label-bold', sm: 'label-bold', md: 'label-bold', lg: 'body-md', xl: 'body-lg' },
+  Quote: { xs: 'body-lg', sm: 'headline-md', md: 'headline-lg', lg: 'display', xl: 'display-lg' },
+  Stat: { xs: 'headline-md', sm: 'headline-lg', md: 'display', lg: 'display-lg', xl: 'display-xl' },
+  Kicker: { xs: 'label-xs', sm: 'label-sm', md: 'label-bold', lg: 'body-md', xl: 'body-lg' },
+  Source: { xs: 'label-xs', sm: 'label-sm', md: 'label-bold', lg: 'body-md', xl: 'body-lg' },
+  PageCounter: { xs: 'label-xs', sm: 'label-sm', md: 'label-bold', lg: 'body-md', xl: 'body-lg' },
 });
 
 /** The label under a `Stat`, the attribution under a `Quote`. */

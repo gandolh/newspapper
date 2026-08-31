@@ -6,7 +6,7 @@ import { parseOrThrow } from '../parse.js';
 import { compile, compileSource } from '../compile.js';
 import { WZD_RENDERERS, unthemedStyleValues } from './index.js';
 
-const theme = loadTheme('warm-industrial');
+const theme = loadTheme('warm-industrial-1');
 
 function slide(markup: string, head = '<title>T</title>'): TNode {
   const doc = parseOrThrow(`<head>${head}</head><body><Slide>${markup}</Slide></body>`);
@@ -81,9 +81,10 @@ describe('Row', () => {
 
 describe('Heading', () => {
   it('selects a typography token per size', () => {
-    expect(first('<Heading size="xs">a</Heading>').style?.['typography']).toBe('body-lg');
+    expect(first('<Heading size="xs">a</Heading>').style?.['typography']).toBe('headline-sm');
     expect(first('<Heading>a</Heading>').style?.['typography']).toBe('headline-lg');
-    expect(first('<Heading size="xl">a</Heading>').style?.['typography']).toBe('display');
+    expect(first('<Heading size="lg">a</Heading>').style?.['typography']).toBe('display');
+    expect(first('<Heading size="xl">a</Heading>').style?.['typography']).toBe('display-lg');
   });
 
   it('selects a colour token per emphasis', () => {
@@ -144,7 +145,7 @@ describe('Stat', () => {
     const stat = first('<Stat size="xl" label="years frozen">15</Stat>');
     if (stat.kind !== 'box') throw new Error('Stat is not a box');
     const [number, label] = stat.children ?? [];
-    expect(number.style?.['typography']).toBe('display');
+    expect(number.style?.['typography']).toBe('display-xl');
     expect(text(number)).toBe('15');
     expect(text(label)).toBe('years frozen');
     expect(label.style).toMatchObject({ typography: 'label-bold', textTransform: 'uppercase' });

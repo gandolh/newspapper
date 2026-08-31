@@ -1,0 +1,34 @@
+/* Preview-only chrome. Nothing here may change layout: the node's own resolved
+   style is the whole of its geometry, so selection and warnings are painted
+   with outline and box-shadow, which take no space. */
+
+.node {
+  outline-offset: -2px;
+}
+
+.selectable {
+  cursor: pointer;
+}
+
+.selectable:hover {
+  outline: 2px dashed rgba(162, 57, 26, 0.45);
+}
+
+.selected,
+.selected:hover {
+  outline: 3px solid var(--primary);
+}
+
+.warned,
+.warned:hover {
+  outline: 3px dashed var(--error);
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(186, 26, 26, 0.14) 0 8px,
+    rgba(186, 26, 26, 0) 8px 16px
+  );
+}
+
+.selectable {
+  touch-action: none;
+}

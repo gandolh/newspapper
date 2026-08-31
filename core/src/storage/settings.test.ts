@@ -19,7 +19,7 @@ afterEach(() => {
 describe('settings', () => {
   it('returns defaults when DB is empty and no env vars', () => {
     const settings = getSettings(join(tmpDir, 'settings.db'));
-    expect(settings.defaultTheme).toBe('warm-industrial');
+    expect(settings.defaultTheme).toBe('warm-industrial-1');
   });
 
   it('env vars override defaults', () => {

@@ -1,6 +1,6 @@
 ---
-summary: The warm-industrial-1/2/3 theme family (palettes + enlarged type ramp), how missingThemeTokens gates them, and the known Heading/Stat size-collision that still needs a code fix.
-updated: 2026-08-28
+summary: The warm-industrial-1/2/3 theme family — the three palettes, the eleven-step type ramp and the size-to-token mapping it feeds, and how missingThemeTokens gates every theme in the directory.
+updated: 2026-08-31
 ---
 
 # Design Systems
@@ -45,48 +45,91 @@ differ: `primary`, `on-primary`, `primary-container`, `on-primary-container`,
 | Group | Values (shared by all three) |
 |-------|----------|
 | `colors` | `surface`, `on-surface`, `primary` (varies — see table above), `outline`, full Material 3 container ramp |
-| `typography` | `display` (96px/800), `headline-lg` (64px/800), `headline-md` (44px/700), `body-lg` (30px/400), `body-md` (26px/400), `label-bold` (20px/700) |
+| `typography` | eleven steps — see the ramp below |
 | `spacing` | `xs=4px`, `sm=12px`, `md=24px`, `lg=48px`, `xl=80px` |
 | `rounded` | `sm=0.25rem`, `DEFAULT=0.5rem`, `md=0.75rem`, `lg=1rem`, `xl=1.5rem` |
 | `shapes` | `borderWidth=2px` |
 
 See `assets/design-systems/warm-industrial-1.json` for all values (`-2`/`-3` are the same shape with different primary-linked colors).
 
-### The type ramp was enlarged for the canvas (brief 61)
+### The type ramp
 
 Brief 54 found the original six-token ramp (`display` 80px … `label-bold` 14px)
-web-sized for a 1080² square viewed like a phone screen. All three themes now
-ship the same six token **names**, at larger sizes: `display` 96px, `headline-lg`
-64px, `headline-md` 44px, `body-lg` 30px, `body-md` 26px, `label-bold` 20px
-(weights/line-heights/letter-spacing unchanged, all `em`-relative so they scale
-with the size bump).
+web-sized for a 1080² square. Brief 61 enlarged it; brief 65 widened it to
+**eleven steps**, because six could not give every component five distinct
+sizes (see below). All three themes ship the same eleven token names at the
+same values — type is what makes them a family.
 
-**What this does not fix:** the size-to-token-name mapping
-(`WZD_TYPOGRAPHY_SCALES` in `core/src/wizard/components/style.ts`) is code, not
-theme data — it hardcodes e.g. `Heading: { lg: 'display', xl: 'display' }` and
-`Stat: { md: 'display', lg: 'display', xl: 'display' }`. However large a theme
-makes `display`, `Heading size="lg"` and `size="xl"` still resolve to the exact
-same token, and `Stat`'s `md`/`lg`/`xl` collapse to one. No JSON-only change
-can un-collide these; it needs `WZD_TYPOGRAPHY_SCALES` to reference additional
-distinct names (e.g. a split `display-lg` / `display-xl`) and the themes to
-define them. That is out of this brief's file ownership (`assets/design-systems/**`
-only) — filed as a follow-up rather than worked around.
+| Token | Size | Weight | Line height |
+|---|---|---|---|
+| `display-xl` | 160px | 900 | 0.92 |
+| `display-lg` | 128px | 900 | 0.95 |
+| `display` | 96px | 800 | 1.0 |
+| `headline-lg` | 64px | 800 | 1.1 |
+| `headline-md` | 44px | 700 | 1.2 |
+| `headline-sm` | 36px | 700 | 1.25 |
+| `body-lg` | 30px | 400 | 1.5 |
+| `body-md` | 26px | 400 | 1.45 |
+| `label-bold` | 20px | 700 | 1.2 |
+| `label-sm` | 16px | 700 | 1.2 |
+| `label-xs` | 14px | 700 | 1.2 |
 
-### Legacy `warm-industrial.json`
+Letter-spacing is `em`-relative throughout, so it scales with the size.
 
-The original single-theme file is **left in place, unchanged**, alongside the
-three new ones — it is not deleted or overwritten. Deleting it would break
-every hardcoded `'warm-industrial'` default and fixture, e.g.:
+### `size` resolves to a token — and every step is distinct (brief 65)
+
+`WZD_TYPOGRAPHY_SCALES` in
+[`core/src/wizard/components/style.ts`](../../core/src/wizard/components/style.ts)
+maps component + `size` to a **token name**. It used to map `Heading` `lg` and
+`xl` both to `display`, and `Stat`'s `md`/`lg`/`xl` all to `display` — so a
+person could write `size="xl"`, the linter would accept it, and the slide would
+not change. A documented, lint-validated prop was a no-op.
+
+The invariant now: **no component resolves two adjacent sizes to the same
+token.**
+
+| Component | `xs` | `sm` | `md` | `lg` | `xl` |
+|---|---|---|---|---|---|
+| `Heading` | `headline-sm` | `headline-md` | `headline-lg` | `display` | `display-lg` |
+| `Text` | `body-md` | `body-lg` | `headline-md` | `headline-lg` | `display` |
+| `Item` | `body-md` | `body-lg` | `headline-md` | `headline-lg` | `display` |
+| `Quote` | `body-lg` | `headline-md` | `headline-lg` | `display` | `display-lg` |
+| `Stat` | `headline-md` | `headline-lg` | `display` | `display-lg` | `display-xl` |
+| `Kicker` / `Source` / `PageCounter` | `label-xs` | `label-sm` | `label-bold` | `body-md` | `body-lg` |
+
+`Item` has no `size` prop of its own — it takes the enclosing `List`'s.
+
+`core/src/wizard/components/style.test.ts` **walks the catalogue** rather than a
+hand-written list: it discovers every component with a typography scale, orders
+its steps from `allowedValues(name, 'size')`, and asserts both that adjacent
+steps use different token names and that those names resolve to different
+`fontSize` values **in every theme in the directory**. A component added to
+`catalogue.ts` is covered without anyone remembering to come back.
+
+### Every theme is gated, and the gate discovers them
+
+`missingThemeTokens(theme)` (`style.ts`) reports the tokens the component
+library needs that a theme does not define; the compiler refuses a theme that
+fails it. The test that guards this enumerates `listThemes()` at runtime, so a
+fourth theme dropped into `assets/design-systems/` is checked the moment it
+lands.
+
+### The rename to `warm-industrial-1` (brief 65)
+
+Brief 61 shipped the three suffixed themes but left the unsuffixed
+`warm-industrial.json` in place, because ~15 hardcoded call sites named it.
+Brief 65 deleted that file and repointed every call site:
 `core/src/storage/settings.ts` (`defaultTheme`), `core/src/util/config.ts`
-(env default), `core/src/storage/posts.ts` (`DEFAULT_THEME`),
-`core/src/storage/db.ts` (the `posts.theme` column default, both in the
-`CREATE TABLE` and the migration), `ui/src/components/settings/SettingsIsland.tsx`
-(placeholder), plus a long tail of test fixtures across
-`core/src/**/*.test.ts` and `api/src/**/*.test.ts` that assert the literal
-string `'warm-industrial'`. Repointing those defaults at `warm-industrial-1`,
-and deciding what happens to any `posts.theme` rows already stored in a live
-DB as `'warm-industrial'`, is follow-up work outside this page's ownership
-(`assets/design-systems/**` only) — flagged, not done, per brief 61.
+(the `THEME` env default), `core/src/storage/posts.ts` (`DEFAULT_THEME`),
+`core/src/storage/db.ts` (the `posts.theme` column default),
+`ui/src/components/settings/SettingsIsland.tsx` (the placeholder), and the test
+fixtures across `core/src/**` and `api/src/**`. `listThemes()` now returns
+exactly `warm-industrial-1`, `-2`, `-3`.
+
+Stored data moved with it: **schema v4** rewrites `posts.theme` and the
+`defaultTheme` setting from `'warm-industrial'` to `'warm-industrial-1'`, and
+rebuilds `posts` to carry the new column default. See
+[data.md § SQLite](./data.md#sqlite--datanewspapperdb).
 
 ## TNode interpreter (the compile target, not an authoring surface)
 

@@ -62,7 +62,7 @@ storage · the npm workspace layout · the shared UI primitives on Base UI.
 
 ## Briefs
 
-Fifteen briefs in [`../briefs/todo/`](../briefs/todo/), in dependency waves.
+Sixteen briefs in [`../briefs/todo/`](../briefs/todo/), in dependency waves.
 Each is self-contained — open only the one directing your work.
 
 Waves below are the **executed** order, which differs from the originally filed
@@ -87,10 +87,11 @@ nav/sidebar by 58, 62 and 64.
 | 4 | 57 | Render to JPEG + optimize on publish — **done** | 56 |
 | 4 | 58 | Retire templates and `/builder` — **done** | 54 |
 | 4 | 61 | Themes 2 and 3 — **done** | 54 |
-| 5 | 59 | The split-screen editor | 53, 54, 58 |
+| 5 | 59 | The split-screen editor — **done** | 53, 54, 58 |
 | 6 | 62 | API surface and page map | 55, 59, 60 |
 | 7 | 64 | Rebuild the app chrome as The Mechanical | 59, 62 |
-| 5 | 65 | Finish the theme family — ramp, rename, guard | 61 |
+| 5 | 65 | Finish the theme family — ramp, rename, guard — **done** | 61 |
+| 6 | 66 | Fix the render typeface | — |
 | 8 | 63 | Documentation pass | everything |
 
 Three ordering constraints that will bite if ignored: **58 must not start

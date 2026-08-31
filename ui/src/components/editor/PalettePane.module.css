@@ -1,0 +1,46 @@
+.palette {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+  padding: var(--sp-sm);
+}
+
+.hint {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--on-surface-variant);
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-xs);
+}
+
+.groupTitle {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--on-surface-variant);
+}
+
+.items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  touch-action: none;
+  cursor: grab;
+}
+
+.itemDragging {
+  opacity: 0.5;
+  cursor: grabbing;
+}
