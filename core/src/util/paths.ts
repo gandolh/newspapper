@@ -17,7 +17,10 @@ export function todayLocal(): string {
   return `${y}-${m}-${day}`;
 }
 
-export function nextOutputDir(outputRoot: string, date: string): { dir: string; runNumber: number } {
+export function nextOutputDir(
+  outputRoot: string,
+  date: string,
+): { dir: string; runNumber: number } {
   ensureDir(outputRoot);
   const prefix = `${date}-`;
   const existing = readdirSync(outputRoot)

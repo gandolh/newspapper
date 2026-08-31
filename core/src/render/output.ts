@@ -5,7 +5,7 @@
  * Same-day re-runs never overwrite existing directories.
  */
 
-import { existsSync, readdirSync, mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, readdirSync, mkdirSync, unlinkSync } from 'node:fs';
 import { writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -49,14 +49,22 @@ export interface OutputFile {
 }
 
 /**
- * mkdir -p `dir`, then write every file in `files`.
+ * Slides are JPEG-only; a `.png` left over from an older render (or a rerun
+ * that reused this directory) is stale and must not survive alongside it.
  */
-export async function writeRun(
-  dir: string,
-  files: OutputFile[],
-): Promise<void> {
+function removeStalePngs(dir: string): void {
+  for (const name of readdirSync(dir)) {
+    if (name.toLowerCase().endsWith('.png')) {
+      unlinkSync(join(dir, name));
+    }
+  }
+}
+
+/**
+ * mkdir -p `dir`, clear any stale `.png` files, then write every file in `files`.
+ */
+export async function writeRun(dir: string, files: OutputFile[]): Promise<void> {
   mkdirSync(dir, { recursive: true });
-  await Promise.all(
-    files.map((f) => writeFile(join(dir, f.name), f.data)),
-  );
+  removeStalePngs(dir);
+  await Promise.all(files.map((f) => writeFile(join(dir, f.name), f.data)));
 }

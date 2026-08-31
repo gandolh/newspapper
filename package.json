@@ -1,7 +1,7 @@
 {
   "name": "newspapper",
   "version": "3.0.0",
-  "description": "Turn today's news into an Instagram-style slide post — v3 web app.",
+  "description": "Turn today's news into an Instagram-style slide post \u2014 v3 web app.",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -11,12 +11,14 @@
   ],
   "scripts": {
     "dev": "concurrently --kill-others-on-fail \"npm run dev --workspace=api\" \"npm run dev --workspace=ui\"",
-    "build": "npm run build --workspace=core && npm run build --workspace=api && npm run build --workspace=ui",
+    "build": "npm run fmt:check && npm run build --workspace=core && npm run build --workspace=api && npm run typecheck --workspace=ui && npm run build --workspace=ui",
     "test": "vitest run",
-    "lint": "eslint \"core/src/**/*.ts\" \"api/src/**/*.ts\"",
-    "fmt": "prettier --write \"core/src/**/*.ts\" \"api/src/**/*.ts\" \"ui/src/**/*.{ts,tsx,astro}\""
+    "lint": "eslint \"core/src/**/*.ts\" \"api/src/**/*.ts\" \"ui/src/**/*.{ts,tsx}\" \"ui/vite.config.ts\"",
+    "fmt": "prettier --write \"core/src/**/*.ts\" \"api/src/**/*.ts\" \"ui/src/**/*.{ts,tsx,css}\" \"ui/vite.config.ts\" \"ui/index.html\"",
+    "fmt:check": "prettier --check \"core/src/**/*.ts\" \"api/src/**/*.ts\" \"ui/src/**/*.{ts,tsx,css}\" \"ui/vite.config.ts\" \"ui/index.html\""
   },
   "devDependencies": {
+    "@eslint/js": "9.39.4",
     "@types/better-sqlite3": "7.6.13",
     "@types/node": "25.9.0",
     "@types/react": "19.2.14",
@@ -25,6 +27,7 @@
     "@typescript-eslint/parser": "8.61.0",
     "concurrently": "9.2.1",
     "eslint": "9.39.4",
+    "eslint-plugin-react-hooks": "7.1.1",
     "prettier": "3.8.4",
     "tsx": "4.22.1",
     "typescript": "6.0.3",

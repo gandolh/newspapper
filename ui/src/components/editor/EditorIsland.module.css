@@ -1,0 +1,110 @@
+/* The board itself. No card, no radius, no frame around the whole thing —
+   the tray closes the top and the panes are objects laid out on the surface. */
+.editor {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - var(--tray-h) - var(--sp-double));
+  min-height: calc(var(--sp-unit) * 18);
+}
+
+/* The title block of the sheet. */
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-half);
+  flex-wrap: wrap;
+  padding-bottom: var(--sp-half);
+  border-bottom: 1.5px solid var(--graphite);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-chrome);
+  font-size: var(--fs-board-title);
+  font-weight: 800;
+  font-variation-settings: 'wdth' var(--wdth-title);
+  letter-spacing: var(--ls-board-title);
+  line-height: var(--lh-board-title);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 40ch;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.themeSelect {
+  min-width: calc(var(--sp-unit) * 7);
+}
+
+.panes {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  padding-top: var(--sp-unit);
+  gap: 0;
+}
+
+.left,
+.right {
+  flex: 0 0 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.centre {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+.scroller {
+  height: 100%;
+  overflow: auto;
+}
+
+.rightColumn {
+  display: flex;
+  flex-direction: column;
+  /* So the tissue's hinge is a real rotation about its top edge and not a
+     flat skew. See `lib/motion.ts`. */
+  perspective: 900px;
+}
+
+/* Narrow: the three panes become a scale-chip row of one-at-a-time views. */
+.tabs {
+  display: flex;
+  gap: 4px;
+  padding: var(--sp-half) 0;
+}
+
+.singlePane {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* The dragged component, on the pointer: a paper slip with the waxed shadow,
+   because that is what it will be once it lands. */
+.ghost {
+  position: fixed;
+  left: 0;
+  top: 0;
+  visibility: hidden;
+  transform: translate3d(-1000px, -1000px, 0);
+  pointer-events: none;
+  z-index: 60;
+  margin: var(--sp-half) 0 0 var(--sp-half);
+  padding: 4px var(--sp-hair);
+  font-family: var(--font-galley);
+  font-size: var(--fs-mark);
+  font-weight: 700;
+  letter-spacing: var(--ls-mark);
+  text-transform: uppercase;
+  color: var(--graphite);
+  background: var(--paper);
+  box-shadow: var(--shadow-waxed);
+}

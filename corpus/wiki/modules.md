@@ -1,6 +1,6 @@
 ---
 summary: The public API of @newspapper/core — what each module actually exports and from which entry point.
-updated: 2026-08-27
+updated: 2026-08-31
 ---
 
 # Modules
@@ -11,11 +11,15 @@ All modules are in `@newspapper/core` (`core/src/`). Exported from `core/src/ind
 
 ```ts
 // core/src/scrape/index.ts
-export async function scrape(sources: SourceConfig[], opts: ScrapeOptions): Promise<ScrapeResult>
+export async function searchArticles(sources: SourceConfig[], opts: SearchOptions): Promise<SearchResult>
 export async function pingSource(source: SourceConfig): Promise<PingResult>
 ```
 
-`scrape()` fetches each enabled source, trims to `maxPerSource` items for today's date, fetches article bodies, and upserts into SQLite.
+`searchArticles()` fetches each enabled source (trimmed to `maxPerSource` feed
+items), fetches bodies, and keeps items matching any of `opts.keywords`
+(case-insensitive substring, title + body), ranked by total match count. It
+**persists nothing** — `SearchResult.articles` are `ScrapedArticle[]`, not DB
+rows; saving one is a separate call to `saveArticle`/`saveArticles`.
 
 ```ts
 export async function fetchFeed(url: string): Promise<RssItem[]>   // scrape/rss.ts
@@ -23,52 +27,12 @@ export async function fetchBody(url: string, opts?): Promise<string>  // scrape/
 export function stripHtml(html: string): string
 ```
 
-## Compose
+## Wizard
 
-```ts
-// core/src/compose/compose-post.ts
-export async function composePost(articles: Article[], cfg: OllamaConfig, opts: ComposePostOptions): Promise<PostPayload>
-```
-
-Sends articles to Ollama, parses JSON response, retries once on parse failure.
-
-```ts
-// core/src/compose/caption.ts
-export async function generateCaption(payload: PostPayload, cfg: OllamaConfig): Promise<CaptionResult>
-```
-
-```ts
-// core/src/compose/slide-ai.ts
-export async function slideAi(slide: SlideBlock, req: SlideAiAction, cfg: OllamaConfig): Promise<SlideBlock>
-```
-
-`SlideAiAction` union: `{action:'shorter'}`, `{action:'punchier'}`, `{action:'regenerate', articles}`, `{action:'remap', targetVariant}`.
-
-`remap` enforces `result.variant === targetVariant`; retries once on mismatch, then throws.
-
-```ts
-// core/src/compose/ollama.ts
-export class OllamaClient {
-  async generate(prompt: string, opts?: {json?:boolean; system?:string}): Promise<string>
-  async listModels(): Promise<string[]>
-  async testConnection(): Promise<{ok:boolean; error?:string; models?:string[]}>
-}
-export class OllamaError extends Error { status: number; body: string }
-```
-
-```ts
-// core/src/compose/parse.ts
-export function parsePost(raw: string, date: string, theme: string): PostPayload
-export function parseSlide(value: unknown): SlideBlock
-export class ComposeParseError extends Error { raw: string }
-```
-
-```ts
-// core/src/compose/prompt.ts
-export const DEFAULT_PROMPT: string
-export const VARIANT_SHAPES: Record<string, string>
-export function buildUserPrompt(articles: Article[]): string
-```
+`core/src/wizard/**`, on the **`@newspapper/core/wizard`** subpath (one of four:
+`.`, `./templates`, `./publish`, `./wizard`). The module surface — parse,
+format, lint, compile — is documented with the language it serves, in
+[markup.md](./markup.md#module-surface).
 
 ## Render
 
@@ -82,23 +46,26 @@ export async function renderSlides(
 export async function zipRun(outputDir: string): Promise<Uint8Array>
 ```
 
-`renderSlides` launches a Playwright Chromium browser, screenshots each HTML string at 1080×1080, writes PNGs + `slides.json` + optional `caption.txt`.
+`renderSlides` launches a Playwright Chromium browser, screenshots each HTML string at 1080×1080, writes JPEGs + `slides.json` + optional `caption.txt`.
 
 ```ts
-// core/src/templates/interpreter.ts (also re-exported from @newspapper/core/templates)
-export function renderTemplate(doc: TemplateDoc, data: Record<string,unknown>, theme: Theme, opts: RenderTemplateOptions): string
-export function resolveStyle(style: TStyle, theme: Theme): Record<string, string>
-export function validateTemplateDoc(doc: unknown): TemplateDoc
-export function validateSlideData(doc: TemplateDoc, data: unknown): void
+// core/src/render/fonts.ts — brief 66
+export function installFontRoute(ctx: BrowserContext): Promise<void>
 ```
 
+Serves the render page's `**/assets/fonts/*` from disk, not over HTTP:
+`setContent` leaves the page on an **opaque origin**, so the font fetch carries
+`Origin: null`, the API's UI-only CORS allowlist drops it, and Chromium discards
+bytes that arrived fine. [Why](./decisions-engineering.md#the-renderer-serves-its-own-fonts-from-disk-not-over-http).
+
 ```ts
-// core/src/templates/registry.ts
-export function listTemplates(theme: string): TemplateDoc[]
-export function loadTemplate(theme: string, id: string): TemplateDoc
-export function saveTemplate(doc: TemplateDoc): void
-export function deleteTemplate(theme: string, id: string): void
-export function templatesForFamily(theme: string, family: TemplateDoc['family']): TemplateDoc[]
+// core/src/templates/interpreter.ts (also on @newspapper/core/templates)
+// The compile target for `.wzd`, not an authoring surface: `TemplateDoc`, the
+// template JSON, the registry and `/builder` went in brief 58 — decisions.md
+// "The template system is removed".
+export function renderTemplate(root: TNode, data: Record<string,unknown>, theme: Theme, opts: RenderTemplateOptions): string
+export function resolveStyle(style: TStyle, theme: Theme): Record<string, string>
+export function validateSlideData(data: unknown): void
 ```
 
 ## Storage
@@ -110,10 +77,14 @@ export function migrate(db: DB): void
 ```
 
 ```ts
-// core/src/storage/articles.ts
-export function upsertArticles(db: DB, rows: NewArticle[]): number
-export function articlesForDate(db: DB, date: string): Article[]
+// core/src/storage/articles.ts — the saved library; a search's results are not rows until saved
+export function saveArticle(db: DB, input: NewArticle): Article        // idempotent on (source_id, guid)
+export function saveArticles(db: DB, rows: NewArticle[]): number       // returns newly inserted count
+export function listArticles(db: DB, filter?: ArticleFilter): Article[]  // { search?; sourceId?; limit?; offset? }
+export function findArticle(db: DB, id: number): Article | undefined
 export function getArticlesByIds(db: DB, ids: number[]): Article[]
+export function removeArticle(db: DB, id: number): Article | undefined
+export function countArticles(db: DB): number
 ```
 
 ```ts
@@ -133,19 +104,17 @@ export function saveSettings(patch: Partial<Settings>, dbPath?: string): void
 ```
 
 ```ts
-// core/src/storage/sources.ts
-export function listSources(filePath?: string): SourceConfig[]
-export function addSource(src: SourceConfig, filePath?: string): SourceConfig[]
-export function updateSource(id, patch, filePath?): SourceConfig[]
-export function removeSource(id, filePath?): SourceConfig[]
+// core/src/storage/sources.ts — DB-backed as of schema v3 (was data/sources.json)
+export function listSources(db?: DB): SourceConfig[]
+export function getSource(id: string, db?: DB): SourceConfig | undefined
+export function addSource(src: SourceConfig, db?: DB): SourceConfig[]
+export function updateSource(id: string, patch: Partial<Omit<SourceConfig, 'id'>>, db?: DB): SourceConfig[]
+export function removeSource(id: string, db?: DB): SourceConfig[]
+export function saveSources(all: SourceConfig[], db?: DB): void
 ```
 
-```ts
-// core/src/storage/prompt.ts
-export function getPrompt(defaultText: string, filePath?: string): string
-export function savePrompt(text: string, filePath?: string): void
-export function resetPrompt(defaultText: string, filePath?: string): void
-```
+`db` is trailing and optional everywhere — a caller with no open handle gets one
+opened and closed for the call, the same pattern as `getSettings`.
 
 ## Themes
 
@@ -176,3 +145,44 @@ export function todayLocal(): string
 export function ensureDir(path: string): void
 export function ensureParent(path: string): void
 ```
+
+## Uploads
+
+```ts
+// core/src/uploads/index.ts — Node-only, re-exported from the core barrel
+export async function saveUpload(db: DB, input: { filename: string; data: Buffer }): Promise<StoredUpload>
+export function deleteUpload(db: DB, id: number): Upload | undefined
+export function removeUploadFiles(upload: Upload, root?: string): void
+export function uploadRef(upload: Upload): string
+export function uploadFiles(upload: Upload, root?: string): { original; normalized; served }
+export function findUploadByRef(db: DB, ref: unknown): Upload | undefined
+export function parseUploadRef(src: unknown): string | null
+export function resolveUploadSrc(src: unknown, baseUrl?: string): string | null
+export function uploadPublicPath(ref: string): string       // '/uploads/<ref>'
+export function uploadOriginalPath(ref: string): string     // '/uploads/<ref>/original'
+export function uploadsBaseUrl(): string
+```
+
+```ts
+// core/src/uploads/store.ts — paths, refs, containment
+export function uploadsRoot(): string          // UPLOADS_DIR, else <repo>/uploads
+export function resolveInStore(relativePath: string, root?: string): string
+export function isValidRef(ref: unknown): ref is string
+export function sanitizeDisplayName(filename: unknown): string
+export function slugifyFilename(filename: unknown): string
+export function makeRef(filename: unknown): string
+```
+
+```ts
+// core/src/uploads/image.ts — Sharp
+export async function probeImage(data: Buffer): Promise<ProbedImage>
+export async function normalizeImage(data: Buffer, format: UploadFormat): Promise<NormalizedImage>
+export const MAX_UPLOAD_BYTES, MAX_SOURCE_PIXELS, MAX_SOURCE_DIMENSION, MAX_NORMALIZED_DIMENSION
+```
+
+A **ref** is the upload's stable name — a slug of the original filename plus 8
+hex characters, e.g. `harbour-at-dawn-9f3a1c2b`. It is what `<Image src="…">`
+carries and what `/uploads/<ref>` serves. Stored paths are **relative to the
+store root** (`originals/<ref>.<ext>`, `normalized/<ref>.<ext>`), so the store
+can be relocated by moving the directory and changing `UPLOADS_DIR`; `uploadRef`
+derives the ref back out of `storedPath`.

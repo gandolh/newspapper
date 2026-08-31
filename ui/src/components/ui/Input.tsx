@@ -21,7 +21,12 @@ export default function Input({ label, hint, error, className = '', id, ...rest 
           {label}
         </label>
       )}
-      <BaseInput id={inputId} className={cls} aria-describedby={error ? `${inputId}-err` : hint ? `${inputId}-hint` : undefined} {...rest} />
+      <BaseInput
+        id={inputId}
+        className={cls}
+        aria-describedby={error ? `${inputId}-err` : hint ? `${inputId}-hint` : undefined}
+        {...rest}
+      />
       {error && (
         <span id={`${inputId}-err`} className={styles.error} role="alert">
           {error}

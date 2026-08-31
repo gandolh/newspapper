@@ -1,6 +1,6 @@
 ---
 summary: Newspapper Wizard (.wzd) — the JSX-like markup a post is written in: document shape, the component catalogue, the props model, and how it compiles to images.
-updated: 2026-08-27
+updated: 2026-08-31
 ---
 
 # Newspapper Wizard (`.wzd`)
@@ -68,15 +68,32 @@ The set is **fixed and built in**. Users do not author components or layouts —
 
 ## Props
 
-Props are **constrained**: each takes a value from a named scale or a short
-enum — `size="lg"`, `align="center"`, `emphasis="strong"`. They select from the
-theme; they never carry a style value.
+The rule is **no prop ever carries a style value**. There is deliberately **no
+raw CSS escape hatch** — a `style` or `class` prop would be the one line that
+lets any post drift off-brand, and design consistency is the whole reason this
+project stopped generating its copy with a model. A test asserts no such prop
+exists anywhere in the catalogue.
 
-There is deliberately **no raw CSS escape hatch**. A `style` prop would be the
-one line that lets any post drift off-brand, and design consistency is the whole
-reason this project stopped generating its copy with a model.
+Two kinds of prop satisfy that rule:
 
-Invalid prop values are a **lint error**, not a silent fallback.
+- **Scale props** select from a named scale: `size` (`xs sm md lg xl`), `align`
+  (`left center right`), `emphasis` (`muted normal strong`). Defaults are
+  `size="md"`, `align="left"`, `emphasis="normal"`. These are the only enums,
+  and they mean the same thing on every component that takes them.
+- **Content props** carry text the slide has to show but that has nowhere else
+  to live: `Image.src` (**required**), `Image.alt`, `Quote.by`, `Stat.label`.
+  Nothing else takes free text.
+
+The content props are not a loophole — they are content, not styling, and the
+catalogue already implied them (`Quote` carries its attribution; `Stat` is a big
+number with a label; an `<Image>` with no `src` cannot compile at all). An
+earlier draft of this page said props take "a value from a named scale or a
+short enum", which was over-broad; the invariant is the *no style value* rule
+above.
+
+Invalid prop values are a **lint error**, not a silent fallback. So is a missing
+required prop, and so is the same prop written twice (the first value wins, and
+the linter says so).
 
 ## How it compiles
 
@@ -91,6 +108,28 @@ nobody authors `TNode` by hand any more.
 
 Output is [JPEG, not PNG](./decisions.md#output-is-jpeg-not-png), at 1080×1080.
 
+## Syntax details
+
+Settled while building the parser, and worth knowing before you write a
+document by hand:
+
+- **Comments are `<!-- ... -->`**, HTML-style, not JSX's `{/* ... */}`. The
+  document already mirrors HTML, and `{` is reserved for bindings. A pasted
+  `{/* ... */}` parses as literal text.
+- **There are no escapes and no entities.** A prop value is delimited by `"` or
+  `'`; to include one, use the other. A value containing *both* cannot be
+  written in `.wzd` at all — the linter reports it, because the visual editor
+  can produce one programmatically even though a person cannot type it.
+- **`<` cannot appear in text.** `>` and `&` can.
+- **The parser is catalogue-independent** — a pure syntax pass. It does not
+  auto-close void components, so `<Divider>` without the slash reports "never
+  closed" rather than silently closing. This lets the catalogue change without
+  touching the parser.
+- **CRLF and a BOM are normalized on parse.** Source offsets index into the
+  normalized text, which the parser returns alongside the tree.
+- **Whitespace-only text is dropped**, but a blank line survives as a flag on
+  the node after it, so grouping you type is grouping the formatter reproduces.
+
 ## Formatter and linter
 
 Wizard has a canonical printed form, the way JSX does under Prettier. The
@@ -98,12 +137,25 @@ Wizard has a canonical printed form, the way JSX does under Prettier. The
 produces exactly the text a person would have typed, so the source pane never
 looks machine-generated. A manual format-and-lint action is available too.
 
-The formatter owns whitespace; the linter owns meaning:
+The formatter owns whitespace; the linter owns meaning. Twelve rules ship:
+`syntax-error`, `unknown-component`, `unknown-prop`, `invalid-prop-value`,
+`missing-prop`, `duplicate-prop`, `misplaced-element`, `missing-head`,
+`missing-title`, `empty-slide`, `slide-count`, `unknown-binding`. All are errors
+except `slide-count` above the maximum, which is a warning.
 
-- unknown component or unknown prop
-- a prop value outside its scale
-- a malformed document — `Item` outside a `List`, content outside `<body>`
-- slide-count and other structural bounds
+`unknown-binding` fires when `{something}` in text names anything other than one
+of the six `<head>` fields, or names a field the head leaves empty. Bindings
+resolve in **text content only**, never in prop values — that is the one place
+the linter can see them.
+
+Concretely, the formatter's canonical form: LF only, trailing newline, 2-space
+indent, one blank line between top-level nodes, an element with no children
+printed self-closing, an element whose only child is text printed on one line
+when it fits the print width. **Text is never wrapped** — wrapping is the
+classic source of formatter non-idempotency and buys little on a 1080² slide.
+`format(format(x))` equals `format(x)`, and `parse(format(x))` is structurally
+equal to `parse(x)`. Formatting source that does not parse returns it unchanged
+rather than mangling it.
 
 Author formatting is **not** preserved across visual edits; see
 [the decision](./decisions.md#format-and-lint-the-markup-like-jsx) for why
@@ -116,3 +168,27 @@ copy on upload and runs the optimization pass when a post is
 [published](./decisions.md#publishing-is-a-manual-state-that-optimizes-the-output).
 Files live in `uploads/` — gitignored, with an env-overridable absolute path so
 the store can sit outside the repo.
+
+## Module surface
+
+`core/src/wizard/**`, exported from the `@newspapper/core/wizard` subpath.
+
+```ts
+// text <-> WzdDocument, with diagnostics over the tree
+export function parse(src: string): WzdParseResult      // forgiving; collects errors
+export function parseOrThrow(src: string): WzdDocument  // strict; throws WzdSyntaxError
+export function format(src: string, opts?: WzdFormatOptions): string
+export function lint(doc: WzdDocument, opts?: WzdLintOptions): WzdDiagnostic[]
+// WzdDocument -> the TNode trees the template interpreter renders
+export function compileDocument(doc: WzdDocument, theme: Theme): TNode[]  // strict
+export function compile(src: string, theme: Theme): WzdCompileResult      // forgiving
+```
+
+Two compile paths on purpose: strict for the render pipeline, forgiving for the
+live preview, because a document is broken most of the time while it is being
+typed. The compile is **browser-safe** — no Node APIs — so the editor previews
+off the same code the renderer uses rather than a second copy of style
+resolution, which is why `api/src/routes/preview.ts` was deleted, not rebuilt.
+`WZD_COMPONENTS` is the catalogue and it is data: compiler, linter and the
+editor's completions all read it instead of restating it.
+

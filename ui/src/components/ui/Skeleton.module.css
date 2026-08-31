@@ -1,27 +1,13 @@
+/* A block that is ruled but not yet set: board, inside a hairline, with the
+   galley's line pitch drawn across it. It does not shimmer — nothing in this
+   world animates except the compile and the hinge — and it does not take the
+   45° hatch, because the hatch already means "held out" and this is not that. */
 .skeleton {
-  background: linear-gradient(
-    90deg,
-    var(--surface-container) 25%,
-    var(--surface-container-high) 37%,
-    var(--surface-container) 63%
+  background-color: var(--board);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0 22px,
+    var(--hairline) 22px 23px
   );
-  background-size: 400% 100%;
-  border-radius: var(--radius);
-  animation: shimmer 1.4s ease infinite;
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: 100% 0;
-  }
-  100% {
-    background-position: 0 0;
-  }
-}
-
-/* Motion is not load-bearing here; hold a static placeholder instead. */
-@media (prefers-reduced-motion: reduce) {
-  .skeleton {
-    animation: none;
-  }
+  box-shadow: 0 0 0 1px var(--hairline);
 }

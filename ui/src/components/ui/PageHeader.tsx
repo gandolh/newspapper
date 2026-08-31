@@ -12,7 +12,7 @@ export interface PageHeaderProps {
 
 /**
  * The standard top-of-page header: a Display title, optional subtitle, and an
- * optional actions slot. Used by History, Sources, Settings, and Prompt so the
+ * optional actions slot. Used by History, Sources, and Settings so the
  * page-top vocabulary stays identical across the app.
  */
 export default function PageHeader({ title, subtitle, actions }: PageHeaderProps) {

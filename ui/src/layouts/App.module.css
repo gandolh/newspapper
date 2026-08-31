@@ -1,0 +1,30 @@
+.board {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* The working area, ruled off the tray by one grid unit. */
+.work {
+  flex: 1;
+  min-width: 0;
+  padding: var(--sp-unit);
+}
+
+/* Every sheet lands on the same column, and the column is a whole
+   number of grid units wide (The One Grid Rule). Fluid sheets — the
+   editor — take the board. */
+.sheet {
+  max-width: var(--content-max);
+  margin-inline: auto;
+}
+
+.sheet--fluid {
+  max-width: none;
+}
+
+@media (max-width: 768px) {
+  .work {
+    padding: var(--sp-half);
+  }
+}

@@ -1,168 +1,161 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { promises as fsp } from 'node:fs';
-import { resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import {
-  createDraft,
-  getPost,
-  listPosts,
-  updatePostPayload,
-  deletePost,
-  getArticlesByIds,
-  getSettings,
-  getPrompt,
-  DEFAULT_PROMPT,
-  composePost,
-  generateCaption,
-  parsePost,
-  OllamaError,
+  createPost,
+  findPost,
+  listThemes,
+  parse,
+  queryPosts,
+  removePost,
+  setPostStatus,
+  updatePost,
+  type PostInput,
+  type PostStatus,
 } from '@newspapper/core';
-import type { PostPayload } from '@newspapper/core';
 import { db } from '../lib/db.js';
-import { sseHeaders, sseWrite, sseDone, sseError } from '../lib/sse.js';
 
-const __dirname = fileURLToPath(new URL('.', import.meta.url));
-// repo root is api/src/routes/../../../ = api/../../ = repoRoot
-const repoRoot = resolve(__dirname, '../../..');
-const outputRoot = resolve(repoRoot, 'output');
+/**
+ * The index columns are derived from the markup's `<head>`, server-side, so a
+ * client cannot save a post whose title disagrees with its own document. The
+ * markup stays the source of truth; these columns exist to list and search.
+ *
+ * A post is saved on a debounce while it is being written, so a `<head>` that
+ * is half-typed must not fail the write — a missing title falls back rather
+ * than 400ing. The linter is what tells the author their title is missing.
+ */
+function deriveInput(markup: string, theme?: string): PostInput {
+  const { head } = parse(markup).doc;
+  const keywords = (head['keywords'] ?? '')
+    .split(',')
+    .map((k) => k.trim())
+    .filter(Boolean);
+  return {
+    title: head['title']?.trim() || 'Untitled post',
+    description: head['description'] ?? '',
+    markup,
+    theme,
+    keywords,
+  };
+}
+
+function markupOf(body: unknown): string | null {
+  if (typeof body !== 'object' || body === null) return null;
+  const markup = (body as { markup?: unknown }).markup;
+  return typeof markup === 'string' ? markup : null;
+}
+
+/**
+ * An omitted or blank theme means "leave it to the column default"; anything
+ * else must name a theme on disk. `loadTheme` throws at render time otherwise,
+ * which would turn a bad save into a failure two steps later.
+ */
+function themeOf(body: unknown): string | undefined {
+  if (typeof body !== 'object' || body === null) return undefined;
+  const theme = (body as { theme?: unknown }).theme;
+  if (typeof theme !== 'string') return undefined;
+  const trimmed = theme.trim();
+  return trimmed === '' ? undefined : trimmed;
+}
+
+function unknownTheme(theme: string | undefined): boolean {
+  return theme !== undefined && !listThemes().includes(theme);
+}
 
 const postsRoutes: FastifyPluginAsync = async (fastify) => {
   /**
-   * POST /api/compose  (SSE)
-   * Body: { articleIds: number[], theme?: string }
+   * GET /api/posts?status=&keyword=&search=&limit=&offset=
    */
-  fastify.post('/api/compose', async (req, reply) => {
-    sseHeaders(reply);
-    const body = req.body as { articleIds?: number[]; theme?: string };
-
-    if (!body?.articleIds || body.articleIds.length === 0) {
-      sseError(reply, 'articleIds must be a non-empty array');
-      return;
-    }
-
-    const articles = getArticlesByIds(db(), body.articleIds);
-    if (articles.length === 0) {
-      sseError(reply, 'No articles found for the given ids');
-      return;
-    }
-
-    const s = getSettings();
-    const cfg = { host: s.ollamaHost, apiKey: s.ollamaApiKey, model: s.ollamaModel };
-    const theme = body.theme ?? s.defaultTheme;
-    const today = new Date().toISOString().slice(0, 10);
-
-    try {
-      sseWrite(reply, 'progress', { stage: 'prompting' });
-      const promptOverride = getPrompt(DEFAULT_PROMPT);
-      const payload = await composePost(articles, cfg, { theme, date: today, promptOverride });
-      const post = createDraft(db(), payload);
-      sseDone(reply, post);
-    } catch (err) {
-      if (err instanceof OllamaError) {
-        sseError(reply, `Ollama error: ${(err as Error).message}`);
-      } else {
-        sseError(reply, (err as Error).message);
-      }
-    }
+  fastify.get('/api/posts', async (req, reply) => {
+    const query = req.query as {
+      status?: string;
+      keyword?: string;
+      search?: string;
+      limit?: string;
+      offset?: string;
+    };
+    const status =
+      query.status === 'draft' || query.status === 'published'
+        ? (query.status as PostStatus)
+        : undefined;
+    return reply.send(
+      queryPosts(db(), {
+        status,
+        keyword: query.keyword,
+        search: query.search,
+        limit: query.limit === undefined ? undefined : Number(query.limit),
+        offset: query.offset === undefined ? undefined : Number(query.offset),
+      }),
+    );
   });
 
   /**
-   * GET /api/posts
+   * POST /api/posts  { markup, theme? }
    */
-  fastify.get('/api/posts', async (_req, reply) => {
-    return reply.send(listPosts(db()));
+  fastify.post('/api/posts', async (req, reply) => {
+    const markup = markupOf(req.body);
+    if (markup === null) {
+      return reply.status(400).send({ error: 'markup is required and must be a string' });
+    }
+    const theme = themeOf(req.body);
+    if (unknownTheme(theme)) {
+      return reply.status(400).send({ error: `Unknown theme: "${theme}"` });
+    }
+    const post = createPost(db(), deriveInput(markup, theme));
+    return reply.status(201).send(post);
   });
 
   /**
    * GET /api/posts/:id
    */
   fastify.get('/api/posts/:id', async (req, reply) => {
-    const { id } = req.params as { id: string };
-    const post = getPost(db(), Number(id));
+    const id = Number((req.params as { id: string }).id);
+    const post = Number.isInteger(id) ? findPost(db(), id) : undefined;
     if (!post) return reply.status(404).send({ error: 'Post not found' });
     return reply.send(post);
   });
 
   /**
-   * PUT /api/posts/:id  { payload: PostPayload }
-   * Validates slides count (2–8) before saving.
+   * PUT /api/posts/:id  { markup, theme? }
    */
   fastify.put('/api/posts/:id', async (req, reply) => {
-    const { id } = req.params as { id: string };
-    const body = req.body as { payload?: PostPayload };
-
-    if (!body?.payload) {
-      return reply.status(400).send({ error: 'payload is required' });
+    const id = Number((req.params as { id: string }).id);
+    const markup = markupOf(req.body);
+    if (markup === null) {
+      return reply.status(400).send({ error: 'markup is required and must be a string' });
     }
-
-    const { payload } = body;
-
-    // Validate slide count
-    if (!Array.isArray(payload.slides) || payload.slides.length < 2 || payload.slides.length > 8) {
-      return reply.status(400).send({ error: 'payload.slides must have 2–8 entries' });
+    const theme = themeOf(req.body);
+    if (unknownTheme(theme)) {
+      return reply.status(400).send({ error: `Unknown theme: "${theme}"` });
     }
-
-    // Use parsePost-equivalent validation by trying to re-parse
-    try {
-      parsePost(JSON.stringify(payload), payload.date, payload.theme);
-    } catch {
-      // parsePost is strict about shape — but we allow partial edits.
-      // We do our own slide count validation above; proceed if it passed.
-    }
-
-    const existing = getPost(db(), Number(id));
+    const existing = Number.isInteger(id) ? findPost(db(), id) : undefined;
     if (!existing) return reply.status(404).send({ error: 'Post not found' });
 
-    const updated = updatePostPayload(db(), Number(id), payload);
+    const updated = updatePost(db(), id, deriveInput(markup, theme ?? existing.theme));
+    if (!updated) return reply.status(404).send({ error: 'Post not found' });
     return reply.send(updated);
   });
 
   /**
-   * DELETE /api/posts/:id
+   * PUT /api/posts/:id/status  { status: 'draft' | 'published' }
    */
-  fastify.delete('/api/posts/:id', async (req, reply) => {
-    const { id } = req.params as { id: string };
-    const deleted = deletePost(db(), Number(id));
-    if (!deleted) return reply.status(404).send({ error: 'Post not found' });
-
-    // Clean up output dir — only if it is inside the repo's output/ dir
-    if (deleted.outputDir) {
-      const abs = resolve(deleted.outputDir);
-      if (abs.startsWith(outputRoot + '/') || abs === outputRoot) {
-        await fsp.rm(abs, { recursive: true, force: true });
-      }
+  fastify.put('/api/posts/:id/status', async (req, reply) => {
+    const id = Number((req.params as { id: string }).id);
+    const { status } = (req.body ?? {}) as { status?: string };
+    if (status !== 'draft' && status !== 'published') {
+      return reply.status(400).send({ error: "status must be 'draft' or 'published'" });
     }
-
-    return reply.send({ ok: true });
+    const updated = Number.isInteger(id) ? setPostStatus(db(), id, status) : undefined;
+    if (!updated) return reply.status(404).send({ error: 'Post not found' });
+    return reply.send(updated);
   });
 
   /**
-   * POST /api/posts/:id/caption
-   * Generates a caption, merges into payload, saves.
+   * DELETE /api/posts/:id — render records and keyword links cascade away.
    */
-  fastify.post('/api/posts/:id/caption', async (req, reply) => {
-    const { id } = req.params as { id: string };
-    const post = getPost(db(), Number(id));
-    if (!post) return reply.status(404).send({ error: 'Post not found' });
-
-    const s = getSettings();
-    const cfg = { host: s.ollamaHost, apiKey: s.ollamaApiKey, model: s.ollamaModel };
-
-    try {
-      const result = await generateCaption(post.payload, cfg);
-      const updatedPayload: PostPayload = {
-        ...post.payload,
-        caption: result.caption,
-        hashtags: result.hashtags,
-      };
-      const updated = updatePostPayload(db(), Number(id), updatedPayload);
-      return reply.send(updated);
-    } catch (err) {
-      if (err instanceof OllamaError) {
-        return reply.status(502).send({ error: (err as Error).message });
-      }
-      throw err;
-    }
+  fastify.delete('/api/posts/:id', async (req, reply) => {
+    const id = Number((req.params as { id: string }).id);
+    const deleted = Number.isInteger(id) ? removePost(db(), id) : undefined;
+    if (!deleted) return reply.status(404).send({ error: 'Post not found' });
+    return reply.send({ id, deleted: true });
   });
 };
 

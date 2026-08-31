@@ -1,165 +1,214 @@
 import type { DB } from './db.js';
-import type { PostPayload, PostRow } from '../types.js';
+import type { Post, PostPayload, PostRow, PostStatus } from '../types.js';
+import { keywordsForPost, setPostKeywords } from './keywords.js';
 
-// ---- Raw DB row shape ----
 interface PostDbRow {
   id: number;
-  date: string;
   title: string;
+  description: string;
+  markup: string;
   theme: string;
-  payload: string;
   status: string;
-  output_dir: string | null;
   created_at: string;
   updated_at: string;
+  published_at: string | null;
 }
 
-function rowToPostRow(r: PostDbRow): PostRow {
+/**
+ * The metadata a post's `<head>` block contributes to the index columns. The
+ * markup itself stays the source of truth; these are re-derived on every save.
+ */
+export interface PostInput {
+  title: string;
+  description?: string;
+  markup: string;
+  theme?: string;
+  keywords?: string[];
+}
+
+export interface PostFilter {
+  status?: PostStatus;
+  keyword?: string;
+  search?: string;
+  limit?: number;
+  offset?: number;
+}
+
+const DEFAULT_THEME = 'warm-industrial-1';
+
+function rowToPost(db: DB, r: PostDbRow): Post {
   return {
     id: r.id,
-    date: r.date,
     title: r.title,
+    description: r.description,
+    markup: r.markup,
     theme: r.theme,
-    payload: JSON.parse(r.payload) as PostPayload,
-    status: r.status as 'draft' | 'rendered',
-    outputDir: r.output_dir,
+    status: r.status as PostStatus,
+    keywords: keywordsForPost(db, r.id),
     createdAt: r.created_at,
     updatedAt: r.updated_at,
+    publishedAt: r.published_at,
   };
 }
 
-// ---- Public API ----
-
-/** Create a new draft post from a PostPayload. Returns the persisted PostRow. */
-export function createDraft(db: DB, payload: PostPayload): PostRow {
+export function createPost(db: DB, input: PostInput): Post {
   const now = new Date().toISOString();
-  const stmt = db.prepare(`
-    INSERT INTO posts (date, title, theme, payload, status, output_dir, created_at, updated_at)
-    VALUES (@date, @title, @theme, @payload, 'draft', NULL, @created_at, @updated_at)
+  const insert = db.prepare(`
+    INSERT INTO posts (title, description, markup, theme, status, created_at, updated_at)
+    VALUES (@title, @description, @markup, @theme, 'draft', @created_at, @updated_at)
   `);
-  const r = stmt.run({
-    date: payload.date,
-    title: payload.title,
-    theme: payload.theme,
-    payload: JSON.stringify(payload),
-    created_at: now,
-    updated_at: now,
+
+  const create = db.transaction((): number => {
+    const r = insert.run({
+      title: input.title,
+      description: input.description ?? '',
+      markup: input.markup,
+      theme: input.theme ?? DEFAULT_THEME,
+      created_at: now,
+      updated_at: now,
+    });
+    const id = Number(r.lastInsertRowid);
+    setPostKeywords(db, id, input.keywords ?? []);
+    return id;
   });
-  return {
-    id: Number(r.lastInsertRowid),
-    date: payload.date,
-    title: payload.title,
-    theme: payload.theme,
-    payload,
-    status: 'draft',
-    outputDir: null,
-    createdAt: now,
-    updatedAt: now,
-  };
+
+  return findPost(db, create())!;
 }
 
-/** Fetch a single post by ID. Returns undefined if not found. */
-export function getPost(db: DB, id: number): PostRow | undefined {
+export function findPost(db: DB, id: number): Post | undefined {
   const row = db.prepare('SELECT * FROM posts WHERE id = ?').get(id) as PostDbRow | undefined;
   if (!row) return undefined;
-  return rowToPostRow(row);
+  return rowToPost(db, row);
 }
 
-/** List posts newest first. */
-export function listPosts(db: DB, opts: { limit?: number } = {}): PostRow[] {
-  const limit = opts.limit ?? 50;
+/** Posts newest-updated first, optionally narrowed by status, keyword, or text. */
+export function queryPosts(db: DB, filter: PostFilter = {}): Post[] {
+  const where: string[] = [];
+  const params: Record<string, unknown> = {};
+
+  if (filter.status) {
+    where.push('p.status = @status');
+    params['status'] = filter.status;
+  }
+  if (filter.keyword) {
+    where.push(`p.id IN (
+      SELECT pk.post_id FROM post_keywords pk
+      JOIN keywords k ON k.id = pk.keyword_id
+      WHERE k.name = @keyword
+    )`);
+    params['keyword'] = filter.keyword;
+  }
+  if (filter.search) {
+    where.push('(p.title LIKE @search OR p.description LIKE @search OR p.markup LIKE @search)');
+    params['search'] = `%${filter.search}%`;
+  }
+
+  params['limit'] = filter.limit ?? 100;
+  params['offset'] = filter.offset ?? 0;
+
   const rows = db
-    .prepare('SELECT * FROM posts ORDER BY id DESC LIMIT ?')
-    .all(limit) as PostDbRow[];
-  return rows.map(rowToPostRow);
+    .prepare(
+      `SELECT p.* FROM posts p
+       ${where.length ? `WHERE ${where.join(' AND ')}` : ''}
+       ORDER BY p.updated_at DESC, p.id DESC
+       LIMIT @limit OFFSET @offset`,
+    )
+    .all(params) as PostDbRow[];
+  return rows.map((r) => rowToPost(db, r));
 }
 
-/**
- * Replace the payload of a post (draft or rendered) and reset status to 'draft'.
- * Bumps updated_at.
- */
-export function updatePostPayload(db: DB, id: number, payload: PostPayload): PostRow | undefined {
+/** Replace a post's markup and re-derive its index columns and keywords. */
+export function updatePost(db: DB, id: number, input: PostInput): Post | undefined {
   const now = new Date().toISOString();
-  db.prepare(`
+  const update = db.prepare(`
     UPDATE posts
-    SET payload = @payload, title = @title, theme = @theme,
-        status = 'draft', output_dir = NULL, updated_at = @updated_at
+    SET title = @title, description = @description, markup = @markup,
+        theme = @theme, updated_at = @updated_at
     WHERE id = @id
-  `).run({
-    payload: JSON.stringify(payload),
-    title: payload.title,
-    theme: payload.theme,
-    updated_at: now,
-    id,
+  `);
+
+  const apply = db.transaction((): boolean => {
+    const r = update.run({
+      id,
+      title: input.title,
+      description: input.description ?? '',
+      markup: input.markup,
+      theme: input.theme ?? DEFAULT_THEME,
+      updated_at: now,
+    });
+    if (r.changes === 0) return false;
+    setPostKeywords(db, id, input.keywords ?? []);
+    return true;
   });
-  return getPost(db, id);
-}
 
-/** Mark a post as rendered and record its output directory. Bumps updated_at. */
-export function markRendered(db: DB, id: number, outputDir: string): PostRow | undefined {
-  const now = new Date().toISOString();
-  db.prepare(`
-    UPDATE posts
-    SET status = 'rendered', output_dir = @output_dir, updated_at = @updated_at
-    WHERE id = @id
-  `).run({ output_dir: outputDir, updated_at: now, id });
-  return getPost(db, id);
+  if (!apply()) return undefined;
+  return findPost(db, id);
 }
 
 /**
- * Delete a post and return the deleted row (so callers can clean up its output dir).
- * Returns undefined if no such post exists.
+ * Move a post between `draft` and `published`. Publishing stamps
+ * `published_at`; returning to draft clears it.
  */
-export function deletePost(db: DB, id: number): PostRow | undefined {
-  const existing = getPost(db, id);
+export function setPostStatus(db: DB, id: number, status: PostStatus): Post | undefined {
+  const now = new Date().toISOString();
+  const r = db
+    .prepare(
+      `UPDATE posts
+       SET status = @status,
+           published_at = CASE WHEN @status = 'published' THEN @now ELSE NULL END,
+           updated_at = @now
+       WHERE id = @id`,
+    )
+    .run({ id, status, now });
+  if (r.changes === 0) return undefined;
+  return findPost(db, id);
+}
+
+/** Delete a post; its keywords links and render records cascade away with it. */
+export function removePost(db: DB, id: number): Post | undefined {
+  const existing = findPost(db, id);
   if (!existing) return undefined;
   db.prepare('DELETE FROM posts WHERE id = ?').run(id);
   return existing;
 }
 
+export function countPosts(db: DB, status?: PostStatus): number {
+  const row = status
+    ? (db.prepare('SELECT COUNT(*) AS n FROM posts WHERE status = ?').get(status) as { n: number })
+    : (db.prepare('SELECT COUNT(*) AS n FROM posts').get() as { n: number });
+  return row.n;
+}
+
 // ---- Legacy compatibility ----
+// Schema v3 dropped `posts.payload`; the v2 wizard routes still import these
+// names. They report "no such post" because, after the v3 migration, there are
+// none. Brief 62 rewires the routes and deletes this block.
 
-/** @deprecated Use createDraft */
-export function insert(
-  db: DB,
-  args: { date: string; runNumber: number; payload: PostPayload; outputDir: string },
-): PostRow {
-  const now = new Date().toISOString();
-  const stmt = db.prepare(`
-    INSERT INTO posts (date, title, theme, payload, status, output_dir, created_at, updated_at)
-    VALUES (@date, @title, @theme, @payload, 'rendered', @output_dir, @created_at, @updated_at)
-  `);
-  const r = stmt.run({
-    date: args.date,
-    title: args.payload.title ?? '',
-    theme: args.payload.theme ?? 'warm-industrial',
-    payload: JSON.stringify(args.payload),
-    output_dir: args.outputDir,
-    created_at: now,
-    updated_at: now,
-  });
-  return {
-    id: Number(r.lastInsertRowid),
-    date: args.date,
-    title: args.payload.title ?? '',
-    theme: args.payload.theme ?? 'warm-industrial',
-    payload: args.payload,
-    status: 'rendered',
-    outputDir: args.outputDir,
-    createdAt: now,
-    updatedAt: now,
-  };
+/** @deprecated Payload posts no longer exist. Use findPost. */
+export function getPost(_db: DB, _id: number): PostRow | undefined {
+  return undefined;
 }
 
-/** @deprecated Use listPosts */
-export function recent(db: DB, limit: number): PostRow[] {
-  return listPosts(db, { limit });
+/** @deprecated Payload posts no longer exist. Use queryPosts. */
+export function listPosts(_db: DB, _opts: { limit?: number } = {}): PostRow[] {
+  return [];
 }
 
-/** @deprecated */
-export function nextRunNumber(db: DB, date: string): number {
-  const row = db
-    .prepare("SELECT COUNT(*) AS cnt FROM posts WHERE date = ?")
-    .get(date) as { cnt: number };
-  return row.cnt + 1;
+/** @deprecated Payload posts no longer exist. Use removePost. */
+export function deletePost(_db: DB, _id: number): PostRow | undefined {
+  return undefined;
+}
+
+/** @deprecated Payload posts no longer exist. Use updatePost with `.wzd` markup. */
+export function updatePostPayload(
+  _db: DB,
+  _id: number,
+  _payload: PostPayload,
+): PostRow | undefined {
+  throw new Error('posts.payload was removed in schema v3 — use updatePost with .wzd markup');
+}
+
+/** @deprecated Renders are recorded in the `renders` table. Use recordRender. */
+export function markRendered(_db: DB, _id: number, _outputDir: string): PostRow | undefined {
+  throw new Error('posts.output_dir was removed in schema v3 — use recordRender');
 }

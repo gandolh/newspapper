@@ -7,7 +7,11 @@ export interface RssItem {
   publishedAt: string;
 }
 
-export async function fetchFeed(url: string, userAgent: string, timeoutMs: number): Promise<RssItem[]> {
+export async function fetchFeed(
+  url: string,
+  userAgent: string,
+  timeoutMs: number,
+): Promise<RssItem[]> {
   const parser = new Parser({
     timeout: timeoutMs,
     headers: { 'User-Agent': userAgent },

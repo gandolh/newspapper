@@ -1,0 +1,148 @@
+/* =============================================================
+   Articles — search, library, and sources on one sheet
+   ============================================================= */
+
+/* A scale-chip row: equal chips, tick border, the current one inverted. */
+.tabBar {
+  display: flex;
+  gap: 4px;
+  margin-bottom: var(--sp-unit);
+}
+
+.tab {
+  appearance: none;
+  height: var(--sp-unit);
+  padding: 0 var(--sp-half);
+  border: 1px solid var(--tick);
+  background: var(--paper);
+  font-family: var(--font-galley);
+  font-size: var(--fs-field);
+  font-weight: 500;
+  letter-spacing: var(--ls-field);
+  text-transform: uppercase;
+  color: var(--graphite-soft);
+  cursor: pointer;
+}
+
+.tab:hover {
+  border-color: var(--graphite);
+  color: var(--graphite);
+}
+
+.tabActive {
+  background: var(--graphite);
+  border-color: var(--graphite);
+  color: var(--board);
+}
+
+/* `.tab:hover` is (0,1,1) and out-ranks `.tabActive` at (0,1,0), so without
+   this the active tab's label went graphite-on-graphite — 1:1, invisible — the
+   moment you pointed at it. (0,2,0) wins. */
+.tabActive:hover {
+  color: var(--board);
+}
+
+.tabPanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-unit);
+}
+
+/* ---- Search form ---- */
+.searchForm {
+  display: flex;
+  gap: var(--sp-half);
+  align-items: flex-start;
+}
+
+.searchForm > *:first-child {
+  flex: 1;
+}
+
+.progressList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-half);
+}
+
+.progressItem {
+  display: inline-flex;
+}
+
+/* ---- Filter bar (library) ---- */
+.filterBar {
+  display: flex;
+  gap: var(--sp-half);
+  align-items: flex-start;
+}
+
+.filterBar > *:first-child {
+  flex: 1;
+}
+
+/* ---- Clippings (shared by search + library) ---- */
+.resultList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-half);
+}
+
+.resultCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-hair);
+}
+
+.resultMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-half);
+}
+
+.metaText {
+  font-family: var(--font-galley);
+  font-size: var(--fs-field);
+  font-weight: 500;
+  letter-spacing: var(--ls-field);
+  text-transform: uppercase;
+  color: var(--graphite-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.externalLink {
+  color: var(--graphite-soft);
+  text-decoration: none;
+  margin-left: auto;
+}
+
+.externalLink:hover {
+  color: var(--process-blue);
+}
+
+.resultTitle {
+  font-family: var(--font-chrome);
+  font-size: var(--fs-label);
+  font-weight: 700;
+  letter-spacing: var(--ls-label);
+  line-height: var(--lh-label);
+}
+
+.resultExcerpt {
+  margin: 0;
+  font-size: var(--fs-label);
+  line-height: 1.45;
+  color: var(--graphite-soft);
+}
+
+.resultActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.loadingList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-half);
+}

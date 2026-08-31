@@ -1,13 +1,14 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { listSources, addSource, updateSource, removeSource, pingSource } from '@newspapper/core';
 import type { SourceConfig } from '@newspapper/core';
+import { db } from '../lib/db.js';
 
 const sourcesRoutes: FastifyPluginAsync = async (fastify) => {
   /**
    * GET /api/sources
    */
   fastify.get('/api/sources', async (_req, reply) => {
-    return reply.send(listSources());
+    return reply.send(listSources(db()));
   });
 
   /**
@@ -19,12 +20,15 @@ const sourcesRoutes: FastifyPluginAsync = async (fastify) => {
       return reply.status(400).send({ error: 'id, name, and rss are required' });
     }
     try {
-      const all = addSource({
-        id: body.id,
-        name: body.name,
-        rss: body.rss,
-        enabled: body.enabled ?? true,
-      });
+      const all = addSource(
+        {
+          id: body.id,
+          name: body.name,
+          rss: body.rss,
+          enabled: body.enabled ?? true,
+        },
+        db(),
+      );
       return reply.status(201).send(all);
     } catch (err) {
       if ((err as Error).message.includes('already exists')) {
@@ -41,7 +45,7 @@ const sourcesRoutes: FastifyPluginAsync = async (fastify) => {
     const { id } = req.params as { id: string };
     const body = req.body as Partial<Omit<SourceConfig, 'id'>>;
     try {
-      const all = updateSource(id, body);
+      const all = updateSource(id, body, db());
       return reply.send(all);
     } catch (err) {
       if ((err as Error).message.includes('not found')) {
@@ -53,11 +57,13 @@ const sourcesRoutes: FastifyPluginAsync = async (fastify) => {
 
   /**
    * DELETE /api/sources/:id
+   * Already-saved articles from this source keep their `source_name`
+   * snapshot and stay readable — only `source_id` goes NULL (schema v3 FK).
    */
   fastify.delete('/api/sources/:id', async (req, reply) => {
     const { id } = req.params as { id: string };
     try {
-      const all = removeSource(id);
+      const all = removeSource(id, db());
       return reply.send(all);
     } catch (err) {
       if ((err as Error).message.includes('not found')) {
@@ -69,10 +75,11 @@ const sourcesRoutes: FastifyPluginAsync = async (fastify) => {
 
   /**
    * POST /api/sources/:id/ping
+   * Doubles as the Articles page's "test feed" action.
    */
   fastify.post('/api/sources/:id/ping', async (req, reply) => {
     const { id } = req.params as { id: string };
-    const all = listSources();
+    const all = listSources(db());
     const src = all.find((s) => s.id === id);
     if (!src) return reply.status(404).send({ error: `Source "${id}" not found` });
     const result = await pingSource(src);

@@ -1,9 +1,81 @@
 /* =============================================================
-   Newspapper v3 — Global Design System (warm editorial light)
-   Tokens from assets/design-systems/warm-industrial.json
+   Newspapper — The Mechanical (the paste-up board)
+
+   The app chrome. Board, graphite, and production marks; zero radius;
+   one 26px non-photo blue grid under everything. The measured system is
+   DESIGN.md at the repo root — every value here comes from it.
+
+   The 1080² artwork is a different design system entirely
+   (assets/design-systems/warm-industrial-*.json) and is NOT described here.
+   Inter belongs to that artwork and appears in exactly one place in this
+   file: the @font-face block the preview canvas needs so the browser preview
+   sets the same type Chromium will.
    ============================================================= */
 
-/* ---- @font-face ---- */
+/* ---- Chrome faces: Archivo (variable wdth 62–125 / wght 100–900) ---- */
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+  font-display: swap;
+  src: url('/fonts/Archivo-latin.woff2') format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+  font-display: swap;
+  src: url('/fonts/Archivo-latin-ext.woff2') format('woff2');
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Archivo';
+  font-style: italic;
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+  font-display: swap;
+  src: url('/fonts/Archivo-Italic-latin.woff2') format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* ---- Galley face: Spline Sans Mono (variable wght 300–700) ---- */
+@font-face {
+  font-family: 'Spline Sans Mono';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url('/fonts/SplineSansMono-latin.woff2') format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Spline Sans Mono';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url('/fonts/SplineSansMono-latin-ext.woff2') format('woff2');
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
+}
+
+/* ---- Slide face: Inter. ARTWORK ONLY.
+   Declared here so the preview canvas sets the same type the Chromium
+   renderer does. It is applied in exactly one place —
+   `editor/preview/SlideCanvas.module.css .canvas` — and must never be
+   referenced by the chrome (DESIGN.md, The Width-Not-Family Rule). ---- */
 @font-face {
   font-family: 'Inter';
   font-weight: 400;
@@ -47,97 +119,89 @@
   src: url('/fonts/Inter-Black.ttf') format('truetype');
 }
 
-/* ---- CSS Custom Properties ---- */
+/* ---- Tokens (DESIGN.md §2–§4) ------------------------------------------ */
 :root {
-  /* Surfaces */
-  --surface: #fbf9f8;
-  --surface-dim: #dbd9d9;
-  --surface-bright: #fbf9f8;
-  --surface-low: #f5f3f3;
-  --surface-container: #efeded;
-  --surface-container-high: #eae8e7;
-  --surface-container-highest: #e4e2e2;
-  --surface-card: #ffffff;
+  color-scheme: light;
 
-  /* Text */
-  --on-surface: #1b1c1c;
-  --muted: #57423c;
-  --on-surface-variant: #57423c;
-  --inverse-surface: #303030;
-  --inverse-on-surface: #f2f0f0;
+  /* Ground */
+  --board: #fbfbf9;
+  --paper: #ffffff;
+  --tissue: rgba(252, 250, 242, 0.7);
 
-  /* Borders */
-  --outline: #8b716b;
-  --outline-variant: #dec0b8;
-  --border: #e4e2e2;
+  /* Ink. --graphite-soft is the FLOOR for text (5.21:1 on board).
+     --graphite-tint measures 4.16:1 and is for rules and ticks only. */
+  --graphite: #2b2b2b;
+  --graphite-soft: #6d6a62;
+  --graphite-tint: #7a7a76;
+  --process-blue: #1d63a8;
 
-  /* Accent / Primary */
-  --primary: #a2391a;
-  --primary-hover: #c3512f;
-  --on-primary: #ffffff;
-  --primary-container: #c3512f;
-  /* Soft terracotta tint — selection, focus glow, active nav, selected rows */
-  --primary-soft: #ffdbd1;
-  --primary-soft-hover: #ffd0c4;
-  /* Barely-there warm surface tint for hovered/selected list items */
-  --surface-tint: #fff5f2;
+  /* Marks */
+  --non-photo: rgba(127, 182, 232, 0.4);
+  --rubylith: #e8452e;
+  --rubylith-wash: rgba(232, 69, 46, 0.34);
+  --rubylith-wash-soft: rgba(232, 69, 46, 0.16);
+  /* The rubylith film is 3.8:1 and cannot carry a word. Every rubylith
+     *word* — the stamp, a held-out caption, an error line — is set in this
+     darker draw of the same ink (5.43:1 on board, 5.62:1 on paper). */
+  --rubylith-ink: #c0331f;
+  --grease: #c0331f;
+  --wax: #f5d97a;
+  --wax-ink: #3d3416;
+  --hatch: repeating-linear-gradient(45deg, transparent 0 5px, rgba(43, 43, 43, 0.07) 5px 10px);
 
-  /* Secondary */
-  --secondary: #555f6a;
-  --on-secondary: #ffffff;
-  --secondary-container: #d6e1ee;
+  /* Rules and edges — never text */
+  --hairline: #e2e2dd;
+  --rule: #cfcfca;
+  --tick: #c4c1b8;
+  --tissue-edge: #b9b6ac;
+  --tissue-ink: #8d8a80;
 
-  /* Error */
-  --error: #ba1a1a;
-  --on-error: #ffffff;
-  --error-container: #ffdad6;
-  --error-emphasis: #b71c1c; /* darker text for legibility on --error-container */
-  --error-border: #ef9a9a;
+  /* Shadows. Two, both physical (DESIGN.md §4). */
+  --shadow-waxed: 2px 3px 0 rgba(43, 43, 43, 0.14), 0 0 0 1px var(--hairline);
+  --shadow-hinged: -9px 0 22px rgba(43, 43, 43, 0.1);
 
-  /* Success (not in design system, added for UI feedback) */
-  --success: #2e7d32;
-  --on-success: #ffffff;
-  --success-container: #c8e6c9;
-  --success-emphasis: #1b5e20; /* darker text for legibility on --success-container */
-  --success-border: #a5d6a7;
+  /* Spacing — one 26px grid */
+  --sp-hair: 6px;
+  --sp-half: 13px;
+  --sp-unit: 26px;
+  --sp-double: 52px;
+  --grid: 26px;
 
-  /* Warning (not in design system, added for UI feedback) */
-  --warning: #7c5a00;
-  --warning-container: #fff3cd;
+  /* Type */
+  --font-chrome: 'Archivo', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-galley: 'Spline Sans Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  /* Artwork only — see the Inter note above. */
+  --font-slide: 'Inter', system-ui, -apple-system, sans-serif;
 
-  /* Spacing (8px grid) */
-  --sp-xs: 4px;
-  --sp-sm: 12px;
-  --sp-base: 8px;
-  --sp-md: 24px;
-  --sp-lg: 48px;
-  --sp-xl: 80px;
-  --sp-container: 32px;
-  --sp-gutter: 24px;
+  --wdth-title: 112;
+  --wdth-brand: 115;
+  --wdth-narrow: 92;
 
-  /* Radius */
-  --radius-sm: 0.25rem;
-  --radius: 0.5rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.5rem;
-  --radius-full: 9999px;
+  --fs-board-title: 23px;
+  --fs-brand: 14px;
+  --fs-body: 14px;
+  --fs-label: 13px;
+  --fs-galley: 12.5px;
+  --fs-field: 9px;
+  --fs-mark: 9px;
+  --fs-caption: 11px;
 
-  /* Typography */
-  --font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-size-xs: 12px;
-  --font-size-sm: 13px;
-  --font-size-base: 15px;
-  --font-size-md: 16px;
-  --font-size-lg: 18px;
+  --lh-board-title: 1.1;
+  --lh-body: 1.5;
+  --lh-label: 1.22;
+  --lh-galley: 1.86;
+  --lh-field: 1.4;
+
+  --ls-board-title: -0.02em;
+  --ls-brand: 0.05em;
+  --ls-label: -0.01em;
+  --ls-field: 0.17em;
+  --ls-mark: 0.14em;
 
   /* Layout */
-  --sidebar-width: 220px;
-  --nav-item-height: 40px;
-  /* Centered content column. Lists/tables fill it; forms self-limit narrower
-     and center within it. Wizard + builder opt out (fluid, full-bleed). */
-  --content-max: 1080px;
-  --content-narrow: 720px;
+  --tray-h: 78px;
+  --content-max: 1092px; /* 42 × 26 */
+  --content-narrow: 728px; /* 28 × 26 */
 }
 
 /* ---- Reset ---- */
@@ -150,17 +214,27 @@
 }
 
 html {
-  font-size: 15px;
+  font-size: var(--fs-body);
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
 
 body {
-  font-family: var(--font-family);
-  font-size: var(--font-size-base);
-  line-height: 1.5;
-  color: var(--on-surface);
-  background: var(--surface);
+  font-family: var(--font-chrome);
+  font-size: var(--fs-body);
+  font-weight: 500;
+  line-height: var(--lh-body);
+  color: var(--graphite);
+  background-color: var(--board);
+  /* The 26px non-photo blue lattice, printed under everything. It carries
+     alignment and nothing else (DESIGN.md, The Non-Photo Rule). */
+  background-image:
+    repeating-linear-gradient(to right, var(--non-photo) 0 1px, transparent 1px var(--grid)),
+    repeating-linear-gradient(to bottom, var(--non-photo) 0 1px, transparent 1px var(--grid));
+  background-attachment: fixed;
+  /* A workstation reads columns of digits: slide counts, ordinals, offsets,
+     dimensions. The artwork resets this — see SlideCanvas.module.css. */
+  font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -178,6 +252,7 @@ button,
 select,
 textarea {
   font: inherit;
+  color: inherit;
 }
 
 p,
@@ -196,13 +271,69 @@ ol {
 }
 
 a {
-  color: inherit;
-  text-decoration: none;
+  color: var(--process-blue);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
 }
 
-/* ---- Reduced motion: neutralize all animation/transition for users who ask.
-   Component-level @media queries (e.g. Skeleton) provide tailored fallbacks;
-   this is the global backstop. ---- */
+code,
+kbd,
+pre,
+samp {
+  font-family: var(--font-galley);
+}
+
+/* ---- Browser surfaces (DESIGN.md §7) ----------------------------------- */
+
+/* Text selection: wax, with the wax ink on it. */
+::selection {
+  background: var(--wax);
+  color: var(--wax-ink);
+}
+
+/* The caret is a pencil. */
+input,
+textarea,
+[contenteditable] {
+  caret-color: var(--graphite);
+}
+
+/* Focus: a square 2px process-blue ring, offset so it reads as a register
+   mark around the control rather than a border on it. */
+:focus-visible {
+  outline: 2px solid var(--process-blue);
+  outline-offset: 2px;
+}
+
+/* Scrollbars: board track, tick thumb, zero radius. */
+* {
+  scrollbar-color: var(--tick) transparent;
+  scrollbar-width: thin;
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--tick);
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--graphite-tint);
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* ---- Reduced motion: the reduced path is the end state, immediately.
+   The two authored moments (the compile, the hinge) each check the query
+   themselves and jump to their end state; this is the backstop for
+   everything else. ---- */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -212,41 +343,4 @@ a {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-}
-
-/* ---- Focus visible ring (terracotta) ---- */
-:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
-  border-radius: var(--radius-sm);
-}
-
-/* ---- Selection colour ---- */
-::selection {
-  background: var(--primary-soft);
-  color: var(--on-surface);
-}
-
-/* ---- Responsive: hide the API-health label on the collapsed icon rail.
-   (Global, because ApiHealthDot is a client island outside Astro's scoped CSS.) ---- */
-@media (max-width: 768px) {
-  .apiHealthLabel {
-    display: none;
-  }
-}
-
-/* ---- Scrollbar (subtle) ---- */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: var(--surface-container-highest);
-  border-radius: var(--radius-full);
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--outline-variant);
 }

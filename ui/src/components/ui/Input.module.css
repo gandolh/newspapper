@@ -1,58 +1,68 @@
 .field {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--sp-hair);
 }
 
+/* Field label: 9px mono, uppercase, tracked. A dimension callout, not a
+   sentence. */
 .label {
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  color: var(--on-surface);
+  font-family: var(--font-galley);
+  font-size: var(--fs-field);
+  font-weight: 500;
+  line-height: var(--lh-field);
+  letter-spacing: var(--ls-field);
+  text-transform: uppercase;
+  color: var(--graphite-soft);
 }
 
+/* The value is data, so it is set in the galley face. */
 .input {
-  height: 36px;
-  padding: 0 10px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface-card);
-  color: var(--on-surface);
-  font-size: var(--font-size-base);
-  font-family: var(--font-family);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  height: var(--sp-unit);
+  padding: 0 var(--sp-hair);
+  border: 1px solid var(--tick);
+  background: var(--paper);
+  color: var(--graphite);
+  font-family: var(--font-galley);
+  font-size: var(--fs-galley);
   width: 100%;
+  transition: border-color 120ms ease;
 }
 
 .input::placeholder {
-  color: var(--outline);
+  color: var(--graphite-soft);
+  opacity: 1;
 }
 
-.input:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--primary-soft);
+.input:hover:not(:disabled) {
+  border-color: var(--graphite-tint);
+}
+
+.input:focus-visible {
+  border-color: var(--process-blue);
 }
 
 .input:disabled {
-  opacity: 0.5;
   cursor: not-allowed;
-  background: var(--surface-low);
+  color: var(--graphite-soft);
+  background: var(--board);
 }
 
 .input--error {
-  border-color: var(--error);
+  border-color: var(--rubylith);
 }
 
-.input--error:focus {
-  box-shadow: 0 0 0 3px var(--error-container);
+.error,
+.hint {
+  font-family: var(--font-galley);
+  font-size: 10px;
+  line-height: 1.45;
 }
 
 .error {
-  font-size: 12px;
-  color: var(--error);
+  color: var(--rubylith-ink);
 }
 
 .hint {
-  font-size: 12px;
-  color: var(--muted);
+  color: var(--graphite-soft);
 }

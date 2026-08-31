@@ -1,26 +1,114 @@
 /**
- * Template interpreter — pure browser-safe module (no Node APIs).
+ * TNode interpreter — pure browser-safe module (no Node APIs).
  *
- * renderTemplate() → complete self-contained HTML document string.
- * resolveStyle()   → CSS property map for a single TStyle node (re-exported for the visual builder).
- * validateTemplateDoc() / validateSlideData() — throw with field-level messages on bad input.
+ * This is the compile target for `.wzd` documents (see `core/src/wizard/compile.ts`),
+ * not an authoring surface — the JSON template documents this used to interpret,
+ * and the type that described them, are gone (see decisions.md "The template
+ * system is removed").
+ *
+ * renderTemplate() → complete self-contained HTML document string from a TNode root.
+ * resolveStyle()   → CSS property map for a single TStyle node (also called directly
+ *                    by the browser preview — see decisions-engineering.md).
+ * validateSlideData() — throws if the data blob handed to renderTemplate isn't usable.
  */
 
-import type { TemplateDoc, TNode, TStyle, Theme, RenderTemplateOptions, FieldSpec } from '../types.js';
+import type { TNode, TStyle, Theme, RenderTemplateOptions } from '../types.js';
 
 // ---------------------------------------------------------------------------
 // Unitless CSS properties (no `px` suffix)
 // ---------------------------------------------------------------------------
 const UNITLESS = new Set([
-  'lineHeight', 'line-height',
-  'fontWeight', 'font-weight',
+  'lineHeight',
+  'line-height',
+  'fontWeight',
+  'font-weight',
   'opacity',
-  'flex', 'flexGrow', 'flex-grow',
-  'flexShrink', 'flex-shrink',
-  'zIndex', 'z-index',
+  'flex',
+  'flexGrow',
+  'flex-grow',
+  'flexShrink',
+  'flex-shrink',
+  'zIndex',
+  'z-index',
   'order',
-  'flexOrder', 'flex-order',
+  'flexOrder',
+  'flex-order',
 ]);
+
+// ---------------------------------------------------------------------------
+// Font-family fallback
+//
+// Theme typography tokens declare a bare family ("Inter"). resolveStyle emits
+// them as an *inline* style on the text node, which outranks the body rule
+// below — so a bare family means that when the face fails to load the slide
+// lands on Chromium's default, which is a **serif**. The product is a square
+// image of text; a silent switch to serif changes what ships.
+//
+// The stack is appended here rather than stored in the theme JSON: resolveStyle
+// is the single funnel every emitted declaration passes through (render and
+// browser preview both), so one theme added later cannot forget it.
+// ---------------------------------------------------------------------------
+
+/** CSS generic families. A stack ending in one of these is already complete. */
+const GENERIC_FAMILIES = new Set([
+  'serif',
+  'sans-serif',
+  'monospace',
+  'cursive',
+  'fantasy',
+  'system-ui',
+  'ui-serif',
+  'ui-sans-serif',
+  'ui-monospace',
+  'ui-rounded',
+  'math',
+  'emoji',
+  'fangsong',
+  'inherit',
+  'initial',
+  'unset',
+  'revert',
+  'revert-layer',
+]);
+
+/**
+ * What an unstacked family falls back to. Also the tail of the body rule in
+ * renderTemplate, so the inline styles and the document agree.
+ */
+const FALLBACK_FAMILY = 'sans-serif';
+
+/** Strip one layer of matching quotes from a family name. */
+function unquoteFamily(name: string): string {
+  const m = /^(['"])(.*)\1$/.exec(name);
+  return m ? m[2] : name;
+}
+
+/**
+ * Ensure a declared `font-family` ends in a generic.
+ *
+ * Every family the theme authored is passed through **verbatim** — this appends
+ * a tail and nothing else, and in particular does not add quotes. That is now a
+ * style choice rather than a constraint: it used to be load-bearing, because
+ * the render's typeface guard built its no-Inter control by renaming `'Inter'`
+ * in the HTML and quoting the inline family here would have renamed the text
+ * along with the `@font-face`, collapsing the control into its subject. The
+ * guard's control no longer works that way (brief 71) — it defines no
+ * `@font-face` at all and names Inter nowhere, asserted on the finished
+ * document — so quoting families here would be safe, if a reason to appears.
+ *
+ * A stack that already ends in a generic keeps it — that is how a future serif
+ * or monospace theme opts out of the sans tail.
+ */
+export function withFallbackFamily(value: string): string {
+  const families = value
+    .split(',')
+    .map((s) => s.trim())
+    .filter((s) => s !== '');
+  if (families.length === 0) return FALLBACK_FAMILY;
+  const last = unquoteFamily(families[families.length - 1] as string).toLowerCase();
+  if (GENERIC_FAMILIES.has(last)) return families.join(',');
+  return [...families, FALLBACK_FAMILY].join(',');
+}
 
 // ---------------------------------------------------------------------------
 // camelCase → kebab-case
@@ -103,15 +191,44 @@ export function resolveStyle(style: TStyle, theme: Theme): Record<string, string
     result[cssKey] = resolved; // explicit keys override typography expansion
   }
 
+  // Whatever produced it — typography token or an explicit `fontFamily` — the
+  // emitted stack must end in a generic, or the failure mode is Times.
+  const family = result['font-family'];
+  if (family !== undefined) result['font-family'] = withFallbackFamily(family);
+
   return result;
 }
 
 // ---------------------------------------------------------------------------
 // Convert a resolved style map to an inline CSS string
 // ---------------------------------------------------------------------------
+
+/**
+ * Escape a fragment destined for a double-quoted `style="…"` attribute.
+ *
+ * Style values are data — a theme token, a `$color.*` lookup, a `.wzd`-authored
+ * literal — and one containing a `"` would close the attribute early, leaving
+ * everything after it to be parsed as markup. Keys go through the same funnel:
+ * `toKebab` does not constrain them to identifiers.
+ *
+ * `&` is replaced first, or the escaping would re-escape its own output. Single
+ * quotes are deliberately left alone: the attribute is always double-quoted, so
+ * an apostrophe cannot close it, and `font-family:'Inter'` has to survive
+ * verbatim. `<` and `>` cannot terminate an attribute value either, but they
+ * are escaped anyway — cheap, and it keeps a value from reading as markup to
+ * anything less careful than a spec-compliant parser.
+ */
+function escapeStyle(fragment: string): string {
+  return fragment
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 function styleToString(styleMap: Record<string, string>): string {
   return Object.entries(styleMap)
-    .map(([k, v]) => `${k}:${v}`)
+    .map(([k, v]) => `${escapeStyle(k)}:${escapeStyle(v)}`)
     .join(';');
 }
 
@@ -166,25 +283,31 @@ function renderNode(node: TNode, data: Record<string, unknown>, theme: Theme): s
     const cssStr = styleToString(styleMap);
     const styleAttr = cssStr ? ` style="${cssStr}"` : '';
 
-    const items = (node.source === 'items' && Array.isArray(data['items']))
-      ? (data['items'] as unknown[])
-      : [];
+    const items =
+      node.source === 'items' && Array.isArray(data['items']) ? (data['items'] as unknown[]) : [];
 
-    const rendered = items.map((item, idx) => {
-      // Build per-item data context
-      const itemData: Record<string, unknown> = {
-        ...data,
-        i: idx + 1,
-        item: typeof item === 'object' && item !== null
-          ? { ...data['item'] as Record<string, unknown>, ...(item as Record<string, unknown>), toString: () => JSON.stringify(item) }
-          : item,
-      };
-      // Allow {{item}} to resolve to stringified value for non-object items
-      if (typeof item !== 'object' || item === null) {
-        (itemData['item'] as unknown) = item;
-      }
-      return node.children.map((c) => renderNode(c, itemData, theme)).join('');
-    }).join('');
+    const rendered = items
+      .map((item, idx) => {
+        // Build per-item data context
+        const itemData: Record<string, unknown> = {
+          ...data,
+          i: idx + 1,
+          item:
+            typeof item === 'object' && item !== null
+              ? {
+                  ...(data['item'] as Record<string, unknown>),
+                  ...(item as Record<string, unknown>),
+                  toString: () => JSON.stringify(item),
+                }
+              : item,
+        };
+        // Allow {{item}} to resolve to stringified value for non-object items
+        if (typeof item !== 'object' || item === null) {
+          (itemData['item'] as unknown) = item;
+        }
+        return node.children.map((c) => renderNode(c, itemData, theme)).join('');
+      })
+      .join('');
 
     return `<div${styleAttr}>${rendered}</div>`;
   }
@@ -207,7 +330,10 @@ function fontFaceCss(fontBaseUrl: string): string {
     ['900', 'Black'],
   ];
   return weights
-    .map(([weight, name]) => `@font-face{font-family:'Inter';font-weight:${weight};src:url('${fontBaseUrl}/Inter-${name}.ttf') format('truetype');}`)
+    .map(
+      ([weight, name]) =>
+        `@font-face{font-family:'Inter';font-weight:${weight};src:url('${fontBaseUrl}/Inter-${name}.ttf') format('truetype');}`,
+    )
     .join('\n');
 }
 
@@ -215,7 +341,7 @@ function fontFaceCss(fontBaseUrl: string): string {
 // renderTemplate — main export
 // ---------------------------------------------------------------------------
 export function renderTemplate(
-  doc: TemplateDoc,
+  root: TNode,
   data: Record<string, unknown>,
   theme: Theme,
   opts: RenderTemplateOptions,
@@ -228,72 +354,23 @@ export function renderTemplate(
     _date: (data['_date'] as string | undefined) ?? '',
   };
 
-  const bodyContent = renderNode(doc.root, fullData, theme);
+  const bodyContent = renderNode(root, fullData, theme);
   const fonts = fontFaceCss(opts.fontBaseUrl);
 
   return `<!doctype html><html lang="en"><head><meta charset="UTF-8"><style>${fonts}
 *{margin:0;padding:0;box-sizing:border-box;}
-body{margin:0;font-family:'Inter',sans-serif;}
+body{margin:0;font-family:'Inter',${FALLBACK_FAMILY};}
 </style></head><body><div style="width:1080px;height:1080px;overflow:hidden;display:flex;">${bodyContent}</div></body></html>`;
 }
 
 // ---------------------------------------------------------------------------
-// validateTemplateDoc — throws with field-level messages
+// validateSlideData — guards the `data` argument handed to renderTemplate.
+// There is no more per-template field spec to check required-ness against —
+// the wizard compiler resolves every binding before a TNode exists, so this
+// is just the non-null-object precondition renderTemplate's substitution needs.
 // ---------------------------------------------------------------------------
-export function validateTemplateDoc(doc: unknown): TemplateDoc {
-  if (typeof doc !== 'object' || doc === null) throw new Error('TemplateDoc must be an object');
-  const d = doc as Record<string, unknown>;
-
-  const errors: string[] = [];
-
-  if (typeof d['id'] !== 'string' || !d['id']) errors.push('id: required string');
-  if (typeof d['theme'] !== 'string' || !d['theme']) errors.push('theme: required string');
-  if (!['title', 'body', 'quote'].includes(d['family'] as string)) errors.push(`family: must be 'title'|'body'|'quote', got ${JSON.stringify(d['family'])}`);
-  if (typeof d['name'] !== 'string' || !d['name']) errors.push('name: required string');
-  if (!Array.isArray(d['fields'])) errors.push('fields: must be an array');
-  if (typeof d['sample'] !== 'object' || d['sample'] === null || Array.isArray(d['sample'])) errors.push('sample: must be an object');
-  if (typeof d['root'] !== 'object' || d['root'] === null) errors.push('root: must be a TNode object');
-
-  if (errors.length) throw new Error(`Invalid TemplateDoc:\n  ${errors.join('\n  ')}`);
-
-  // Validate fields array
-  if (Array.isArray(d['fields'])) {
-    for (let i = 0; i < (d['fields'] as unknown[]).length; i++) {
-      const f = (d['fields'] as unknown[])[i] as Record<string, unknown>;
-      if (typeof f['key'] !== 'string') errors.push(`fields[${i}].key: required string`);
-      if (typeof f['label'] !== 'string') errors.push(`fields[${i}].label: required string`);
-      if (!['text', 'textarea', 'list', 'pair'].includes(f['kind'] as string))
-        errors.push(`fields[${i}].kind: must be text|textarea|list|pair`);
-      if (typeof f['required'] !== 'boolean') errors.push(`fields[${i}].required: must be boolean`);
-    }
+export function validateSlideData(data: unknown): void {
+  if (typeof data !== 'object' || data === null || Array.isArray(data)) {
+    throw new Error('Slide data must be an object');
   }
-
-  if (errors.length) throw new Error(`Invalid TemplateDoc fields:\n  ${errors.join('\n  ')}`);
-
-  return doc as TemplateDoc;
-}
-
-// ---------------------------------------------------------------------------
-// validateSlideData — checks required fields per FieldSpec
-// ---------------------------------------------------------------------------
-export function validateSlideData(doc: TemplateDoc, data: unknown): void {
-  if (typeof data !== 'object' || data === null) throw new Error('Slide data must be an object');
-  const d = data as Record<string, unknown>;
-  const errors: string[] = [];
-
-  for (const field of doc.fields as FieldSpec[]) {
-    if (!field.required) continue;
-    const value = d[field.key];
-    if (value === undefined || value === null || value === '') {
-      errors.push(`${field.key}: required field is missing or empty`);
-    } else if (field.kind === 'list' && !Array.isArray(value)) {
-      errors.push(`${field.key}: expected array for list field`);
-    } else if (field.kind === 'pair') {
-      if (typeof value !== 'object' || Array.isArray(value)) {
-        errors.push(`${field.key}: expected object with {label, body} for pair field`);
-      }
-    }
-  }
-
-  if (errors.length) throw new Error(`Invalid slide data for template "${doc.id}":\n  ${errors.join('\n  ')}`);
 }

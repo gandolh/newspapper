@@ -24,7 +24,7 @@ export interface SelectProps {
 }
 
 /**
- * Select — Base UI `Select` styled with warm-industrial tokens.
+ * Select — Base UI `Select` styled as a board control: square, mono, tick-edged.
  * Replaces the native `<select>` with an accessible, fully styleable listbox.
  * Controlled via `value` + `onValueChange(value)` (was the native `onChange`).
  */
@@ -68,7 +68,11 @@ export default function Select({
           <BaseSelect.Value>
             {(val) => {
               const opt = options.find((o) => o.value === val);
-              return opt ? opt.label : <span className={styles.placeholder}>{placeholder ?? ''}</span>;
+              return opt ? (
+                opt.label
+              ) : (
+                <span className={styles.placeholder}>{placeholder ?? ''}</span>
+              );
             }}
           </BaseSelect.Value>
           <BaseSelect.Icon className={styles.chevron}>▾</BaseSelect.Icon>
@@ -83,7 +87,9 @@ export default function Select({
               {options.map((opt) => (
                 <BaseSelect.Item key={opt.value} value={opt.value} className={styles.item}>
                   <BaseSelect.ItemText className={styles.itemText}>{opt.label}</BaseSelect.ItemText>
-                  <BaseSelect.ItemIndicator className={styles.indicator}>✓</BaseSelect.ItemIndicator>
+                  <BaseSelect.ItemIndicator className={styles.indicator}>
+                    ✓
+                  </BaseSelect.ItemIndicator>
                 </BaseSelect.Item>
               ))}
             </BaseSelect.Popup>

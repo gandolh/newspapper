@@ -1,0 +1,211 @@
+/* The galley: the copy, waxed to the board beside the artwork.
+   Paper, a hairline, the hard short shadow, and a graphite tab carrying the
+   filename. The bottom edge is torn rather than cut — the copy continues. */
+.pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  background: var(--paper);
+  box-shadow: var(--shadow-waxed);
+}
+
+/* The tab is graphite; the rest of the rail stays paper, so the marks keep
+   their ink. */
+.bar {
+  display: flex;
+  align-items: stretch;
+  gap: var(--sp-half);
+  height: var(--sp-unit);
+  border-bottom: 1px solid var(--hairline);
+  flex-shrink: 0;
+}
+
+.barTitle {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--sp-half);
+  background: var(--graphite);
+  color: var(--board);
+  font-family: var(--font-galley);
+  font-size: var(--fs-field);
+  font-weight: 500;
+  letter-spacing: var(--ls-field);
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.barMarks {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-half);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.barSpacer {
+  flex: 1;
+}
+
+/* The overlay and the textarea must agree on every metric that affects where a
+   glyph lands, or the paint drifts from the caret. */
+.code {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.highlight,
+.input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: var(--sp-half);
+  border: 0;
+  font-family: var(--font-galley);
+  font-size: var(--fs-galley);
+  /* 1.86 of 12.5px ≈ 23.25; held at 23px so lint marks and wax sit on a line
+     without touching its neighbours, and the caret stays on the paint. */
+  line-height: 23px;
+  tab-size: 2;
+  white-space: pre;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+.highlight {
+  overflow: hidden;
+  color: var(--graphite);
+  background: transparent;
+  pointer-events: none;
+}
+
+.input {
+  overflow: auto;
+  resize: none;
+  color: transparent;
+  background: transparent;
+  caret-color: var(--graphite);
+  outline: none;
+}
+
+.input:focus-visible {
+  outline: none;
+}
+
+.input::selection {
+  background: var(--wax);
+  color: transparent;
+}
+
+/* The deckle: the galley's torn bottom edge. */
+.deckle {
+  flex-shrink: 0;
+  height: var(--sp-hair);
+  background:
+    repeating-linear-gradient(135deg, var(--paper) 0 4px, transparent 4px 5px), var(--hairline);
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% 40%,
+    96% 100%,
+    92% 30%,
+    88% 90%,
+    84% 25%,
+    80% 85%,
+    76% 35%,
+    72% 95%,
+    68% 30%,
+    64% 80%,
+    60% 25%,
+    56% 90%,
+    52% 35%,
+    48% 85%,
+    44% 30%,
+    40% 95%,
+    36% 25%,
+    32% 80%,
+    28% 35%,
+    24% 90%,
+    20% 30%,
+    16% 85%,
+    12% 25%,
+    8% 95%,
+    4% 35%,
+    0 80%
+  );
+}
+
+/* ---- Syntax follows casing, not category (DESIGN.md §5, The Galley) ----
+   lowercase document tags recede, capitalised components are the structure,
+   prop values are the one thing the markup itself names. */
+.text {
+  color: var(--graphite);
+}
+
+.punct {
+  color: var(--graphite-soft);
+}
+
+.component {
+  color: var(--graphite);
+  font-weight: 700;
+}
+
+.structure {
+  color: var(--graphite-soft);
+}
+
+.attr {
+  color: var(--graphite-soft);
+}
+
+.value {
+  color: var(--process-blue);
+}
+
+.comment {
+  color: var(--graphite-soft);
+  font-style: italic;
+}
+
+.binding {
+  color: var(--process-blue);
+  font-weight: 700;
+}
+
+/* ---- Lint marks: the same rubylith, at galley weight ---- */
+.error {
+  background: var(--rubylith-wash-soft);
+  text-decoration: underline wavy var(--rubylith);
+  text-underline-offset: 4px;
+}
+
+.warning {
+  text-decoration: underline wavy var(--graphite-tint);
+  text-underline-offset: 4px;
+}
+
+/* ---- The findings, ruled off the galley ---- */
+.findings {
+  flex: 0 0 auto;
+  max-height: 34%;
+  overflow: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--hairline);
+}
+
+.finding {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+  height: auto;
+  padding: 2px var(--sp-hair);
+  justify-content: flex-start;
+  text-align: left;
+  font-weight: 400;
+}

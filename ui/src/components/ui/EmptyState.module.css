@@ -1,35 +1,43 @@
+/* An empty board still shows its register: the frame is drawn, the copy sits
+   inside it, and the frame is what says "this is where a thing goes". */
 .container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: var(--sp-xl) var(--sp-container);
-  gap: var(--sp-sm);
-  min-height: 360px;
+  padding: var(--sp-double) var(--sp-unit);
+  gap: var(--sp-half);
+  min-height: calc(var(--sp-unit) * 12);
+  outline: 1px dashed var(--tick);
+  outline-offset: calc(var(--sp-half) * -1);
 }
 
 .icon {
-  font-size: 40px;
+  font-family: var(--font-galley);
+  font-size: var(--sp-unit);
   line-height: 1;
-  color: var(--outline-variant);
-  margin-bottom: var(--sp-xs);
+  /* graphite-tint measures 4.16:1 and is never text, glyph or not
+     (The Ink Floor Rule). */
+  color: var(--graphite-soft);
 }
 
 .title {
-  font-size: 22px;
+  font-family: var(--font-chrome);
+  font-size: var(--fs-board-title);
   font-weight: 800;
-  letter-spacing: -0.03em;
-  color: var(--on-surface);
+  font-variation-settings: 'wdth' var(--wdth-title);
+  letter-spacing: var(--ls-board-title);
+  line-height: var(--lh-board-title);
+  color: var(--graphite);
 }
 
 .hint {
-  font-size: var(--font-size-base);
-  color: var(--muted);
-  max-width: 360px;
-  line-height: 1.6;
+  font-size: var(--fs-body);
+  color: var(--graphite-soft);
+  max-width: 44ch;
 }
 
 .action {
-  margin-top: var(--sp-base);
+  margin-top: var(--sp-half);
 }

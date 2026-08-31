@@ -1,0 +1,46 @@
+.wrap {
+  width: calc(var(--sp-unit) * 14);
+  max-width: 100%;
+}
+
+.brand {
+  margin: 0 0 var(--sp-hair);
+  font-family: var(--font-chrome);
+  font-size: var(--fs-board-title);
+  font-weight: 800;
+  font-variation-settings: 'wdth' var(--wdth-title);
+  letter-spacing: var(--ls-board-title);
+  line-height: var(--lh-board-title);
+  color: var(--graphite);
+}
+
+.tagline {
+  margin: 0 0 var(--sp-unit);
+  font-family: var(--font-galley);
+  font-size: var(--fs-field);
+  font-weight: 500;
+  letter-spacing: var(--ls-field);
+  text-transform: uppercase;
+  color: var(--graphite-soft);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-half);
+}
+
+/* A finding, in grease, on a leader rule. */
+.error {
+  margin: 0;
+  padding-left: var(--sp-half);
+  border-left: 2px solid var(--grease);
+  font-family: var(--font-galley);
+  font-size: 10px;
+  line-height: 1.45;
+  color: var(--grease);
+}
+
+.submit {
+  margin-top: var(--sp-hair);
+}

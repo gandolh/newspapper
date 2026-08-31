@@ -1,0 +1,73 @@
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-hair);
+  margin-bottom: var(--sp-half);
+}
+
+.file {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* A finding, not a coloured banner. */
+.error {
+  margin: 0 0 var(--sp-half);
+  padding-left: var(--sp-half);
+  border-left: 2px solid var(--grease);
+  font-family: var(--font-galley);
+  font-size: 10px;
+  line-height: 1.45;
+  color: var(--grease);
+}
+
+/* Every thumbnail at one fixed scale on a shared baseline, so the grid is a
+   true comparison (The Fixed Scale Rule). */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: var(--sp-half);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 50vh;
+  overflow: auto;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  height: auto;
+  padding: 4px;
+  text-align: left;
+  align-items: stretch;
+}
+
+.thumb {
+  width: 100%;
+  height: 104px; /* 4 × 26 */
+  object-fit: cover;
+  background: var(--board);
+  box-shadow: 0 0 0 1px var(--hairline);
+}
+
+.name {
+  font-family: var(--font-galley);
+  font-size: var(--fs-field);
+  letter-spacing: var(--ls-field);
+  text-transform: uppercase;
+  color: var(--graphite-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}

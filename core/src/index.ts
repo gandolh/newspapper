@@ -10,29 +10,14 @@ export * from './storage/index.js';
 export { fetchBody, stripHtml } from './scrape/body.js';
 export { fetchFeed } from './scrape/rss.js';
 export type { RssItem } from './scrape/rss.js';
-export { scrape, pingSource } from './scrape/index.js';
-export type { ScrapeOptions, ScrapeResult, ScrapeProgressEvent, PingResult } from './scrape/index.js';
-
-// Compose
-export {
-  OllamaClient,
-  OllamaError,
-  composePost,
-  generateCaption,
-  slideAi,
-  parseSlide,
-  parsePost,
-  ComposeParseError,
-  DEFAULT_PROMPT,
-  VARIANT_SHAPES,
-  buildUserPrompt,
-} from './compose/index.js';
+export { searchArticles, pingSource } from './scrape/index.js';
 export type {
-  OllamaConfig,
-  ComposePostOptions,
-  CaptionResult,
-  SlideAiAction,
-} from './compose/index.js';
+  SearchOptions,
+  SearchResult,
+  ScrapedArticle,
+  ScrapeProgressEvent,
+  PingResult,
+} from './scrape/index.js';
 
 // Util
 export { loadConfig } from './util/config.js';
@@ -46,17 +31,13 @@ export * from './render/index.js';
 // Themes (Node-only)
 export { loadTheme, listThemes } from './themes/index.js';
 
-// Template registry (Node-only) and interpreter
-export {
-  renderTemplate,
-  resolveStyle,
-  validateTemplateDoc,
-  validateSlideData,
-} from './templates/interpreter.js';
-export {
-  listTemplates,
-  loadTemplate,
-  saveTemplate,
-  deleteTemplate,
-  templatesForFamily,
-} from './templates/registry.js';
+// Newspapper Wizard (.wzd) — parser, formatter, linter, component catalogue
+export * from './wizard/index.js';
+
+// TNode interpreter — the compile target `.wzd` documents render through.
+// The JSON template documents, their registry, and `/builder` are gone; see
+// decisions.md "The template system is removed".
+export { renderTemplate, resolveStyle, validateSlideData } from './templates/interpreter.js';
+
+// Image uploads (Node-only) — store paths, Sharp normalization, ref resolution
+export * from './uploads/index.js';

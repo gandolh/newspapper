@@ -1,71 +1,142 @@
 ---
-summary: Dated snapshot — v3 shipped and is now being deliberately dismantled; the Wizard rebuild is specced but not started.
-updated: 2026-08-27
+summary: Dated snapshot — the Wizard rebuild is complete and documented, gates green at 657 tests across 46 files, plus the six known strays left in the tree and the two questions still open.
+updated: 2026-08-31
 ---
 
 # Status
 
-_Snapshot: 2026-08-27_
+_Snapshot: 2026-08-31. Branch `wizard-rebuild`, not yet merged to `main`._
 
-**Where things stand.** v3 is complete, verified, and **being replaced**. A
-grilling session on 2026-08-27 pivoted the product: Newspapper no longer
-generates copy with a model, and posts are now authored as
-[Newspapper Wizard](./markup.md) documents in a split-screen editor. The design
-is settled end to end — see [decisions.md](./decisions.md) — and **no code has
-been written against it yet**. No briefs are filed.
+> **Twenty-one of the twenty-two Wizard-rebuild briefs are in
+> [`../briefs/done/`](../briefs/done/); the twenty-second is 63, this
+> documentation pass, and it lands with the commit that carries this line.**
+> The final gate is verified green:
+> `npm run build` (which runs `fmt:check`, then typechecks all three
+> workspaces), **657 tests across 46 files**, `npm run lint` over all three
+> workspaces, and `bash corpus/lint.sh`.
 
-The v3 code still runs. Treat the descriptive wiki pages
-([architecture.md](./architecture.md), [api.md](./api.md), [data.md](./data.md),
-[modules.md](./modules.md), [design-systems.md](./design-systems.md)) as
-accurate for *what exists today* and superseded in intent by
-[decisions.md](./decisions.md). They get rewritten as the work lands, not before.
+## Where things stand
 
-## What the pivot removes
+The pivot has landed and the documentation has caught up with it. Newspapper no
+longer generates copy with a model; a post is authored as a
+[Newspapper Wizard](./markup.md) document in a split-screen editor and compiled
+to JPEG slides. The `.wzd` language, its compiler, the editor, auth, uploads,
+the article library, JPEG output and the three-theme family are all built and
+tested. The chrome is The Mechanical on every route, the rendered JPEG is set in
+Inter, and the UI is a plain Vite + React SPA — Astro was removed once it was
+clear that every page was fully hydrated behind auth, so nothing it offered was
+in use.
+
+Brief 63 (this pass) rewrote the root `README.md` and `CLAUDE.md`, moved
+`PRODUCT.md` and `DESIGN.md` into the corpus, and reconciled every descriptive
+wiki page with the shipped code. The wiki no longer describes Ollama, compose,
+the template system, `/builder`, PNG output, the four-step wizard or Astro as
+anything but history.
+
+## The thread worth reading first
+
+[green-because-nothing-ran.md](./green-because-nothing-ran.md) — eight times a
+tool in this repo reported success while reaching nothing. A DB path the tests
+set but nothing read; a `.gitignore` rule that would have hidden a module; a
+vitest `include` omitting `ui/`; a workspace bundled but never typechecked; a
+formatter with no config; a test control that collapsed into its subject; an
+ESLint config with **zero rules enabled**; and a test whose import resolved only
+through a hoisted optional dependency.
+
+Most of this project's real defects were not in the code. They were in the
+things that were supposed to be checking it.
+
+## What the pivot removed
 
 Compose and the whole Ollama client · the `/prompt` page and `data/prompt.md` ·
 slide-level AI · generated captions · `TemplateDoc`, the nine template JSON
-files, the registry, and `/builder` · PNG output · the four-step wizard's
-scrape and compose steps.
+files, the registry, and `/builder` · PNG output · the four-step wizard ·
+Astro.
 
-## What the pivot adds
+## What it added
 
 The `.wzd` language, its parser, formatter, and linter · a split-screen editor
 (source · preview · inspector + component palette) · a fixed semantic component
 library · image upload and processing via Sharp · username/password auth ·
 keyword-filtered RSS with a saved-article library · `draft`/`published` states ·
-two more themes.
+two more themes · The Mechanical · a hand-rolled router.
 
-## What carries over untouched
+## What carried over untouched
 
 `TNode` and the template interpreter (now a compile target, not an authoring
 surface) · the theme token system · Playwright Chromium rendering · SQLite
 storage · the npm workspace layout · the shared UI primitives on Base UI.
 
+## Known strays
+
+Found while writing the docs, left in the tree because brief 63 changes
+documentation only. None affects a shipped path.
+
+| Stray | What it is |
+|---|---|
+| `infra/docker-compose.yml` | Tracked, and defines **only** an Ollama service. Nothing starts or contacts it. |
+| `core/src/util/config.ts` | `loadConfig()` is exported from the core barrel and **called nowhere**. Its eight env vars do nothing except `THEME`, which `storage/settings.ts` reads separately. |
+| Root `tsconfig.json` | `include: ["src/**/*"]` points at an untracked root `src/` left over from v2. No workspace uses it. |
+| `api`'s `start` script | `node dist/server.js`, but `api`'s build is `tsc --noEmit` and emits no `dist/`. |
+| `api/src/server.ts` | The SPA fallback still tries a per-route `index.html` first and its comment says "Astro directory output". Harmless — the root `index.html` fallback is what serves — but it describes a build that is gone. |
+| Root `src/`, `plans/`, `data/sources.json` | v1/v2 residue. `plans/swarm/reference/` is deliberate reference material; the rest is not. |
+
 ## Briefs
 
-Thirteen briefs in [`../briefs/todo/`](../briefs/todo/), in dependency waves.
-Each is self-contained — open only the one directing your work.
+Twenty-one Wizard-rebuild briefs (51–72) are in
+[`../briefs/done/`](../briefs/done/) with an outcome note each, alongside the
+thirteen v3 ones. Only **63** — this pass — remains in
+[`../briefs/todo/`](../briefs/todo/), and it moves across when this work is
+committed. Each brief is self-contained: open only the one directing your work.
+
+Waves below are the **executed** order, which differs from the originally filed
+one: file-ownership collisions the dependency graph alone did not show forced
+several briefs apart. `core/src/types.ts` was claimed by both 51 and 52,
+`core/src/index.ts` by 51, 53 and 58, `.env.example` by 55 and 56, and the
+nav/sidebar by 58, 62 and 64.
+
+```
+51 → 52‖53 → 54‖55‖56‖60 → 57‖58‖61 → 59‖65 → 62 → 64 → 68‖71 → 70‖72 → 63
+```
 
 | Wave | # | Brief | Depends on |
 |---|---|---|---|
-| 0 | 51 | Strip the AI surface | — |
-| 0 | 52 | SQLite schema for authored posts | — |
-| 1 | 53 | Wizard parser, formatter, linter | — |
-| 1 | 54 | Component library + compile to `TNode` | 53 |
-| 1 | 55 | Single-account authentication | 52 |
-| 1 | 56 | Image uploads + Sharp pipeline | 52 |
-| 2 | 57 | Render to JPEG + optimize on publish | 56 |
-| 2 | 58 | Retire templates and `/builder` | 54 |
-| 3 | 59 | The split-screen editor | 53, 54, 58 |
+| 1 | 51 | Strip the AI surface | — |
+| 2 | 52 | SQLite schema for authored posts | — |
+| 2 | 53 | Wizard parser, formatter, linter | — |
+| 3 | 54 | Component library + compile to `TNode` | 53 |
+| 3 | 55 | Single-account authentication | 52 |
+| 3 | 56 | Image uploads + Sharp pipeline | 52 |
 | 3 | 60 | Keyword RSS + article library | 52 |
-| 3 | 61 | Themes 2 and 3 | 54 |
-| 3 | 62 | API surface and page map | 55, 59, 60 |
-| 4 | 63 | Documentation pass | everything |
+| 4 | 57 | Render to JPEG + optimize on publish | 56 |
+| 4 | 58 | Retire templates and `/builder` | 54 |
+| 4 | 61 | Themes 2 and 3 | 54 |
+| 5 | 59 | The split-screen editor | 53, 54, 58 |
+| 5 | 65 | Finish the theme family — ramp, rename, guard | 61 |
+| 6 | 62 | API surface and page map | 55, 59, 60 |
+| 7 | 64 | Rebuild the app chrome as The Mechanical | 59, 62 |
+| 7 | 66 | Fix the render typeface | — |
+| 8 | 67 | The slide's font fallback stack | 66 |
+| 8 | 69 | Two loose ends in `ui/` | 64 |
+| 9 | 68 | `fmt` and `lint` cover what they claim | — |
+| 9 | 71 | The typeface guard's control; escaping style values | 67 |
+| 10 | 70 | Replace Astro with Vite + React | 68, 69 |
+| 10 | 72 | The React effect findings 68 suppressed | 68 |
+| 11 | 63 | Documentation pass | everything |
 
-Two ordering constraints that will bite if ignored: **58 must not start before
-54 lands** (until the component library renders, the templates are the only
-thing that renders at all), and **63 runs last**, when the code it describes
-exists.
+Three ordering constraints, recorded because they would have bitten: **58 could
+not start before 54 landed** (until the component library rendered, the
+templates were the only thing that rendered at all); **64 ran after 59 and 62**,
+because the editor's structure is what the world had to clothe; and **63 ran
+last**, when the code it describes existed — which also meant after **70**,
+since documenting Astro immediately before removing it would have wasted the
+pass.
 
-The 13 v3 briefs are archived in [`../briefs/done/`](../briefs/done/) —
+The 13 v3 briefs are also archived in [`../briefs/done/`](../briefs/done/) —
 historical, and written against a product that no longer exists.
+
+## What is not done
+
+- The branch is not merged and nothing has been pushed.
+- Two things remain open: [open-questions.md](./open-questions.md).
+- The strays above.

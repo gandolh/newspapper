@@ -6,15 +6,12 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   padding?: 'sm' | 'md' | 'lg' | 'none';
 }
 
-export default function Card({
-  children,
-  padding = 'md',
-  className = '',
-  ...rest
-}: CardProps) {
-  const cls = [styles.card, styles[`card--pad-${padding}`], className]
-    .filter(Boolean)
-    .join(' ');
+/**
+ * A slip waxed to the board. Paper, a hairline, and the hard short shadow.
+ * Positioned, so a `TissueCorner` or `CropMarks` can be laid on it.
+ */
+export default function Card({ children, padding = 'md', className = '', ...rest }: CardProps) {
+  const cls = [styles.card, styles[`card--pad-${padding}`], className].filter(Boolean).join(' ');
 
   return (
     <div className={cls} {...rest}>

@@ -1,5 +1,5 @@
 /**
- * Render orchestration: HTML strings → PNGs → output directory + ZIP export.
+ * Render orchestration: HTML strings → JPEGs → output directory + ZIP export.
  *
  * Re-exports all public symbols from the render sub-modules so callers can
  * import everything from '@newspapper/core/render' (or directly from the
@@ -9,7 +9,7 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { zipSync } from 'fflate';
-import { htmlToPng } from './screenshot.js';
+import { DEFAULT_JPEG_QUALITY, htmlToJpeg } from './screenshot.js';
 import { nextOutputDir, writeRun } from './output.js';
 
 // ---- Public types ----
@@ -17,7 +17,7 @@ import { nextOutputDir, writeRun } from './output.js';
 export interface RenderedRun {
   /** Absolute path to the output directory. */
   dir: string;
-  /** Absolute paths to each written file, PNGs first in slide order. */
+  /** Absolute paths to each written file, JPEGs first in slide order. */
   files: string[];
 }
 
@@ -30,17 +30,26 @@ export interface RenderSlidesOptions {
   caption?: string;
   /** Override default <repo>/output root; useful for tests. */
   outputRoot?: string;
-  /** Called after each PNG is written: (done, total). */
+  /** JPEG quality, 0–100. Defaults to draft quality (92) — size only matters at publish. */
+  quality?: number;
+  /** Called after each slide is written: (done, total). */
   onProgress?: (done: number, total: number) => void;
 }
 
 // ---- Orchestration ----
 
+/** Zero-padded slide filename: slide-01.jpg, slide-02.jpg, … */
+function slideFileName(index: number, total: number): string {
+  const width = Math.max(2, String(total).length);
+  return `slide-${String(index).padStart(width, '0')}.jpg`;
+}
+
 /**
- * Render an array of fully self-contained HTML strings to PNGs and write them
- * (along with slides.json and an optional caption.txt) to a fresh run dir.
+ * Render an array of fully self-contained HTML strings to JPEGs and write
+ * them (along with slides.json and an optional caption.txt) to a fresh run
+ * dir. No PNG is ever written.
  *
- * PNGs are rendered sequentially for predictable memory usage and ordered
+ * Slides are rendered sequentially for predictable memory usage and ordered
  * progress events.
  */
 export async function renderSlides(
@@ -48,16 +57,17 @@ export async function renderSlides(
   opts: RenderSlidesOptions,
 ): Promise<RenderedRun> {
   const dir = nextOutputDir(opts.date, opts.outputRoot);
+  const quality = opts.quality ?? DEFAULT_JPEG_QUALITY;
 
-  const pngBuffers: Buffer[] = [];
+  const jpegBuffers: Buffer[] = [];
   for (let i = 0; i < html.length; i++) {
-    const buf = await htmlToPng(html[i]);
-    pngBuffers.push(buf);
+    const buf = await htmlToJpeg(html[i], { quality });
+    jpegBuffers.push(buf);
     opts.onProgress?.(i + 1, html.length);
   }
 
   const outputFiles: { name: string; data: Buffer | string }[] = [
-    ...pngBuffers.map((buf, i) => ({ name: `${i + 1}.png`, data: buf })),
+    ...jpegBuffers.map((buf, i) => ({ name: slideFileName(i + 1, html.length), data: buf })),
     { name: 'slides.json', data: JSON.stringify(opts.slidesJson, null, 2) },
   ];
 
@@ -90,7 +100,8 @@ export async function zipRun(dir: string): Promise<Buffer> {
 // ---- Re-exports ----
 
 export { getBrowser, closeBrowser } from './browser.js';
-export { htmlToPng } from './screenshot.js';
-export type { HtmlToPngOptions } from './screenshot.js';
+export { htmlToPng, htmlToJpeg, DEFAULT_JPEG_QUALITY } from './screenshot.js';
+export type { HtmlToPngOptions, HtmlToJpegOptions } from './screenshot.js';
 export { nextOutputDir, writeRun } from './output.js';
 export type { OutputFile } from './output.js';
+export { resolveImageUrls } from './resolve-images.js';

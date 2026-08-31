@@ -1,13 +1,21 @@
 import { useEffect, useState } from 'react';
+import { Mark } from './ui';
+import styles from './ApiHealthDot.module.css';
 
 type Status = 'loading' | 'online' | 'offline';
 
+/**
+ * Whether the API answers. Said as a mark — a tick and a word — not as a
+ * coloured dot: a hue on its own is not a state in this system.
+ */
 export default function ApiHealthDot() {
   const [status, setStatus] = useState<Status>('loading');
 
   async function check() {
     try {
-      const res = await fetch('/api/health', { signal: AbortSignal.timeout(5000) });
+      const res = await fetch('/api/health', {
+        signal: AbortSignal.timeout(5000),
+      });
       setStatus(res.ok ? 'online' : 'offline');
     } catch {
       setStatus('offline');
@@ -15,45 +23,25 @@ export default function ApiHealthDot() {
   }
 
   useEffect(() => {
-    check();
-    const id = setInterval(check, 30_000);
+    // Kept as an effect. This is the case the rule's own message sanctions:
+    // subscribing to an external system — /api/health, polled — where the
+    // status genuinely is not knowable at first render. `loading` is the honest
+    // first paint, not a placeholder waiting to be corrected.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void check();
+    const id = setInterval(() => void check(), 30_000);
     return () => clearInterval(id);
   }, []);
 
-  const dotColor =
-    status === 'online'
-      ? 'var(--success)'
-      : status === 'offline'
-        ? 'var(--error)'
-        : 'var(--outline)';
-
-  const label = status === 'online' ? 'API online' : status === 'offline' ? 'API offline' : 'Checking…';
+  const label =
+    status === 'online' ? 'API online' : status === 'offline' ? 'API offline' : 'Checking…';
+  const word = status === 'online' ? 'API up' : status === 'offline' ? 'API down' : 'API …';
 
   return (
-    <span
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '6px',
-        fontSize: '12px',
-        color: 'var(--muted)',
-        padding: '0 4px',
-      }}
-      aria-label={label}
-      title={label}
-    >
-      <span
-        style={{
-          display: 'inline-block',
-          width: '7px',
-          height: '7px',
-          borderRadius: '50%',
-          backgroundColor: dotColor,
-          flexShrink: 0,
-          transition: 'background-color 0.3s ease',
-        }}
-      />
-      <span className="apiHealthLabel">{label}</span>
+    <span className={styles.probe} title={label}>
+      <Mark tone={status === 'offline' ? 'rubylith' : 'dim'} aria-label={label}>
+        <span className={styles.label}>{word}</span>
+      </Mark>
     </span>
   );
 }

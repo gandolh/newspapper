@@ -1,0 +1,117 @@
+/* The tissue: a translucent overlay hinged over the board, carrying the notes
+   that must never print. It stays translucent on purpose — the non-photo grid
+   has to read through it, because an opaque sheet is a panel and a panel is
+   the wrong object. One of the system's two shadows. */
+.inspector {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-unit);
+  padding: var(--sp-unit) var(--sp-half);
+  background: var(--tissue);
+  border-left: 1.5px solid var(--tissue-edge);
+  box-shadow: var(--shadow-hinged);
+  backdrop-filter: blur(1.2px);
+  transform-origin: top center;
+}
+
+/* The hinge itself. */
+.hinge {
+  height: 0;
+  border-top: 1px dashed var(--tissue-edge);
+  margin: calc(var(--sp-half) * -1) 0 0;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-half);
+}
+
+.sectionTitle {
+  margin: 0;
+  font-family: var(--font-galley);
+  font-size: var(--fs-field);
+  font-weight: 500;
+  letter-spacing: var(--ls-field);
+  text-transform: uppercase;
+  color: var(--graphite-soft);
+}
+
+.sectionHint {
+  margin: 0;
+  font-family: var(--font-galley);
+  font-size: 10px;
+  line-height: 1.45;
+  color: var(--graphite-soft);
+}
+
+/* The selected node's path, in the mono the tissue writes in. */
+.breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0;
+}
+
+.crumb {
+  font-family: var(--font-galley);
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0 4px;
+  height: 18px;
+}
+
+.crumb::after {
+  content: '/';
+  margin-left: 4px;
+  color: var(--graphite-soft);
+}
+
+.crumb:last-child::after {
+  content: '';
+}
+
+/* The node's name, at Board Title size — the heaviest type in the chrome. */
+.headline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-hair);
+}
+
+.nodeName {
+  font-family: var(--font-chrome);
+  font-size: var(--fs-board-title);
+  font-weight: 800;
+  font-variation-settings: 'wdth' var(--wdth-title);
+  letter-spacing: var(--ls-board-title);
+  line-height: var(--lh-board-title);
+  color: var(--graphite);
+}
+
+.description {
+  font-size: var(--fs-label);
+  line-height: 1.4;
+  color: var(--graphite-soft);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.prop {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.prop > :first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.reset {
+  flex-shrink: 0;
+}

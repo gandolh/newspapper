@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { resolveStyle, renderTemplate, validateTemplateDoc, validateSlideData } from './interpreter.js';
-import type { Theme, TemplateDoc, RenderTemplateOptions } from '../types.js';
+import { resolveStyle, renderTemplate, validateSlideData } from './interpreter.js';
+import type { Theme, TNode, RenderTemplateOptions } from '../types.js';
 
 // ---------------------------------------------------------------------------
 // Minimal theme fixture
@@ -31,7 +31,16 @@ const theme: Theme = {
     },
   },
   rounded: { md: '0.75rem', sm: '0.25rem' },
-  spacing: { md: '24px', lg: '48px', sm: '12px', xl: '80px', xs: '4px', base: '8px', gutter: '24px', 'container-margin': '32px' },
+  spacing: {
+    md: '24px',
+    lg: '48px',
+    sm: '12px',
+    xl: '80px',
+    xs: '4px',
+    base: '8px',
+    gutter: '24px',
+    'container-margin': '32px',
+  },
   shapes: { borderRadius: '0.5rem', borderWidth: '2px' },
 };
 
@@ -57,7 +66,9 @@ describe('resolveStyle', () => {
   });
 
   it('throws for unknown token', () => {
-    expect(() => resolveStyle({ color: '$color.nonexistent' }, theme)).toThrow('Unknown color token');
+    expect(() => resolveStyle({ color: '$color.nonexistent' }, theme)).toThrow(
+      'Unknown color token',
+    );
   });
 
   it('converts camelCase to kebab-case', () => {
@@ -83,7 +94,7 @@ describe('resolveStyle', () => {
 
   it('expands typography token', () => {
     const result = resolveStyle({ typography: 'display' }, theme);
-    expect(result['font-family']).toBe('Inter');
+    expect(result['font-family']).toBe('Inter,sans-serif');
     expect(result['font-size']).toBe('80px');
     expect(result['font-weight']).toBe('800');
     expect(result['line-height']).toBe('1.0');
@@ -97,7 +108,9 @@ describe('resolveStyle', () => {
   });
 
   it('throws for unknown typography token', () => {
-    expect(() => resolveStyle({ typography: 'nonexistent' }, theme)).toThrow('Unknown typography token');
+    expect(() => resolveStyle({ typography: 'nonexistent' }, theme)).toThrow(
+      'Unknown typography token',
+    );
   });
 
   it('throws for unknown token group', () => {
@@ -106,27 +119,17 @@ describe('resolveStyle', () => {
 });
 
 // ---------------------------------------------------------------------------
-// renderTemplate tests
+// renderTemplate tests — root is a bare TNode now, no wrapping document
 // ---------------------------------------------------------------------------
 describe('renderTemplate', () => {
-  const simpleDoc: TemplateDoc = {
-    id: 'test-simple',
-    theme: 'test',
-    family: 'title',
-    name: 'Test Simple',
-    fields: [{ key: 'text', label: 'Text', kind: 'textarea', required: true }],
-    sample: { text: 'Hello' },
-    root: {
-      kind: 'box',
-      style: { width: 1080, height: 1080, display: 'flex' },
-      children: [
-        { kind: 'text', text: '{{text}}' },
-      ],
-    },
+  const simpleRoot: TNode = {
+    kind: 'box',
+    style: { width: 1080, height: 1080, display: 'flex' },
+    children: [{ kind: 'text', text: '{{text}}' }],
   };
 
   it('returns a complete HTML document', () => {
-    const html = renderTemplate(simpleDoc, { text: 'Hello World' }, theme, opts);
+    const html = renderTemplate(simpleRoot, { text: 'Hello World' }, theme, opts);
     expect(html).toContain('<!doctype html>');
     expect(html).toContain('<html');
     expect(html).toContain('<head>');
@@ -135,169 +138,165 @@ describe('renderTemplate', () => {
   });
 
   it('HTML-escapes substituted values', () => {
-    const html = renderTemplate(simpleDoc, { text: '<script>alert(1)</script>' }, theme, opts);
+    const html = renderTemplate(simpleRoot, { text: '<script>alert(1)</script>' }, theme, opts);
     expect(html).toContain('&lt;script&gt;');
     expect(html).not.toContain('<script>');
   });
 
-  it('substitutes _index and _total built-ins', () => {
-    const doc: TemplateDoc = {
-      ...simpleDoc,
-      root: {
-        kind: 'box',
-        children: [
-          { kind: 'text', text: '{{_index}} of {{_total}}' },
-        ],
+  // -------------------------------------------------------------------------
+  // Style values reach a double-quoted `style="…"` attribute, so a value
+  // carrying a `"` would close it and everything after would parse as markup.
+  // Not reachable from the themes on disk — this is the guard that keeps it
+  // that way.
+  // -------------------------------------------------------------------------
+  describe('escapes style values into the style attribute', () => {
+    /** A theme whose tokens carry the characters that break out of an attribute. */
+    const hostileTheme: Theme = {
+      ...theme,
+      colors: {
+        ...theme.colors,
+        breakout: '#fff" onload="alert(1)',
+        ampersand: 'url(x.png?a=1&b=2)',
+        angled: '<script>',
       },
     };
-    const html = renderTemplate(doc, {}, theme, { index: 3, total: 7, fontBaseUrl: '/f' });
+
+    /** The value of every `style` attribute in the document, unparsed. */
+    function styleAttrs(html: string): string[] {
+      return [...html.matchAll(/ style="([^"]*)"/g)].map((m) => m[1] ?? '');
+    }
+
+    it('a token containing a double quote cannot leave the attribute', () => {
+      const root: TNode = { kind: 'box', style: { background: '$color.breakout' } };
+      const html = renderTemplate(root, {}, hostileTheme, opts);
+
+      expect(html).toContain('background:#fff&quot; onload=&quot;alert(1)');
+      expect(html, 'the token escaped the attribute and became markup').not.toContain('onload="');
+      // The div is one tag with one attribute — parse the attribute out and
+      // nothing of the token is left loose in the markup.
+      expect(html).toContain('<div style="background:#fff&quot; onload=&quot;alert(1)"></div>');
+    });
+
+    it('escapes ampersands and angle brackets too, without double-escaping', () => {
+      const root: TNode = {
+        kind: 'box',
+        style: { background: '$color.ampersand' },
+        children: [{ kind: 'text', style: { color: '$color.angled' }, text: 'x' }],
+      };
+      const html = renderTemplate(root, {}, hostileTheme, opts);
+
+      expect(html).toContain('background:url(x.png?a=1&amp;b=2)');
+      expect(html).not.toContain('&amp;amp;');
+      expect(html).toContain('color:&lt;script&gt;');
+      expect(html).not.toContain('<script>');
+    });
+
+    it('a hostile style key is escaped as well as its value', () => {
+      const root: TNode = { kind: 'box', style: { 'x" onload="alert(1)': 'red' } };
+      const html = renderTemplate(root, {}, hostileTheme, opts);
+      expect(html).not.toContain('onload="');
+      expect(html).toContain('x&quot; onload=&quot;alert(1):red');
+    });
+
+    it('leaves ordinary declarations — quotes in font-family included — alone', () => {
+      const root: TNode = {
+        kind: 'text',
+        style: { typography: 'display', fontFamily: "'Inter'" },
+        text: 'x',
+      };
+      const html = renderTemplate(root, {}, theme, opts);
+      // Single quotes cannot close a double-quoted attribute, so they survive
+      // verbatim and CSS still sees a quoted family.
+      expect(html).toContain("font-family:'Inter',sans-serif");
+      for (const attr of styleAttrs(html)) {
+        expect(attr, `style attribute "${attr}" carries a raw quote`).not.toContain('"');
+      }
+    });
+  });
+
+  it('substitutes _index and _total built-ins', () => {
+    const root: TNode = {
+      kind: 'box',
+      children: [{ kind: 'text', text: '{{_index}} of {{_total}}' }],
+    };
+    const html = renderTemplate(root, {}, theme, { index: 3, total: 7, fontBaseUrl: '/f' });
     expect(html).toContain('3 of 7');
   });
 
   it('_date resolves from data._date', () => {
-    const doc: TemplateDoc = {
-      ...simpleDoc,
-      root: { kind: 'text', text: '{{_date}}' },
-    };
-    const html = renderTemplate(doc, { _date: '2026-01-15' }, theme, opts);
+    const root: TNode = { kind: 'text', text: '{{_date}}' };
+    const html = renderTemplate(root, { _date: '2026-01-15' }, theme, opts);
     expect(html).toContain('2026-01-15');
   });
 
   it('resolves dot-path bindings', () => {
-    const doc: TemplateDoc = {
-      ...simpleDoc,
-      root: { kind: 'text', text: '{{left.label}}' },
-    };
-    const html = renderTemplate(doc, { left: { label: 'Before' } }, theme, opts);
+    const root: TNode = { kind: 'text', text: '{{left.label}}' };
+    const html = renderTemplate(root, { left: { label: 'Before' } }, theme, opts);
     expect(html).toContain('Before');
   });
 
   it('unknown binding → empty string', () => {
-    const doc: TemplateDoc = {
-      ...simpleDoc,
-      root: { kind: 'text', text: '{{nonexistent}}' },
-    };
-    const html = renderTemplate(doc, {}, theme, opts);
+    const root: TNode = { kind: 'text', text: '{{nonexistent}}' };
+    const html = renderTemplate(root, {}, theme, opts);
     expect(html).toContain('<div></div>');
   });
 
   it('repeat renders each item with {{item}} and {{i}}', () => {
-    const doc: TemplateDoc = {
-      ...simpleDoc,
-      root: {
-        kind: 'repeat',
-        source: 'items',
-        children: [
-          { kind: 'text', text: '{{i}}:{{item}}' },
-        ],
-      },
+    const root: TNode = {
+      kind: 'repeat',
+      source: 'items',
+      children: [{ kind: 'text', text: '{{i}}:{{item}}' }],
     };
-    const html = renderTemplate(doc, { items: ['alpha', 'beta'] }, theme, opts);
+    const html = renderTemplate(root, { items: ['alpha', 'beta'] }, theme, opts);
     expect(html).toContain('1:alpha');
     expect(html).toContain('2:beta');
   });
 
   it('repeat with object items supports {{item.label}}', () => {
-    const doc: TemplateDoc = {
-      ...simpleDoc,
-      root: {
-        kind: 'repeat',
-        source: 'items',
-        children: [
-          { kind: 'text', text: '{{item.label}}' },
-        ],
-      },
+    const root: TNode = {
+      kind: 'repeat',
+      source: 'items',
+      children: [{ kind: 'text', text: '{{item.label}}' }],
     };
-    const html = renderTemplate(doc, { items: [{ label: 'Foo' }, { label: 'Bar' }] }, theme, opts);
+    const html = renderTemplate(root, { items: [{ label: 'Foo' }, { label: 'Bar' }] }, theme, opts);
     expect(html).toContain('Foo');
     expect(html).toContain('Bar');
   });
 
   it('includes @font-face declarations for Inter', () => {
-    const html = renderTemplate(simpleDoc, { text: 'x' }, theme, opts);
-    expect(html).toContain("@font-face");
+    const html = renderTemplate(simpleRoot, { text: 'x' }, theme, opts);
+    expect(html).toContain('@font-face');
     expect(html).toContain('Inter-Regular.ttf');
     expect(html).toContain('Inter-Bold.ttf');
   });
 
   it('root div is 1080x1080', () => {
-    const html = renderTemplate(simpleDoc, { text: 'x' }, theme, opts);
+    const html = renderTemplate(simpleRoot, { text: 'x' }, theme, opts);
     expect(html).toContain('width:1080px;height:1080px;overflow:hidden');
   });
 });
 
 // ---------------------------------------------------------------------------
-// validateTemplateDoc tests
-// ---------------------------------------------------------------------------
-describe('validateTemplateDoc', () => {
-  const validDoc = {
-    id: 'test-doc',
-    theme: 'warm-industrial',
-    family: 'title' as const,
-    name: 'Test',
-    fields: [{ key: 'text', label: 'Text', kind: 'textarea' as const, required: true }],
-    sample: { text: 'hello' },
-    root: { kind: 'text' as const, text: '{{text}}' },
-  };
-
-  it('accepts a valid doc', () => {
-    expect(() => validateTemplateDoc(validDoc)).not.toThrow();
-  });
-
-  it('returns the doc as TemplateDoc', () => {
-    const result = validateTemplateDoc(validDoc);
-    expect(result.id).toBe('test-doc');
-  });
-
-  it('throws for missing id', () => {
-    expect(() => validateTemplateDoc({ ...validDoc, id: '' })).toThrow('id');
-  });
-
-  it('throws for invalid family', () => {
-    expect(() => validateTemplateDoc({ ...validDoc, family: 'other' })).toThrow('family');
-  });
-
-  it('throws for non-object input', () => {
-    expect(() => validateTemplateDoc(null)).toThrow();
-    expect(() => validateTemplateDoc('string')).toThrow();
-  });
-
-  it('throws for invalid field kind', () => {
-    const bad = { ...validDoc, fields: [{ key: 'x', label: 'X', kind: 'unknown', required: true }] };
-    expect(() => validateTemplateDoc(bad)).toThrow('kind');
-  });
-});
-
-// ---------------------------------------------------------------------------
-// validateSlideData tests
+// validateSlideData tests — a non-null-object guard, nothing FieldSpec-driven
 // ---------------------------------------------------------------------------
 describe('validateSlideData', () => {
-  const doc: TemplateDoc = {
-    id: 'test-doc',
-    theme: 'test',
-    family: 'title',
-    name: 'Test',
-    fields: [
-      { key: 'text', label: 'Text', kind: 'textarea', required: true },
-      { key: 'kicker', label: 'Kicker', kind: 'text', required: false },
-    ],
-    sample: { text: 'hello' },
-    root: { kind: 'text', text: '{{text}}' },
-  };
-
-  it('accepts valid data', () => {
-    expect(() => validateSlideData(doc, { text: 'hello' })).not.toThrow();
+  it('accepts a plain object', () => {
+    expect(() => validateSlideData({ text: 'hello' })).not.toThrow();
   });
 
-  it('throws for missing required field', () => {
-    expect(() => validateSlideData(doc, { kicker: 'ok' })).toThrow('text');
+  it('accepts an empty object', () => {
+    expect(() => validateSlideData({})).not.toThrow();
   });
 
-  it('does not throw when optional field absent', () => {
-    expect(() => validateSlideData(doc, { text: 'hello' })).not.toThrow();
+  it('throws for null', () => {
+    expect(() => validateSlideData(null)).toThrow('Slide data must be an object');
   });
 
-  it('throws for non-object data', () => {
-    expect(() => validateSlideData(doc, null)).toThrow();
+  it('throws for a non-object', () => {
+    expect(() => validateSlideData('nope')).toThrow('Slide data must be an object');
+  });
+
+  it('throws for an array', () => {
+    expect(() => validateSlideData(['nope'])).toThrow('Slide data must be an object');
   });
 });

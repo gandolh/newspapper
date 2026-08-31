@@ -42,7 +42,12 @@ export function useToast(): ToastContextValue {
   return useMemo(() => ({ addToast }), [addToast]);
 }
 
-const ICONS: Record<ToastVariant, string> = { success: '✓', error: '✕', info: 'i' };
+/** The kind, said as a word in the mark face. Never colour alone. */
+const MARKS: Record<ToastVariant, string> = {
+  success: 'Done',
+  error: 'Failed',
+  info: 'Note',
+};
 
 function ToastList() {
   const { toasts } = Toast.useToastManager();
@@ -55,7 +60,7 @@ function ToastList() {
         className={[styles.toast, styles[`toast--${variant}`]].filter(Boolean).join(' ')}
       >
         <span className={styles.toastIcon} aria-hidden="true">
-          {ICONS[variant] ?? 'i'}
+          {MARKS[variant] ?? 'Note'}
         </span>
         <Toast.Title className={styles.toastMessage} />
         <Toast.Close className={styles.toastClose} aria-label="Dismiss">

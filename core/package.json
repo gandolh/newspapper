@@ -5,7 +5,9 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./templates": "./src/templates/index.ts"
+    "./templates": "./src/templates/index.ts",
+    "./publish": "./src/publish/index.ts",
+    "./wizard": "./src/wizard/index.ts"
   },
   "scripts": {
     "build": "tsc --noEmit"
@@ -15,6 +17,7 @@
     "dotenv": "17.4.2",
     "fflate": "0.8.3",
     "playwright": "1.60.0",
-    "rss-parser": "3.13.0"
+    "rss-parser": "3.13.0",
+    "sharp": "0.35.4"
   }
 }

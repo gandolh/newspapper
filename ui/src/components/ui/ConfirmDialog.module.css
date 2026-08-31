@@ -1,12 +1,13 @@
 .message {
-  font-size: var(--font-size-base);
-  color: var(--muted);
-  line-height: 1.6;
-  margin-bottom: var(--sp-md);
+  font-size: var(--fs-body);
+  color: var(--graphite);
+  line-height: var(--lh-body);
+  max-width: 62ch;
+  margin-bottom: var(--sp-unit);
 }
 
 .actions {
   display: flex;
-  gap: 8px;
+  gap: var(--sp-hair);
   justify-content: flex-end;
 }

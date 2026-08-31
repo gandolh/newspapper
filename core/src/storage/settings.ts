@@ -2,16 +2,10 @@ import type { Settings } from '../types.js';
 import { getDb } from './db.js';
 
 const DEFAULTS: Settings = {
-  ollamaHost: 'http://localhost:11434',
-  ollamaApiKey: '',
-  ollamaModel: 'llama3.2:1b',
-  defaultTheme: 'warm-industrial',
+  defaultTheme: 'warm-industrial-1',
 };
 
 const ENV_MAP: Record<keyof Settings, string> = {
-  ollamaHost: 'OLLAMA_HOST',
-  ollamaApiKey: 'OLLAMA_API_KEY',
-  ollamaModel: 'OLLAMA_MODEL',
   defaultTheme: 'THEME',
 };
 
@@ -28,7 +22,6 @@ function fromEnv(): Partial<Settings> {
 
 /**
  * Read settings: DB values win over env vars, which win over defaults.
- * Never logs the API key.
  */
 export function getSettings(dbPath?: string): Settings {
   const db = getDb(dbPath);
@@ -36,7 +29,10 @@ export function getSettings(dbPath?: string): Settings {
     const envOverrides = fromEnv();
     const merged: Settings = { ...DEFAULTS, ...envOverrides };
 
-    const rows = db.prepare('SELECT key, value FROM settings').all() as Array<{ key: string; value: string }>;
+    const rows = db.prepare('SELECT key, value FROM settings').all() as Array<{
+      key: string;
+      value: string;
+    }>;
     const mergedRec = merged as unknown as Record<string, string>;
     for (const row of rows) {
       if (row.key in merged) {

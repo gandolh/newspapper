@@ -3,6 +3,12 @@
 // dist artefact; Vite/Astro can resolve it via the "exports" field for the dev
 // server but the types fight the Astro build. We therefore copy the types here
 // rather than re-exporting, to keep the UI self-contained.
+//
+// This mirror is core/src/types.ts minus the Node-side types (`Theme`,
+// `RenderTemplateOptions`) and `UserRecord` (carries a password hash — no
+// legitimate reason to exist in browser-facing code). See
+// corpus/wiki/decisions-engineering.md "The UI keeps its own copy of the
+// shared types". ui/src/lib/types.test.ts fails if this drifts from core.
 
 export type SlideBlock =
   | { type: 'title'; variant: 'title-main'; text: string; kicker?: string }
@@ -26,7 +32,7 @@ export type SlideBlock =
 export interface PostPayload {
   date: string; // YYYY-MM-DD
   title: string;
-  theme: string; // e.g. "warm-industrial"
+  theme: string; // e.g. "warm-industrial-1"
   slides: SlideBlock[]; // 2–8
   caption?: string;
   hashtags?: string[];
@@ -34,15 +40,86 @@ export interface PostPayload {
 
 export interface Article {
   id: number;
-  sourceId: string;
+  sourceId: string | null;
   sourceName: string;
+  guid: string;
   title: string;
   url: string | null;
   publishedAt: string;
   body: string;
+  savedAt: string;
+}
+
+/** A search hit — not yet saved. Returned by POST /api/scrape, never persisted. */
+export interface ScrapedArticle {
+  sourceId: string;
+  sourceName: string;
+  guid: string;
+  title: string;
+  url: string;
+  body: string;
+  publishedAt: string;
+  matchCount: number;
+}
+
+export type PostStatus = 'draft' | 'published';
+
+export interface PostHead {
+  title: string;
+  description: string;
+  keywords: string[];
+  date?: string;
+  caption?: string;
+  hashtags?: string[];
+}
+
+export interface Post {
+  id: number;
+  title: string;
+  description: string;
+  markup: string;
+  theme: string;
+  status: PostStatus;
+  keywords: string[];
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string | null;
+}
+
+export interface Keyword {
+  id: number;
+  name: string;
+  postCount: number;
+}
+
+export interface User {
+  id: number;
+  username: string;
   createdAt: string;
 }
 
+export interface Upload {
+  id: number;
+  filename: string;
+  storedPath: string;
+  normalizedPath: string | null;
+  mime: string;
+  width: number | null;
+  height: number | null;
+  bytes: number;
+  createdAt: string;
+}
+
+export interface RenderRecord {
+  id: number;
+  postId: number;
+  outputDir: string;
+  slideCount: number;
+  optimized: boolean;
+  createdAt: string;
+}
+
+/** @deprecated v2 payload post. Schema v3 stores markup; removed with the wizard routes. */
 export interface PostRow {
   id: number;
   date: string;
@@ -62,23 +139,6 @@ export type TNode =
   | { kind: 'text'; style?: TStyle; text: string }
   | { kind: 'repeat'; source: string; style?: TStyle; children: TNode[] };
 
-export interface FieldSpec {
-  key: string;
-  label: string;
-  kind: 'text' | 'textarea' | 'list' | 'pair';
-  required: boolean;
-}
-
-export interface TemplateDoc {
-  id: string;
-  theme: string;
-  family: 'title' | 'body' | 'quote';
-  name: string;
-  fields: FieldSpec[];
-  sample: Record<string, unknown>;
-  root: TNode;
-}
-
 export interface SourceConfig {
   id: string;
   name: string;
@@ -87,8 +147,5 @@ export interface SourceConfig {
 }
 
 export interface Settings {
-  ollamaHost: string;
-  ollamaApiKey: string;
-  ollamaModel: string;
   defaultTheme: string;
 }

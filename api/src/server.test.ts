@@ -2,7 +2,6 @@
  * API integration tests using fastify.inject().
  * These tests spin up the full app in-process — no network calls.
  *
- * Ollama-bound routes are tested with vi.stubGlobal('fetch', ...) stubs.
  * The DB is ephemeral (in-memory via temp path).
  * Template tests exercise real wave-1 code.
  */
@@ -13,6 +12,22 @@ import { join } from 'node:path';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { buildApp } from './server.js';
 import { resetDb } from './lib/db.js';
+import { resetSessionSecret } from './auth/secret.js';
+import { SESSION_COOKIE } from './auth/session.js';
+
+// Every /api/* route is behind the session guard, so these tests sign in once
+// and replay the cookie. Auth itself is covered in routes/auth.test.ts.
+const USERNAME = 'tester';
+const PASSWORD = 'correct-horse-9';
+const SECRET = 'server-test-session-secret-value';
+
+type Method = 'GET' | 'POST' | 'PUT' | 'DELETE';
+interface InjectOpts {
+  method: Method;
+  url: string;
+  payload?: unknown;
+  cookies?: Record<string, string>;
+}
 
 // Use an isolated temp DB for tests to avoid collisions with dev data.
 let tmpDir: string;
@@ -20,32 +35,53 @@ let tmpDir: string;
 beforeAll(() => {
   tmpDir = mkdtempSync(join(tmpdir(), 'newspapper-test-'));
   process.env['NEWSPAPPER_DB_PATH'] = join(tmpDir, 'test.db');
+  process.env['SESSION_SECRET'] = SECRET;
+  process.env['ADMIN_USERNAME'] = USERNAME;
+  process.env['ADMIN_PASSWORD'] = PASSWORD;
 });
 
 afterAll(() => {
   resetDb();
+  resetSessionSecret();
   delete process.env['NEWSPAPPER_DB_PATH'];
+  delete process.env['SESSION_SECRET'];
+  delete process.env['ADMIN_USERNAME'];
+  delete process.env['ADMIN_PASSWORD'];
   rmSync(tmpDir, { recursive: true, force: true });
 });
 
 describe('API server', () => {
   let app: Awaited<ReturnType<typeof buildApp>>;
+  let cookie = '';
 
   beforeEach(async () => {
     app = await buildApp();
     await app.ready();
+    if (!cookie) {
+      const res = await app.inject({
+        method: 'POST',
+        url: '/api/login',
+        payload: { username: USERNAME, password: PASSWORD },
+      });
+      cookie = res.cookies.find((c) => c.name === SESSION_COOKIE)?.value ?? '';
+    }
   });
 
   afterEach(async () => {
     await app.close();
   });
 
+  async function inject(opts: InjectOpts) {
+    const { cookies, ...rest } = opts;
+    return app.inject({ ...rest, cookies: { [SESSION_COOKIE]: cookie, ...cookies } });
+  }
+
   // =========================================================================
   // Health
   // =========================================================================
   describe('GET /api/health', () => {
     it('returns ok:true', async () => {
-      const res = await app.inject({ method: 'GET', url: '/api/health' });
+      const res = await inject({ method: 'GET', url: '/api/health' });
       expect(res.statusCode).toBe(200);
       expect(res.json()).toEqual({ ok: true });
     });
@@ -55,22 +91,34 @@ describe('API server', () => {
   // Articles
   // =========================================================================
   describe('GET /api/articles', () => {
-    it('returns an array for today', async () => {
-      const res = await app.inject({ method: 'GET', url: '/api/articles' });
+    it('returns an array', async () => {
+      const res = await inject({ method: 'GET', url: '/api/articles' });
       expect(res.statusCode).toBe(200);
       expect(Array.isArray(res.json())).toBe(true);
     });
 
-    it('accepts a date query param', async () => {
-      const res = await app.inject({ method: 'GET', url: '/api/articles?date=2020-01-01' });
-      expect(res.statusCode).toBe(200);
-      expect(res.json()).toEqual([]);
+    it('filters by sourceId and search', async () => {
+      await inject({
+        method: 'POST',
+        url: '/api/articles',
+        payload: { title: 'Budget day', body: 'about tax and spend', sourceName: 'BBC' },
+      });
+      const bySearch = await inject({ method: 'GET', url: '/api/articles?search=tax' });
+      expect(bySearch.statusCode).toBe(200);
+      const titles = (bySearch.json() as Array<{ title: string }>).map((a) => a.title);
+      expect(titles).toContain('Budget day');
+
+      const bySource = await inject({
+        method: 'GET',
+        url: '/api/articles?sourceId=no-such-source',
+      });
+      expect(bySource.json()).toEqual([]);
     });
   });
 
   describe('POST /api/articles', () => {
     it('400 when title missing', async () => {
-      const res = await app.inject({
+      const res = await inject({
         method: 'POST',
         url: '/api/articles',
         payload: { body: 'some content' },
@@ -79,28 +127,72 @@ describe('API server', () => {
       expect(res.json()).toHaveProperty('error');
     });
 
-    it('400 when body missing', async () => {
-      const res = await app.inject({
+    it('201 with just a title — body defaults to empty', async () => {
+      const res = await inject({
         method: 'POST',
         url: '/api/articles',
         payload: { title: 'Test article' },
       });
-      expect(res.statusCode).toBe(400);
-      expect(res.json()).toHaveProperty('error');
+      expect(res.statusCode).toBe(201);
+      const article = res.json();
+      expect(article.title).toBe('Test article');
+      expect(article.body).toBe('');
     });
 
-    it('201 with valid title and body', async () => {
-      const res = await app.inject({
+    it('201 with valid title and body, defaulting sourceName to Manual', async () => {
+      const res = await inject({
         method: 'POST',
         url: '/api/articles',
-        payload: { title: 'Test article', body: 'Test body content' },
+        payload: { title: 'Manual test article', body: 'Test body content' },
       });
       expect(res.statusCode).toBe(201);
       const article = res.json();
       expect(article).toHaveProperty('id');
-      expect(article.title).toBe('Test article');
-      expect(article.sourceId).toBe('manual');
+      expect(article.title).toBe('Manual test article');
+      expect(article.sourceId).toBeNull();
+      expect(article.sourceName).toBe('Manual');
     });
+
+    it('is idempotent on (source_id, guid) — saving twice leaves one row', async () => {
+      const payload = { title: 'Dup test', sourceId: 'bbc', guid: 'dup-1' };
+      const first = await inject({ method: 'POST', url: '/api/articles', payload });
+      const second = await inject({ method: 'POST', url: '/api/articles', payload });
+      expect(first.json().id).toBe(second.json().id);
+    });
+  });
+
+  describe('DELETE /api/articles/:id', () => {
+    it('404 for a non-existent article', async () => {
+      const res = await inject({ method: 'DELETE', url: '/api/articles/999999' });
+      expect(res.statusCode).toBe(404);
+    });
+
+    it('deletes a saved article', async () => {
+      const created = await inject({
+        method: 'POST',
+        url: '/api/articles',
+        payload: { title: 'To delete', guid: 'delete-me' },
+      });
+      const { id } = created.json();
+      const res = await inject({ method: 'DELETE', url: `/api/articles/${id}` });
+      expect(res.statusCode).toBe(200);
+      const after = await inject({ method: 'GET', url: '/api/articles?search=To delete' });
+      expect(after.json()).toEqual([]);
+    });
+  });
+
+  // =========================================================================
+  // Scrape (SSE)
+  // =========================================================================
+  describe('POST /api/scrape', () => {
+    it('errors over SSE when no keywords are given', async () => {
+      const res = await inject({ method: 'POST', url: '/api/scrape', payload: {} });
+      expect(res.body).toContain('event: error');
+    });
+
+    // The keyword-match ranking and the "nothing is persisted" guarantee are
+    // covered against mocked feeds in core/src/scrape/scrape.test.ts — a real
+    // scrape here would hit the network via the seeded data/sources.json rows.
   });
 
   // =========================================================================
@@ -108,7 +200,7 @@ describe('API server', () => {
   // =========================================================================
   describe('GET /api/posts', () => {
     it('returns an array', async () => {
-      const res = await app.inject({ method: 'GET', url: '/api/posts' });
+      const res = await inject({ method: 'GET', url: '/api/posts' });
       expect(res.statusCode).toBe(200);
       expect(Array.isArray(res.json())).toBe(true);
     });
@@ -116,190 +208,242 @@ describe('API server', () => {
 
   describe('GET /api/posts/:id', () => {
     it('404 for non-existent post', async () => {
-      const res = await app.inject({ method: 'GET', url: '/api/posts/999999' });
+      const res = await inject({ method: 'GET', url: '/api/posts/999999' });
       expect(res.statusCode).toBe(404);
     });
   });
 
-  describe('PUT /api/posts/:id', () => {
-    it('400 when slides has only 1 slide', async () => {
-      const res = await app.inject({
-        method: 'PUT',
-        url: '/api/posts/1',
-        payload: {
-          payload: {
-            date: '2024-01-01',
-            title: 'Test',
-            theme: 'warm-industrial',
-            slides: [
-              { type: 'title', variant: 'title-main', text: 'Only slide' },
-            ],
-          },
-        },
-      });
+  describe('POST /api/posts + PUT /api/posts/:id', () => {
+    const markup = `<head>
+  <title>A saved post</title>
+  <description>Derived, not sent.</description>
+  <keywords>budget, tax</keywords>
+</head>
+
+<body>
+  <Slide>
+    <Heading>A saved post</Heading>
+  </Slide>
+</body>
+`;
+
+    it('400 when the body carries no markup', async () => {
+      const res = await inject({ method: 'POST', url: '/api/posts', payload: { theme: 'x' } });
       expect(res.statusCode).toBe(400);
-      expect(res.json().error).toMatch(/2.8/);
+      expect(res.json().error).toMatch(/markup/);
     });
 
-    it('404 for non-existent post even with valid payload', async () => {
-      const res = await app.inject({
+    it('derives the index columns from the markup head', async () => {
+      const created = await inject({ method: 'POST', url: '/api/posts', payload: { markup } });
+      expect(created.statusCode).toBe(201);
+      const post = created.json();
+      expect(post.title).toBe('A saved post');
+      expect(post.description).toBe('Derived, not sent.');
+      expect(post.keywords.sort()).toEqual(['budget', 'tax']);
+      expect(post.markup).toBe(markup);
+
+      const renamed = markup.replace('<title>A saved post</title>', '<title>Renamed</title>');
+      const updated = await inject({
         method: 'PUT',
-        url: '/api/posts/999999',
-        payload: {
-          payload: {
-            date: '2024-01-01',
-            title: 'Test',
-            theme: 'warm-industrial',
-            slides: [
-              { type: 'title', variant: 'title-main', text: 'Slide 1' },
-              { type: 'body', variant: 'body-text', heading: 'H', body: 'B' },
-            ],
-          },
-        },
+        url: `/api/posts/${post.id}`,
+        payload: { markup: renamed },
       });
+      expect(updated.statusCode).toBe(200);
+      expect(updated.json().title).toBe('Renamed');
+
+      const removed = await inject({ method: 'DELETE', url: `/api/posts/${post.id}` });
+      expect(removed.statusCode).toBe(200);
+    });
+
+    it('falls back rather than refusing a half-typed head', async () => {
+      const res = await inject({
+        method: 'POST',
+        url: '/api/posts',
+        payload: { markup: '<body>\n  <Slide />\n</body>\n' },
+      });
+      expect(res.statusCode).toBe(201);
+      expect(res.json().title).toBe('Untitled post');
+      await inject({ method: 'DELETE', url: `/api/posts/${res.json().id}` });
+    });
+
+    it('400 when markup is missing on an update', async () => {
+      const res = await inject({ method: 'PUT', url: '/api/posts/1', payload: {} });
+      expect(res.statusCode).toBe(400);
+    });
+
+    it('404 for a non-existent post even with valid markup', async () => {
+      const res = await inject({ method: 'PUT', url: '/api/posts/999999', payload: { markup } });
       expect(res.statusCode).toBe(404);
     });
   });
 
   describe('DELETE /api/posts/:id', () => {
     it('404 for non-existent post', async () => {
-      const res = await app.inject({ method: 'DELETE', url: '/api/posts/999999' });
+      const res = await inject({ method: 'DELETE', url: '/api/posts/999999' });
+      expect(res.statusCode).toBe(404);
+    });
+  });
+
+  describe('post theme validation', () => {
+    const markup = '<body>\n  <Slide />\n</body>\n';
+
+    it('400 rather than storing a theme loadTheme would later throw on', async () => {
+      const res = await inject({
+        method: 'POST',
+        url: '/api/posts',
+        payload: { markup, theme: 'no-such-theme' },
+      });
+      expect(res.statusCode).toBe(400);
+      expect(res.json().error).toMatch(/theme/i);
+    });
+
+    it('treats a blank theme as "use the default" rather than rejecting it', async () => {
+      const res = await inject({
+        method: 'POST',
+        url: '/api/posts',
+        payload: { markup, theme: '' },
+      });
+      expect(res.statusCode).toBe(201);
+      expect(res.json().theme).toBe('warm-industrial-1');
+      await inject({ method: 'DELETE', url: `/api/posts/${res.json().id}` });
+    });
+
+    it('400 on an update to an unknown theme, leaving the stored one alone', async () => {
+      const created = await inject({ method: 'POST', url: '/api/posts', payload: { markup } });
+      const { id, theme } = created.json();
+      const res = await inject({
+        method: 'PUT',
+        url: `/api/posts/${id}`,
+        payload: { markup, theme: 'no-such-theme' },
+      });
+      expect(res.statusCode).toBe(400);
+      const after = await inject({ method: 'GET', url: `/api/posts/${id}` });
+      expect(after.json().theme).toBe(theme);
+      await inject({ method: 'DELETE', url: `/api/posts/${id}` });
+    });
+  });
+
+  describe('PUT /api/posts/:id/status', () => {
+    it('moves a post between draft and published', async () => {
+      const created = await inject({
+        method: 'POST',
+        url: '/api/posts',
+        payload: { markup: '<body>\n  <Slide />\n</body>\n' },
+      });
+      const { id } = created.json();
+      expect(created.json().status).toBe('draft');
+
+      const published = await inject({
+        method: 'PUT',
+        url: `/api/posts/${id}/status`,
+        payload: { status: 'published' },
+      });
+      expect(published.statusCode).toBe(200);
+      expect(published.json().status).toBe('published');
+
+      const bad = await inject({
+        method: 'PUT',
+        url: `/api/posts/${id}/status`,
+        payload: { status: 'rendered' },
+      });
+      expect(bad.statusCode).toBe(400);
+
+      await inject({ method: 'DELETE', url: `/api/posts/${id}` });
+    });
+
+    it('404 for a non-existent post', async () => {
+      const res = await inject({
+        method: 'PUT',
+        url: '/api/posts/999999/status',
+        payload: { status: 'published' },
+      });
       expect(res.statusCode).toBe(404);
     });
   });
 
   // =========================================================================
-  // Settings mask + sentinel
+  // Renders — the post library's thumbnail + "can this be exported" source
+  // =========================================================================
+  describe('GET /api/renders', () => {
+    it('returns an array', async () => {
+      const res = await inject({ method: 'GET', url: '/api/renders' });
+      expect(res.statusCode).toBe(200);
+      expect(Array.isArray(res.json())).toBe(true);
+    });
+
+    it('is empty for a post that has never been rendered', async () => {
+      const created = await inject({
+        method: 'POST',
+        url: '/api/posts',
+        payload: { markup: '<body>\n  <Slide />\n</body>\n' },
+      });
+      const { id } = created.json();
+      const res = await inject({ method: 'GET', url: `/api/renders?postId=${id}` });
+      expect(res.statusCode).toBe(200);
+      expect(res.json()).toEqual([]);
+      await inject({ method: 'DELETE', url: `/api/posts/${id}` });
+    });
+
+    it('400 when postId is not an integer', async () => {
+      const res = await inject({ method: 'GET', url: '/api/renders?postId=abc' });
+      expect(res.statusCode).toBe(400);
+    });
+  });
+
+  // =========================================================================
+  // Publish
+  // =========================================================================
+  describe('POST /api/posts/:id/publish', () => {
+    it('404 for a non-existent post', async () => {
+      const res = await inject({ method: 'POST', url: '/api/posts/999999/publish' });
+      expect(res.statusCode).toBe(404);
+    });
+
+    it('409 for a post that has not been rendered', async () => {
+      const created = await inject({
+        method: 'POST',
+        url: '/api/posts',
+        payload: { markup: '<body>\n  <Slide />\n</body>\n' },
+      });
+      const { id } = created.json();
+      const res = await inject({ method: 'POST', url: `/api/posts/${id}/publish` });
+      expect(res.statusCode).toBe(409);
+      await inject({ method: 'DELETE', url: `/api/posts/${id}` });
+    });
+  });
+
+  // =========================================================================
+  // Settings
   // =========================================================================
   describe('GET /api/settings', () => {
-    it('returns settings with ollamaApiKey masked', async () => {
-      const res = await app.inject({ method: 'GET', url: '/api/settings' });
+    it('returns settings with defaultTheme', async () => {
+      const res = await inject({ method: 'GET', url: '/api/settings' });
       expect(res.statusCode).toBe(200);
       const s = res.json();
-      expect(s).toHaveProperty('ollamaHost');
-      expect(s).toHaveProperty('ollamaModel');
-      // Key should be masked or empty string — never a real key
-      expect(typeof s.ollamaApiKey).toBe('string');
-      // It should not be a long key — either empty or '***'
-      expect(['', '***']).toContain(s.ollamaApiKey);
+      expect(typeof s.defaultTheme).toBe('string');
     });
   });
 
   describe('PUT /api/settings', () => {
-    it('ignores *** sentinel for ollamaApiKey', async () => {
-      // First set a real key
-      await app.inject({
+    it('persists a defaultTheme patch', async () => {
+      await inject({
         method: 'PUT',
         url: '/api/settings',
-        payload: { ollamaApiKey: 'my-real-key' },
+        payload: { defaultTheme: 'warm-industrial-1' },
       });
-      // Now send the sentinel — should not overwrite
-      await app.inject({
+      const res = await inject({ method: 'GET', url: '/api/settings' });
+      expect(res.json().defaultTheme).toBe('warm-industrial-1');
+    });
+
+    it('400 on a theme that is not on disk, leaving the stored one alone', async () => {
+      const res = await inject({
         method: 'PUT',
         url: '/api/settings',
-        payload: { ollamaApiKey: '***' },
-      });
-      // Verify: the real key is still set (masked as '***' in response)
-      const res = await app.inject({ method: 'GET', url: '/api/settings' });
-      expect(res.json().ollamaApiKey).toBe('***');
-      // Clean up
-      await app.inject({
-        method: 'PUT',
-        url: '/api/settings',
-        payload: { ollamaApiKey: '' },
-      });
-    });
-  });
-
-  // =========================================================================
-  // Templates 404 / 409
-  // =========================================================================
-  describe('GET /api/templates', () => {
-    it('returns templates for warm-industrial theme', async () => {
-      const res = await app.inject({ method: 'GET', url: '/api/templates?theme=warm-industrial' });
-      expect(res.statusCode).toBe(200);
-      const docs = res.json();
-      expect(Array.isArray(docs)).toBe(true);
-      // warm-industrial ships 9 templates
-      expect(docs.length).toBe(9);
-    });
-  });
-
-  describe('GET /api/templates/:theme/:id', () => {
-    it('404 for non-existent template', async () => {
-      const res = await app.inject({ method: 'GET', url: '/api/templates/warm-industrial/nonexistent' });
-      expect(res.statusCode).toBe(404);
-    });
-
-    it('200 for existing title-main template', async () => {
-      const res = await app.inject({ method: 'GET', url: '/api/templates/warm-industrial/title-main' });
-      expect(res.statusCode).toBe(200);
-      const doc = res.json();
-      expect(doc.id).toBe('title-main');
-    });
-  });
-
-  describe('POST /api/templates (409 if exists)', () => {
-    it('409 when trying to create an already-existing template', async () => {
-      // title-main already exists
-      const getRes = await app.inject({ method: 'GET', url: '/api/templates/warm-industrial/title-main' });
-      const existingDoc = getRes.json();
-      const res = await app.inject({
-        method: 'POST',
-        url: '/api/templates',
-        payload: existingDoc,
-      });
-      expect(res.statusCode).toBe(409);
-    });
-  });
-
-  // =========================================================================
-  // Preview — integration test that exercises real wave-1 template code
-  // =========================================================================
-  describe('POST /api/preview', () => {
-    it('returns HTML containing sample text for title-main template', async () => {
-      // Load the template first to know its sample data
-      const tplRes = await app.inject({ method: 'GET', url: '/api/templates/warm-industrial/title-main' });
-      const doc = tplRes.json();
-
-      const res = await app.inject({
-        method: 'POST',
-        url: '/api/preview',
-        payload: {
-          templateId: 'title-main',
-          theme: 'warm-industrial',
-        },
-      });
-      expect(res.statusCode).toBe(200);
-      expect(res.headers['content-type']).toContain('text/html');
-      const html = res.body;
-      expect(html).toContain('<!doctype html');
-      // Should contain sample text — look for any text from the sample
-      const sampleValues = Object.values(doc.sample).filter((v) => typeof v === 'string');
-      const found = (sampleValues as string[]).some((v) => html.includes(v));
-      expect(found).toBe(true);
-    });
-
-    it('400 when neither templateId nor doc provided', async () => {
-      const res = await app.inject({
-        method: 'POST',
-        url: '/api/preview',
-        payload: { data: {} },
+        payload: { defaultTheme: 'no-such-theme' },
       });
       expect(res.statusCode).toBe(400);
-    });
-
-    it('can render from an inline doc', async () => {
-      // Load title-main as inline doc
-      const tplRes = await app.inject({ method: 'GET', url: '/api/templates/warm-industrial/title-main' });
-      const doc = tplRes.json();
-      const res = await app.inject({
-        method: 'POST',
-        url: '/api/preview',
-        payload: { doc, theme: 'warm-industrial' },
-      });
-      expect(res.statusCode).toBe(200);
-      expect(res.body).toContain('<!doctype html');
+      const after = await inject({ method: 'GET', url: '/api/settings' });
+      expect(after.json().defaultTheme).toBe('warm-industrial-1');
     });
   });
 
@@ -308,27 +452,21 @@ describe('API server', () => {
   // =========================================================================
   describe('GET /api/posts/:id/export.zip', () => {
     it('404 for non-existent post', async () => {
-      const res = await app.inject({ method: 'GET', url: '/api/posts/999999/export.zip' });
+      const res = await inject({ method: 'GET', url: '/api/posts/999999/export.zip' });
       expect(res.statusCode).toBe(404);
     });
 
     it('404 for a draft post (not rendered)', async () => {
       // Create an article first
-      const artRes = await app.inject({
+      const artRes = await inject({
         method: 'POST',
         url: '/api/articles',
         payload: { title: 'Draft test', body: 'Body text' },
       });
       const article = artRes.json();
 
-      // We can't compose without Ollama, so we manually insert a draft post
-      // by calling the storage directly through the test
-      // Instead, test via a PUT that creates a valid post then try to export it
-      // Actually, createDraft is only available via POST /api/compose (SSE).
-      // We can test the case that a draft export 404s by checking for a rendered one.
-      // For now just confirm 404 on nonexistent.
       expect(article.id).toBeGreaterThan(0);
-      const res = await app.inject({ method: 'GET', url: `/api/posts/999998/export.zip` });
+      const res = await inject({ method: 'GET', url: `/api/posts/999998/export.zip` });
       expect(res.statusCode).toBe(404);
     });
   });
@@ -338,7 +476,7 @@ describe('API server', () => {
   // =========================================================================
   describe('GET /api/sources', () => {
     it('returns an array', async () => {
-      const res = await app.inject({ method: 'GET', url: '/api/sources' });
+      const res = await inject({ method: 'GET', url: '/api/sources' });
       expect(res.statusCode).toBe(200);
       expect(Array.isArray(res.json())).toBe(true);
     });
@@ -346,7 +484,7 @@ describe('API server', () => {
 
   describe('POST /api/sources validation', () => {
     it('400 when id missing', async () => {
-      const res = await app.inject({
+      const res = await inject({
         method: 'POST',
         url: '/api/sources',
         payload: { name: 'Test', rss: 'https://example.com/feed' },
@@ -355,7 +493,7 @@ describe('API server', () => {
     });
 
     it('400 when rss missing', async () => {
-      const res = await app.inject({
+      const res = await inject({
         method: 'POST',
         url: '/api/sources',
         payload: { id: 'test-src', name: 'Test' },
@@ -365,37 +503,16 @@ describe('API server', () => {
   });
 
   // =========================================================================
-  // Prompt
-  // =========================================================================
-  describe('GET /api/prompt', () => {
-    it('returns prompt and isDefault flag', async () => {
-      const res = await app.inject({ method: 'GET', url: '/api/prompt' });
-      expect(res.statusCode).toBe(200);
-      const body = res.json();
-      expect(typeof body.prompt).toBe('string');
-      expect(typeof body.isDefault).toBe('boolean');
-    });
-  });
-
-  describe('POST /api/prompt/reset', () => {
-    it('resets prompt and returns isDefault:true', async () => {
-      const res = await app.inject({ method: 'POST', url: '/api/prompt/reset' });
-      expect(res.statusCode).toBe(200);
-      expect(res.json().isDefault).toBe(true);
-    });
-  });
-
-  // =========================================================================
   // Themes
   // =========================================================================
   describe('GET /api/themes', () => {
-    it('returns array with warm-industrial', async () => {
-      const res = await app.inject({ method: 'GET', url: '/api/themes' });
+    it('returns array with warm-industrial-1', async () => {
+      const res = await inject({ method: 'GET', url: '/api/themes' });
       expect(res.statusCode).toBe(200);
       const themes = res.json() as Array<{ name: string; tokens: unknown }>;
       expect(Array.isArray(themes)).toBe(true);
       const names = themes.map((t) => t.name);
-      expect(names).toContain('warm-industrial');
+      expect(names).toContain('warm-industrial-1');
     });
   });
 });
