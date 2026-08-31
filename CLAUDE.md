@@ -73,8 +73,7 @@ The `digital-broadsheet` theme was removed in v2; Satori/resvg rendering in v3; 
 ## Constraints / non-goals
 
 - **No LLM, from any provider.** The Wizard pivot removed composing entirely — a post is written by hand in [Newspapper Wizard](corpus/wiki/markup.md), not generated. This supersedes the old "Ollama only" rule; there is no Ollama client left.
-- **Playwright is allowed.** It's in `@newspapper/core` for Chromium rendering.
-- **Sharp is allowed, for images only** — normalizing uploads (resize, strip EXIF). This reversed a standing ban on 2026-08-27; see [decisions.md](corpus/wiki/decisions.md#sharp-is-allowed-for-images-only). Still banned: canvas, cheerio, Handlebars, inquirer, ora, axios, Satori.
+- **Do not add** canvas, cheerio, Handlebars, inquirer, ora, axios, or Satori. Playwright and Sharp are ordinary dependencies of `@newspapper/core` — Chromium rendering and image normalization; see [dependencies.md](corpus/wiki/dependencies.md).
 - **Dependency versions are pinned exactly.** No `^`, no `~`, anywhere.
 - **ESM throughout.** All workspaces are `"type": "module"`. Paths must be resolved from `import.meta.url`, not `process.cwd()`.
 - **`npm run build` runs `fmt:check` first**, and `npm run lint` covers all three workspaces. Both were enforced in brief 68, after the linter was found to have enabled zero rules since the project began. Don't unwire either.

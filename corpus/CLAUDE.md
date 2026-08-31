@@ -69,8 +69,8 @@ recommend an action based on an unverified wiki claim about specific code.
 ## This project's constraints
 
 The hard product and dependency constraints live in the **root `CLAUDE.md`**
-(no LLM at all; Playwright and Sharp allowed, Satori/canvas/cheerio/axios and
-friends not; exact version pinning; ESM throughout). The *reasoning* behind them
+(no LLM at all; Satori/canvas/cheerio/axios and friends must not be added;
+exact version pinning; ESM throughout). The *reasoning* behind them
 lives in [wiki/decisions.md](wiki/decisions.md) and its three siblings —
 `decisions-engineering.md`, `decisions-security.md`, `decisions-tooling.md`.
 Root CLAUDE.md says what; those say why.

@@ -958,3 +958,25 @@ omitting a workspace; a workspace bundled but never typechecked; a formatter wit
 no config; a test control that collapsed into its subject; a linter with zero
 rules enabled; a test importing a package it never declared. Every one reported
 success.
+
+## [2026-08-31] corpus | Sharp stops being a rule; the abandoned wave-5 branch is gone
+
+`CLAUDE.md` framed Sharp as a permission granted against a lifted ban. That was
+accurate history and the wrong shape for a constraints list: Sharp is an
+ordinary dependency doing an ordinary job, and a rule about it invites the next
+reader to treat it as contested. The two "X is allowed" lines collapse into one
+statement of what must not be added; Playwright and Sharp are named as what they
+are. The reversal itself is still recorded where reasoning belongs, in
+[decisions.md](wiki/decisions.md#sharp-is-allowed-for-images-only) and
+[dependencies.md](wiki/dependencies.md).
+
+Worth keeping the general form: **a constraints list should say what is
+forbidden, not narrate what was once forbidden and no longer is.** The dead
+prohibition in that file was copied into five dispatch prompts before anyone
+noticed, and a permission phrased as an exception is the same hazard one step
+weaker.
+
+Also deleted the `wave5-partial-abandoned` branch (`11d78f8`), kept since
+2026-08-27 as a safety copy of the mid-flight work stopped when briefs 59 and 65
+were interrupted. Both were re-dispatched from scratch and landed in `f315e01`,
+so the branch held nothing that is not superseded. It was never pushed.
