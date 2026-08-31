@@ -633,3 +633,64 @@ Also filed **brief 67** from a brief-66 finding: the slide's typography tokens
 carry a bare `"fontFamily": "Inter"`, emitted inline where it outranks the
 interpreter's body stack — so a font failure lands on serif rather than the
 intended sans. Latent, but it is why brief 66's defect looked like a render bug.
+
+## [2026-08-31] brief | 64 lands: the chrome is The Mechanical
+
+The app no longer wears v3's design system. `global.css` replaced wholesale,
+every shared primitive rebuilt square, `Badge`/`Stepper`/`Spinner` deleted, and
+the sidebar rebuilt as the tray. Verified: zero `--radius*` tokens and zero
+non-zero `border-radius` in `ui/`; Inter appears only inside `.canvas`; `core/`,
+`api/` and `assets/` are byte-identical, so the 1080² output is unchanged.
+
+The part worth keeping is that **five values from the approved comps did not
+survive contrast measurement**, and were corrected in the build rather than
+shipped. Chiefly: rubylith `#e8452e` cannot carry a word — 3.81:1 on board,
+and the comps' own stamp ink was 3.09:1. A darker `--rubylith-ink #c0331f`
+(5.43:1) is now the only rubylith that may be a letter, with the film kept for
+washes and borders where the 3:1 non-text floor applies. The comps also claimed
+`graphite-tint` was 4.0:1; it measures 4.16:1. **An approved comp is a design
+decision, not a measurement**, and the difference only shows up if someone
+measures.
+
+`prefers-reduced-motion` could not be emulated in the browser session, so it is
+guarded by a test that stubs `matchMedia` and asserts the reduced path calls
+`utils.set` with the **end** state and never calls `animate`. Stated plainly in
+the outcome note: the 26px grid was measured at 1280px only; the ≤768px branch
+is written in grid multiples but unmeasured.
+
+## [2026-08-31] finding | `npm run fmt` rewrote 106 files — a fifth "green because nothing ran"
+
+Found by running it on a working tree during brief 64's gate, expecting a no-op.
+
+There is **no Prettier config anywhere in the repo** — no `.prettierrc`, no
+`prettier` key. So the documented `npm run fmt` formats with Prettier's
+defaults, which means double quotes, against a codebase written entirely in
+single quotes. It also exits 2, because its glob names `.astro` files and no
+`prettier-plugin-astro` is installed. And `npm run lint` covers only `core/src`
+and `api/src` — the `ui` workspace, now the largest surface in the repo, is
+never linted at all.
+
+The blast radius was instructive. Reverting `core/` and `api/` was clean, but
+`ui/` held brief 64's uncommitted work, so the noise could not simply be checked
+out. Recovery used Prettier as an oracle: for each changed file, format the
+committed version and compare to the working one — equal means the only change
+was mine, so revert it. That cleanly separated 31 noise files from 23 real ones.
+
+It also surfaced a booby trap: `ui/src/lib/types.test.ts` compares the **source
+text** of each mirrored declaration against `core/src/types.ts`, so it is
+formatting-sensitive and fails the moment one side is reformatted and the other
+is not. That is how the whole thing was noticed. Filed as **brief 68**, with the
+question of whether that test should compare shape rather than text.
+
+Filed **brief 69** for two loose ends brief 64 correctly declined to fix: the
+orphaned 616-line `SourcesIsland` (no `/sources` page since brief 60; it is a
+tab of `/articles` now), and `kitchen-sink.astro`, which is unlinked but ships
+to `dist/` as a public route.
+
+## [2026-08-31] corpus | chrome.md split from design-systems.md
+
+`design-systems.md` sat at 199 body lines against a 200 cap and described two
+systems that share nothing on purpose. The Mechanical moved to its own
+`chrome.md`; `design-systems.md` keeps the slide themes and the compile target,
+with a pointer across. Third page split this session, after
+`decisions-security.md` and the wizard surface moving to `markup.md`.

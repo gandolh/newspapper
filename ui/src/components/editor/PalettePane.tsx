@@ -1,5 +1,5 @@
 /**
- * The component palette.
+ * The specimen showing — the component palette.
  *
  * Every item is draggable into a slot and clickable for the same result, so
  * the whole post can be assembled without a pointer gesture — and so a drag
@@ -10,8 +10,31 @@
 import { useMemo } from 'react';
 import { useDrag } from '@use-gesture/react';
 import { WZD_COMPONENTS, type WzdComponentSpec } from '@newspapper/core/wizard';
-import { Button } from '../ui';
+import { Button, HATCH } from '../ui';
 import styles from './PalettePane.module.css';
+
+/**
+ * Each component renders as the thing it produces (The Showing Rule): a
+ * `Heading` is set at heading weight, a `Kicker` in tracked mono caps, a
+ * `Quote` in italic, a `Stat` as a heavy numeral. Structure has no type of
+ * its own, so it shows its shape instead.
+ */
+const SHOWING: Record<string, string> = {
+  Heading: 'showHeading',
+  Text: 'showText',
+  List: 'showList',
+  Item: 'showList',
+  Quote: 'showQuote',
+  Stat: 'showStat',
+  Kicker: 'showKicker',
+  Source: 'showSource',
+  PageCounter: 'showCounter',
+  Image: 'showSchematic',
+  Stack: 'showSchematic',
+  Row: 'showSchematic',
+  Divider: 'showSchematic',
+  Spacer: 'showSchematic',
+};
 
 const GROUP_LABELS: Record<string, string> = {
   structure: 'Structure',
@@ -69,7 +92,16 @@ function PaletteItem({
         variant="secondary"
         size="sm"
         disabled={disabled}
-        className={[styles.item, dragging ? styles.itemDragging : ''].filter(Boolean).join(' ')}
+        className={[
+          styles.item,
+          styles[SHOWING[spec.name] ?? 'showText'],
+          dragging ? styles.itemDragging : '',
+          // Nowhere to put it: the same rubylith idea the rest of the app
+          // uses for "held out", drawn as the 45° hatch at this scale.
+          disabled ? `${styles.itemHeldOut} ${HATCH}` : '',
+        ]
+          .filter(Boolean)
+          .join(' ')}
         title={spec.description}
         onKeyDown={(event) => {
           if (event.key === 'Enter' || event.key === ' ') {

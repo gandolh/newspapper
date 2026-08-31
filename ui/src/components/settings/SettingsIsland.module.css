@@ -6,63 +6,70 @@
 .sections {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-sm);
+  gap: var(--sp-unit);
 }
 
 .sectionTitle {
   margin: 0 0 4px;
-  font-size: var(--font-size-md);
+  font-family: var(--font-chrome);
+  font-size: var(--fs-label);
   font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--on-surface);
+  font-variation-settings: 'wdth' var(--wdth-brand);
+  letter-spacing: var(--ls-brand);
+  text-transform: uppercase;
+  color: var(--graphite);
 }
 
 .sectionHint {
-  margin: 0 0 var(--sp-sm);
-  font-size: var(--font-size-sm);
-  color: var(--muted);
+  margin: 0 0 var(--sp-half);
+  font-size: var(--fs-label);
+  line-height: 1.45;
+  color: var(--graphite-soft);
+  max-width: 66ch;
 }
 
 .themeRow {
   display: flex;
   align-items: end;
-  gap: var(--sp-sm);
+  gap: var(--sp-half);
 }
 
 .themeSelect {
-  min-width: 220px;
+  min-width: calc(var(--sp-unit) * 9);
 }
 
+/* The slide theme's own ink, shown as a chip of the film it prints in. */
 .swatch {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
+  width: var(--sp-unit);
+  height: var(--sp-unit);
+  box-shadow: 0 0 0 1px var(--tick);
   flex-shrink: 0;
-  margin-bottom: 4px;
+  margin-bottom: 0;
 }
 
 .swatchValue {
-  font-size: var(--font-size-xs);
-  color: var(--muted);
-  margin-bottom: 12px;
+  font-family: var(--font-galley);
+  font-size: var(--fs-field);
+  letter-spacing: var(--ls-field);
+  text-transform: uppercase;
+  color: var(--graphite-soft);
+  margin-bottom: var(--sp-hair);
 }
 
 .fields {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-sm);
+  gap: var(--sp-half);
 }
 
 .formActions {
   display: flex;
   justify-content: flex-end;
-  margin-top: var(--sp-sm);
+  margin-top: var(--sp-half);
 }
 
 .loading {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 120px;
+  flex-direction: column;
+  gap: var(--sp-half);
 }

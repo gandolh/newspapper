@@ -1,46 +1,146 @@
+/* The specimen showing.
+   Not a list of equal chips: each compartment renders the component as the
+   thing it produces, so you choose one by recognising its shape
+   (DESIGN.md §3, The Showing Rule). */
 .palette {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-sm);
-  padding: var(--sp-sm);
+  gap: var(--sp-half);
+  padding: var(--sp-half);
+  background: var(--paper);
+  box-shadow: var(--shadow-waxed);
 }
 
 .hint {
   margin: 0;
-  font-size: var(--font-size-xs);
-  color: var(--on-surface-variant);
+  font-family: var(--font-galley);
+  font-size: 10px;
+  line-height: 1.45;
+  color: var(--graphite-soft);
 }
 
 .group {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-xs);
+  gap: 4px;
 }
 
 .groupTitle {
   margin: 0;
-  font-size: var(--font-size-xs);
-  font-weight: 700;
+  font-family: var(--font-galley);
+  font-size: var(--fs-field);
+  font-weight: 500;
+  letter-spacing: var(--ls-field);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--on-surface-variant);
+  color: var(--graphite-soft);
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 2px;
 }
 
 .items {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--sp-xs);
+  gap: 4px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+/* Every compartment is a cell of the showing: a tick border, and inside it
+   the component set the way it sets. */
 .item {
   touch-action: none;
   cursor: grab;
+  height: auto;
+  min-height: var(--sp-unit);
+  padding: 4px var(--sp-hair);
+  background: var(--paper);
+  border: 1px solid var(--tick);
+  color: var(--graphite);
+  font-family: var(--font-chrome);
+}
+
+.item:hover:not(:disabled) {
+  border-color: var(--graphite);
 }
 
 .itemDragging {
-  opacity: 0.5;
   cursor: grabbing;
+}
+
+/* Nowhere to go from here: the same "held out" the rest of the app uses,
+   drawn as the 45° hatch because a compartment is too small for the wash.
+   The ink is unchanged — dimming a 9px caption would take it under 4.5:1. */
+.itemHeldOut {
+  color: var(--graphite-soft);
+  border-color: var(--tick);
+}
+
+/* ---- The showings ---- */
+.showHeading {
+  font-size: 17px;
+  font-weight: 800;
+  font-variation-settings: 'wdth' var(--wdth-title);
+  letter-spacing: -0.02em;
+}
+
+.showText {
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.showList::before {
+  content: '— ';
+  color: var(--graphite-soft);
+}
+
+.showList {
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.showQuote {
+  font-size: 13px;
+  font-weight: 500;
+  font-style: italic;
+}
+
+.showStat {
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+}
+
+.showKicker {
+  font-family: var(--font-galley);
+  font-size: var(--fs-field);
+  font-weight: 700;
+  letter-spacing: var(--ls-field);
+  text-transform: uppercase;
+}
+
+.showSource {
+  font-family: var(--font-galley);
+  font-size: var(--fs-field);
+  font-weight: 500;
+  letter-spacing: var(--ls-field);
+  text-transform: uppercase;
+  color: var(--graphite-soft);
+}
+
+.showCounter {
+  font-family: var(--font-galley);
+  font-size: 11px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Structure produces a shape, not a run of type — so it shows one. */
+.showSchematic {
+  font-family: var(--font-galley);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--graphite-soft);
 }

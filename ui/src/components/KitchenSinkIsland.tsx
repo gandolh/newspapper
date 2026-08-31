@@ -1,47 +1,84 @@
+/**
+ * The proof sheet.
+ *
+ * Every primitive and every mark, set once on one board, so a lapse — a
+ * rounded corner, a coloured pill, a second treatment for a state that
+ * already has a mark — is visible at a glance. Unlinked on purpose: it is
+ * QA, not a page of the product.
+ */
+
 import { useState } from 'react';
 import {
   Button,
   Card,
-  Input,
-  Textarea,
-  Select,
-  Toggle,
-  Badge,
-  Spinner,
+  ConfirmDialog,
+  CropMarks,
   EmptyState,
+  Finding,
+  HeldOut,
+  Input,
+  Mark,
   Modal,
+  PageHeader,
+  ProgressBar,
+  RegisterTargets,
+  Select,
+  Skeleton,
+  Stamp,
+  Textarea,
+  TissueCorner,
+  Toggle,
   ToastProvider,
   useToast,
-  Stepper,
-  ProgressBar,
-  ConfirmDialog,
+  WAX,
 } from './ui';
-
-const STEPS = [
-  { label: 'Sources', description: 'Pick feeds' },
-  { label: 'Compose', description: 'AI writing' },
-  { label: 'Render', description: 'Make PNGs' },
-  { label: 'Export', description: 'Download' },
-];
+import styles from './KitchenSinkIsland.module.css';
 
 const SELECT_OPTIONS = [
-  { value: 'llama3.2:1b', label: 'llama3.2:1b' },
-  { value: 'llama3.2:3b', label: 'llama3.2:3b' },
-  { value: 'mistral', label: 'mistral' },
+  { value: 'warm-industrial-1', label: 'warm-industrial-1' },
+  { value: 'warm-industrial-2', label: 'warm-industrial-2' },
+  { value: 'warm-industrial-3', label: 'warm-industrial-3' },
 ];
+
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Card>
+      <h2 className={styles.sectionTitle}>{title}</h2>
+      {children}
+    </Card>
+  );
+}
 
 function ToastDemo() {
   const { addToast } = useToast();
   return (
-    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-      <Button size="sm" variant="secondary" onClick={() => addToast('Post created!', 'success')}>
-        Toast success
+    <div className={styles.row}>
+      <Button
+        size="sm"
+        variant="secondary"
+        onClick={() => addToast('Post saved.', 'success')}
+      >
+        Toast done
       </Button>
-      <Button size="sm" variant="secondary" onClick={() => addToast('Render failed.', 'error')}>
-        Toast error
+      <Button
+        size="sm"
+        variant="secondary"
+        onClick={() => addToast('Render failed.', 'error')}
+      >
+        Toast failed
       </Button>
-      <Button size="sm" variant="ghost" onClick={() => addToast('Scraping articles…', 'info')}>
-        Toast info
+      <Button
+        size="sm"
+        variant="ghost"
+        onClick={() => addToast('Scraping articles…', 'info')}
+      >
+        Toast note
       </Button>
     </div>
   );
@@ -50,157 +87,182 @@ function ToastDemo() {
 export default function KitchenSinkIsland() {
   const [modalOpen, setModalOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [currentStep, setCurrentStep] = useState(1);
   const [progress, setProgress] = useState(40);
   const [toggleOn, setToggleOn] = useState(false);
+  const [theme, setTheme] = useState('warm-industrial-1');
 
   return (
     <ToastProvider>
-      <div style={{ maxWidth: 800, display: 'flex', flexDirection: 'column', gap: 32 }}>
-        <div>
-          <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.03em', marginBottom: 4 }}>
-            Kitchen Sink
-          </h1>
-          <p style={{ color: 'var(--muted)', fontSize: 14 }}>
-            Every component in the UI kit — for visual QA.
-          </p>
-        </div>
+      <div className={styles.sheet}>
+        <PageHeader
+          title="Proof sheet"
+          subtitle="Every primitive and every mark, set once. If something here has a rounded corner or a coloured pill, the world has slipped."
+        />
 
-        {/* ---- Buttons ---- */}
-        <Card>
-          <h2 style={{ fontSize: 14, fontWeight: 700, marginBottom: 16, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Buttons</h2>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+        <Section title="Marks">
+          <p className={styles.note}>
+            One mark per idea. Rubylith is the only way this app says “held
+            out”.
+          </p>
+          <div className={styles.row}>
+            <Mark>Draft</Mark>
+            <Mark tone="ink">3 slides</Mark>
+            <Mark tone="rubylith">2 errors</Mark>
+            <Mark tone="blue">warm-industrial-1</Mark>
+            <Mark bare>1 : 2</Mark>
+            <Stamp>Published</Stamp>
+          </div>
+          <div className={styles.row}>
+            <span className={styles.swatch}>
+              Selected in the galley takes the <span className={WAX}>wax</span>.
+            </span>
+          </div>
+          <div className={styles.row}>
+            <HeldOut className={styles.heldOutDemo}>
+              <span>Held out — the rubylith wash</span>
+            </HeldOut>
+            <HeldOut hatch className={styles.heldOutDemo}>
+              <span>Held out — the 45° hatch, at tray scale</span>
+            </HeldOut>
+          </div>
+          <div className={styles.row}>
+            <span className={styles.cornerDemo}>
+              Draft: the tissue corner
+              <TissueCorner />
+            </span>
+            <span className={styles.frameDemo}>
+              <CropMarks />
+              <RegisterTargets />
+            </span>
+          </div>
+          <Finding where="WZD201 · line 14, col 6">
+            Heading runs 3 characters past the measure at xl.
+          </Finding>
+        </Section>
+
+        <Section title="Buttons">
+          <div className={styles.row}>
             <Button variant="primary">Primary</Button>
             <Button variant="secondary">Secondary</Button>
             <Button variant="ghost">Ghost</Button>
             <Button variant="danger">Danger</Button>
           </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+          <div className={styles.row}>
             <Button size="sm">Small</Button>
             <Button size="md">Medium</Button>
             <Button size="lg">Large</Button>
           </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            <Button loading>Loading</Button>
+          <div className={styles.row}>
+            <Button loading>Rendering</Button>
             <Button disabled>Disabled</Button>
           </div>
-        </Card>
+        </Section>
 
-        {/* ---- Form inputs ---- */}
-        <Card>
-          <h2 style={{ fontSize: 14, fontWeight: 700, marginBottom: 16, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Form Controls</h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <Input label="Article title" placeholder="Enter title…" hint="Used as the slide heading" />
-            <Input label="URL" placeholder="https://…" error="Invalid URL" />
-            <Textarea label="Prompt" defaultValue="Write a compelling post about today's top stories." rows={3} />
+        <Section title="Fields">
+          <div className={styles.fields}>
+            <Input
+              label="Title"
+              placeholder="Today’s lead"
+              hint="Sets the post’s index columns."
+            />
+            <Input
+              label="Feed"
+              defaultValue="not a url"
+              error="That is not a URL."
+            />
+            <Textarea label="Caption" placeholder="What goes with the post…" />
             <Select
-              label="Model"
+              label="Theme"
               options={SELECT_OPTIONS}
-              defaultValue="llama3.2:1b"
-              hint="Model to use"
+              value={theme}
+              onValueChange={setTheme}
             />
             <Toggle
-              label="Enable source"
+              label="Enabled"
               checked={toggleOn}
-              onCheckedChange={(c) => setToggleOn(c)}
-              hint="Toggle this RSS feed on or off"
+              onCheckedChange={setToggleOn}
+              hint="Disabled feeds are skipped."
+            />
+            <Toggle
+              label="Unavailable"
+              disabled
+              hint="Held out, at switch scale."
             />
           </div>
-        </Card>
+        </Section>
 
-        {/* ---- Badges ---- */}
-        <Card>
-          <h2 style={{ fontSize: 14, fontWeight: 700, marginBottom: 16, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Badges</h2>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <Badge variant="default">default</Badge>
-            <Badge variant="primary">primary</Badge>
-            <Badge variant="success">success</Badge>
-            <Badge variant="warning">warning</Badge>
-            <Badge variant="error">error</Badge>
-            <Badge variant="muted">muted</Badge>
-          </div>
-        </Card>
-
-        {/* ---- Spinner ---- */}
-        <Card>
-          <h2 style={{ fontSize: 14, fontWeight: 700, marginBottom: 16, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Spinner</h2>
-          <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-            <Spinner size={16} color="var(--primary)" />
-            <Spinner size={24} color="var(--muted)" />
-            <Spinner size={36} color="var(--secondary)" />
-          </div>
-        </Card>
-
-        {/* ---- Progress bar ---- */}
-        <Card>
-          <h2 style={{ fontSize: 14, fontWeight: 700, marginBottom: 16, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>ProgressBar</h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <ProgressBar value={progress} label="Rendering slides" showPercent />
-            <ProgressBar value={75} variant="success" label="Success" showPercent />
-            <ProgressBar value={30} variant="error" label="Error" showPercent />
-            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-              <Button size="sm" variant="secondary" onClick={() => setProgress((p) => Math.max(0, p - 10))}>–10</Button>
-              <Button size="sm" variant="secondary" onClick={() => setProgress((p) => Math.min(100, p + 10))}>+10</Button>
+        <Section title="Progress and placeholders">
+          <div className={styles.fields}>
+            <ProgressBar
+              value={progress}
+              label="Rendering slides"
+              showPercent
+            />
+            <ProgressBar
+              value={30}
+              variant="error"
+              label="Failed at slide 2"
+              showPercent
+            />
+            <div className={styles.row}>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => setProgress((p) => Math.max(0, p - 10))}
+              >
+                −10
+              </Button>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => setProgress((p) => Math.min(100, p + 10))}
+              >
+                +10
+              </Button>
             </div>
+            <Skeleton height={78} />
           </div>
-        </Card>
+        </Section>
 
-        {/* ---- Stepper ---- */}
-        <Card>
-          <h2 style={{ fontSize: 14, fontWeight: 700, marginBottom: 16, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Stepper</h2>
-          <Stepper steps={STEPS} current={currentStep} />
-          <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
-            <Button size="sm" variant="secondary" onClick={() => setCurrentStep((s) => Math.max(0, s - 1))}>Back</Button>
-            <Button size="sm" onClick={() => setCurrentStep((s) => Math.min(STEPS.length - 1, s + 1))}>Next</Button>
+        <Section title="Overlays">
+          <div className={styles.row}>
+            <Button variant="secondary" onClick={() => setModalOpen(true)}>
+              Open modal
+            </Button>
+            <Button variant="danger" onClick={() => setConfirmOpen(true)}>
+              Open confirm
+            </Button>
           </div>
-        </Card>
-
-        {/* ---- Toast ---- */}
-        <Card>
-          <h2 style={{ fontSize: 14, fontWeight: 700, marginBottom: 16, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Toasts</h2>
           <ToastDemo />
-        </Card>
-
-        {/* ---- Modal ---- */}
-        <Card>
-          <h2 style={{ fontSize: 14, fontWeight: 700, marginBottom: 16, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Modal</h2>
-          <Button variant="secondary" onClick={() => setModalOpen(true)}>Open modal</Button>
-          <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Example modal">
-            <p style={{ color: 'var(--muted)', marginBottom: 16, lineHeight: 1.6 }}>
-              This is a focus-trapped modal. Press Esc or click outside to close.
+          <Modal
+            open={modalOpen}
+            onClose={() => setModalOpen(false)}
+            title="Example modal"
+          >
+            <p className={styles.note}>
+              A modal has to pick one of the two shadows. It is a slip waxed
+              over the board, so it takes the hard short one.
             </p>
-            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-              <Button variant="ghost" onClick={() => setModalOpen(false)}>Cancel</Button>
-              <Button onClick={() => setModalOpen(false)}>Confirm</Button>
-            </div>
+            <Button onClick={() => setModalOpen(false)}>Close</Button>
           </Modal>
-        </Card>
-
-        {/* ---- ConfirmDialog ---- */}
-        <Card>
-          <h2 style={{ fontSize: 14, fontWeight: 700, marginBottom: 16, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>ConfirmDialog</h2>
-          <Button variant="danger" onClick={() => setConfirmOpen(true)}>Delete post</Button>
           <ConfirmDialog
             open={confirmOpen}
             onClose={() => setConfirmOpen(false)}
             onConfirm={() => setConfirmOpen(false)}
-            title="Delete post?"
-            message="This will permanently remove the post and all rendered slides. This action cannot be undone."
+            title="Delete this post?"
+            message="The markup is not recoverable."
             confirmLabel="Delete"
-            cancelLabel="Keep it"
           />
-        </Card>
+        </Section>
 
-        {/* ---- EmptyState ---- */}
-        <Card padding="none">
-          <h2 style={{ fontSize: 14, fontWeight: 700, margin: '16px 16px 0', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>EmptyState</h2>
+        <Section title="Empty">
           <EmptyState
-            icon="◷"
-            title="No posts yet"
-            hint="Run the pipeline to generate your first slide post."
-            action={<Button>Create post</Button>}
+            icon="—"
+            title="Nothing set yet"
+            hint="The frame is drawn; the copy has not been pasted down."
+            action={<Button size="sm">Start one</Button>}
           />
-        </Card>
+        </Section>
       </div>
     </ToastProvider>
   );

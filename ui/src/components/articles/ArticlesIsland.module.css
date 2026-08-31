@@ -1,45 +1,50 @@
 /* =============================================================
-   ArticlesIsland — search, library, and sources in one page
+   Articles — search, library, and sources on one sheet
    ============================================================= */
 
+/* A scale-chip row: equal chips, tick border, the current one inverted. */
 .tabBar {
   display: flex;
-  gap: var(--sp-xs);
-  border-bottom: 1px solid var(--border);
-  margin-bottom: var(--sp-md);
+  gap: 4px;
+  margin-bottom: var(--sp-unit);
 }
 
 .tab {
   appearance: none;
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  padding: var(--sp-sm) var(--sp-sm);
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  color: var(--muted);
+  height: var(--sp-unit);
+  padding: 0 var(--sp-half);
+  border: 1px solid var(--tick);
+  background: var(--paper);
+  font-family: var(--font-galley);
+  font-size: var(--fs-field);
+  font-weight: 500;
+  letter-spacing: var(--ls-field);
+  text-transform: uppercase;
+  color: var(--graphite-soft);
   cursor: pointer;
 }
 
 .tab:hover {
-  color: var(--on-surface);
+  border-color: var(--graphite);
+  color: var(--graphite);
 }
 
 .tabActive {
-  color: var(--primary);
-  border-bottom-color: var(--primary);
+  background: var(--graphite);
+  border-color: var(--graphite);
+  color: var(--board);
 }
 
 .tabPanel {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-md);
+  gap: var(--sp-unit);
 }
 
 /* ---- Search form ---- */
 .searchForm {
   display: flex;
-  gap: var(--sp-sm);
+  gap: var(--sp-half);
   align-items: flex-start;
 }
 
@@ -50,7 +55,7 @@
 .progressList {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--sp-xs);
+  gap: var(--sp-half);
 }
 
 .progressItem {
@@ -60,7 +65,7 @@
 /* ---- Filter bar (library) ---- */
 .filterBar {
   display: flex;
-  gap: var(--sp-sm);
+  gap: var(--sp-half);
   align-items: flex-start;
 }
 
@@ -68,58 +73,69 @@
   flex: 1;
 }
 
-/* ---- Result cards (shared by search + library) ---- */
+/* ---- Clippings (shared by search + library) ---- */
 .resultList {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-sm);
+  gap: var(--sp-half);
 }
 
 .resultCard {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--sp-hair);
 }
 
 .resultMeta {
   display: flex;
   align-items: center;
-  gap: var(--sp-xs);
+  gap: var(--sp-half);
 }
 
 .metaText {
-  font-size: 12px;
-  color: var(--muted);
+  font-family: var(--font-galley);
+  font-size: var(--fs-field);
+  font-weight: 500;
+  letter-spacing: var(--ls-field);
+  text-transform: uppercase;
+  color: var(--graphite-soft);
+  font-variant-numeric: tabular-nums;
 }
 
 .externalLink {
-  color: var(--muted);
+  color: var(--graphite-soft);
   text-decoration: none;
   margin-left: auto;
 }
 
+.externalLink:hover {
+  color: var(--process-blue);
+}
+
 .resultTitle {
-  font-weight: 600;
-  font-size: 14px;
+  font-family: var(--font-chrome);
+  font-size: var(--fs-label);
+  font-weight: 700;
+  letter-spacing: var(--ls-label);
+  line-height: var(--lh-label);
 }
 
 .resultExcerpt {
-  font-size: 13px;
-  color: var(--muted);
   margin: 0;
-  line-height: 1.4;
+  font-size: var(--fs-label);
+  line-height: 1.45;
+  color: var(--graphite-soft);
 }
 
 .resultActions {
   display: flex;
   justify-content: flex-end;
-  gap: 6px;
+  gap: 4px;
   margin-top: 4px;
 }
 
-.centered {
+.loadingList {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 160px;
+  flex-direction: column;
+  gap: var(--sp-half);
 }

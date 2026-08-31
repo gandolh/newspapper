@@ -1,15 +1,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Badge,
   Button,
   Card,
   ConfirmDialog,
+  CropMarks,
   EmptyState,
   Input,
+  Mark,
   PageHeader,
   ProgressBar,
   Select,
   Skeleton,
+  Stamp,
+  TissueCorner,
   ToastProvider,
   useToast,
 } from '../ui';
@@ -38,7 +41,11 @@ const STATUS_OPTIONS = [
 function formatDate(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+  return d.toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
 }
 
 function PostsPage() {
@@ -53,7 +60,10 @@ function PostsPage() {
   const [keyword, setKeyword] = useState<string | null>(null);
 
   const [renderingId, setRenderingId] = useState<number | null>(null);
-  const [renderProgress, setRenderProgress] = useState<{ done: number; total: number } | null>(null);
+  const [renderProgress, setRenderProgress] = useState<{
+    done: number;
+    total: number;
+  } | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
 
   const [confirmDelete, setConfirmDelete] = useState<Post | null>(null);
@@ -108,7 +118,8 @@ function PostsPage() {
         {
           signal: abort.signal,
           onEvent: (event, data) => {
-            if (event === 'progress') setRenderProgress(data as { done: number; total: number });
+            if (event === 'progress')
+              setRenderProgress(data as { done: number; total: number });
           },
         },
       );
@@ -140,7 +151,10 @@ function PostsPage() {
   async function handleUnpublish(post: Post) {
     setBusyId(post.id);
     try {
-      await api(`/api/posts/${post.id}/status`, { method: 'PUT', json: { status: 'draft' } });
+      await api(`/api/posts/${post.id}/status`, {
+        method: 'PUT',
+        json: { status: 'draft' },
+      });
       addToast(`“${post.title}” is a draft again`, 'success');
       await load();
     } catch (err) {
@@ -222,13 +236,21 @@ function PostsPage() {
         </div>
       ) : posts.length === 0 ? (
         <EmptyState
-          title={search || keyword || status !== 'all' ? 'Nothing matches' : 'No posts yet'}
+          title={
+            search || keyword || status !== 'all'
+              ? 'Nothing matches'
+              : 'No posts yet'
+          }
           hint={
             search || keyword || status !== 'all'
               ? 'Try a wider filter.'
               : 'Start writing and the first save lands here.'
           }
-          action={<Button onClick={() => window.location.assign('/')}>New post</Button>}
+          action={
+            <Button onClick={() => window.location.assign('/')}>
+              New post
+            </Button>
+          }
         />
       ) : (
         <ul className={styles.list} role="list">
@@ -242,12 +264,24 @@ function PostsPage() {
             return (
               <li key={post.id}>
                 <Card className={styles.row}>
-                  <a className={styles.thumbLink} href={`/?post=${post.id}`} aria-hidden="true" tabIndex={-1}>
+                  {post.status !== 'published' && <TissueCorner />}
+                  <a
+                    className={styles.thumbLink}
+                    href={`/?post=${post.id}`}
+                    aria-hidden="true"
+                    tabIndex={-1}
+                  >
                     {thumb ? (
-                      <img className={styles.thumb} src={thumb} alt="" loading="lazy" />
+                      <img
+                        className={styles.thumb}
+                        src={thumb}
+                        alt=""
+                        loading="lazy"
+                      />
                     ) : (
-                      <span className={styles.thumbEmpty}>—</span>
+                      <span className={styles.thumbEmpty}>Not set</span>
                     )}
+                    <CropMarks />
                   </a>
 
                   <div className={styles.meta}>
@@ -255,23 +289,33 @@ function PostsPage() {
                       <a className={styles.title} href={`/?post=${post.id}`}>
                         {post.title}
                       </a>
-                      <Badge variant={post.status === 'published' ? 'success' : 'default'}>
-                        {post.status}
-                      </Badge>
-                      {rendered && <Badge variant="muted">{render?.slideCount} slides</Badge>}
+                      {post.status === 'published' ? (
+                        <Stamp>Published</Stamp>
+                      ) : (
+                        <Mark>Draft</Mark>
+                      )}
+                      {rendered ? (
+                        <Mark bare>{render?.slideCount} slides</Mark>
+                      ) : (
+                        <Mark bare>Not rendered</Mark>
+                      )}
                     </div>
 
-                    {post.description && <p className={styles.description}>{post.description}</p>}
+                    {post.description && (
+                      <p className={styles.description}>{post.description}</p>
+                    )}
 
                     <p className={styles.dates}>
                       Updated {formatDate(post.updatedAt)}
-                      {post.publishedAt ? ` · published ${formatDate(post.publishedAt)}` : ''}
+                      {post.publishedAt
+                        ? ` · published ${formatDate(post.publishedAt)}`
+                        : ''}
                     </p>
 
                     {post.keywords.length > 0 && (
                       <div className={styles.tagRow}>
                         {post.keywords.map((k) => (
-                          <Badge key={k}>{k}</Badge>
+                          <Mark key={k}>{k}</Mark>
                         ))}
                       </div>
                     )}
@@ -281,7 +325,8 @@ function PostsPage() {
                         <ProgressBar
                           value={
                             renderProgress && renderProgress.total > 0
-                              ? (renderProgress.done / renderProgress.total) * 100
+                              ? (renderProgress.done / renderProgress.total) *
+                                100
                               : 0
                           }
                           label={
@@ -295,7 +340,13 @@ function PostsPage() {
                   </div>
 
                   <div className={styles.actions}>
-                    <Button size="sm" variant="secondary" onClick={() => window.location.assign(`/?post=${post.id}`)}>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() =>
+                        window.location.assign(`/?post=${post.id}`)
+                      }
+                    >
                       Open
                     </Button>
                     <Button
@@ -311,12 +362,21 @@ function PostsPage() {
                       size="sm"
                       variant="secondary"
                       disabled={!rendered}
-                      onClick={() => window.location.assign(`/api/posts/${post.id}/export.zip`)}
+                      onClick={() =>
+                        window.location.assign(
+                          `/api/posts/${post.id}/export.zip`,
+                        )
+                      }
                     >
                       Export ZIP
                     </Button>
                     {post.status === 'published' ? (
-                      <Button size="sm" variant="ghost" loading={busy} onClick={() => void handleUnpublish(post)}>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        loading={busy}
+                        onClick={() => void handleUnpublish(post)}
+                      >
                         Unpublish
                       </Button>
                     ) : (
@@ -329,7 +389,11 @@ function PostsPage() {
                         Publish
                       </Button>
                     )}
-                    <Button size="sm" variant="danger" onClick={() => setConfirmDelete(post)}>
+                    <Button
+                      size="sm"
+                      variant="danger"
+                      onClick={() => setConfirmDelete(post)}
+                    >
                       Delete
                     </Button>
                   </div>

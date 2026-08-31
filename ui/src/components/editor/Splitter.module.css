@@ -1,20 +1,18 @@
+/* The gap between two things on the board. A rule, not a handle. */
 .splitter {
-  flex: 0 0 6px;
+  flex: 0 0 var(--sp-half);
   cursor: col-resize;
   touch-action: none;
-  background: var(--border);
-  border: none;
-  transition: background 120ms ease;
+  background: transparent;
+  border: 0;
+  border-left: 1px solid var(--rule);
+  border-right: 1px solid var(--rule);
+  margin: 0 var(--sp-hair);
+  padding: 0;
 }
 
 .splitter:hover,
 .splitter:focus-visible {
-  background: var(--primary);
-  outline: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .splitter {
-    transition: none;
-  }
+  border-left-color: var(--graphite);
+  border-right-color: var(--graphite);
 }

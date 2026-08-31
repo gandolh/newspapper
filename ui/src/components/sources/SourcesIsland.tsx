@@ -4,8 +4,8 @@ import {
   Card,
   Input,
   Toggle,
-  Badge,
-  Spinner,
+  Mark,
+  Skeleton,
   EmptyState,
   Modal,
   PageHeader,
@@ -55,17 +55,16 @@ function truncateUrl(url: string, max = 55): string {
 }
 
 // ---------------------------------------------------------------------------
-// PingBadge
+// PingBadge — the feed's state, said as a mark
 // ---------------------------------------------------------------------------
 
-function PingBadge({ state }: { state: { loading: boolean; result?: PingResult } }) {
+function PingBadge({
+  state,
+}: {
+  state: { loading: boolean; result?: PingResult };
+}) {
   if (state.loading) {
-    return (
-      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-        <Spinner size={13} color="var(--muted)" />
-        <span style={{ fontSize: 12, color: 'var(--muted)' }}>pinging…</span>
-      </span>
-    );
+    return <Mark>Pinging…</Mark>;
   }
   if (!state.result) return null;
 
@@ -78,11 +77,11 @@ function PingBadge({ state }: { state: { loading: boolean; result?: PingResult }
     ]
       .filter(Boolean)
       .join(' · ');
-    return <Badge variant="success">{label}</Badge>;
+    return <Mark tone="ink">{label}</Mark>;
   }
   return (
     <span title={error ?? 'Unknown error'}>
-      <Badge variant="error">error{error ? ' ⓘ' : ''}</Badge>
+      <Mark tone="rubylith">error{error ? ' ⓘ' : ''}</Mark>
     </span>
   );
 }
@@ -100,7 +99,14 @@ interface SourceRowProps {
   onDelete: (source: SourceConfig) => void;
 }
 
-function SourceRow({ source, ping, onToggle, onPing, onEdit, onDelete }: SourceRowProps) {
+function SourceRow({
+  source,
+  ping,
+  onToggle,
+  onPing,
+  onEdit,
+  onDelete,
+}: SourceRowProps) {
   const [copied, setCopied] = useState(false);
 
   function handleCopy() {
@@ -114,14 +120,18 @@ function SourceRow({ source, ping, onToggle, onPing, onEdit, onDelete }: SourceR
     <tr>
       <td>
         <span style={{ fontWeight: 600, fontSize: 14 }}>{source.name}</span>
-        <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>{source.id}</div>
+        <div
+          style={{ fontSize: 11, color: 'var(--graphite-soft)', marginTop: 2 }}
+        >
+          {source.id}
+        </div>
       </td>
       <td>
         <span
           style={{
             fontFamily: 'monospace',
             fontSize: 12,
-            color: 'var(--muted)',
+            color: 'var(--graphite-soft)',
             cursor: 'pointer',
             textDecoration: 'underline dotted',
           }}
@@ -131,7 +141,11 @@ function SourceRow({ source, ping, onToggle, onPing, onEdit, onDelete }: SourceR
           {truncateUrl(source.rss)}
         </span>
         {copied && (
-          <span style={{ marginLeft: 6, fontSize: 11, color: 'var(--success)' }}>copied!</span>
+          <span
+            style={{ marginLeft: 6, fontSize: 11, color: 'var(--graphite)' }}
+          >
+            copied!
+          </span>
         )}
       </td>
       <td style={{ textAlign: 'center' }}>
@@ -145,7 +159,7 @@ function SourceRow({ source, ping, onToggle, onPing, onEdit, onDelete }: SourceR
         {ping ? (
           <PingBadge state={ping} />
         ) : (
-          <span style={{ fontSize: 12, color: 'var(--surface-dim)' }}>—</span>
+          <span style={{ fontSize: 12, color: 'var(--graphite-soft)' }}>—</span>
         )}
       </td>
       <td>
@@ -182,7 +196,12 @@ interface SourceFormModalProps {
   onSaved: (sources: SourceConfig[]) => void;
 }
 
-function SourceFormModal({ open, source, onClose, onSaved }: SourceFormModalProps) {
+function SourceFormModal({
+  open,
+  source,
+  onClose,
+  onSaved,
+}: SourceFormModalProps) {
   const isEdit = source !== null;
   const { addToast } = useToast();
 
@@ -264,7 +283,12 @@ function SourceFormModal({ open, source, onClose, onSaved }: SourceFormModalProp
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={isEdit ? 'Edit source' : 'Add source'} width={520}>
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={isEdit ? 'Edit source' : 'Add source'}
+      width={520}
+    >
       <form onSubmit={handleSubmit} noValidate>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <Input
@@ -290,7 +314,11 @@ function SourceFormModal({ open, source, onClose, onSaved }: SourceFormModalProp
             onChange={(e) => setId(e.target.value)}
             error={errors.id}
             readOnly={isEdit}
-            hint={isEdit ? 'ID cannot be changed after creation' : 'Auto-generated from name; must be unique'}
+            hint={
+              isEdit
+                ? 'ID cannot be changed after creation'
+                : 'Auto-generated from name; must be unique'
+            }
           />
           <Toggle
             label="Enabled"
@@ -299,8 +327,20 @@ function SourceFormModal({ open, source, onClose, onSaved }: SourceFormModalProp
             hint="Disabled feeds are skipped during scraping"
           />
         </div>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 24 }}>
-          <Button type="button" variant="ghost" onClick={onClose} disabled={loading}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            gap: 8,
+            marginTop: 24,
+          }}
+        >
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={onClose}
+            disabled={loading}
+          >
             Cancel
           </Button>
           <Button type="submit" loading={loading}>
@@ -349,11 +389,18 @@ function SourcesPage() {
 
   // Toggle enabled
   async function handleToggle(source: SourceConfig, enabled: boolean) {
-    setSources((prev) => prev.map((s) => (s.id === source.id ? { ...s, enabled } : s)));
+    setSources((prev) =>
+      prev.map((s) => (s.id === source.id ? { ...s, enabled } : s)),
+    );
     try {
-      await api(`/api/sources/${source.id}`, { method: 'PUT', json: { enabled } });
+      await api(`/api/sources/${source.id}`, {
+        method: 'PUT',
+        json: { enabled },
+      });
     } catch {
-      setSources((prev) => prev.map((s) => (s.id === source.id ? { ...s, enabled: !enabled } : s)));
+      setSources((prev) =>
+        prev.map((s) => (s.id === source.id ? { ...s, enabled: !enabled } : s)),
+      );
       addToast('Failed to update source', 'error');
     }
   }
@@ -362,12 +409,17 @@ function SourcesPage() {
   async function handlePing(source: SourceConfig) {
     setPings((p) => ({ ...p, [source.id]: { loading: true } }));
     try {
-      const result = await api<PingResult>(`/api/sources/${source.id}/ping`, { method: 'POST' });
+      const result = await api<PingResult>(`/api/sources/${source.id}/ping`, {
+        method: 'POST',
+      });
       setPings((p) => ({ ...p, [source.id]: { loading: false, result } }));
     } catch (err) {
       setPings((p) => ({
         ...p,
-        [source.id]: { loading: false, result: { ok: false, error: (err as Error).message } },
+        [source.id]: {
+          loading: false,
+          result: { ok: false, error: (err as Error).message },
+        },
       }));
     }
   }
@@ -396,9 +448,12 @@ function SourcesPage() {
     if (!deleteTarget) return;
     setDeleteLoading(true);
     try {
-      const result = await api<SourceConfig[]>(`/api/sources/${deleteTarget.id}`, {
-        method: 'DELETE',
-      });
+      const result = await api<SourceConfig[]>(
+        `/api/sources/${deleteTarget.id}`,
+        {
+          method: 'DELETE',
+        },
+      );
       setSources(result);
       addToast(`"${deleteTarget.name}" deleted`, 'success');
       setDeleteTarget(null);
@@ -411,8 +466,9 @@ function SourcesPage() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 200 }}>
-        <Spinner size={28} color="var(--primary)" />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 13 }}>
+        <Skeleton height={78} />
+        <Skeleton height={78} />
       </div>
     );
   }
@@ -453,96 +509,128 @@ function SourcesPage() {
       ) : (
         <Card padding="none">
           <div style={{ overflowX: 'auto' }}>
-          <table
-            style={{
-              width: '100%',
-              minWidth: 640,
-              borderCollapse: 'collapse',
-              fontSize: 14,
-            }}
-          >
-            <thead>
-              <tr
-                style={{
-                  borderBottom: '1px solid var(--border)',
-                  background: 'var(--surface-low)',
-                }}
-              >
-                {['Feed', 'RSS URL', 'Enabled', 'Health', ''].map((h) => (
-                  <th
-                    key={h}
-                    style={{
-                      padding: '10px 16px',
-                      textAlign: h === '' || h === 'Enabled' ? 'center' : 'left',
-                      fontWeight: 600,
-                      fontSize: 12,
-                      color: 'var(--muted)',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {sources.map((source, idx) => (
+            <table
+              style={{
+                width: '100%',
+                minWidth: 640,
+                borderCollapse: 'collapse',
+                fontSize: 14,
+              }}
+            >
+              <thead>
                 <tr
-                  key={source.id}
                   style={{
-                    borderBottom:
-                      idx < sources.length - 1 ? '1px solid var(--border)' : undefined,
+                    borderBottom: '1px solid var(--hairline)',
+                    background: 'var(--board)',
                   }}
                 >
-                  {/* Inline SourceRow cells for styling */}
-                  <td style={{ padding: '12px 16px' }}>
-                    <span style={{ fontWeight: 600, fontSize: 14 }}>{source.name}</span>
-                    <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>
-                      {source.id}
-                    </div>
-                  </td>
-                  <td style={{ padding: '12px 16px' }}>
-                    <CopyableUrl url={source.rss} />
-                  </td>
-                  <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                    <Toggle
-                      checked={source.enabled}
-                      onCheckedChange={(c) => handleToggle(source, c)}
-                      aria-label={`Enable ${source.name}`}
-                    />
-                  </td>
-                  <td style={{ padding: '12px 16px' }}>
-                    {pings[source.id] ? (
-                      <PingBadge state={pings[source.id]} />
-                    ) : (
-                      <span style={{ fontSize: 12, color: 'var(--surface-dim)' }}>—</span>
-                    )}
-                  </td>
-                  <td style={{ padding: '12px 16px' }}>
-                    <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handlePing(source)}
-                        disabled={pings[source.id]?.loading}
-                        title="Ping this feed"
-                      >
-                        Ping
-                      </Button>
-                      <Button size="sm" variant="secondary" onClick={() => handleEdit(source)}>
-                        Edit
-                      </Button>
-                      <Button size="sm" variant="danger" onClick={() => setDeleteTarget(source)}>
-                        Delete
-                      </Button>
-                    </div>
-                  </td>
+                  {['Feed', 'RSS URL', 'Enabled', 'Health', ''].map((h) => (
+                    <th
+                      key={h}
+                      style={{
+                        padding: '10px 16px',
+                        textAlign:
+                          h === '' || h === 'Enabled' ? 'center' : 'left',
+                        fontWeight: 600,
+                        fontSize: 12,
+                        color: 'var(--graphite-soft)',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {h}
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {sources.map((source, idx) => (
+                  <tr
+                    key={source.id}
+                    style={{
+                      borderBottom:
+                        idx < sources.length - 1
+                          ? '1px solid var(--hairline)'
+                          : undefined,
+                    }}
+                  >
+                    {/* Inline SourceRow cells for styling */}
+                    <td style={{ padding: '12px 16px' }}>
+                      <span style={{ fontWeight: 600, fontSize: 14 }}>
+                        {source.name}
+                      </span>
+                      <div
+                        style={{
+                          fontSize: 11,
+                          color: 'var(--graphite-soft)',
+                          marginTop: 2,
+                        }}
+                      >
+                        {source.id}
+                      </div>
+                    </td>
+                    <td style={{ padding: '12px 16px' }}>
+                      <CopyableUrl url={source.rss} />
+                    </td>
+                    <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                      <Toggle
+                        checked={source.enabled}
+                        onCheckedChange={(c) => handleToggle(source, c)}
+                        aria-label={`Enable ${source.name}`}
+                      />
+                    </td>
+                    <td style={{ padding: '12px 16px' }}>
+                      {pings[source.id] ? (
+                        <PingBadge state={pings[source.id]} />
+                      ) : (
+                        <span
+                          style={{
+                            fontSize: 12,
+                            color: 'var(--graphite-soft)',
+                          }}
+                        >
+                          —
+                        </span>
+                      )}
+                    </td>
+                    <td style={{ padding: '12px 16px' }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          gap: 6,
+                          justifyContent: 'flex-end',
+                        }}
+                      >
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handlePing(source)}
+                          disabled={pings[source.id]?.loading}
+                          title="Ping this feed"
+                        >
+                          Ping
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => handleEdit(source)}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="danger"
+                          onClick={() => setDeleteTarget(source)}
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </Card>
       )}
@@ -590,7 +678,7 @@ function CopyableUrl({ url }: { url: string }) {
         style={{
           fontFamily: 'monospace',
           fontSize: 12,
-          color: 'var(--muted)',
+          color: 'var(--graphite-soft)',
           cursor: 'pointer',
         }}
         title={`Click to copy: ${url}`}
@@ -598,7 +686,9 @@ function CopyableUrl({ url }: { url: string }) {
       >
         {truncateUrl(url)}
       </span>
-      {copied && <span style={{ fontSize: 11, color: 'var(--success)' }}>copied!</span>}
+      {copied && (
+        <span style={{ fontSize: 11, color: 'var(--graphite)' }}>copied!</span>
+      )}
     </span>
   );
 }

@@ -1,117 +1,110 @@
 .field {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--sp-hair);
 }
 
 .label {
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  color: var(--on-surface);
+  font-family: var(--font-galley);
+  font-size: var(--fs-field);
+  font-weight: 500;
+  line-height: var(--lh-field);
+  letter-spacing: var(--ls-field);
+  text-transform: uppercase;
+  color: var(--graphite-soft);
 }
 
-/* Trigger — styled like the old native control */
 .trigger {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  height: 36px;
-  padding: 0 10px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface-card);
-  color: var(--on-surface);
-  font-size: var(--font-size-base);
-  font-family: var(--font-family);
+  gap: var(--sp-hair);
+  height: var(--sp-unit);
+  padding: 0 var(--sp-hair);
+  border: 1px solid var(--tick);
+  background: var(--paper);
+  color: var(--graphite);
+  font-family: var(--font-galley);
+  font-size: var(--fs-galley);
   cursor: pointer;
   width: 100%;
   text-align: left;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 120ms ease;
 }
 
-.trigger:focus-visible {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--primary-soft);
+.trigger:hover {
+  border-color: var(--graphite-tint);
 }
 
 .trigger[data-popup-open] {
-  border-color: var(--primary);
+  border-color: var(--process-blue);
 }
 
 .trigger[data-disabled] {
-  opacity: 0.5;
   cursor: not-allowed;
-  background: var(--surface-low);
+  color: var(--graphite-soft);
+  background: var(--board);
 }
 
 .select--error {
-  border-color: var(--error);
+  border-color: var(--rubylith);
 }
 
 .placeholder {
-  color: var(--outline);
+  color: var(--graphite-soft);
 }
 
+/* A machined tick, not a chevron glyph. */
 .chevron {
   display: flex;
   align-items: center;
-  font-size: 12px;
-  color: var(--muted);
-  transition: transform 0.15s ease;
+  font-size: 10px;
+  color: var(--graphite-soft);
+  flex-shrink: 0;
 }
 
-.trigger[data-popup-open] .chevron {
-  transform: rotate(180deg);
-}
-
-/* Popup listbox */
+/* The popup is a slip waxed over the board — one of the two shadows. */
 .positioner {
   z-index: 1100;
 }
 
 .popup {
   min-width: var(--anchor-width);
-  max-height: min(320px, var(--available-height));
+  max-height: min(var(--sp-double) * 6, var(--available-height));
   overflow-y: auto;
-  padding: 4px;
-  background: var(--surface-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: 0 8px 24px rgba(27, 28, 28, 0.14);
-  transition: opacity 0.12s ease, transform 0.12s ease;
-  transform-origin: var(--transform-origin);
-}
-
-.popup[data-starting-style],
-.popup[data-ending-style] {
-  opacity: 0;
-  transform: scale(0.97);
+  padding: 0;
+  background: var(--paper);
+  box-shadow: var(--shadow-waxed);
 }
 
 .item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  padding: 7px 10px;
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-sm);
-  color: var(--on-surface);
+  gap: var(--sp-hair);
+  height: var(--sp-unit);
+  padding: 0 var(--sp-hair);
+  font-family: var(--font-galley);
+  font-size: var(--fs-galley);
+  color: var(--graphite);
   cursor: pointer;
   user-select: none;
   outline: none;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.item:last-child {
+  border-bottom: 0;
 }
 
 .item[data-highlighted] {
-  background: var(--surface-low);
+  background: var(--board);
 }
 
+/* The chosen value inverts to solid graphite, like a scale chip. */
 .item[data-selected] {
-  background: var(--primary-soft);
-  color: var(--primary);
-  font-weight: 600;
+  background: var(--graphite);
+  color: var(--board);
 }
 
 .itemText {
@@ -123,17 +116,21 @@
 .indicator {
   display: flex;
   align-items: center;
-  font-size: 12px;
-  color: var(--primary);
+  font-size: 10px;
   flex-shrink: 0;
 }
 
+.error,
+.hint {
+  font-family: var(--font-galley);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
 .error {
-  font-size: 12px;
-  color: var(--error);
+  color: var(--rubylith-ink);
 }
 
 .hint {
-  font-size: 12px;
-  color: var(--muted);
+  color: var(--graphite-soft);
 }

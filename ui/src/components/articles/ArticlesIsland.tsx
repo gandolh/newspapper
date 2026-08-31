@@ -6,8 +6,8 @@ import {
   Card,
   Input,
   Select,
-  Badge,
-  Spinner,
+  Mark,
+  Skeleton,
   EmptyState,
   PageHeader,
   ToastProvider,
@@ -30,7 +30,11 @@ function formatDate(iso: string): string {
   if (!iso) return '';
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  return d.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -84,10 +88,19 @@ function SearchPanel() {
           signal: controller.signal,
           onEvent: (event, data) => {
             if (event === 'progress') {
-              const p = data as { sourceId: string; status: SourceProgress['status']; count?: number; error?: string };
+              const p = data as {
+                sourceId: string;
+                status: SourceProgress['status'];
+                count?: number;
+                error?: string;
+              };
               setProgress((prev) => ({
                 ...prev,
-                [p.sourceId]: { status: p.status, count: p.count, error: p.error },
+                [p.sourceId]: {
+                  status: p.status,
+                  count: p.count,
+                  error: p.error,
+                },
               }));
             } else if (event === 'done') {
               const d = data as { articles: ScrapedArticle[] };
@@ -97,7 +110,10 @@ function SearchPanel() {
         },
       );
     } catch (err) {
-      addToast(err instanceof ApiError ? err.message : 'Search failed', 'error');
+      addToast(
+        err instanceof ApiError ? err.message : 'Search failed',
+        'error',
+      );
     } finally {
       setSearching(false);
     }
@@ -148,14 +164,21 @@ function SearchPanel() {
         <div className={styles.progressList}>
           {progressRows.map(([sourceId, p]) => (
             <span key={sourceId} className={styles.progressItem}>
-              <Badge
-                variant={p.status === 'error' ? 'error' : p.status === 'done' ? 'success' : 'muted'}
+              <Mark
+                tone={
+                  p.status === 'error'
+                    ? 'rubylith'
+                    : p.status === 'done'
+                      ? 'ink'
+                      : 'dim'
+                }
               >
                 {sourceId}
                 {p.status === 'fetching' && ' …'}
-                {p.status === 'done' && ` · ${p.count ?? 0} match${p.count === 1 ? '' : 'es'}`}
+                {p.status === 'done' &&
+                  ` · ${p.count ?? 0} match${p.count === 1 ? '' : 'es'}`}
                 {p.status === 'error' && ' · failed'}
-              </Badge>
+              </Mark>
             </span>
           ))}
         </div>
@@ -173,21 +196,35 @@ function SearchPanel() {
         {results.map((article) => {
           const saved = savedGuids.has(article.guid);
           return (
-            <Card key={`${article.sourceId}:${article.guid}`} padding="sm" className={styles.resultCard}>
+            <Card
+              key={`${article.sourceId}:${article.guid}`}
+              padding="sm"
+              className={styles.resultCard}
+            >
               <div className={styles.resultMeta}>
-                <Badge variant="muted">{article.sourceName}</Badge>
-                <span className={styles.metaText}>{formatDate(article.publishedAt)}</span>
+                <Mark>{article.sourceName}</Mark>
                 <span className={styles.metaText}>
-                  {article.matchCount} match{article.matchCount === 1 ? '' : 'es'}
+                  {formatDate(article.publishedAt)}
+                </span>
+                <span className={styles.metaText}>
+                  {article.matchCount} match
+                  {article.matchCount === 1 ? '' : 'es'}
                 </span>
                 {article.url && (
-                  <a href={article.url} target="_blank" rel="noopener noreferrer" className={styles.externalLink}>
+                  <a
+                    href={article.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.externalLink}
+                  >
                     ↗
                   </a>
                 )}
               </div>
               <div className={styles.resultTitle}>{article.title}</div>
-              {article.body && <p className={styles.resultExcerpt}>{excerpt(article.body)}</p>}
+              {article.body && (
+                <p className={styles.resultExcerpt}>{excerpt(article.body)}</p>
+              )}
               <div className={styles.resultActions}>
                 <Button
                   size="sm"
@@ -274,16 +311,22 @@ function LibraryPanel() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <Select options={sourceOptions} value={sourceFilter} onValueChange={setSourceFilter} />
+        <Select
+          options={sourceOptions}
+          value={sourceFilter}
+          onValueChange={setSourceFilter}
+        />
       </div>
 
       {loading ? (
-        <div className={styles.centered}>
-          <Spinner size={28} color="var(--primary)" />
+        <div className={styles.loadingList}>
+          <Skeleton height={78} />
+          <Skeleton height={78} />
+          <Skeleton height={78} />
         </div>
       ) : articles.length === 0 ? (
         <EmptyState
-          icon="📰"
+          icon="—"
           title="Nothing saved yet"
           hint="Search for a keyword and save an article to start building your library."
         />
@@ -292,18 +335,31 @@ function LibraryPanel() {
           {articles.map((article) => (
             <Card key={article.id} padding="sm" className={styles.resultCard}>
               <div className={styles.resultMeta}>
-                <Badge variant="muted">{article.sourceName || 'Manual'}</Badge>
-                <span className={styles.metaText}>{formatDate(article.publishedAt)}</span>
+                <Mark>{article.sourceName || 'Manual'}</Mark>
+                <span className={styles.metaText}>
+                  {formatDate(article.publishedAt)}
+                </span>
                 {article.url && (
-                  <a href={article.url} target="_blank" rel="noopener noreferrer" className={styles.externalLink}>
+                  <a
+                    href={article.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.externalLink}
+                  >
                     ↗
                   </a>
                 )}
               </div>
               <div className={styles.resultTitle}>{article.title}</div>
-              {article.body && <p className={styles.resultExcerpt}>{excerpt(article.body)}</p>}
+              {article.body && (
+                <p className={styles.resultExcerpt}>{excerpt(article.body)}</p>
+              )}
               <div className={styles.resultActions}>
-                <Button size="sm" variant="danger" onClick={() => setDeleteTarget(article)}>
+                <Button
+                  size="sm"
+                  variant="danger"
+                  onClick={() => setDeleteTarget(article)}
+                >
                   Delete
                 </Button>
               </div>

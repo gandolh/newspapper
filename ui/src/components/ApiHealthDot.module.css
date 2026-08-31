@@ -1,0 +1,10 @@
+.probe {
+  display: inline-flex;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .label {
+    display: none;
+  }
+}

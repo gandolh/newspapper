@@ -13,6 +13,7 @@ colors:
   non-photo: "#7fb6e8"
   process-blue: "#1d63a8"
   rubylith: "#e8452e"
+  rubylith-ink: "#c0331f"
   grease: "#c0331f"
   wax: "#f5d97a"
   wax-ink: "#3d3416"
@@ -103,8 +104,8 @@ components:
     backgroundColor: "{colors.graphite}"
     textColor: "{colors.board}"
   stamp:
-    border: "2px solid rgba(232,69,46,.72)"
-    textColor: "rgba(232,69,46,.82)"
+    border: "2px solid {colors.rubylith}"
+    textColor: "{colors.rubylith-ink}"
     rounded: "0"
     padding: "2px 7px"
     transform: "rotate(-7deg)"
@@ -116,8 +117,10 @@ components:
 
 _Derived 2026-08-27 from the built comps of **The Mechanical**, the direction
 chosen after two rounds. Every value below was measured off a rendered screen,
-not proposed. The chrome it describes is not implemented yet — brief 64 builds
-it, and this file gets re-derived from the shipped UI when that lands._
+not proposed. **Re-derived 2026-08-31 from the shipped chrome** (brief 64):
+five values the comps carried could not hold 4.5:1 once they were text on a
+real surface, and they are corrected in place below — each correction says
+what it measured and what replaced it. Nothing else moved._
 
 ## 1. Overview
 
@@ -160,12 +163,13 @@ legibility from marks and alignment, not from hue.
 
 ### Ink
 - **Graphite** (`#2b2b2b`): all primary text. Never pure black — a pencil on board isn't.
-- **Graphite Soft** (`#6d6a62`): secondary text, field labels, dim values. **This is the floor for text.** The lighter `graphite-tint` (`#7a7a76`) measures 4.0:1 on board and is therefore reserved for non-text use — dividers, tick marks, inactive rules.
+- **Graphite Soft** (`#6d6a62`): secondary text, field labels, dim values. **This is the floor for text** — 5.21:1 on board, 5.40:1 on paper, 5.17:1 on tissue. The lighter `graphite-tint` (`#7a7a76`) measures **4.16:1** on board (the comps said 4.0:1) and is therefore reserved for non-text use — dividers, tick marks, inactive rules. A decorative glyph is still text: an em-dash standing in for an icon takes `graphite-soft`.
 - **Process Blue** (`#1d63a8`): prop values, hashtags, links — the things the markup itself names. 6.3:1 on paper.
 
 ### Marks
 - **Non-Photo Blue** (`#7fb6e8` at 40%): the 26px grid, and nothing else, ever.
-- **Rubylith** (`#e8452e`): the masking film. Held-out slides, disabled sorts, the published stamp. Applied as a 34–42% wash over the thing it masks, or as a 2px outline for the stamp.
+- **Rubylith** (`#e8452e`): the masking film. Held-out slides, disabled sorts, the published stamp. Applied as a 34% wash over the thing it masks, or as a 2px outline for the stamp. **The film is 3.81:1 on board and cannot carry a word** — not as ink (3.81:1), not inverted with graphite on it (3.59:1), not inverted with paper on it (3.95:1). It is a wash and a border, never a letter.
+- **Rubylith Ink** (`#c0331f`): the darker draw of the same ink, and the only rubylith that may be text — 5.43:1 on board, 5.62:1 on paper, and 5.43:1 the other way round when a chip inverts to solid. Every rubylith *word* is set in it: the stamp, an error line, a destructive control. (It is the same value as `grease`; they are one ink used for two jobs, and both are named so a later change to one does not silently move the other.)
 - **Grease** (`#c0331f`): grease-pencil findings on the tissue, and the leader line pointing at what the note is about.
 - **Wax** (`#f5d97a`) with **Wax Ink** (`#3d3416`): the current selection in the galley. Wax is the one warm note in the system and it means exactly one thing.
 
@@ -173,7 +177,7 @@ legibility from marks and alignment, not from hue.
 - **Hairline** (`#e2e2dd`): the 1px outline on every waxed surface.
 - **Rule** (`#cfcfca`): internal dividers, tray compartment walls.
 - **Tick** (`#c4c1b8`): dimension lines, scale-chip borders, inactive edges.
-- **Tissue Edge** (`#b9b6ac`) / **Tissue Ink** (`#8d8a80`): the overlay's hinge and its own labels.
+- **Tissue Edge** (`#b9b6ac`) / **Tissue Ink** (`#8d8a80`): the overlay's hinge line and its tick marks. **Not its labels** — tissue ink measures 3.31:1 on the 70% tissue, so the sheet writes in `graphite-soft` (5.17:1) like everything else. The Ink Floor Rule has no exception for being on tissue.
 
 ### Named Rules
 
@@ -238,10 +242,10 @@ decoration. Nothing else in the system casts one.
 The app ground. `#fbfbf9` under a 26px non-photo blue lattice drawn as two `repeating-linear-gradient`s at 40% alpha. Every region, slip, thumbnail and galley aligns to that pitch at every breakpoint.
 
 ### The Tray (component palette / nav)
-A full-width strip at the top of the board, 78px, closed by a 1.5px graphite rule. Compartments divided by 1px `rule`, each holding one component as a **showing** plus a 8.5px mono caption. An unavailable compartment takes a 45° hatch (`repeating-linear-gradient(45deg, transparent 0 5px, rgba(43,43,43,.07) 5px 10px)`) and drops to 42% opacity — the same "held out" idea as rubylith, at tray scale.
+A full-width strip at the top of the board, 78px, closed by a 1.5px graphite rule. Compartments divided by 1px `rule`, each holding one component as a **showing** plus a 8.5px mono caption. An unavailable compartment takes a 45° hatch (`repeating-linear-gradient(45deg, transparent 0 5px, rgba(43,43,43,.07) 5px 10px)`) — the same "held out" idea as rubylith, at tray scale. The comps also dropped it to 42% opacity; that puts a 9px caption at ~3.1:1, so the ink stays full and the hatch carries the state on its own.
 
 ### The Galley (source pane)
-A **waxed** paper strip, 372px, top-aligned, with a graphite tab carrying the filename. The bottom edge is torn, not cut — a clip-path deckle that says the copy continues. Syntax colour follows **casing**: lowercase document tags in `#9d9d97`, capitalised components in graphite 700, prop values in `process-blue`. The selected line is waxed (`#f5d97a`, bled 20px past the text on both sides); a lint-flagged line takes a 16% rubylith wash.
+A **waxed** paper strip, 372px, top-aligned, with a graphite tab carrying the filename. The bottom edge is torn, not cut — a clip-path deckle that says the copy continues. Syntax colour follows **casing**: lowercase document tags in `graphite-soft`, capitalised components in graphite 700, prop values in `process-blue`. (The comps set the document tags in `#9d9d97`, which is 2.6:1 on paper — recede by weight and case, not by dropping below the ink floor.) The selected line is waxed (`#f5d97a`, bled 20px past the text on both sides); a lint-flagged line takes a 16% rubylith wash.
 
 ### The Stage (canvas)
 The 1080² slide inside 30px of clearance, with **crop marks** — 1px L-ticks at each corner — and a **register target** (a 22px crosshair inside a circle) at each of the four corners. A dimension line across the top states the real size. The slide itself is warm-industrial and untouched by this system.
@@ -267,7 +271,7 @@ State is carried by mark, never by a coloured badge:
 | Selected (in source) | Wax highlight, bled past the text |
 | Selected (node) | Lifts off the board with its waxed shadow |
 | Draft | Tissue corner folded over the board's top-right |
-| Published | Rubylith rubber stamp, 2px outline, rotated -7° |
+| Published | Rubylith rubber stamp, 2px `rubylith` outline, `rubylith-ink` word, rotated -7° |
 | Held out / disabled / won't compile | Rubylith wash, or 45° hatch at tray scale |
 | Finding | Grease-pencil note on the tissue **plus a leader line** to the node |
 | Render frame | Crop marks |
@@ -334,3 +338,28 @@ digits — slide counts, dates, dimensions, ordinals.
 - **Don't** animate the canvas, and don't scatter hover effects in place of the one authored moment.
 - **Don't** invent a second treatment for a state that already has a mark.
 - **Don't** reintroduce the wizard-era vocabulary: the stepper, the terracotta accent as *chrome*, the rounded card, the eyebrow label above a section.
+
+## 9. What the shipped chrome does not yet carry
+
+Brief 64 built §1–§7 across every route. Four things described above have no
+implementation yet, each because it needs a change to a structure another
+brief owns rather than a change of clothing:
+
+- **The scale-chip row for constrained props** (§5, Fields). The inspector
+  still selects an enum through `Select`. The chip row is the right control
+  and the vocabulary is already in the app — the keyword filter on `/posts`
+  and the tab rows on `/articles` and the narrow editor are scale chips — but
+  swapping the inspector's control changes the pane brief 59 owns.
+- **The strip** (§5). There is no thumbnail strip in the editor to style; the
+  preview is a single scrolling column of stages.
+- **The flat file as a grid of boards** (§5). `/posts` is the list brief 62
+  shipped, restyled as boards. Every mark in the table is on it — stamp,
+  tissue corner, crop marks, mono rows — but the layout is a row, not a grid.
+- **The wax half of the compile** (§6). The moment animates the stage frame
+  re-setting. "The changed lines take the wax briefly" needs a line diff the
+  editor does not keep; the wax still marks the selected run, continuously.
+
+The tissue also hinges on **selection change** rather than on source focus:
+selecting a node swings the sheet down with the notes already on it. Lifting
+it off the board when the source takes focus would move a pane, and the
+three-pane layout is brief 59's.

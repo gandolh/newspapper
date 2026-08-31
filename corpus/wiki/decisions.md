@@ -107,7 +107,7 @@ corner, hatch), never a coloured badge. Chosen 2026-08-27 from two rounds of
 fully-drawn editor screens, over The Forme (letterpress lock-up), The Wire Desk
 (teleprinter fanfold) and Page 101 (broadcast teletext). The system is
 [`DESIGN.md`](../../DESIGN.md); the build is
-[brief 64](../briefs/todo/64-workstation-chrome.md).
+[brief 64](../briefs/done/64-workstation-chrome.md).
 
 Two consequences worth stating separately, because they are the parts most
 likely to be quietly undone: the chrome face is **Archivo**, and **Inter never

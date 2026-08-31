@@ -1,5 +1,5 @@
 /* Preview-only chrome. Nothing here may change layout: the node's own resolved
-   style is the whole of its geometry, so selection and warnings are painted
+   style is the whole of its geometry, so selection and findings are painted
    with outline and box-shadow, which take no space. */
 
 .node {
@@ -8,27 +8,25 @@
 
 .selectable {
   cursor: pointer;
+  touch-action: none;
 }
 
 .selectable:hover {
-  outline: 2px dashed rgba(162, 57, 26, 0.45);
+  outline: 1px dashed var(--graphite-tint);
 }
 
+/* Selected: the node lifts off the board, with the waxed shadow — its hard
+   short half only. The `--shadow-waxed` token pairs that with a 1px hairline
+   ring, which would sit outside the graphite outline and read as a smudge. */
 .selected,
 .selected:hover {
-  outline: 3px solid var(--primary);
+  outline: 2px solid var(--graphite);
+  box-shadow: 2px 3px 0 rgba(43, 43, 43, 0.14);
 }
 
+/* Won't compile — the same rubylith that means "held out" everywhere else. */
 .warned,
 .warned:hover {
-  outline: 3px dashed var(--error);
-  background-image: repeating-linear-gradient(
-    45deg,
-    rgba(186, 26, 26, 0.14) 0 8px,
-    rgba(186, 26, 26, 0) 8px 16px
-  );
-}
-
-.selectable {
-  touch-action: none;
+  outline: 2px dashed var(--rubylith);
+  background-color: var(--rubylith-wash);
 }

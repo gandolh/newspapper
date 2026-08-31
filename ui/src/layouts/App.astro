@@ -11,20 +11,20 @@ const { title = 'newspapper', width = 'default' } = Astro.props;
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#fbfbf9" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <title>{title} — newspapper</title>
     <ClientRouter />
   </head>
   <body>
-    <div class="app-shell">
-      <!-- Left sidebar nav (shared across all pages) -->
+    <div class="board">
+      <!-- The tray: a full-width strip across the top of the board. -->
       <Sidebar />
 
-      <!-- Main content area -->
-      <main class="main-content">
+      <main class="work">
         <div
-          class:list={['content-wrap', { 'content-wrap--fluid': width === 'fluid' }]}
-          transition:animate="fade"
+          class:list={['sheet', { 'sheet--fluid': width === 'fluid' }]}
+          transition:animate="none"
         >
           <slot />
         </div>
@@ -32,35 +32,34 @@ const { title = 'newspapper', width = 'default' } = Astro.props;
     </div>
 
     <style>
-      .app-shell {
+      .board {
         display: flex;
+        flex-direction: column;
         min-height: 100vh;
-        background: var(--surface);
       }
 
-      /* ---- Main content ---- */
-      .main-content {
+      /* The working area, ruled off the tray by one grid unit. */
+      .work {
         flex: 1;
         min-width: 0;
-        overflow-y: auto;
-        padding: var(--sp-md) var(--sp-container);
+        padding: var(--sp-unit);
       }
 
-      /* Centered content column. Default pages (lists, forms) sit in a
-         deliberate max-width column with balanced gutters; fluid pages
-         (wizard, builder) take the full available width. */
-      .content-wrap {
+      /* Every sheet lands on the same column, and the column is a whole
+         number of grid units wide (The One Grid Rule). Fluid sheets — the
+         editor — take the board. */
+      .sheet {
         max-width: var(--content-max);
         margin-inline: auto;
       }
 
-      .content-wrap--fluid {
+      .sheet--fluid {
         max-width: none;
       }
 
       @media (max-width: 768px) {
-        .main-content {
-          padding: var(--sp-md) var(--sp-sm);
+        .work {
+          padding: var(--sp-half);
         }
       }
     </style>

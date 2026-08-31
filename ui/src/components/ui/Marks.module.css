@@ -1,0 +1,339 @@
+/* The mark set — DESIGN.md §5.
+   Each state in the mark table is drawn exactly once, here. Nothing else in
+   the app may invent a second treatment for an idea that has a mark. */
+
+/* ---- The state word -----------------------------------------------------
+   Not a pill: no fill, no radius, no outline. A tick, then the word, set in
+   the mark face. Tone is the ink, and the ink is never the only signal —
+   every tone has its own word. */
+.mark {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-hair);
+  font-family: var(--font-galley);
+  font-size: var(--fs-mark);
+  font-weight: 700;
+  line-height: var(--lh-field);
+  letter-spacing: var(--ls-mark);
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--graphite-soft);
+}
+
+.mark::before {
+  content: '';
+  width: var(--sp-hair);
+  height: 1px;
+  background: var(--tick);
+  flex-shrink: 0;
+}
+
+.markInk {
+  color: var(--graphite);
+}
+.markInk::before {
+  background: var(--graphite);
+}
+
+.markRubylith {
+  color: var(--rubylith-ink);
+}
+.markRubylith::before {
+  background: var(--rubylith-ink);
+}
+
+.markBlue {
+  color: var(--process-blue);
+}
+.markBlue::before {
+  background: var(--process-blue);
+}
+
+/* No tick — for a word that already sits behind a rule. */
+.markBare::before {
+  display: none;
+}
+
+/* ---- Published: the rubber stamp --------------------------------------- */
+.stamp {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border: 2px solid var(--rubylith);
+  color: var(--rubylith-ink);
+  background: transparent;
+  font-family: var(--font-galley);
+  font-size: var(--fs-mark);
+  font-weight: 700;
+  line-height: var(--lh-field);
+  letter-spacing: var(--ls-mark);
+  text-transform: uppercase;
+  white-space: nowrap;
+  transform: rotate(-7deg);
+  transform-origin: center;
+}
+
+/* ---- Draft: the folded tissue corner -----------------------------------
+   A sheet of tissue laid over the board's top-right corner and turned back.
+   Drawn with two triangles: the underside, then the fold. */
+.tissueCorner {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: var(--sp-unit);
+  height: var(--sp-unit);
+  pointer-events: none;
+}
+
+.tissueCorner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--tissue);
+  clip-path: polygon(100% 0, 100% 100%, 0 0);
+  border-top: 1px solid var(--tissue-edge);
+  border-right: 1px solid var(--tissue-edge);
+}
+
+.tissueCorner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom left,
+    rgba(43, 43, 43, 0.1) 0 50%,
+    transparent 50%
+  );
+  clip-path: polygon(100% 0, 100% 100%, 0 0);
+}
+
+/* ---- Held out: the rubylith wash ---------------------------------------
+   The ONE way this app says "held out" — excluded from the render,
+   unavailable, will not compile (DESIGN.md, The One Mark Rule).
+   The wash is an overlay, so the thing under it stays legible: graphite on
+   the wash measures 8.6:1. */
+.heldOut {
+  position: relative;
+}
+
+.heldOut::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--rubylith-wash);
+  pointer-events: none;
+}
+
+/* Tray scale: the same idea drawn as a 45° hatch, because a compartment is
+   too small to read a wash. Text under it keeps its full ink — dropping the
+   opacity would take a 9px caption below 4.5:1. */
+.hatched {
+  position: relative;
+}
+
+.hatched::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: var(--hatch);
+  pointer-events: none;
+}
+
+/* ---- Selected (in source): the wax highlight ---------------------------
+   Bled past the text on both sides, which is what makes it read as wax
+   rather than as a text background. */
+.wax {
+  background: var(--wax);
+  color: var(--wax-ink);
+  box-shadow: -0.35em 0 0 var(--wax), 0.35em 0 0 var(--wax);
+}
+
+/* ---- Selected (node) / anything waxed to the board ---------------------- */
+.waxed {
+  background: var(--paper);
+  box-shadow: var(--shadow-waxed);
+}
+
+/* ---- Render frame: crop marks ------------------------------------------ */
+.cropMarks {
+  position: absolute;
+  inset: calc(var(--sp-hair) * -1);
+  pointer-events: none;
+}
+
+.cropTick {
+  position: absolute;
+  width: var(--sp-half);
+  height: var(--sp-half);
+}
+
+.cropTick::before,
+.cropTick::after {
+  content: '';
+  position: absolute;
+  background: var(--graphite-tint);
+}
+
+.cropTick::before {
+  width: var(--sp-half);
+  height: 1px;
+}
+
+.cropTick::after {
+  width: 1px;
+  height: var(--sp-half);
+}
+
+.cropTl {
+  top: 0;
+  left: 0;
+}
+.cropTl::before {
+  top: 0;
+  left: 0;
+}
+.cropTl::after {
+  top: 0;
+  left: 0;
+}
+
+.cropTr {
+  top: 0;
+  right: 0;
+}
+.cropTr::before {
+  top: 0;
+  right: 0;
+}
+.cropTr::after {
+  top: 0;
+  right: 0;
+}
+
+.cropBl {
+  bottom: 0;
+  left: 0;
+}
+.cropBl::before {
+  bottom: 0;
+  left: 0;
+}
+.cropBl::after {
+  bottom: 0;
+  left: 0;
+}
+
+.cropBr {
+  bottom: 0;
+  right: 0;
+}
+.cropBr::before {
+  bottom: 0;
+  right: 0;
+}
+.cropBr::after {
+  bottom: 0;
+  right: 0;
+}
+
+/* ---- Alignment: the register targets ----------------------------------- */
+.registers {
+  position: absolute;
+  inset: calc(var(--sp-unit) * -1);
+  pointer-events: none;
+  color: var(--tick);
+}
+
+.register {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+}
+
+.registerTl {
+  top: 0;
+  left: 0;
+}
+.registerTr {
+  top: 0;
+  right: 0;
+}
+.registerBl {
+  bottom: 0;
+  left: 0;
+}
+.registerBr {
+  bottom: 0;
+  right: 0;
+}
+
+/* ---- Finding: a grease-pencil note on a leader line --------------------- */
+.finding {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-half);
+  padding: var(--sp-hair) 0;
+}
+
+/* The leader: a real 2px line out to the edge, tipped with an arrowhead. */
+.leader {
+  position: relative;
+  flex: 0 0 var(--sp-unit);
+  height: 12px;
+  margin-top: 3px;
+}
+
+.leader::before {
+  content: '';
+  position: absolute;
+  top: 5px;
+  left: 0;
+  right: 5px;
+  height: 2px;
+  background: var(--grease);
+}
+
+.leader::after {
+  content: '';
+  position: absolute;
+  top: 1px;
+  right: 0;
+  border: 5px solid transparent;
+  border-left-color: var(--grease);
+  border-right-width: 0;
+}
+
+.findingBody {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+}
+
+.findingWhere {
+  font-family: var(--font-galley);
+  font-size: var(--fs-field);
+  font-weight: 500;
+  letter-spacing: var(--ls-field);
+  text-transform: uppercase;
+  color: var(--graphite-soft);
+}
+
+.findingNote {
+  font-family: var(--font-galley);
+  font-size: 10px;
+  line-height: 1.45;
+  color: var(--grease);
+}
+
+.findingMuted .findingNote {
+  color: var(--graphite-soft);
+}
+
+.findingMuted .leader::before,
+.findingMuted .leader::after {
+  background: var(--graphite-tint);
+  border-left-color: var(--graphite-tint);
+}

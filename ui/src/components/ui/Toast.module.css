@@ -1,72 +1,52 @@
+/* A slip waxed to the corner of the board. Never a coloured pill: the ink of
+   the left rule and the mark word carry the kind, the slip stays paper. */
 .region {
   position: fixed;
-  bottom: var(--sp-md);
-  right: var(--sp-md);
+  bottom: var(--sp-unit);
+  right: var(--sp-unit);
   display: flex;
   flex-direction: column;
-  gap: var(--sp-xs);
+  gap: var(--sp-half);
   z-index: 2000;
-  max-width: 380px;
-  width: calc(100vw - 2 * var(--sp-md));
+  max-width: calc(var(--sp-unit) * 15);
+  width: calc(100vw - var(--sp-double));
 }
 
 .toast {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  padding: 12px 14px;
-  border-radius: var(--radius-md);
-  border: 1px solid transparent;
-  box-shadow: 0 4px 16px rgba(27, 28, 28, 0.12);
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  gap: var(--sp-half);
+  padding: var(--sp-half);
+  background: var(--paper);
+  color: var(--graphite);
+  box-shadow: var(--shadow-waxed);
+  border-left: 3px solid var(--graphite);
 }
 
-/* Base UI drives the enter/leave lifecycle via these data attributes */
-.toast[data-starting-style],
-.toast[data-ending-style] {
-  transform: translateX(100%);
-  opacity: 0;
-}
+.toast--success { border-left-color: var(--graphite); }
+.toast--error   { border-left-color: var(--rubylith-ink); }
+.toast--info    { border-left-color: var(--process-blue); }
 
-.toast--success {
-  background: var(--success-container);
-  border-color: var(--success-border);
-  color: var(--success-emphasis);
-}
-
-.toast--error {
-  background: var(--error-container);
-  border-color: var(--error-border);
-  color: var(--error-emphasis);
-}
-
-.toast--info {
-  background: var(--secondary-container);
-  border-color: var(--outline-variant);
-  color: var(--on-surface);
-}
-
+/* The kind, said in words in the mark face — not by hue alone. */
 .toastIcon {
-  font-size: 13px;
+  font-family: var(--font-galley);
+  font-size: var(--fs-mark);
   font-weight: 700;
-  width: 18px;
-  height: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
+  letter-spacing: var(--ls-mark);
+  text-transform: uppercase;
   flex-shrink: 0;
-  margin-top: 1px;
+  padding-top: 2px;
+  color: var(--graphite-soft);
 }
 
-.toast--success .toastIcon { background: var(--success); color: var(--on-success); }
-.toast--error .toastIcon   { background: var(--error); color: var(--on-error); }
-.toast--info .toastIcon    { background: var(--secondary); color: var(--on-secondary); }
+.toast--error .toastIcon { color: var(--rubylith-ink); }
+.toast--info .toastIcon  { color: var(--process-blue); }
 
 .toastMessage {
   flex: 1;
-  font-size: var(--font-size-sm);
-  line-height: 1.4;
+  min-width: 0;
+  font-size: var(--fs-label);
+  line-height: 1.45;
 }
 
 .toastClose {
@@ -74,27 +54,14 @@
   border: none;
   cursor: pointer;
   font-size: 11px;
-  color: currentColor;
-  opacity: 0.6;
+  color: var(--graphite-soft);
   padding: 2px;
-  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: opacity 0.15s ease;
   flex-shrink: 0;
 }
 
 .toastClose:hover {
-  opacity: 1;
-}
-
-@keyframes slideInRight {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-}
-
-@keyframes slideOutRight {
-  from { transform: translateX(0); opacity: 1; }
-  to { transform: translateX(100%); opacity: 0; }
+  color: var(--graphite);
 }

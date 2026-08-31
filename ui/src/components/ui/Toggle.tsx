@@ -1,4 +1,5 @@
 import { Switch } from '@base-ui/react/switch';
+import { HATCH } from './Marks';
 import styles from './Toggle.module.css';
 
 export interface ToggleProps {
@@ -15,7 +16,7 @@ export interface ToggleProps {
 }
 
 /**
- * Toggle — Base UI `Switch` styled with warm-industrial tokens.
+ * Toggle — Base UI `Switch` styled as a board control: square, mono, tick-edged.
  * Controlled via `checked` + `onCheckedChange(checked)` (was the native `onChange`).
  */
 export default function Toggle({
@@ -38,7 +39,9 @@ export default function Toggle({
       <div className={styles.toggle}>
         <Switch.Root
           id={toggleId}
-          className={styles.track}
+          className={[styles.track, disabled ? HATCH : '']
+            .filter(Boolean)
+            .join(' ')}
           checked={checked}
           defaultChecked={defaultChecked}
           onCheckedChange={(c) => onCheckedChange?.(c)}

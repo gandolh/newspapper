@@ -5,7 +5,7 @@ import {
   Input,
   PageHeader,
   Select,
-  Spinner,
+  Skeleton,
   ToastProvider,
   useToast,
 } from '../ui';
@@ -64,7 +64,8 @@ function ThemeSection() {
     return (
       <Card>
         <div className={styles.loading}>
-          <Spinner size={24} color="var(--primary)" />
+          <Skeleton height={26} width="40%" />
+          <Skeleton height={26} />
         </div>
       </Card>
     );
@@ -77,24 +78,32 @@ function ThemeSection() {
       <form onSubmit={save} noValidate>
         <h2 className={styles.sectionTitle}>Theme</h2>
         <p className={styles.sectionHint}>
-          The theme a new post starts on. The three warm-industrial palettes are identical apart from
-          their accent colour, so that swatch is the whole difference.
+          The theme a new post starts on. The three warm-industrial palettes are
+          identical apart from their accent colour, so that swatch is the whole
+          difference.
         </p>
 
         <div className={styles.themeRow}>
           <Select
             label="Default theme"
-            options={themes.map((t) => ({ value: t.name, label: t.tokens?.name ?? t.name }))}
+            options={themes.map((t) => ({
+              value: t.name,
+              label: t.tokens?.name ?? t.name,
+            }))}
             value={defaultTheme}
             onValueChange={setDefaultTheme}
             className={styles.themeSelect}
           />
           <span
             className={styles.swatch}
-            style={{ background: selected?.tokens?.colors['primary'] ?? 'transparent' }}
+            style={{
+              background: selected?.tokens?.colors['primary'] ?? 'transparent',
+            }}
             aria-hidden="true"
           />
-          <code className={styles.swatchValue}>{selected?.tokens?.colors['primary'] ?? '—'}</code>
+          <code className={styles.swatchValue}>
+            {selected?.tokens?.colors['primary'] ?? '—'}
+          </code>
         </div>
 
         <div className={styles.formActions}>
@@ -125,7 +134,10 @@ function PasswordSection() {
     setError(null);
     setSaving(true);
     try {
-      await api('/api/password', { method: 'POST', json: { currentPassword, newPassword } });
+      await api('/api/password', {
+        method: 'POST',
+        json: { currentPassword, newPassword },
+      });
       addToast('Password changed', 'success');
       setCurrentPassword('');
       setNewPassword('');
@@ -142,7 +154,8 @@ function PasswordSection() {
       <form onSubmit={save} noValidate>
         <h2 className={styles.sectionTitle}>Password</h2>
         <p className={styles.sectionHint}>
-          Changing it signs this browser back in with a fresh cookie; any other browser is signed out.
+          Changing it signs this browser back in with a fresh cookie; any other
+          browser is signed out.
         </p>
 
         <div className={styles.fields}>
@@ -188,7 +201,10 @@ function PasswordSection() {
 function SettingsPage() {
   return (
     <div className={styles.page}>
-      <PageHeader title="Settings" subtitle="The default a new post starts from, and this account." />
+      <PageHeader
+        title="Settings"
+        subtitle="The default a new post starts from, and this account."
+      />
       <div className={styles.sections}>
         <ThemeSection />
         <PasswordSection />

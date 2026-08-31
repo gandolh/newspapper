@@ -104,3 +104,72 @@ at.
 - Contrast: every text colour ≥4.5:1 against its own surface, placeholders included. Measure, don't eyeball.
 - `npm run build`, `npm test`, `npm run lint` pass.
 - `corpus/wiki/design-systems.md` describes what shipped, and `DESIGN.md` is re-derived from the built UI where it drifted from the comps.
+
+---
+
+## Outcome — 2026-08-31
+
+Shipped. Gate verified by the controller: build ✓, **637 tests / 45 files** ✓,
+lint ✓, `tsc -p ui --noEmit` at 0 ✓, corpus lint ✓.
+
+**The chrome is The Mechanical on every route.** `global.css` replaced
+wholesale: board/paper/tissue ground under a 26px non-photo lattice, graphite
+ink, the mark inks, the two physical shadows, the 26px spacing scale, Archivo
+and Spline Sans Mono, and the browser surfaces (wax selection, graphite caret,
+tick scrollbars, square 2px process-blue focus ring, `tabular-nums` on `body`
+with an explicit reset on the preview canvas so the artwork is unaffected). The
+radius scale is **deleted**, not zeroed — verified: zero `--radius*` references
+and zero non-zero `border-radius` in `ui/`.
+
+`Badge`, `Stepper` and `Spinner` are gone. The mark set is
+`ui/src/components/ui/Marks.tsx` — `Mark`, `Stamp`, `TissueCorner`, `HeldOut`,
+`CropMarks`, `RegisterTargets`, `Finding`, plus `WAX` and `HATCH`. Two marks are
+surfaces rather than overlays and are carried by their token
+(`--shadow-waxed`, `--rubylith-wash`), each defined once. `Sidebar.astro` is the
+tray: a 78px strip of compartments, each rendering as the thing it produces.
+
+**Motion: exactly two `animate()` calls in the tree**, in `ui/src/lib/motion.ts`.
+`prefers-reduced-motion` could not be emulated in the agent's browser session, so
+it is proven by test instead — `ui/src/lib/motion.test.ts` stubs `matchMedia` and
+asserts that under reduce, `animate` is never called and `utils.set` receives the
+**end** state, not a midpoint. That is a better guard than a screenshot would
+have been.
+
+**The 1080² output is untouched**, which was the criterion most worth checking:
+`git status` is empty for `core/`, `api/` and `assets/`, and the 19 render tests
+pass.
+
+**Five values from the approved comps could not survive contrast measurement**,
+and `DESIGN.md` now records each with its measured ratio. The important one:
+**rubylith `#e8452e` cannot carry a word** — 3.81:1 on board, and the spec's
+`rgba(232,69,46,.82)` stamp ink is 3.09:1. A new `--rubylith-ink #c0331f`
+(5.43:1) is the only rubylith that may be a letter; the film stays for washes and
+the stamp's 2px border, which only needs the 3:1 non-text floor. Also: the
+comps' claim that `graphite-tint` is 4.0:1 was wrong — it measures 4.16:1, still
+non-text only.
+
+`DESIGN.md` §9 is new: four things the spec describes that the chrome does not
+carry, each needing a structure change rather than clothing (the scale-chip row
+for constrained props, the 52px thumbnail strip, `/posts` as a grid of boards,
+and the "changed lines take the wax" half of the compile, which needs a line
+diff the editor does not keep).
+
+**Two changes beyond clothing, accepted by the controller.** `PreviewPane` now
+snaps to integer factors (½, ¼, ⅛) per the Fixed Scale Rule — slides render
+visibly smaller at mid widths than the previous continuous `width/1080`. That is
+a real, visible cost, and it is what the rule exists to buy: every slide on a
+shared baseline at one fixed scale. And `EditorIsland`'s default pane widths
+moved 400/340 → 390/338 to land on 15 and 13 grid units. Both are derived
+numbers, not structure or selection logic.
+
+**Not fully verified, stated plainly:** the 26px grid was measured in a live
+browser at **1280px only**. The `≤768px` branch is written in grid multiples but
+was never measured — the agent could not resize the viewport. Authenticated
+routes were reached by stubbing `/api/*` at the network layer rather than
+against the dev DB.
+
+Three findings were promoted to briefs: **68** (`npm run fmt` and `npm run lint`
+do not cover what they claim) and **69** (the orphaned `SourcesIsland`, and
+`kitchen-sink.astro` shipping as a public route). The corpus page the agent
+flagged as straddling was split: `chrome.md` now holds The Mechanical, and
+`design-systems.md` keeps the slide themes.

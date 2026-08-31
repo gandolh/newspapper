@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import { Button as BaseButton } from '@base-ui/react/button';
+import { HATCH } from './Marks';
 import styles from './Button.module.css';
-import Spinner from './Spinner';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 export type ButtonSize = 'sm' | 'md' | 'lg';
@@ -13,6 +13,13 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
 }
 
+/**
+ * A control printed on the board.
+ *
+ * `loading` is a **mark**, not motion: the button takes the 45° hatch that
+ * means "held out" everywhere else in the app, and says the state in the mark
+ * face. The label keeps its space so nothing reflows.
+ */
 export default function Button({
   variant = 'primary',
   size = 'md',
@@ -26,7 +33,7 @@ export default function Button({
     styles.btn,
     styles[`btn--${variant}`],
     styles[`btn--${size}`],
-    loading ? styles['btn--loading'] : '',
+    loading ? `${styles['btn--loading']} ${HATCH}` : '',
     className,
   ]
     .filter(Boolean)
@@ -34,11 +41,7 @@ export default function Button({
 
   return (
     <BaseButton className={cls} disabled={disabled || loading} {...rest}>
-      {loading && (
-        <span className={styles.spinner}>
-          <Spinner size={size === 'sm' ? 14 : 16} />
-        </span>
-      )}
+      {loading && <span className={styles.working}>Working</span>}
       <span className={loading ? styles.hiddenText : ''}>{children}</span>
     </BaseButton>
   );

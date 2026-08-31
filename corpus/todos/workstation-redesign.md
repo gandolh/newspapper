@@ -6,7 +6,7 @@ status: promoted
 
 # Rebuild the app chrome
 
-> **Promoted 2026-08-27** to [brief 64](../briefs/todo/64-workstation-chrome.md).
+> **Promoted 2026-08-27** to [brief 64](../briefs/done/64-workstation-chrome.md).
 > The direction is settled — The Mechanical — and the spec lives there. Kept for
 > the trail of how the choice was made.
 

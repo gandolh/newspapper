@@ -1,17 +1,24 @@
+/* The artwork, pasted down. The wrapper is the paper edge; the crop marks and
+   register targets around it belong to the stage, not to this file. */
 .wrapper {
   position: relative;
   flex-shrink: 0;
   overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface-container);
+  box-shadow: 0 0 0 1px var(--hairline);
+  background: var(--paper);
 }
 
+/* Inside here the chrome's design system stops and the slide theme starts:
+   Inter, the theme's own tokens, and none of the board's type settings. */
 .canvas {
   transform-origin: top left;
   overflow: hidden;
   display: flex;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--font-slide);
+  font-variant-numeric: normal;
+  font-weight: 400;
+  letter-spacing: normal;
+  line-height: normal;
 }
 
 .overlay {
@@ -20,32 +27,32 @@
   pointer-events: none;
 }
 
+/* Where the thing will land: a graphite rule on the edge it goes against. */
 .zone {
   position: absolute;
-  border-radius: 2px;
   pointer-events: none;
 }
 
 .zoneActive {
-  background: rgba(162, 57, 26, 0.12);
+  background: rgba(245, 217, 122, 0.28);
 }
 
 .zoneActive[data-edge='top'] {
-  box-shadow: inset 0 3px 0 0 var(--primary);
+  box-shadow: inset 0 3px 0 0 var(--graphite);
 }
 
 .zoneActive[data-edge='bottom'] {
-  box-shadow: inset 0 -3px 0 0 var(--primary);
+  box-shadow: inset 0 -3px 0 0 var(--graphite);
 }
 
 .zoneActive[data-edge='left'] {
-  box-shadow: inset 3px 0 0 0 var(--primary);
+  box-shadow: inset 3px 0 0 0 var(--graphite);
 }
 
 .zoneActive[data-edge='right'] {
-  box-shadow: inset -3px 0 0 0 var(--primary);
+  box-shadow: inset -3px 0 0 0 var(--graphite);
 }
 
 .zoneActive[data-edge='all'] {
-  box-shadow: inset 0 0 0 3px var(--primary);
+  box-shadow: inset 0 0 0 3px var(--graphite);
 }

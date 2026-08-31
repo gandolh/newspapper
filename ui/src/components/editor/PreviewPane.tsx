@@ -9,7 +9,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { WzdDocument } from '@newspapper/core/wizard';
 import type { TNode, Theme } from '@newspapper/core/templates';
-import { Badge, Button, EmptyState } from '../ui';
+import { Button, CropMarks, EmptyState, Mark, RegisterTargets } from '../ui';
 import SlideCanvas from './preview/SlideCanvas.js';
 import type { NodeGestures } from './preview/TNodeView.js';
 import { slotsForSubtree, type SlotDescriptor } from './preview/slots.js';
@@ -17,10 +17,14 @@ import { collectStyleProblems } from './preview/resolve.js';
 import { sourceOffsetOf } from './preview/compileTraced.js';
 import type { MeasuredZone } from './dragTypes.js';
 import { elementAtPath, slidePaths, type WzdPath } from './paths.js';
+import { compile } from '@/lib/motion';
 import styles from './PreviewPane.module.css';
 
 const MAX_SLIDE_PX = 560;
-const MIN_SLIDE_PX = 180;
+const MIN_SLIDE_PX = 135;
+/** The preview scales by integer factors only — a resampled preview is not
+    one (DESIGN.md §5, The Fixed Scale Rule). 1080 ÷ 2, 4, 8. */
+const FACTORS = [1 / 2, 1 / 4, 1 / 8] as const;
 const EMPTY_SLOTS: SlotDescriptor[] = [];
 
 function stampedOffsets(slides: readonly TNode[]): Set<number> {
@@ -79,7 +83,12 @@ export default function PreviewPane(props: PreviewPaneProps) {
     const el = columnRef.current;
     if (!el) return;
     const observer = new ResizeObserver(([entry]) => {
-      setWidth(Math.max(MIN_SLIDE_PX, Math.min(MAX_SLIDE_PX, entry.contentRect.width - 8)));
+      setWidth(
+        Math.max(
+          MIN_SLIDE_PX,
+          Math.min(MAX_SLIDE_PX, entry.contentRect.width - 8),
+        ),
+      );
     });
     observer.observe(el);
     return () => observer.disconnect();
@@ -100,24 +109,42 @@ export default function PreviewPane(props: PreviewPaneProps) {
   // Memoized as one array so each canvas gets a stable `slots` identity and
   // does not re-measure its drop zones on every render of the pane.
   const slotsPerSlide = useMemo<SlotDescriptor[][]>(
-    () => (doc ? paths.map((path) => slotsForSubtree(doc, path, dragType, rendered)) : []),
+    () =>
+      doc
+        ? paths.map((path) => slotsForSubtree(doc, path, dragType, rendered))
+        : [],
     [doc, paths, dragType, rendered],
   );
 
-  const scale = width / 1080;
+  const scale =
+    FACTORS.find((f) => 1080 * f <= width) ?? FACTORS[FACTORS.length - 1];
+
+  // The compile: the stage frame re-sets around slides that have just been
+  // set. The artwork inside the crop marks is never animated — see
+  // `lib/motion.ts`.
+  const frameRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    compile(frameRef.current);
+  }, [slides]);
 
   return (
     <div className={styles.pane}>
       <div className={styles.bar}>
         <span className={styles.barTitle}>Preview</span>
-        {stale && <Badge variant="warning">Waiting for valid markup</Badge>}
+        {stale && <Mark tone="ink">Last good set</Mark>}
         {problems.length > 0 && (
-          <Badge variant="error">
-            {problems.length} unthemed {problems.length === 1 ? 'node' : 'nodes'}
-          </Badge>
+          <Mark tone="rubylith">
+            {problems.length} unthemed{' '}
+            {problems.length === 1 ? 'node' : 'nodes'}
+          </Mark>
         )}
+        <Mark bare>1 : {Math.round(1 / scale)}</Mark>
         <span className={styles.barSpacer} />
-        <Button variant="ghost" size="sm" onClick={() => onAddSlide(paths.length)}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onAddSlide(paths.length)}
+        >
           Add slide
         </Button>
       </div>
@@ -130,9 +157,12 @@ export default function PreviewPane(props: PreviewPaneProps) {
 
       {problems.length > 0 && (
         <p className={styles.warning} role="alert">
-          The theme does not define every token these slides ask for. The marked nodes render
-          incompletely here, and the renderer will refuse them outright.
-          <span className={styles.warningDetail}>{problems[0].problems[0]}</span>
+          The theme does not define every token these slides ask for. The marked
+          nodes render incompletely here, and the renderer will refuse them
+          outright.
+          <span className={styles.warningDetail}>
+            {problems[0].problems[0]}
+          </span>
         </p>
       )}
 
@@ -203,18 +233,30 @@ export default function PreviewPane(props: PreviewPaneProps) {
                     ✕
                   </Button>
                 </header>
-                <SlideCanvas
-                  slideKey={key}
-                  slide={slide}
-                  theme={theme}
-                  scale={scale}
-                  selectedOffset={selectedOffset}
-                  gestures={gestures}
-                  dragActive={dragType !== null}
-                  activeZoneKey={activeZoneKey}
-                  slots={slotsPerSlide[i] ?? EMPTY_SLOTS}
-                  onZonesMeasured={onZonesMeasured}
-                />
+                <div className={styles.stage}>
+                  <span className={styles.dimension} aria-hidden="true">
+                    1080 × 1080
+                  </span>
+                  <div
+                    className={styles.frame}
+                    ref={i === 0 ? frameRef : undefined}
+                  >
+                    <CropMarks />
+                    <RegisterTargets />
+                  </div>
+                  <SlideCanvas
+                    slideKey={key}
+                    slide={slide}
+                    theme={theme}
+                    scale={scale}
+                    selectedOffset={selectedOffset}
+                    gestures={gestures}
+                    dragActive={dragType !== null}
+                    activeZoneKey={activeZoneKey}
+                    slots={slotsPerSlide[i] ?? EMPTY_SLOTS}
+                    onZonesMeasured={onZonesMeasured}
+                  />
+                </div>
               </section>
             );
           })}

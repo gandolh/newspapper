@@ -1,5 +1,10 @@
 /**
- * The inspector: the `<head>` block, and the selected component's props.
+ * The tissue: the `<head>` block, and the selected component's props.
+ *
+ * It hinges. Selecting a node swings the sheet down about its top edge and it
+ * comes to rest with the notes already on it — the one authored moment this
+ * surface has (`lib/motion.ts`). Under `prefers-reduced-motion` it is simply
+ * at rest.
  *
  * Every control is generated from the catalogue — `propsFor` for the list,
  * `allowedValues` for an enum's options, `resolveProps` for what the compiler
@@ -8,7 +13,7 @@
  * post drift off-brand.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   allowedValues,
   getComponentSpec,
@@ -17,9 +22,10 @@ import {
   WZD_HEAD_FIELDS,
   type WzdDocument,
 } from '@newspapper/core/wizard';
-import { Badge, Button, EmptyState, Input, Select, Textarea } from '../ui';
+import { Button, EmptyState, Input, Select, Textarea } from '../ui';
 import { ancestorPaths, elementAtPath, type WzdPath } from './paths.js';
 import { inheritedAlign, textOf } from './props.js';
+import { hinge } from '@/lib/motion';
 import styles from './InspectorPane.module.css';
 
 const HEAD_LABELS: Record<string, string> = {
@@ -120,17 +126,25 @@ export default function InspectorPane(props: InspectorPaneProps) {
     disabled,
   } = props;
 
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const pathKey = selectedPath ? selectedPath.join('.') : '';
+  useEffect(() => {
+    if (pathKey) hinge(sheetRef.current);
+  }, [pathKey]);
+
   const element = doc && selectedPath ? elementAtPath(doc, selectedPath) : null;
   const spec = element ? getComponentSpec(element.type) : undefined;
   const resolved = element ? resolveProps(element) : {};
 
   return (
-    <div className={styles.inspector}>
+    <div className={styles.inspector} ref={sheetRef}>
+      <span className={styles.hinge} aria-hidden="true" />
+
       <section className={styles.section}>
         <h3 className={styles.sectionTitle}>Post</h3>
         <p className={styles.sectionHint}>
-          The <code>&lt;head&gt;</code> block. Title, description and keywords also drive the
-          saved post's index columns.
+          The <code>&lt;head&gt;</code> block. Title, description and keywords
+          also drive the saved post's index columns.
         </p>
         {WZD_HEAD_FIELDS.map((field) => (
           <DraftField
@@ -175,8 +189,10 @@ export default function InspectorPane(props: InspectorPaneProps) {
             </nav>
 
             <div className={styles.headline}>
-              <Badge variant="primary">{element.type}</Badge>
-              {spec && <span className={styles.description}>{spec.description}</span>}
+              <h4 className={styles.nodeName}>{element.type}</h4>
+              {spec && (
+                <span className={styles.description}>{spec.description}</span>
+              )}
             </div>
 
             <div className={styles.actions}>
@@ -250,7 +266,9 @@ export default function InspectorPane(props: InspectorPaneProps) {
                       options={values.map((value) => ({ value, label: value }))}
                       value={effective}
                       disabled={disabled}
-                      onValueChange={(value) => onSetProp(selectedPath, propSpec.name, value)}
+                      onValueChange={(value) =>
+                        onSetProp(selectedPath, propSpec.name, value)
+                      }
                     />
                     <Button
                       variant="ghost"
@@ -258,7 +276,9 @@ export default function InspectorPane(props: InspectorPaneProps) {
                       className={styles.reset}
                       disabled={disabled || !isSet}
                       aria-label={`Reset ${propSpec.name} to the default`}
-                      onClick={() => onSetProp(selectedPath, propSpec.name, null)}
+                      onClick={() =>
+                        onSetProp(selectedPath, propSpec.name, null)
+                      }
                     >
                       Reset
                     </Button>
@@ -273,7 +293,11 @@ export default function InspectorPane(props: InspectorPaneProps) {
                       label="src"
                       value={written ?? ''}
                       readOnly
-                      hint={written ? 'The upload this references.' : 'No image chosen yet.'}
+                      hint={
+                        written
+                          ? 'The upload this references.'
+                          : 'No image chosen yet.'
+                      }
                     />
                     <Button
                       variant="secondary"
@@ -291,11 +315,15 @@ export default function InspectorPane(props: InspectorPaneProps) {
               return (
                 <DraftField
                   key={propSpec.name}
-                  label={propSpec.name + (propSpec.required ? ' (required)' : '')}
+                  label={
+                    propSpec.name + (propSpec.required ? ' (required)' : '')
+                  }
                   value={written ?? ''}
                   hint={propSpec.description}
                   disabled={disabled}
-                  onCommit={(next) => onSetProp(selectedPath, propSpec.name, next)}
+                  onCommit={(next) =>
+                    onSetProp(selectedPath, propSpec.name, next)
+                  }
                 />
               );
             })}

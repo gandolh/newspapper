@@ -2,41 +2,49 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--sp-hair);
 }
 
 .meta {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
+  gap: var(--sp-hair);
 }
 
 .label {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--on-surface);
+  font-family: var(--font-galley);
+  font-size: var(--fs-field);
+  font-weight: 500;
+  letter-spacing: var(--ls-field);
+  text-transform: uppercase;
+  color: var(--graphite-soft);
 }
 
 .percent {
-  font-size: 12px;
-  color: var(--muted);
+  font-family: var(--font-galley);
+  font-size: var(--fs-field);
+  font-weight: 700;
+  letter-spacing: var(--ls-mark);
+  color: var(--graphite);
   font-variant-numeric: tabular-nums;
 }
 
+/* A dimension line that fills: board track inside a tick rule, graphite fill,
+   square at both ends. */
 .track {
   width: 100%;
-  height: 6px;
-  background: var(--surface-container-highest);
-  border-radius: var(--radius-full);
+  height: var(--sp-hair);
+  background: var(--board);
+  box-shadow: 0 0 0 1px var(--tick);
   overflow: hidden;
 }
 
 .fill {
   height: 100%;
-  border-radius: var(--radius-full);
-  transition: width 0.3s ease;
+  transition: width 200ms ease;
 }
 
-.fill--default { background: var(--primary); }
-.fill--success { background: var(--success); }
-.fill--error   { background: var(--error); }
+.fill--default { background: var(--graphite); }
+.fill--success { background: var(--graphite); }
+.fill--error   { background: var(--rubylith-ink); }

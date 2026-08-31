@@ -1,10 +1,14 @@
+/* The title block of a drawing sheet: the name set wide and heavy, the note
+   under it, and the sheet's controls opposite. Closed by a 1.5px rule. */
 .header {
   display: flex;
-  align-items: flex-start;
+  align-items: flex-end;
   justify-content: space-between;
-  gap: var(--sp-sm);
+  gap: var(--sp-half);
   flex-wrap: wrap;
-  margin-bottom: var(--sp-md);
+  padding-bottom: var(--sp-half);
+  margin-bottom: var(--sp-unit);
+  border-bottom: 1.5px solid var(--graphite);
 }
 
 .titleBlock {
@@ -12,22 +16,25 @@
 }
 
 .title {
-  font-size: 26px;
+  font-family: var(--font-chrome);
+  font-size: var(--fs-board-title);
   font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 1.15;
-  color: var(--on-surface);
+  font-variation-settings: 'wdth' var(--wdth-title);
+  letter-spacing: var(--ls-board-title);
+  line-height: var(--lh-board-title);
+  color: var(--graphite);
 }
 
 .subtitle {
-  margin-top: 4px;
-  font-size: 14px;
-  color: var(--muted);
+  margin-top: var(--sp-hair);
+  font-size: var(--fs-body);
+  color: var(--graphite-soft);
+  max-width: 70ch;
 }
 
 .actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--sp-hair);
   flex-wrap: wrap;
 }

@@ -23,7 +23,7 @@ import {
   WZD_RENDERABLE_NAMES,
 } from '@newspapper/core/wizard';
 import type { Theme } from '@newspapper/core/templates';
-import { Badge, Button, Select, Skeleton, ToastProvider, useToast } from '../ui';
+import { Button, Mark, Select, Skeleton, ToastProvider, useToast } from '../ui';
 import { api, ApiError, sse } from '@/lib/api';
 import type { Post, Settings } from '@/lib/types';
 import SourcePane from './SourcePane.js';
@@ -98,10 +98,16 @@ function postIdFromUrl(): number | null {
   return Number.isInteger(id) && id > 0 ? id : null;
 }
 
-function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslandProps) {
+function Editor({
+  postId: propPostId,
+  initialMarkup,
+  initialTheme,
+}: EditorIslandProps) {
   const { addToast } = useToast();
 
-  const [source, setSource] = useState(() => initialMarkup ?? starterDocument());
+  const [source, setSource] = useState(
+    () => initialMarkup ?? starterDocument(),
+  );
   const [previewSource, setPreviewSource] = useState(source);
   const [selectedPath, setSelectedPath] = useState<WzdPath | null>(null);
   const [revealToken, setRevealToken] = useState(0);
@@ -118,10 +124,13 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
   const [activeZoneKey, setActiveZoneKey] = useState<string | null>(null);
 
   const [pickerOpen, setPickerOpen] = useState(false);
-  const pendingImage = useRef<{ path: WzdPath } | { insert: InsertionPoint } | null>(null);
+  const pendingImage = useRef<
+    { path: WzdPath } | { insert: InsertionPoint } | null
+  >(null);
 
-  const [leftWidth, setLeftWidth] = useState(400);
-  const [rightWidth, setRightWidth] = useState(340);
+  // Both on the 26px grid: 15 and 13 units.
+  const [leftWidth, setLeftWidth] = useState(390);
+  const [rightWidth, setRightWidth] = useState(338);
   const [narrow, setNarrow] = useState(false);
   const [pane, setPane] = useState<Pane>('preview');
   const [rendering, setRendering] = useState(false);
@@ -161,7 +170,10 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
 
   useEffect(() => {
     if (broken) return;
-    const timer = setTimeout(() => setPreviewSource(source), PREVIEW_DEBOUNCE_MS);
+    const timer = setTimeout(
+      () => setPreviewSource(source),
+      PREVIEW_DEBOUNCE_MS,
+    );
     return () => clearTimeout(timer);
   }, [source, broken]);
 
@@ -213,7 +225,10 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
         const parentAt = selectedPath.slice(0, -1);
         const parent = elementAtPath(doc, parentAt);
         if (parent && canContain(parent.type, component)) {
-          return { parentPath: parentAt, index: selectedPath[selectedPath.length - 1] + 1 };
+          return {
+            parentPath: parentAt,
+            index: selectedPath[selectedPath.length - 1] + 1,
+          };
         }
       }
       const slides = slidePaths(doc);
@@ -237,10 +252,10 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
         setPickerOpen(true);
         return;
       }
-      write(insertComponent(sourceRef.current, at.parentPath, at.index, component), [
-        ...at.parentPath,
-        at.index,
-      ]);
+      write(
+        insertComponent(sourceRef.current, at.parentPath, at.index, component),
+        [...at.parentPath, at.index],
+      );
     },
     [write],
   );
@@ -262,10 +277,13 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
 
   // ---- drag --------------------------------------------------------------
 
-  const onZonesMeasured = useCallback((slideKey: string, zones: MeasuredZone[]) => {
-    if (zones.length) zonesRef.current.set(slideKey, zones);
-    else zonesRef.current.delete(slideKey);
-  }, []);
+  const onZonesMeasured = useCallback(
+    (slideKey: string, zones: MeasuredZone[]) => {
+      if (zones.length) zonesRef.current.set(slideKey, zones);
+      else zonesRef.current.delete(slideKey);
+    },
+    [],
+  );
 
   const onDragMove = useCallback((x: number, y: number) => {
     // The ghost follows the pointer through the DOM rather than through state:
@@ -290,18 +308,27 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
     setDrag(null);
     if (!zone || !payload) return;
     if (payload.kind === 'new') {
-      insertAt({ parentPath: zone.slot.parentPath, index: zone.slot.index }, payload.component);
+      insertAt(
+        { parentPath: zone.slot.parentPath, index: zone.slot.index },
+        payload.component,
+      );
       return;
     }
     write(
-      moveNode(sourceRef.current, payload.path, zone.slot.parentPath, zone.slot.index),
+      moveNode(
+        sourceRef.current,
+        payload.path,
+        zone.slot.parentPath,
+        zone.slot.index,
+      ),
       movedPath(payload.path, zone.slot.parentPath, zone.slot.index),
     );
   }, [insertAt, write]);
 
   const gestures = useMemo(
     () => ({
-      onSelect: (offset: number) => selectFromView(elementPathAtOffset(previewDoc, offset)),
+      onSelect: (offset: number) =>
+        selectFromView(elementPathAtOffset(previewDoc, offset)),
       onDragStart: (offset: number) => {
         const path = elementPathAtOffset(previewDoc, offset);
         const el = path ? elementAtPath(previewDoc, path) : null;
@@ -325,7 +352,10 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
         index >= slides.length
           ? (body?.children.length ?? 0)
           : slides[index][slides[index].length - 1];
-      write(insertComponent(sourceRef.current, at, childIndex, 'Slide'), [...at, childIndex]);
+      write(insertComponent(sourceRef.current, at, childIndex, 'Slide'), [
+        ...at,
+        childIndex,
+      ]);
     },
     [doc, write],
   );
@@ -349,7 +379,8 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
         const list = await api<ThemeRecord[]>('/api/themes');
         setThemes(list);
         setThemeName((current) => {
-          if (current && list.some((t) => t.name === current && t.tokens)) return current;
+          if (current && list.some((t) => t.name === current && t.tokens))
+            return current;
           return list.find((t) => t.tokens)?.name ?? current;
         });
       } catch {
@@ -386,7 +417,10 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
         setDirty(false);
         setSaveState('clean');
       } catch (err) {
-        addToast(err instanceof ApiError ? err.message : 'Could not open that post.', 'error');
+        addToast(
+          err instanceof ApiError ? err.message : 'Could not open that post.',
+          'error',
+        );
       } finally {
         setLoading(false);
       }
@@ -410,7 +444,10 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
       setSaveState('saved');
     } catch (err) {
       setSaveState('error');
-      addToast(err instanceof ApiError ? err.message : 'Could not save this post.', 'error');
+      addToast(
+        err instanceof ApiError ? err.message : 'Could not save this post.',
+        'error',
+      );
     }
   }, [postId, themeName, addToast]);
 
@@ -424,10 +461,17 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
     if (!postId) return;
     setRendering(true);
     try {
-      await sse(`/api/posts/${postId}/render`, {}, { onEvent: () => undefined });
+      await sse(
+        `/api/posts/${postId}/render`,
+        {},
+        { onEvent: () => undefined },
+      );
       addToast('Rendered. The JPEGs are in the output folder.', 'success');
     } catch (err) {
-      addToast(err instanceof ApiError ? err.message : 'Render failed.', 'error');
+      addToast(
+        err instanceof ApiError ? err.message : 'Render failed.',
+        'error',
+      );
     } finally {
       setRendering(false);
     }
@@ -491,9 +535,15 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
         doc={doc}
         selectedPath={selectedPath}
         onSelectPath={selectFromView}
-        onSetProp={(path, name, value) => write(setProp(sourceRef.current, path, name, value))}
-        onSetText={(path, value) => write(setTextContent(sourceRef.current, path, value))}
-        onSetHead={(field, value) => write(setHeadField(sourceRef.current, field, value))}
+        onSetProp={(path, name, value) =>
+          write(setProp(sourceRef.current, path, name, value))
+        }
+        onSetText={(path, value) =>
+          write(setTextContent(sourceRef.current, path, value))
+        }
+        onSetHead={(field, value) =>
+          write(setHeadField(sourceRef.current, field, value))
+        }
         onRemove={(path) => write(removeNode(sourceRef.current, path), null)}
         onDuplicate={(path) => write(duplicateNode(sourceRef.current, path))}
         onNudge={nudge}
@@ -510,10 +560,12 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
     <div className={styles.editor}>
       <header className={styles.header}>
         <h1 className={styles.title}>{doc.head['title'] || 'Untitled post'}</h1>
-        <Badge variant={errorCount ? 'error' : 'success'}>
-          {errorCount ? `${errorCount} ${errorCount === 1 ? 'error' : 'errors'}` : 'Valid'}
-        </Badge>
-        <Badge variant={saveState === 'error' ? 'error' : 'muted'}>
+        <Mark tone={errorCount ? 'rubylith' : 'ink'}>
+          {errorCount
+            ? `${errorCount} ${errorCount === 1 ? 'error' : 'errors'}`
+            : 'Compiles'}
+        </Mark>
+        <Mark tone={saveState === 'error' ? 'rubylith' : 'dim'}>
           {saveState === 'saving'
             ? 'Saving…'
             : saveState === 'dirty'
@@ -523,10 +575,12 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
                 : postId
                   ? 'Saved'
                   : 'New post'}
-        </Badge>
+        </Mark>
         <span className={styles.spacer} />
         <Select
-          options={themes.filter((t) => t.tokens).map((t) => ({ value: t.name, label: t.name }))}
+          options={themes
+            .filter((t) => t.tokens)
+            .map((t) => ({ value: t.name, label: t.name }))}
           value={themeName}
           placeholder="Theme"
           onValueChange={(value) => {
@@ -536,7 +590,12 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
           }}
           className={styles.themeSelect}
         />
-        <Button variant="secondary" size="sm" onClick={() => void save()} disabled={!dirty}>
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={() => void save()}
+          disabled={!dirty}
+        >
           Save
         </Button>
         <Button
@@ -568,7 +627,9 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
           <div className={styles.singlePane}>
             {pane === 'source' && sourcePane}
             {pane === 'preview' && previewPane}
-            {pane === 'inspector' && <div className={styles.scroller}>{inspectorPane}</div>}
+            {pane === 'inspector' && (
+              <div className={styles.scroller}>{inspectorPane}</div>
+            )}
           </div>
         </>
       )}
@@ -619,10 +680,12 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
             return;
           }
           const { parentPath, index } = pending.insert;
-          write(insertComponent(sourceRef.current, parentPath, index, 'Image', { src: ref }), [
-            ...parentPath,
-            index,
-          ]);
+          write(
+            insertComponent(sourceRef.current, parentPath, index, 'Image', {
+              src: ref,
+            }),
+            [...parentPath, index],
+          );
         }}
       />
     </div>

@@ -1,5 +1,5 @@
 ---
-summary: Dated snapshot — the Wizard rebuild is thirteen of sixteen briefs in; the chrome, the render typeface and the docs pass remain.
+summary: Dated snapshot — the Wizard rebuild is fifteen of sixteen briefs in; only the documentation pass remains, plus three briefs filed from findings.
 updated: 2026-08-31
 ---
 
@@ -7,25 +7,29 @@ updated: 2026-08-31
 
 _Snapshot: 2026-08-31_
 
-> **Thirteen of sixteen briefs are done** on branch `wizard-rebuild`. The
-> wave-6 gate is verified green there: `npm run build`, **630 tests**,
+> **Fifteen of sixteen briefs are done** on branch `wizard-rebuild`. The
+> wave-7 gate is verified green there: `npm run build`, **637 tests**,
 > `npm run lint`, `npx tsc -p ui --noEmit` (0 errors) and `corpus/lint.sh`.
-> Remaining: **64** (the chrome), **66** (the render typeface), **63** (docs).
+> Of the original backlog only **63** (the documentation pass) is left. Three
+> briefs were filed from findings along the way: **67** (the slide's font
+> fallback stack), **68** (`fmt`/`lint` coverage), **69** (two loose ends in
+> `ui/`).
 
 **Where things stand.** The pivot has landed. Newspapper no longer generates
 copy with a model; a post is authored as a [Newspapper Wizard](./markup.md)
 document in a split-screen editor and compiled to JPEG slides. The `.wzd`
 language, its compiler, the editor, auth, uploads, the article library, JPEG
-output and the three-theme family are all built and tested. What is left is
-the *surface*: the app still wears v3's chrome, the rendered JPEG comes out in
-the wrong typeface, and the docs describe a product that is now two versions
+output and the three-theme family are all built and tested. The chrome is
+The Mechanical on every route, and the rendered JPEG is finally set in Inter.
+What is left is the documentation, which still describes a product two versions
 behind.
 
 The descriptive wiki pages — [api.md](./api.md), [modules.md](./modules.md),
-[dependencies.md](./dependencies.md) — have been rewritten as the work landed
-and are accurate. [architecture.md](./architecture.md),
-[data.md](./data.md) and [design-systems.md](./design-systems.md) are brief
-63's job to reconcile.
+[dependencies.md](./dependencies.md), [modules.md](./modules.md),
+[design-systems.md](./design-systems.md) and the new [chrome.md](./chrome.md) —
+were rewritten as the work landed and are accurate.
+[architecture.md](./architecture.md) and [data.md](./data.md) are brief 63's job
+to reconcile.
 
 ## The design round — closed
 
@@ -34,8 +38,8 @@ The app chrome is being replaced alongside the code, and the world is settled:
 as complete editor screens rather than described; the owner chose it and it was
 then raised by five donations from the declined hand. `DESIGN.md` is rewritten
 from the approved comps, `PRODUCT.md` carries the register, and the rebuild is
-[brief 64](../briefs/todo/64-workstation-chrome.md) — now unblocked, since
-briefs 59 and 62 have landed the structure it has to clothe.
+[brief 64](../briefs/done/64-workstation-chrome.md), which shipped on
+2026-08-31. The chrome as built is [chrome.md](./chrome.md).
 
 Also settled: the slide theme is untouched and out of scope, and `animejs`
 4.5.0 is the motion engine.
@@ -63,8 +67,9 @@ storage · the npm workspace layout · the shared UI primitives on Base UI.
 
 ## Briefs
 
-Three briefs remain in [`../briefs/todo/`](../briefs/todo/); the other
-thirteen are in [`../briefs/done/`](../briefs/done/) with an outcome note each.
+Four briefs remain in [`../briefs/todo/`](../briefs/todo/) — **63** from the
+original backlog, plus **67**, **68** and **69** filed from findings. The other
+fifteen are in [`../briefs/done/`](../briefs/done/) with an outcome note each.
 Each brief is self-contained — open only the one directing your work.
 
 Waves below are the **executed** order, which differs from the originally filed
@@ -91,9 +96,9 @@ nav/sidebar by 58, 62 and 64.
 | 4 | 61 | Themes 2 and 3 — **done** | 54 |
 | 5 | 59 | The split-screen editor — **done** | 53, 54, 58 |
 | 6 | 62 | API surface and page map — **done** | 55, 59, 60 |
-| 7 | 64 | Rebuild the app chrome as The Mechanical | 59, 62 |
+| 7 | 64 | Rebuild the app chrome as The Mechanical — **done** | 59, 62 |
 | 5 | 65 | Finish the theme family — ramp, rename, guard — **done** | 61 |
-| 6 | 66 | Fix the render typeface | — |
+| 7 | 66 | Fix the render typeface — **done** | — |
 | 8 | 63 | Documentation pass | everything |
 
 Three ordering constraints that will bite if ignored: **58 must not start

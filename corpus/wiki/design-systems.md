@@ -1,5 +1,5 @@
 ---
-summary: The warm-industrial-1/2/3 theme family — the three palettes, the eleven-step type ramp and the size-to-token mapping it feeds, and how missingThemeTokens gates every theme in the directory.
+summary: The warm-industrial-1/2/3 slide themes — palettes, the eleven-step type ramp, the TNode compile target, and the missingThemeTokens gate. The app chrome is a separate system, in chrome.md.
 updated: 2026-08-31
 ---
 
@@ -114,21 +114,13 @@ fails it. The test that guards this enumerates `listThemes()` at runtime, so a
 fourth theme dropped into `assets/design-systems/` is checked the moment it
 lands.
 
-### The rename to `warm-industrial-1` (brief 65)
+### The name
 
-Brief 61 shipped the three suffixed themes but left the unsuffixed
-`warm-industrial.json` in place, because ~15 hardcoded call sites named it.
-Brief 65 deleted that file and repointed every call site:
-`core/src/storage/settings.ts` (`defaultTheme`), `core/src/util/config.ts`
-(the `THEME` env default), `core/src/storage/posts.ts` (`DEFAULT_THEME`),
-`core/src/storage/db.ts` (the `posts.theme` column default),
-`ui/src/components/settings/SettingsIsland.tsx` (the placeholder), and the test
-fixtures across `core/src/**` and `api/src/**`. `listThemes()` now returns
-exactly `warm-industrial-1`, `-2`, `-3`.
-
-Stored data moved with it: **schema v4** rewrites `posts.theme` and the
-`defaultTheme` setting from `'warm-industrial'` to `'warm-industrial-1'`, and
-rebuilds `posts` to carry the new column default. See
+There is no unsuffixed `warm-industrial`. Brief 65 deleted it and repointed
+every call site — `defaultTheme`, the `THEME` env default, `DEFAULT_THEME`,
+the `posts.theme` column default, the settings placeholder and the fixtures —
+so `listThemes()` returns exactly `-1`, `-2`, `-3`. **Schema v4** rewrote the
+stored `posts.theme` and `defaultTheme` values to match; see
 [data.md § SQLite](./data.md#sqlite--datanewspapperdb).
 
 ## TNode interpreter (the compile target, not an authoring surface)
@@ -168,36 +160,8 @@ predating the JSON templates) are still archived at
 
 Every slide is **1080 × 1080 px** — Instagram square post format, hard-coded in the renderer.
 
-## UI app design system (distinct from the slide theme)
+## The app chrome is a different system
 
-> **Superseded, not yet replaced in code.** The tokens above drive **slide
-> rendering** and carry over untouched. Everything in this section describes the
-> **app chrome** built for the four-step pipeline. That chrome is being replaced
-> by **The Mechanical** — a paste-up board — chosen 2026-08-27; the system is
-> [`DESIGN.md`](../../DESIGN.md) and the rebuild is
-> [brief 64](../briefs/todo/64-workstation-chrome.md). Until 64 lands, the
-> description below is accurate for what `ui/` renders today, so keep building
-> against it.
->
-> What changes when 64 lands: a 26px non-photo blue grid governs every surface;
-> `border-radius` is `0` throughout; state is carried by a **mark** (rubylith,
-> wax, rubber stamp, tissue corner, 45° hatch) rather than a coloured badge; the
-> chrome face becomes **Archivo** with **Spline Sans Mono** for the galley, and
-> Inter is confined to the rendered slide; the `Stepper` and `Badge` primitives
-> retire; `Sidebar.astro` becomes the tray; and animation arrives as
-> [anime.js](./decisions-engineering.md#animejs-is-the-motion-engine-tailwind-bound-kits-are-references-only)
-> — two moments, nothing else.
-
-The tokens above (`assets/design-systems/warm-industrial-{1,2,3}.json`) drive **slide rendering**. The
-**UI chrome** (wizard, history, sources, settings) has its own design system —
-`/builder` retired with the template system (brief 58); its canvas, tree panel,
-inspector and undo/redo survive for brief 59 to build the post editor on, not
-as a page of their own:
-
-- **Tokens:** CSS custom properties in `ui/src/styles/global.css` (`:root`). Includes surfaces, the terracotta accent + `--primary-soft`/`--surface-tint`, semantic `--success`/`--error`/`--warning` (each with `-emphasis`/`-container`), spacing, radii, and the `--content-max` (1080px) / `--content-narrow` (720px) layout columns.
-- **Canonical reference:** `DESIGN.md` at the repo root (Stitch format) documents the full system — palette, type scale, elevation, components, and the named rules ("The One Voice Rule", "The Earned-Label Rule", etc.). `PRODUCT.md` carries the strategic register.
-- **Shared primitives:** `ui/src/components/ui/` — `Button`, `Card`, `Input`, `Textarea`, `Select`, `Toggle`, `Badge`, `Skeleton`, `PageHeader`, `Stepper`, `Modal`, `ConfirmDialog`, `Toast`, etc. Pages and feature components compose these; the page-top title/subtitle/actions pattern is `PageHeader`. **Avoid raw `<input>`/`<select>`/`<button>`/dialog elements in feature components — route them through this library.**
-- **Base UI foundation:** the interactive/overlay primitives are built on [`@base-ui/react`](https://base-ui.com) (headless + accessible), styled with the tokens above. The wrapper APIs are stable, but two follow Base UI's value-callback convention: `Select` uses `value` + `onValueChange(value)` and `Toggle` (a Base UI `Switch`) uses `checked` + `onCheckedChange(checked)` — not the native `onChange`. `Modal` wraps `Dialog`; `Toast`'s `ToastProvider`/`useToast().addToast()` API is unchanged but backed by Base UI's toast manager.
-- **Navigation:** one shared `ui/src/components/Sidebar.astro` renders the nav rail for every page. It owns the nav links, the Lucide SVG icon set, and `transition:persist` so it survives view transitions. Pages mount Astro's `<ClientRouter />`, so page changes crossfade instead of full-reloading.
-
-When changing UI tokens or shared primitives, update `DESIGN.md` so generated screens stay on-brand.
+The tokens above drive **slide rendering** only. The app chrome — **The
+Mechanical** — shares no token, colour or typeface with them, on purpose. It has
+its own page: [chrome.md](./chrome.md).

@@ -16,11 +16,21 @@ export type { SelectProps, SelectOption } from './Select';
 export { default as Toggle } from './Toggle';
 export type { ToggleProps } from './Toggle';
 
-export { default as Badge } from './Badge';
-export type { BadgeProps, BadgeVariant } from './Badge';
-
-export { default as Spinner } from './Spinner';
-export type { SpinnerProps } from './Spinner';
+/* The mark set — the whole of how this app says what state a thing is in.
+   `Badge` is gone: a coloured pill would be a second way to say "held out",
+   and the world has one (DESIGN.md, The One Mark Rule). */
+export {
+  Mark,
+  Stamp,
+  TissueCorner,
+  HeldOut,
+  CropMarks,
+  RegisterTargets,
+  Finding,
+  WAX,
+  HATCH,
+} from './Marks';
+export type { MarkProps, MarkTone, FindingProps } from './Marks';
 
 export { default as Skeleton } from './Skeleton';
 export type { SkeletonProps } from './Skeleton';
@@ -36,9 +46,6 @@ export type { ModalProps } from './Modal';
 
 export { ToastProvider, useToast } from './Toast';
 export type { ToastItem, ToastVariant } from './Toast';
-
-export { default as Stepper } from './Stepper';
-export type { StepperProps, Step, StepState } from './Stepper';
 
 export { default as ProgressBar } from './ProgressBar';
 export type { ProgressBarProps } from './ProgressBar';

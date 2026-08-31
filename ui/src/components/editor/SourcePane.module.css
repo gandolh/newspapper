@@ -1,27 +1,47 @@
+/* The galley: the copy, waxed to the board beside the artwork.
+   Paper, a hairline, the hard short shadow, and a graphite tab carrying the
+   filename. The bottom edge is torn rather than cut — the copy continues. */
 .pane {
   display: flex;
   flex-direction: column;
   min-width: 0;
   min-height: 0;
   height: 100%;
-  background: var(--surface-card);
-  border-right: 1px solid var(--border);
+  background: var(--paper);
+  box-shadow: var(--shadow-waxed);
 }
 
+/* The tab is graphite; the rest of the rail stays paper, so the marks keep
+   their ink. */
 .bar {
   display: flex;
-  align-items: center;
-  gap: var(--sp-base);
-  padding: var(--sp-xs) var(--sp-sm);
-  border-bottom: 1px solid var(--border);
+  align-items: stretch;
+  gap: var(--sp-half);
+  height: var(--sp-unit);
+  border-bottom: 1px solid var(--hairline);
+  flex-shrink: 0;
 }
 
 .barTitle {
-  font-size: var(--font-size-xs);
-  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--sp-half);
+  background: var(--graphite);
+  color: var(--board);
+  font-family: var(--font-galley);
+  font-size: var(--fs-field);
+  font-weight: 500;
+  letter-spacing: var(--ls-field);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--on-surface-variant);
+  flex-shrink: 0;
+}
+
+.barMarks {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-half);
+  min-width: 0;
+  overflow: hidden;
 }
 
 .barSpacer {
@@ -42,11 +62,13 @@
   position: absolute;
   inset: 0;
   margin: 0;
-  padding: var(--sp-sm);
+  padding: var(--sp-half);
   border: 0;
-  font-family: ui-monospace, 'SFMono-Regular', 'Menlo', monospace;
-  font-size: 13px;
-  line-height: 20px;
+  font-family: var(--font-galley);
+  font-size: var(--fs-galley);
+  /* 1.86 of 12.5px ≈ 23.25; held at 23px so lint marks and wax sit on a line
+     without touching its neighbours, and the caret stays on the paint. */
+  line-height: 23px;
   tab-size: 2;
   white-space: pre;
   word-break: normal;
@@ -55,8 +77,8 @@
 
 .highlight {
   overflow: hidden;
-  color: var(--on-surface);
-  background: var(--surface-card);
+  color: var(--graphite);
+  background: transparent;
   pointer-events: none;
 }
 
@@ -65,114 +87,130 @@
   resize: none;
   color: transparent;
   background: transparent;
-  caret-color: var(--on-surface);
+  caret-color: var(--graphite);
+  outline: none;
+}
+
+.input:focus-visible {
   outline: none;
 }
 
 .input::selection {
-  background: var(--primary-soft);
+  background: var(--wax);
+  color: transparent;
 }
 
-/* ---- token colours ---- */
+/* The deckle: the galley's torn bottom edge. */
+.deckle {
+  flex-shrink: 0;
+  height: var(--sp-hair);
+  background:
+    repeating-linear-gradient(
+      135deg,
+      var(--paper) 0 4px,
+      transparent 4px 5px
+    ),
+    var(--hairline);
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% 40%,
+    96% 100%,
+    92% 30%,
+    88% 90%,
+    84% 25%,
+    80% 85%,
+    76% 35%,
+    72% 95%,
+    68% 30%,
+    64% 80%,
+    60% 25%,
+    56% 90%,
+    52% 35%,
+    48% 85%,
+    44% 30%,
+    40% 95%,
+    36% 25%,
+    32% 80%,
+    28% 35%,
+    24% 90%,
+    20% 30%,
+    16% 85%,
+    12% 25%,
+    8% 95%,
+    4% 35%,
+    0 80%
+  );
+}
+
+/* ---- Syntax follows casing, not category (DESIGN.md §5, The Galley) ----
+   lowercase document tags recede, capitalised components are the structure,
+   prop values are the one thing the markup itself names. */
 .text {
-  color: var(--on-surface);
+  color: var(--graphite);
 }
 
 .punct {
-  color: var(--outline);
+  color: var(--graphite-soft);
 }
 
 .component {
-  color: var(--primary);
+  color: var(--graphite);
   font-weight: 700;
 }
 
 .structure {
-  color: var(--secondary);
-  font-weight: 600;
+  color: var(--graphite-soft);
 }
 
 .attr {
-  color: var(--muted);
+  color: var(--graphite-soft);
 }
 
 .value {
-  color: var(--success-emphasis);
+  color: var(--process-blue);
 }
 
 .comment {
-  color: var(--outline);
+  color: var(--graphite-soft);
   font-style: italic;
 }
 
 .binding {
-  color: var(--warning);
-  font-weight: 600;
+  color: var(--process-blue);
+  font-weight: 700;
 }
 
-/* ---- marks ---- */
+/* ---- Lint marks: the same rubylith, at galley weight ---- */
 .error {
-  text-decoration: underline wavy var(--error);
-  text-underline-offset: 3px;
+  background: var(--rubylith-wash-soft);
+  text-decoration: underline wavy var(--rubylith);
+  text-underline-offset: 4px;
 }
 
 .warning {
-  text-decoration: underline wavy var(--warning);
-  text-underline-offset: 3px;
+  text-decoration: underline wavy var(--graphite-tint);
+  text-underline-offset: 4px;
 }
 
-.selected {
-  background: var(--primary-soft);
-  border-radius: 2px;
-}
-
-/* ---- findings ---- */
+/* ---- The findings, ruled off the galley ---- */
 .findings {
   flex: 0 0 auto;
-  max-height: 30%;
+  max-height: 34%;
   overflow: auto;
   margin: 0;
   padding: 0;
   list-style: none;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--hairline);
 }
 
 .finding {
   display: flex;
-  align-items: baseline;
-  gap: var(--sp-xs);
+  align-items: flex-start;
   width: 100%;
+  height: auto;
+  padding: 2px var(--sp-hair);
   justify-content: flex-start;
   text-align: left;
   font-weight: 400;
-}
-
-.findingWhere {
-  font-family: ui-monospace, monospace;
-  font-size: var(--font-size-xs);
-  color: var(--on-surface-variant);
-  flex-shrink: 0;
-}
-
-.findingText {
-  font-size: var(--font-size-xs);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.dotError,
-.dotWarning {
-  flex-shrink: 0;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-
-.dotError {
-  background: var(--error);
-}
-
-.dotWarning {
-  background: var(--warning);
 }

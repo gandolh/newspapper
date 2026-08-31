@@ -1,71 +1,78 @@
+/* The stage. Board ground, and the artwork pasted down inside crop marks
+   with a register target at each corner. Nothing in here is waxed: the paper
+   is the slide itself. */
 .pane {
   display: flex;
   flex-direction: column;
   min-width: 0;
   min-height: 0;
   height: 100%;
-  background: var(--surface-low);
+  background: transparent;
 }
 
 .bar {
   display: flex;
   align-items: center;
-  gap: var(--sp-base);
-  padding: var(--sp-xs) var(--sp-sm);
-  border-bottom: 1px solid var(--border);
-  background: var(--surface-card);
+  gap: var(--sp-half);
+  height: var(--sp-unit);
+  border-bottom: 1px solid var(--rule);
+  flex-shrink: 0;
 }
 
 .barTitle {
-  font-size: var(--font-size-xs);
-  font-weight: 700;
+  font-family: var(--font-galley);
+  font-size: var(--fs-field);
+  font-weight: 500;
+  letter-spacing: var(--ls-field);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--on-surface-variant);
+  color: var(--graphite-soft);
 }
 
 .barSpacer {
   flex: 1;
 }
 
+/* A finding about the theme is a grease note, not a coloured banner. */
 .themeError,
 .warning {
-  margin: 0;
-  padding: var(--sp-sm);
-  font-size: var(--font-size-sm);
-  color: var(--error-emphasis);
-  background: var(--error-container);
-  border-bottom: 1px solid var(--error-border);
+  margin: var(--sp-half) 0 0;
+  padding: 0 0 0 var(--sp-half);
+  border-left: 2px solid var(--grease);
+  font-family: var(--font-galley);
+  font-size: 10px;
+  line-height: 1.45;
+  color: var(--grease);
 }
 
 .warningDetail {
   display: block;
-  margin-top: var(--sp-xs);
-  font-family: ui-monospace, monospace;
-  font-size: var(--font-size-xs);
-  opacity: 0.85;
+  margin-top: 2px;
+  color: var(--graphite-soft);
 }
 
 .column {
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding: var(--sp-sm);
+  padding: var(--sp-unit) 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--sp-md);
+  gap: var(--sp-double);
 }
 
 .hint {
-  color: var(--on-surface-variant);
-  font-size: var(--font-size-sm);
+  font-family: var(--font-galley);
+  font-size: var(--fs-field);
+  letter-spacing: var(--ls-field);
+  text-transform: uppercase;
+  color: var(--graphite-soft);
 }
 
 .slide {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-xs);
+  gap: var(--sp-half);
 }
 
 .slideBar {
@@ -75,5 +82,51 @@
 }
 
 .slideLabel {
+  font-family: var(--font-galley);
+  font-size: var(--fs-mark);
   font-weight: 700;
+  letter-spacing: var(--ls-mark);
+  text-transform: uppercase;
+}
+
+/* 30px of clearance, so the crop marks and register targets sit off the
+   artwork rather than on it. */
+.stage {
+  position: relative;
+  align-self: center;
+  padding: 30px;
+}
+
+/* The dimension line: what the thing actually measures, stated across the top
+   in the mark face. */
+.dimension {
+  position: absolute;
+  top: 8px;
+  left: 30px;
+  right: 30px;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-hair);
+  font-family: var(--font-galley);
+  font-size: var(--fs-field);
+  font-weight: 500;
+  letter-spacing: var(--ls-field);
+  text-transform: uppercase;
+  color: var(--graphite-soft);
+  pointer-events: none;
+}
+
+.dimension::before,
+.dimension::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--tick);
+}
+
+.frame {
+  position: absolute;
+  inset: 30px;
+  pointer-events: none;
+  transform-origin: center;
 }

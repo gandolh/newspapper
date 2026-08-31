@@ -1,14 +1,10 @@
+/* A modal has to pick one of the two shadows. It is a slip waxed over the
+   board, so it takes the hard short one — never an ambient glow. */
 .backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(27, 28, 28, 0.4);
+  background: rgba(43, 43, 43, 0.32);
   z-index: 1000;
-  transition: opacity 0.15s ease;
-}
-
-.backdrop[data-starting-style],
-.backdrop[data-ending-style] {
-  opacity: 0;
 }
 
 .dialog {
@@ -16,57 +12,51 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: var(--surface-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  max-width: calc(100vw - 2 * var(--sp-md));
-  max-height: calc(100vh - 2 * var(--sp-md));
+  background: var(--paper);
+  box-shadow: var(--shadow-waxed);
+  max-width: calc(100vw - var(--sp-double));
+  max-height: calc(100vh - var(--sp-double));
   overflow-y: auto;
   z-index: 1001;
-  transition: opacity 0.2s ease, transform 0.2s ease;
-}
-
-.dialog[data-starting-style],
-.dialog[data-ending-style] {
-  opacity: 0;
-  transform: translate(-50%, calc(-50% + 12px));
 }
 
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--sp-md) var(--sp-md) var(--sp-sm);
-  border-bottom: 1px solid var(--border);
+  gap: var(--sp-half);
+  padding: var(--sp-half) var(--sp-unit);
+  border-bottom: 1.5px solid var(--graphite);
 }
 
 .title {
-  font-size: 17px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--on-surface);
+  font-family: var(--font-chrome);
+  font-size: var(--fs-label);
+  font-weight: 700;
+  font-variation-settings: 'wdth' var(--wdth-brand);
+  letter-spacing: var(--ls-brand);
+  text-transform: uppercase;
+  color: var(--graphite);
 }
 
 .close {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  border: none;
+  width: var(--sp-unit);
+  height: var(--sp-unit);
+  border: 1px solid transparent;
   background: none;
-  color: var(--muted);
-  border-radius: var(--radius);
+  color: var(--graphite-soft);
   cursor: pointer;
-  font-size: 13px;
-  transition: background 0.15s ease, color 0.15s ease;
+  font-size: 12px;
 }
 
 .close:hover {
-  background: var(--surface-container);
-  color: var(--on-surface);
+  color: var(--graphite);
+  border-color: var(--tick);
 }
 
 .body {
-  padding: var(--sp-md);
+  padding: var(--sp-unit);
 }

@@ -1,10 +1,12 @@
+/* Waxed down to the board: paper, a hairline, and the hard short shadow
+   offset down-right with zero blur. One of the system's two shadows. */
 .card {
-  background: var(--surface-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  position: relative;
+  background: var(--paper);
+  box-shadow: var(--shadow-waxed);
 }
 
 .card--pad-none { padding: 0; }
-.card--pad-sm   { padding: var(--sp-sm); }
-.card--pad-md   { padding: var(--sp-md); }
-.card--pad-lg   { padding: var(--sp-lg); }
+.card--pad-sm   { padding: var(--sp-half); }
+.card--pad-md   { padding: var(--sp-unit); }
+.card--pad-lg   { padding: var(--sp-double); }

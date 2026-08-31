@@ -24,6 +24,7 @@ New here? [wiki/overview.md](wiki/overview.md), then
 |---|---|
 | [api.md](wiki/api.md) | Every HTTP route the Fastify API exposes — method, path, body, response shape, and which ones stream SSE. |
 | [architecture.md](wiki/architecture.md) | How the three npm workspaces fit together and how a post flows scrape → compose → edit → render → ZIP. |
+| [chrome.md](wiki/chrome.md) | The Mechanical — the app chrome as shipped: tokens, the mark set, the tray, the two authored animations, and why it shares nothing with the slide themes. |
 | [commands.md](wiki/commands.md) | Which npm script to run for dev, build, test, lint, and format, and what ports they bind. |
 | [configuration.md](wiki/configuration.md) | Every env var, where settings come from and which source wins, and the Playwright Chromium install step. |
 | [data.md](wiki/data.md) | On-disk and in-DB shapes: the v4 SQLite schema for authored posts, the TNode compile-target shape, and the output/ folder convention. |
@@ -31,7 +32,7 @@ New here? [wiki/overview.md](wiki/overview.md), then
 | [decisions-security.md](wiki/decisions-security.md) | The locked security calls — single-account auth and its lockout, password rotation, and which paths are guarded versus deliberately public. |
 | [decisions.md](wiki/decisions.md) | The locked product calls — no LLM, human-centred editing, the Wizard markup and its semantic component model, images, and where it runs. |
 | [dependencies.md](wiki/dependencies.md) | What each workspace depends on and why that package was chosen over the alternatives. |
-| [design-systems.md](wiki/design-systems.md) | The warm-industrial-1/2/3 theme family — the three palettes, the eleven-step type ramp and the size-to-token mapping it feeds, and how missingThemeTokens gates every theme in the directory. |
+| [design-systems.md](wiki/design-systems.md) | The warm-industrial-1/2/3 slide themes — palettes, the eleven-step type ramp, the TNode compile target, and the missingThemeTokens gate. The app chrome is a separate system, in chrome.md. |
 | [glossary.md](wiki/glossary.md) | The project's vocabulary — one canonical definition per term Newspapper uses in a particular way, and the synonyms each one displaces. |
 | [markup.md](wiki/markup.md) | Newspapper Wizard (.wzd) — the JSX-like markup a post is written in: document shape, the component catalogue, the props model, and how it compiles to images. |
 | [modules.md](wiki/modules.md) | The public API of @newspapper/core — what each module actually exports and from which entry point. |

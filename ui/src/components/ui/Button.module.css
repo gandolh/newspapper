@@ -1,98 +1,115 @@
+/* A control on the board. Square, flat, and shadowless: a button is not a
+   thing waxed down, it is an instruction printed on the surface it sits on.
+   The one exception is `--primary`, the inverted chip. */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--sp-hair);
   position: relative;
   border: 1px solid transparent;
-  border-radius: var(--radius);
-  font-family: var(--font-family);
-  font-weight: 600;
+  font-family: var(--font-chrome);
+  font-size: var(--fs-label);
+  font-weight: 700;
+  letter-spacing: var(--ls-label);
+  line-height: 1;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
   white-space: nowrap;
   user-select: none;
   text-decoration: none;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
 }
 
 .btn:disabled {
-  opacity: 0.45;
   cursor: not-allowed;
   pointer-events: none;
+  color: var(--graphite-soft);
+  border-color: var(--tick);
+  background: transparent;
 }
 
 /* ---- Variants ---- */
+
+/* The inverted chip: solid graphite, board text. */
 .btn--primary {
-  background: var(--primary);
-  color: var(--on-primary);
-  border-color: var(--primary);
+  background: var(--graphite);
+  color: var(--board);
+  border-color: var(--graphite);
 }
 .btn--primary:hover:not(:disabled) {
-  background: var(--primary-hover);
-  border-color: var(--primary-hover);
+  background: #171717;
+  border-color: #171717;
 }
 
+/* Paper with a tick edge — the ordinary control. */
 .btn--secondary {
-  background: var(--surface-card);
-  color: var(--on-surface);
-  border-color: var(--border);
+  background: var(--paper);
+  color: var(--graphite);
+  border-color: var(--tick);
 }
 .btn--secondary:hover:not(:disabled) {
-  background: var(--surface-low);
-  border-color: var(--outline-variant);
+  border-color: var(--graphite);
 }
 
+/* Printed straight onto the board. */
 .btn--ghost {
   background: transparent;
-  color: var(--muted);
+  color: var(--graphite-soft);
   border-color: transparent;
 }
 .btn--ghost:hover:not(:disabled) {
-  background: var(--surface-container);
-  color: var(--on-surface);
+  color: var(--graphite);
+  background: rgba(43, 43, 43, 0.05);
 }
 
+/* Rubylith: the masking ink, and the only ink that means "this removes". */
 .btn--danger {
-  background: var(--error-container);
-  color: var(--error);
-  border-color: var(--error-container);
+  background: var(--paper);
+  color: var(--rubylith-ink);
+  border-color: var(--rubylith);
 }
 .btn--danger:hover:not(:disabled) {
-  background: var(--error);
-  color: var(--on-error);
-  border-color: var(--error);
+  background: var(--rubylith-ink);
+  color: var(--board);
+  border-color: var(--rubylith-ink);
 }
 
-/* ---- Sizes ---- */
+/* ---- Sizes: 1, 1.5 and 2 units of the 26px grid ---- */
 .btn--sm {
-  height: 30px;
-  padding: 0 10px;
+  height: var(--sp-unit);
+  padding: 0 var(--sp-half);
   font-size: 12px;
-  border-radius: var(--radius-sm);
 }
 
 .btn--md {
-  height: 36px;
-  padding: 0 16px;
-  font-size: 13px;
+  height: 39px;
+  padding: 0 var(--sp-unit);
 }
 
 .btn--lg {
-  height: 44px;
-  padding: 0 24px;
-  font-size: 15px;
+  height: var(--sp-double);
+  padding: 0 var(--sp-double);
+  font-size: var(--fs-body);
 }
 
-/* ---- Loading ---- */
+/* ---- Working ----------------------------------------------------------
+   A busy control is held out: the 45° hatch, and the state said in words.
+   Nothing spins — motion belongs to the compile and the hinge. */
 .btn--loading {
   cursor: wait;
 }
 
-.spinner {
+.working {
   position: absolute;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-family: var(--font-galley);
+  font-size: var(--fs-mark);
+  font-weight: 700;
+  letter-spacing: var(--ls-mark);
+  text-transform: uppercase;
 }
 
 .hiddenText {
