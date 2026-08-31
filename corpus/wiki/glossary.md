@@ -37,10 +37,12 @@ The specific layout a slide uses, identified by a template id such as
 family.
 _Avoid_: template type, layout name, style
 
-**Template** (`TemplateDoc`):
-The JSON document that defines one variant — its editable fields and its node
-tree. Lives in `assets/templates/<theme>/`. See [design-systems.md](./design-systems.md).
-_Avoid_: layout file, component, schema
+**Template** (`TemplateDoc`) — **retired**:
+The JSON document that defined one slide variant. Removed with the template
+system in brief 58, along with `assets/templates/<theme>/` and `/builder`; a
+post is a [Wizard document](./markup.md) now, and the surviving compile target
+is `TNode`. Kept here only so the word is recognised in older briefs and log
+entries. _Avoid_ using it for anything current.
 
 **Theme**:
 A named set of design tokens — colors, typography, spacing, shapes — that
@@ -80,6 +82,6 @@ work, an approval gate merely permits it.
 _Avoid_: confirmation step, checkpoint, human-in-the-loop
 
 **Render**:
-Turning a finished post into PNG files via headless Chromium. Strictly the
-image-production step — not composition, and not export.
+Turning a finished post into 1080² JPEG files via headless Chromium. Strictly
+the image-production step — not authoring, and not export.
 _Avoid_: generate, build, export (export is zipping the result)

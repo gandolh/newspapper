@@ -10,7 +10,9 @@ Which layer answers which question, and how work is picked up. Useful to anyone
 | "add a todo", "remember to…" | a file in [todos/](todos/) |
 | "let's build X", "work on brief NN" | a numbered spec in [briefs/todo/](briefs/todo/) |
 | "what does the wiki say about X" | [index.md](index.md), then at most 2–3 wiki pages |
-| "why is it done this way" | [wiki/decisions.md](wiki/decisions.md) (product) or [wiki/decisions-engineering.md](wiki/decisions-engineering.md) |
+| "why is it done this way" | one of four: [decisions.md](wiki/decisions.md) (product), [decisions-engineering.md](wiki/decisions-engineering.md) (runtime/library), [decisions-security.md](wiki/decisions-security.md), [decisions-tooling.md](wiki/decisions-tooling.md) (the repo itself) |
+| "how do I make a post" | [README.md](../README.md), then [wiki/markup.md](wiki/markup.md) |
+| "the check passed — did it check anything?" | [wiki/green-because-nothing-ran.md](wiki/green-because-nothing-ran.md) |
 | "what's the state of things" | [wiki/status.md](wiki/status.md) |
 | "how does the markup work" | [wiki/markup.md](wiki/markup.md) |
 | "what do we call this" | [wiki/glossary.md](wiki/glossary.md) |
@@ -26,6 +28,7 @@ Which layer answers which question, and how work is picked up. Useful to anyone
 | Who calls X? What breaks if I change X? | **grep** | There is no generated code index in this repo. |
 | Did I get *every* usage? | **grep** (`grep -rnw`) | Completeness is never a wiki question. |
 | Does this actually work? | **run it** — `npm test`, or the app | Nothing in the corpus is authoritative over behavior. |
+| Did that green run reach anything? | **check what the tool's scope actually is** — [green-because-nothing-ran.md](wiki/green-because-nothing-ran.md) | Eight defects in this repo were the checkers, not the code. |
 
 ## READ / SKIP
 

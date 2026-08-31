@@ -1,5 +1,11 @@
 # v3 swarm plan — orchestration map
 
+> **Historical.** This is the v3 build plan, from 2026-06. The product it
+> describes — an Ollama compose step, a JSON template system, a four-step
+> wizard, a visual builder, an Astro UI — no longer exists; it was replaced by
+> the Wizard pivot. Kept as the record of how v3 was built. Current state:
+> [`corpus/wiki/status.md`](../../corpus/wiki/status.md).
+
 Each file below is a self-contained brief for ONE agent. Waves run sequentially; agents within a wave run in parallel (disjoint file ownership). The orchestrator commits to main after each green wave.
 
 | Wave | File | Agent task | Parallel with |

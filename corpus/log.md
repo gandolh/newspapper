@@ -909,3 +909,52 @@ Architecture section — is brief 63's, which runs next.
 Also moved the Vite/Astro decision from `decisions.md` to
 `decisions-engineering.md`: it is an engineering call, not a product-shaping one,
 and `decisions.md` was over the cap with it.
+
+## [2026-08-31] brief | 63 closes the rebuild: the docs describe the shipped product
+
+The last brief of the v4 rebuild. It found that several wiki pages did not merely
+lag the code but **asserted things the code contradicts** — `compose` as a core
+export and `POST /api/compose` in the pipeline (neither exists), schema v4 with a
+migration table stopping at v3, `npm run build` as "typecheck + astro build". In
+every case the agent believed the source and rewrote the prose.
+
+The sharpest find: **`loadConfig()` is exported from the core barrel and called
+nowhere**, so seven documented environment variables are settable and inert.
+`THEME` is live only because `settings.ts` reads it separately. Anyone setting
+`OUTPUT_DIR` and expecting a change would have debugged nothing for an hour.
+Filed as brief 73 with three siblings — an `infra/docker-compose.yml` defining
+only an Ollama service for a product with no LLM, a root `tsconfig.json` pointing
+at an untracked `src/`, and an `api` `start` script naming a `dist/` its build
+never emits.
+
+`DESIGN.md` split into `design.md` and `design-components.md` with **continuous
+section numbering**, because nine source files cite "DESIGN.md §N" in comments.
+Renumbering to make each page start at §1 would have silently broken every one.
+
+And it went one directory further than asked: `corpus/CLAUDE.md`'s own
+constraints paragraph still said "Ollama only, no Sharp, one post per day" — the
+exact harm brief 63 existed to remove, sitting in the file that governs how the
+corpus itself is maintained.
+
+## [2026-08-31] corpus | the eight incidents get their own page
+
+`green-because-nothing-ran.md` collects every instance found during the rebuild,
+each with what the tool actually reached, how it was caught, and the cheap check
+that would have caught it sooner. Linked from `CLAUDE.md`, `README.md`,
+`index.md`, `routing.md`, `overview.md`, `status.md`, `commands.md` and
+`configuration.md`.
+
+The reason it is a page and not a log thread: `log.md` is append-only history,
+and history is where a lesson goes to be forgotten. Someone about to trust a
+green command needs to find this in one hop from the entry point, not by reading
+a year of entries. The retrieval budget is `index.md` plus two or three pages —
+if a lesson cannot be reached inside it, it does not exist.
+
+Worth stating once, plainly, since it is the through-line of this whole rebuild:
+**most of the real defects were not in the code. They were in the things that
+were supposed to be checking it.** A test harness setting a variable nothing
+read; a `.gitignore` pattern that would have hidden a module; a vitest `include`
+omitting a workspace; a workspace bundled but never typechecked; a formatter with
+no config; a test control that collapsed into its subject; a linter with zero
+rules enabled; a test importing a package it never declared. Every one reported
+success.

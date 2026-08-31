@@ -1,5 +1,5 @@
 ---
-summary: On-disk and in-DB shapes: the v4 SQLite schema for authored posts, the TNode compile-target shape, and the output/ folder convention.
+summary: On-disk and in-DB shapes — the v4 SQLite schema for authored posts, the TNode compile target, and the output/YYYY-MM-DD-N convention. Nothing here is a file format the user edits; the .wzd document is in markup.md.
 updated: 2026-08-31
 ---
 
@@ -132,11 +132,8 @@ so the repository dedupes source-less articles on `guid` explicitly.
 | `bytes` | INTEGER NOT NULL DEFAULT 0 | |
 | `created_at` | TEXT ISO-8601 | |
 
-Rows only — the files live under `uploads/` and are the caller's to delete.
-
-### `settings`
-
-Key-value store. One key: `defaultTheme`.
+Rows only — the files live under `uploads/`. **`settings`** is a key-value
+table with exactly one key, `defaultTheme`.
 
 ## Migration history
 
@@ -145,6 +142,12 @@ Key-value store. One key: `defaultTheme`.
 | 1 | CLI era: `posts(date, run_number, payload, output_dir)`, `articles(scraped_at)` |
 | 2 | Web app: `posts.payload` + `status draft\|rendered` + `output_dir`, `settings` |
 | 3 | Authored posts: `posts.markup`, `keywords`, `post_keywords`, `renders`, `users`, `uploads`, `sources` in the DB |
+| 4 | The theme family: `warm-industrial` → `warm-industrial-1` in `posts.theme`, the column default, and the `defaultTheme` setting |
+
+A fresh database is created at version 4 directly; an existing one walks every
+step in one boot. `migrate()` (`core/src/storage/db.ts`) keys on
+`PRAGMA user_version` and uses `IF NOT EXISTS` throughout, so re-running is a
+no-op.
 
 **v2 → v3 destroys rows on purpose.** A v2 post held a composed slide payload
 with no markup to derive it from, and v2 articles were transient scrape output.
@@ -152,17 +155,12 @@ Both tables are dropped and recreated, so **every v2 post row and every v2
 article row is deleted**. `settings` survives untouched. A v1 database walks
 v1 → v2 → v3 in one boot and loses its posts the same way.
 
-The migration is keyed on `PRAGMA user_version` and uses `IF NOT EXISTS`
-throughout, so re-running it is a no-op.
-
 ## TNode — the `.wzd` compile target
 
-No on-disk format anymore — `TemplateDoc` and the JSON template files under
-`assets/templates/<theme>/<id>.json` were removed with the template system
-(brief 58; see [decisions.md](decisions.md#the-template-system-is-removed)).
-`TNode` survives purely as an in-memory shape: `core/src/wizard/compile.ts`
-produces one per `<Slide>`, and `renderTemplate` (`core/src/templates/interpreter.ts`)
-walks it into HTML.
+Not an on-disk format: the JSON template files went with
+[the template system](decisions.md#the-template-system-is-removed) (brief 58).
+`TNode` is in-memory only — `core/src/wizard/compile.ts` builds one per
+`<Slide>`, and `renderTemplate` walks it into HTML.
 
 ### TNode types
 
@@ -180,9 +178,10 @@ CSS property map. Supports:
 - `"typography": "key"` → expands full typography token set into CSS properties
 - Any other string → passed through verbatim
 
-### Bindings in text nodes
-
-`{{fieldName}}`, `{{item.label}}`, `{{_index}}`, `{{_total}}`, `{{_date}}`
+**Bindings in text nodes**: `{{fieldName}}`, `{{item.label}}`, `{{_index}}`,
+`{{_total}}`, `{{_date}}`. The compiler resolves `<head>` fields before the
+interpreter sees the tree; `_index`/`_total` come from `renderTemplate`'s
+options — that is how `<PageCounter/>` gets its numbers.
 
 ## Output directory
 

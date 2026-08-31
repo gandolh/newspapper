@@ -23,7 +23,7 @@ Per-workspace. Versions are locked in `package-lock.json`.
 | Package | Why |
 |---------|-----|
 | `fastify` | HTTP server with schema-based request handling and plugin system. |
-| `@fastify/cors` | CORS for dev-mode Astro proxy requests from port 4321. |
+| `@fastify/cors` | CORS for dev-server proxy requests from port 4321 (the Vite dev server; Astro's until brief 70). |
 | `@fastify/static` | Serves `/assets/fonts/`, `/output/`, and `ui/dist/` in prod. Not used for `/uploads/` — that route resolves refs through the DB and streams the file itself. |
 | `@fastify/multipart` | Parses the single-file `POST /api/uploads` body, with a streaming 10 MB `fileSize` limit so an oversized upload is cut off rather than buffered. |
 | `@newspapper/core` | All pipeline logic. |
@@ -61,7 +61,7 @@ Per-workspace. Versions are locked in `package-lock.json`.
 | `cac` | `fastify` | CLI gone; HTTP server instead |
 | `react` (render) | `@fastify/cors`, `@fastify/static` | No JSX rendering needed |
 | `handlebars` | — | Compose prompt is a plain string |
-| `openai`, `axios` | — | Ollama-only; native `fetch` |
+| `openai`, `axios` | — | LLM calls were Ollama-only at the time, and are gone entirely since the Wizard pivot; HTTP is native `fetch` |
 
 ## Native build requirements
 

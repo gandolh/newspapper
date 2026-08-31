@@ -62,13 +62,13 @@ not the drop model — layout is flow, and
 
 ## anime.js is the motion engine; Tailwind-bound kits are references only
 _2026-08-27_ — Animation is `animejs` 4.5.0 (MIT, no dependencies,
-framework-agnostic ESM). It animates DOM nodes, so one import serves both an
-Astro `<script>` and a React island, and it has no opinion about how anything is
-styled.
+framework-agnostic ESM). It animates DOM nodes, so at the time one import
+served both an Astro `<script>` and a React island; since brief 70 there are
+only React components, and it has no opinion about how anything is styled.
 Rejected: **motion-primitives** and **smoothui**. Both are shadcn-style
 copy-paste React kits that require **Tailwind CSS** (v4 for smoothui) plus
-**Motion**, and this UI is Astro islands + CSS Modules + Base UI with no Tailwind
-anywhere. Adopting either means importing a second styling system to obtain
+**Motion**, and this UI was then Astro islands + CSS Modules + Base UI, and is
+now React + CSS Modules + Base UI — no Tailwind either way. Adopting either means importing a second styling system to obtain
 animations, which is the wrong trade for a fixed component set. They stay useful
 as **pattern references** — read the interaction, reimplement it in CSS Modules.
 Standing rules: one authored motion moment per surface rather than scattered

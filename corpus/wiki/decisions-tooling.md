@@ -21,7 +21,9 @@ revisit and a [log.md](../log.md) entry.
 
 ## The UI workspace is typechecked, not just bundled
 _2026-08-31_ — `ui` has a `typecheck` script (`tsc --noEmit`) alongside its
-`astro build`, and the root `build` chain runs it.
+bundler build, and the root `build` chain runs it. (The bundler was
+`astro build` when this was decided; brief 70 made it `vite build` days later,
+and the `typecheck` step was the point either way.)
 Found because brief 59 left a dangling `import { EditorStep } from
 '../editor/EditorStep'` in `ui/src/components/wizard/Wizard.tsx` and **every gate
 stayed green.** `core` and `api` both build with `tsc --noEmit`; `ui` built with

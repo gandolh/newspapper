@@ -106,7 +106,8 @@ canvas. Zero radius anywhere; state is a **mark** (rubylith, wax, stamp, tissue
 corner, hatch), never a coloured badge. Chosen 2026-08-27 from two rounds of
 fully-drawn editor screens, over The Forme (letterpress lock-up), The Wire Desk
 (teleprinter fanfold) and Page 101 (broadcast teletext). The system is
-[`DESIGN.md`](../../DESIGN.md); the build is
+[design.md](./design.md) + [design-components.md](./design-components.md)
+(moved out of the repo-root `DESIGN.md` by brief 63); the build is
 [brief 64](../briefs/done/64-workstation-chrome.md).
 
 Two consequences worth stating separately, because they are the parts most
