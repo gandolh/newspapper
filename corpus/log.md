@@ -523,3 +523,29 @@ Headless Chromium is screenshotting before the injected `@font-face` resolves.
 This is a shipping-quality defect rather than a polish item: the product is one
 square image and it is currently being published in the wrong face. Brief 59
 could not fix it — `core/src/render/**` was outside its ownership.
+
+## [2026-08-31] incident | the UI workspace was never typechecked
+
+Brief 59 left a dangling import in `ui/src/components/wizard/Wizard.tsx` and
+reported it rather than fixing someone else's file. Chasing it down showed the
+import was not the interesting part — **no gate in this repo would have caught
+it.**
+
+`core` and `api` build with `tsc --noEmit`. `ui` built with `astro build` alone,
+which bundles from page entry points and tree-shakes; nothing imports `Wizard`,
+so the file was never reached. Running `tsc -p ui` by hand caught nothing either,
+because `ui/tsconfig.json` set the deprecated `baseUrl` and that config-level
+error aborted the run before a single file was checked.
+
+Fixed the tsconfig (dropped `baseUrl`, added `types: ["node"]` so the eight UI
+test files importing `node:fs`/`node:url` resolve), which took the error count
+from 9 to 1 — the remaining one being the dangling import itself. Added a
+`typecheck` script to `ui`. **Brief 62 deletes the wizard directory and wires
+`typecheck` into the root build chain**, since wiring it before that deletion
+would put the build red.
+
+Third instance of the same failure this run, after the `.gitignore` pattern that
+would have hidden a whole module and the vitest `include` that would have kept
+the new guard test from ever executing. The pattern is worth naming: **green
+because nothing ran.** A passing command is not evidence of coverage, and the
+cheap check is to ask what the tool actually reached.
