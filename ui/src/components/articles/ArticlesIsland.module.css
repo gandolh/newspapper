@@ -35,6 +35,13 @@
   color: var(--board);
 }
 
+/* `.tab:hover` is (0,1,1) and out-ranks `.tabActive` at (0,1,0), so without
+   this the active tab's label went graphite-on-graphite — 1:1, invisible — the
+   moment you pointed at it. (0,2,0) wins. */
+.tabActive:hover {
+  color: var(--board);
+}
+
 .tabPanel {
   display: flex;
   flex-direction: column;

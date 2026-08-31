@@ -29,6 +29,61 @@ const UNITLESS = new Set([
 ]);
 
 // ---------------------------------------------------------------------------
+// Font-family fallback
+//
+// Theme typography tokens declare a bare family ("Inter"). resolveStyle emits
+// them as an *inline* style on the text node, which outranks the body rule
+// below — so a bare family means that when the face fails to load the slide
+// lands on Chromium's default, which is a **serif**. The product is a square
+// image of text; a silent switch to serif changes what ships.
+//
+// The stack is appended here rather than stored in the theme JSON: resolveStyle
+// is the single funnel every emitted declaration passes through (render and
+// browser preview both), so one theme added later cannot forget it.
+// ---------------------------------------------------------------------------
+
+/** CSS generic families. A stack ending in one of these is already complete. */
+const GENERIC_FAMILIES = new Set([
+  'serif', 'sans-serif', 'monospace', 'cursive', 'fantasy',
+  'system-ui', 'ui-serif', 'ui-sans-serif', 'ui-monospace', 'ui-rounded',
+  'math', 'emoji', 'fangsong',
+  'inherit', 'initial', 'unset', 'revert', 'revert-layer',
+]);
+
+/**
+ * What an unstacked family falls back to. Also the tail of the body rule in
+ * renderTemplate, so the inline styles and the document agree.
+ */
+const FALLBACK_FAMILY = 'sans-serif';
+
+/** Strip one layer of matching quotes from a family name. */
+function unquoteFamily(name: string): string {
+  const m = /^(['"])(.*)\1$/.exec(name);
+  return m ? m[2] : name;
+}
+
+/**
+ * Ensure a declared `font-family` ends in a generic.
+ *
+ * Every family the theme authored is passed through **verbatim** — this appends
+ * a tail and nothing else. It deliberately does not add quotes: the render's
+ * typeface guard (`core/src/render/fonts.test.ts`) builds its no-Inter control
+ * document by renaming `'Inter'` in the `@font-face` rule only, and quoting the
+ * inline family here would rename that too, handing the text back the very face
+ * the control is meant to be missing.
+ *
+ * A stack that already ends in a generic keeps it — that is how a future serif
+ * or monospace theme opts out of the sans tail.
+ */
+export function withFallbackFamily(value: string): string {
+  const families = value.split(',').map((s) => s.trim()).filter((s) => s !== '');
+  if (families.length === 0) return FALLBACK_FAMILY;
+  const last = unquoteFamily(families[families.length - 1] as string).toLowerCase();
+  if (GENERIC_FAMILIES.has(last)) return families.join(',');
+  return [...families, FALLBACK_FAMILY].join(',');
+}
+
+// ---------------------------------------------------------------------------
 // camelCase → kebab-case
 // ---------------------------------------------------------------------------
 function toKebab(key: string): string {
@@ -108,6 +163,11 @@ export function resolveStyle(style: TStyle, theme: Theme): Record<string, string
     const cssKey = toKebab(rawKey);
     result[cssKey] = resolved; // explicit keys override typography expansion
   }
+
+  // Whatever produced it — typography token or an explicit `fontFamily` — the
+  // emitted stack must end in a generic, or the failure mode is Times.
+  const family = result['font-family'];
+  if (family !== undefined) result['font-family'] = withFallbackFamily(family);
 
   return result;
 }
@@ -239,7 +299,7 @@ export function renderTemplate(
 
   return `<!doctype html><html lang="en"><head><meta charset="UTF-8"><style>${fonts}
 *{margin:0;padding:0;box-sizing:border-box;}
-body{margin:0;font-family:'Inter',sans-serif;}
+body{margin:0;font-family:'Inter',${FALLBACK_FAMILY};}
 </style></head><body><div style="width:1080px;height:1080px;overflow:hidden;display:flex;">${bodyContent}</div></body></html>`;
 }
 

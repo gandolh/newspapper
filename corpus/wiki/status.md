@@ -10,10 +10,10 @@ _Snapshot: 2026-08-31_
 > **Fifteen of sixteen briefs are done** on branch `wizard-rebuild`. The
 > wave-7 gate is verified green there: `npm run build`, **637 tests**,
 > `npm run lint`, `npx tsc -p ui --noEmit` (0 errors) and `corpus/lint.sh`.
-> Of the original backlog only **63** (the documentation pass) is left. Three
-> briefs were filed from findings along the way: **67** (the slide's font
-> fallback stack), **68** (`fmt`/`lint` coverage), **69** (two loose ends in
-> `ui/`).
+> Of the original backlog only **63** (the documentation pass) is left. Filed
+> from findings and still open: **68** (`fmt`/`lint` coverage), **71** (the
+> typeface guard's control, and escaping style values). Also open by the owner's
+> request: **70**, replacing Astro with Vite + React.
 
 **Where things stand.** The pivot has landed. Newspapper no longer generates
 copy with a model; a post is authored as a [Newspapper Wizard](./markup.md)
@@ -67,10 +67,11 @@ storage · the npm workspace layout · the shared UI primitives on Base UI.
 
 ## Briefs
 
-Four briefs remain in [`../briefs/todo/`](../briefs/todo/) — **63** from the
-original backlog, plus **67**, **68** and **69** filed from findings. The other
-fifteen are in [`../briefs/done/`](../briefs/done/) with an outcome note each.
-Each brief is self-contained — open only the one directing your work.
+Four briefs remain in [`../briefs/todo/`](../briefs/todo/): **63** from the
+original backlog, **68** and **71** filed from findings, and **70** — replace
+Astro with Vite + React — requested by the owner on 2026-08-31. Seventeen are in
+[`../briefs/done/`](../briefs/done/) with an outcome note each. Each brief is
+self-contained — open only the one directing your work.
 
 Waves below are the **executed** order, which differs from the originally filed
 one: file-ownership collisions the dependency graph alone did not show forced
@@ -99,13 +100,19 @@ nav/sidebar by 58, 62 and 64.
 | 7 | 64 | Rebuild the app chrome as The Mechanical — **done** | 59, 62 |
 | 5 | 65 | Finish the theme family — ramp, rename, guard — **done** | 61 |
 | 7 | 66 | Fix the render typeface — **done** | — |
-| 8 | 63 | Documentation pass | everything |
+| 8 | 67 | The slide's font fallback stack — **done** | 66 |
+| 8 | 69 | Two loose ends in `ui/` — **done** | 64 |
+| 9 | 68 | `fmt` and `lint` cover what they claim | — |
+| 9 | 71 | The typeface guard's control; escaping style values | 67 |
+| 10 | 70 | Replace Astro with Vite + React | 68, 69 |
+| 11 | 63 | Documentation pass | everything |
 
 Three ordering constraints that will bite if ignored: **58 must not start
 before 54 lands** (until the component library renders, the templates are the
 only thing that renders at all); **64 runs after 59 and 62**, because the
 editor's structure is what the world has to clothe; and **63 runs last**, when
-the code it describes exists.
+the code it describes exists — which now also means after **70**, since
+documenting Astro immediately before removing it would waste the pass.
 
 The 13 v3 briefs are archived in [`../briefs/done/`](../briefs/done/) —
 historical, and written against a product that no longer exists.

@@ -1,3 +1,13 @@
+/**
+ * The Sources tab of /articles.
+ *
+ * There is no /sources route — brief 60 folded feed management into the
+ * articles sheet — so this is a panel of that sheet and not an island of its
+ * own: it renders inside `ArticlesIsland`'s `ToastProvider` and carries no
+ * provider of its own. Brief 69 moved it here and gave it a module; nothing
+ * about how it looks changed.
+ */
+
 import { useState, useEffect, useCallback } from 'react';
 import {
   Button,
@@ -9,12 +19,12 @@ import {
   EmptyState,
   Modal,
   PageHeader,
-  ToastProvider,
   useToast,
   ConfirmDialog,
 } from '../ui';
 import { api, ApiError } from '@/lib/api';
 import type { SourceConfig } from '@/lib/types';
+import styles from './SourcesPanel.module.css';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -27,7 +37,8 @@ interface PingResult {
   latencyMs?: number;
 }
 
-type PingMap = Record<string, { loading: boolean; result?: PingResult }>;
+type PingState = { loading: boolean; result?: PingResult };
+type PingMap = Record<string, PingState>;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -55,14 +66,10 @@ function truncateUrl(url: string, max = 55): string {
 }
 
 // ---------------------------------------------------------------------------
-// PingBadge — the feed's state, said as a mark
+// PingMark — the feed's health, said as a mark. Never a coloured pill.
 // ---------------------------------------------------------------------------
 
-function PingBadge({
-  state,
-}: {
-  state: { loading: boolean; result?: PingResult };
-}) {
+function PingMark({ state }: { state: PingState }) {
   if (state.loading) {
     return <Mark>Pinging…</Mark>;
   }
@@ -87,101 +94,30 @@ function PingBadge({
 }
 
 // ---------------------------------------------------------------------------
-// SourceRow
+// CopyableUrl
 // ---------------------------------------------------------------------------
 
-interface SourceRowProps {
-  source: SourceConfig;
-  ping: { loading: boolean; result?: PingResult } | undefined;
-  onToggle: (source: SourceConfig, enabled: boolean) => void;
-  onPing: (source: SourceConfig) => void;
-  onEdit: (source: SourceConfig) => void;
-  onDelete: (source: SourceConfig) => void;
-}
-
-function SourceRow({
-  source,
-  ping,
-  onToggle,
-  onPing,
-  onEdit,
-  onDelete,
-}: SourceRowProps) {
+function CopyableUrl({ url }: { url: string }) {
   const [copied, setCopied] = useState(false);
 
   function handleCopy() {
-    navigator.clipboard.writeText(source.rss).then(() => {
+    navigator.clipboard.writeText(url).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     });
   }
 
   return (
-    <tr>
-      <td>
-        <span style={{ fontWeight: 600, fontSize: 14 }}>{source.name}</span>
-        <div
-          style={{ fontSize: 11, color: 'var(--graphite-soft)', marginTop: 2 }}
-        >
-          {source.id}
-        </div>
-      </td>
-      <td>
-        <span
-          style={{
-            fontFamily: 'monospace',
-            fontSize: 12,
-            color: 'var(--graphite-soft)',
-            cursor: 'pointer',
-            textDecoration: 'underline dotted',
-          }}
-          title={source.rss}
-          onClick={handleCopy}
-        >
-          {truncateUrl(source.rss)}
-        </span>
-        {copied && (
-          <span
-            style={{ marginLeft: 6, fontSize: 11, color: 'var(--graphite)' }}
-          >
-            copied!
-          </span>
-        )}
-      </td>
-      <td style={{ textAlign: 'center' }}>
-        <Toggle
-          checked={source.enabled}
-          onCheckedChange={(c) => onToggle(source, c)}
-          aria-label={`Enable ${source.name}`}
-        />
-      </td>
-      <td>
-        {ping ? (
-          <PingBadge state={ping} />
-        ) : (
-          <span style={{ fontSize: 12, color: 'var(--graphite-soft)' }}>—</span>
-        )}
-      </td>
-      <td>
-        <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => onPing(source)}
-            disabled={ping?.loading}
-            title="Ping this feed"
-          >
-            Ping
-          </Button>
-          <Button size="sm" variant="secondary" onClick={() => onEdit(source)}>
-            Edit
-          </Button>
-          <Button size="sm" variant="danger" onClick={() => onDelete(source)}>
-            Delete
-          </Button>
-        </div>
-      </td>
-    </tr>
+    <span className={styles.copyable}>
+      <span
+        className={styles.copyableUrl}
+        title={`Click to copy: ${url}`}
+        onClick={handleCopy}
+      >
+        {truncateUrl(url)}
+      </span>
+      {copied && <span className={styles.copiedNote}>copied!</span>}
+    </span>
   );
 }
 
@@ -290,7 +226,7 @@ function SourceFormModal({
       width={520}
     >
       <form onSubmit={handleSubmit} noValidate>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div className={styles.formFields}>
           <Input
             label="Name"
             placeholder="BBC News"
@@ -327,14 +263,7 @@ function SourceFormModal({
             hint="Disabled feeds are skipped during scraping"
           />
         </div>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'flex-end',
-            gap: 8,
-            marginTop: 24,
-          }}
-        >
+        <div className={styles.formActions}>
           <Button
             type="button"
             variant="ghost"
@@ -353,10 +282,18 @@ function SourceFormModal({
 }
 
 // ---------------------------------------------------------------------------
-// SourcesPage (inner — needs toast context)
+// SourcesPanel
 // ---------------------------------------------------------------------------
 
-function SourcesPage() {
+const COLUMNS: Array<{ label: string; center: boolean }> = [
+  { label: 'Feed', center: false },
+  { label: 'RSS URL', center: false },
+  { label: 'Enabled', center: true },
+  { label: 'Health', center: false },
+  { label: '', center: true },
+];
+
+export default function SourcesPanel() {
   const { addToast } = useToast();
   const [sources, setSources] = useState<SourceConfig[]>([]);
   const [loading, setLoading] = useState(true);
@@ -466,7 +403,7 @@ function SourcesPage() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 13 }}>
+      <div className={styles.loadingList}>
         <Skeleton height={78} />
         <Skeleton height={78} />
       </div>
@@ -508,100 +445,50 @@ function SourcesPage() {
         />
       ) : (
         <Card padding="none">
-          <div style={{ overflowX: 'auto' }}>
-            <table
-              style={{
-                width: '100%',
-                minWidth: 640,
-                borderCollapse: 'collapse',
-                fontSize: 14,
-              }}
-            >
+          <div className={styles.tableScroll}>
+            <table className={styles.table}>
               <thead>
-                <tr
-                  style={{
-                    borderBottom: '1px solid var(--hairline)',
-                    background: 'var(--board)',
-                  }}
-                >
-                  {['Feed', 'RSS URL', 'Enabled', 'Health', ''].map((h) => (
+                <tr className={styles.headRow}>
+                  {COLUMNS.map((col) => (
                     <th
-                      key={h}
-                      style={{
-                        padding: '10px 16px',
-                        textAlign:
-                          h === '' || h === 'Enabled' ? 'center' : 'left',
-                        fontWeight: 600,
-                        fontSize: 12,
-                        color: 'var(--graphite-soft)',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.05em',
-                        whiteSpace: 'nowrap',
-                      }}
+                      key={col.label}
+                      className={
+                        col.center
+                          ? `${styles.th} ${styles.thCenter}`
+                          : styles.th
+                      }
                     >
-                      {h}
+                      {col.label}
                     </th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {sources.map((source, idx) => (
-                  <tr
-                    key={source.id}
-                    style={{
-                      borderBottom:
-                        idx < sources.length - 1
-                          ? '1px solid var(--hairline)'
-                          : undefined,
-                    }}
-                  >
-                    {/* Inline SourceRow cells for styling */}
-                    <td style={{ padding: '12px 16px' }}>
-                      <span style={{ fontWeight: 600, fontSize: 14 }}>
-                        {source.name}
-                      </span>
-                      <div
-                        style={{
-                          fontSize: 11,
-                          color: 'var(--graphite-soft)',
-                          marginTop: 2,
-                        }}
-                      >
-                        {source.id}
-                      </div>
+                {sources.map((source) => (
+                  <tr key={source.id} className={styles.row}>
+                    <td className={styles.td}>
+                      <span className={styles.feedName}>{source.name}</span>
+                      <div className={styles.feedId}>{source.id}</div>
                     </td>
-                    <td style={{ padding: '12px 16px' }}>
+                    <td className={styles.td}>
                       <CopyableUrl url={source.rss} />
                     </td>
-                    <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                    <td className={`${styles.td} ${styles.tdCenter}`}>
                       <Toggle
                         checked={source.enabled}
                         onCheckedChange={(c) => handleToggle(source, c)}
                         aria-label={`Enable ${source.name}`}
                       />
                     </td>
-                    <td style={{ padding: '12px 16px' }}>
+                    <td className={styles.td}>
                       {pings[source.id] ? (
-                        <PingBadge state={pings[source.id]} />
+                        <PingMark state={pings[source.id]} />
                       ) : (
-                        <span
-                          style={{
-                            fontSize: 12,
-                            color: 'var(--graphite-soft)',
-                          }}
-                        >
-                          —
-                        </span>
+                        <span className={styles.unpinged}>—</span>
                       )}
                     </td>
-                    <td style={{ padding: '12px 16px' }}>
-                      <div
-                        style={{
-                          display: 'flex',
-                          gap: 6,
-                          justifyContent: 'flex-end',
-                        }}
-                      >
+                    <td className={styles.td}>
+                      <div className={styles.rowActions}>
                         <Button
                           size="sm"
                           variant="ghost"
@@ -655,52 +542,5 @@ function SourcesPage() {
         loading={deleteLoading}
       />
     </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// CopyableUrl helper
-// ---------------------------------------------------------------------------
-
-function CopyableUrl({ url }: { url: string }) {
-  const [copied, setCopied] = useState(false);
-
-  function handleCopy() {
-    navigator.clipboard.writeText(url).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    });
-  }
-
-  return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-      <span
-        style={{
-          fontFamily: 'monospace',
-          fontSize: 12,
-          color: 'var(--graphite-soft)',
-          cursor: 'pointer',
-        }}
-        title={`Click to copy: ${url}`}
-        onClick={handleCopy}
-      >
-        {truncateUrl(url)}
-      </span>
-      {copied && (
-        <span style={{ fontSize: 11, color: 'var(--graphite)' }}>copied!</span>
-      )}
-    </span>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Export (wrapped in ToastProvider)
-// ---------------------------------------------------------------------------
-
-export default function SourcesIsland() {
-  return (
-    <ToastProvider>
-      <SourcesPage />
-    </ToastProvider>
   );
 }

@@ -83,7 +83,7 @@ describe('resolveStyle', () => {
 
   it('expands typography token', () => {
     const result = resolveStyle({ typography: 'display' }, theme);
-    expect(result['font-family']).toBe('Inter');
+    expect(result['font-family']).toBe('Inter,sans-serif');
     expect(result['font-size']).toBe('80px');
     expect(result['font-weight']).toBe('800');
     expect(result['line-height']).toBe('1.0');

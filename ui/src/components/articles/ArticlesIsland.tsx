@@ -14,7 +14,7 @@ import {
   useToast,
   ConfirmDialog,
 } from '../ui';
-import SourcesIsland from '../sources/SourcesIsland';
+import SourcesPanel from './SourcesPanel';
 import styles from './ArticlesIsland.module.css';
 
 // ---------------------------------------------------------------------------
@@ -422,7 +422,7 @@ function ArticlesPage() {
       <div className={styles.tabPanel}>
         {tab === 'search' && <SearchPanel />}
         {tab === 'library' && <LibraryPanel />}
-        {tab === 'sources' && <SourcesIsland />}
+        {tab === 'sources' && <SourcesPanel />}
       </div>
     </div>
   );

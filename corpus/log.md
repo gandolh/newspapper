@@ -694,3 +694,77 @@ systems that share nothing on purpose. The Mechanical moved to its own
 `chrome.md`; `design-systems.md` keeps the slide themes and the compile target,
 with a pointer across. Third page split this session, after
 `decisions-security.md` and the wizard surface moving to `markup.md`.
+
+## [2026-08-31] brief | 67 + 69: the font fallback stack, and two loose ends in `ui/`
+
+**67** put the slide's fallback in the interpreter rather than the theme tokens.
+The deciding argument: the criterion is "correct for any theme on disk,
+including one added later", and that is a property of the emitter, not of the
+files — in the token it would depend on every future theme author remembering,
+and the guard could only report the omission after the fact. The objection that
+a token should be the literal CSS value does not survive contact with
+`resolveStyle`, which already kebab-cases keys, dereferences `$color.primary`,
+and appends `px`. Themes opt out by authoring their own generic.
+
+The 1080² output was proved unchanged rather than argued: 48 slides hashed
+before and after, **0 differing — with 48 of 48 HTML documents differing.** The
+second number is what makes the first mean anything.
+
+**69** moved `SourcesIsland` into `articles/` as `SourcesPanel` with a real CSS
+module, and gated the kitchen sink to dev instead of shipping or deleting it.
+The gating reason is the good one: it is the only page that renders with **no
+session at all**, because it calls no API and so never triggers the 401 redirect
+— measured, not assumed. Fine on loopback, but that is an argument with a known
+expiry date. The move also turned up a nested `ToastProvider` mounting a second
+viewport inside the first (invisible, since both sat at the same position) and
+90 lines of dead code nothing rendered.
+
+Equivalence was measured, not eyeballed: 10,051 computed properties across 19
+elements, zero differences, plus a byte-identical kitchen sink.
+
+One regression from brief 64 was caught by that measurement and fixed inline:
+`.tab:hover` at (0,1,1) out-ranked `.tabActive` at (0,1,0), so hovering the
+active tab painted graphite on graphite — 1:1, the label gone.
+
+## [2026-08-31] finding | a guard that rests on a quoting convention — the sixth of the kind
+
+Brief 67's first cut emitted `'Inter',sans-serif` — quoted, to match the body
+rule — and brief 66's typeface guard failed.
+
+The cause is worth the entry. `fonts.test.ts` builds its no-Inter control with
+`html.replace(/'Inter'/g, …)`, which works **only because the inline styles are
+unquoted**: the rename hits the `@font-face` rule alone and leaves the text
+asking for a family nothing defines. Quote the inline family and the rename
+takes it too, so the text asks for the renamed face, the `@font-face` still
+loads it from the real TTF via brief 66's disk route, and control and subject
+become the same document. The test's own comment claims it renames the family
+everywhere; it does not, and it works *because* it does not.
+
+It failed closed, which was luck. A guard whose control can silently collapse
+into its subject is the same shape as every **green because nothing ran** entry
+above — six now. The lesson is narrower than "test your tests": **a control
+should be structurally incapable of the thing it controls for**, not incapable
+by side effect of a regex. Filed as brief 71, with the unescaped `styleToString`
+interpolation brief 67 also found.
+
+For now `withFallbackFamily` passes authored families through verbatim and
+appends only the tail, and the reason is in its doc comment — where the next
+person reaching for quoting will find it before the test does.
+
+## [2026-08-31] decision | Astro is being replaced by Vite + React (brief 70)
+
+Requested by the owner. The assessment that justified filing it: all 360 lines
+of `.astro` are shell, five of six pages are 8-line files mounting one island,
+**every island is `client:load`** so there is no partial hydration to lose, and
+the app is entirely behind auth with no SEO surface. Astro's reasons to exist
+are all unused here.
+
+The two genuinely Astro-shaped things — `ClientRouter` and the tray's
+`transition:persist` — exist to keep the sidebar mounted across navigation, and
+in an SPA the tray simply never unmounts. They disappear rather than needing
+replacements. `api/src/server.ts` already falls back to `index.html` for non-API
+GETs, so deep links are already served.
+
+Ordered after **68** so the migration's new code is the first `ui/` code this
+repo has ever actually linted, and before **63**, since documenting Astro
+immediately before removing it would waste the pass.

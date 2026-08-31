@@ -1,0 +1,118 @@
+/* =============================================================
+   Sources — the third tab of /articles.
+
+   Relocated out of `components/sources/SourcesIsland.tsx` by brief 69: there
+   is no /sources route, so this is a panel of the articles sheet, not an
+   island of its own.
+
+   Every rule below is the inline `style={{}}` object it replaces, declaration
+   for declaration. Where a literal already equalled a spacing token it takes
+   the token (6 → --sp-hair, 13 → --sp-half); every other literal is kept as
+   written, because this brief relocated the styling and did not restyle it.
+   ============================================================= */
+
+.loadingList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-half);
+}
+
+/* ---- The feed table ---- */
+.tableScroll {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.headRow {
+  border-bottom: 1px solid var(--hairline);
+  background: var(--board);
+}
+
+.th {
+  padding: 10px 16px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--graphite-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.thCenter {
+  text-align: center;
+}
+
+.row:not(:last-child) {
+  border-bottom: 1px solid var(--hairline);
+}
+
+.td {
+  padding: 12px 16px;
+}
+
+.tdCenter {
+  text-align: center;
+}
+
+.feedName {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.feedId {
+  font-size: 11px;
+  color: var(--graphite-soft);
+  margin-top: 2px;
+}
+
+/* The em dash standing in for a health reading not taken yet. */
+.unpinged {
+  font-size: 12px;
+  color: var(--graphite-soft);
+}
+
+.rowActions {
+  display: flex;
+  gap: var(--sp-hair);
+  justify-content: flex-end;
+}
+
+/* ---- The RSS URL cell ---- */
+.copyable {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-hair);
+}
+
+.copyableUrl {
+  font-family: monospace;
+  font-size: 12px;
+  color: var(--graphite-soft);
+  cursor: pointer;
+}
+
+.copiedNote {
+  font-size: 11px;
+  color: var(--graphite);
+}
+
+/* ---- The add/edit modal ---- */
+.formFields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 24px;
+}
