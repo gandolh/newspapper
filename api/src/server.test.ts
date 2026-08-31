@@ -281,6 +281,130 @@ describe('API server', () => {
     });
   });
 
+  describe('post theme validation', () => {
+    const markup = '<body>\n  <Slide />\n</body>\n';
+
+    it('400 rather than storing a theme loadTheme would later throw on', async () => {
+      const res = await inject({
+        method: 'POST',
+        url: '/api/posts',
+        payload: { markup, theme: 'no-such-theme' },
+      });
+      expect(res.statusCode).toBe(400);
+      expect(res.json().error).toMatch(/theme/i);
+    });
+
+    it('treats a blank theme as "use the default" rather than rejecting it', async () => {
+      const res = await inject({ method: 'POST', url: '/api/posts', payload: { markup, theme: '' } });
+      expect(res.statusCode).toBe(201);
+      expect(res.json().theme).toBe('warm-industrial-1');
+      await inject({ method: 'DELETE', url: `/api/posts/${res.json().id}` });
+    });
+
+    it('400 on an update to an unknown theme, leaving the stored one alone', async () => {
+      const created = await inject({ method: 'POST', url: '/api/posts', payload: { markup } });
+      const { id, theme } = created.json();
+      const res = await inject({
+        method: 'PUT',
+        url: `/api/posts/${id}`,
+        payload: { markup, theme: 'no-such-theme' },
+      });
+      expect(res.statusCode).toBe(400);
+      const after = await inject({ method: 'GET', url: `/api/posts/${id}` });
+      expect(after.json().theme).toBe(theme);
+      await inject({ method: 'DELETE', url: `/api/posts/${id}` });
+    });
+  });
+
+  describe('PUT /api/posts/:id/status', () => {
+    it('moves a post between draft and published', async () => {
+      const created = await inject({
+        method: 'POST',
+        url: '/api/posts',
+        payload: { markup: '<body>\n  <Slide />\n</body>\n' },
+      });
+      const { id } = created.json();
+      expect(created.json().status).toBe('draft');
+
+      const published = await inject({
+        method: 'PUT',
+        url: `/api/posts/${id}/status`,
+        payload: { status: 'published' },
+      });
+      expect(published.statusCode).toBe(200);
+      expect(published.json().status).toBe('published');
+
+      const bad = await inject({
+        method: 'PUT',
+        url: `/api/posts/${id}/status`,
+        payload: { status: 'rendered' },
+      });
+      expect(bad.statusCode).toBe(400);
+
+      await inject({ method: 'DELETE', url: `/api/posts/${id}` });
+    });
+
+    it('404 for a non-existent post', async () => {
+      const res = await inject({
+        method: 'PUT',
+        url: '/api/posts/999999/status',
+        payload: { status: 'published' },
+      });
+      expect(res.statusCode).toBe(404);
+    });
+  });
+
+  // =========================================================================
+  // Renders — the post library's thumbnail + "can this be exported" source
+  // =========================================================================
+  describe('GET /api/renders', () => {
+    it('returns an array', async () => {
+      const res = await inject({ method: 'GET', url: '/api/renders' });
+      expect(res.statusCode).toBe(200);
+      expect(Array.isArray(res.json())).toBe(true);
+    });
+
+    it('is empty for a post that has never been rendered', async () => {
+      const created = await inject({
+        method: 'POST',
+        url: '/api/posts',
+        payload: { markup: '<body>\n  <Slide />\n</body>\n' },
+      });
+      const { id } = created.json();
+      const res = await inject({ method: 'GET', url: `/api/renders?postId=${id}` });
+      expect(res.statusCode).toBe(200);
+      expect(res.json()).toEqual([]);
+      await inject({ method: 'DELETE', url: `/api/posts/${id}` });
+    });
+
+    it('400 when postId is not an integer', async () => {
+      const res = await inject({ method: 'GET', url: '/api/renders?postId=abc' });
+      expect(res.statusCode).toBe(400);
+    });
+  });
+
+  // =========================================================================
+  // Publish
+  // =========================================================================
+  describe('POST /api/posts/:id/publish', () => {
+    it('404 for a non-existent post', async () => {
+      const res = await inject({ method: 'POST', url: '/api/posts/999999/publish' });
+      expect(res.statusCode).toBe(404);
+    });
+
+    it('409 for a post that has not been rendered', async () => {
+      const created = await inject({
+        method: 'POST',
+        url: '/api/posts',
+        payload: { markup: '<body>\n  <Slide />\n</body>\n' },
+      });
+      const { id } = created.json();
+      const res = await inject({ method: 'POST', url: `/api/posts/${id}/publish` });
+      expect(res.statusCode).toBe(409);
+      await inject({ method: 'DELETE', url: `/api/posts/${id}` });
+    });
+  });
+
   // =========================================================================
   // Settings
   // =========================================================================
@@ -302,6 +426,17 @@ describe('API server', () => {
       });
       const res = await inject({ method: 'GET', url: '/api/settings' });
       expect(res.json().defaultTheme).toBe('warm-industrial-1');
+    });
+
+    it('400 on a theme that is not on disk, leaving the stored one alone', async () => {
+      const res = await inject({
+        method: 'PUT',
+        url: '/api/settings',
+        payload: { defaultTheme: 'no-such-theme' },
+      });
+      expect(res.statusCode).toBe(400);
+      const after = await inject({ method: 'GET', url: '/api/settings' });
+      expect(after.json().defaultTheme).toBe('warm-industrial-1');
     });
   });
 

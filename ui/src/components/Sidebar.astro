@@ -8,6 +8,7 @@
  * transitions so it never flashes or re-runs the health-dot island.
  */
 import ApiHealthDot from './ApiHealthDot';
+import SessionMenu from './auth/SessionMenu';
 
 const navLinks = [
   {
@@ -16,9 +17,9 @@ const navLinks = [
     icon: '<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"/>',
   },
   {
-    href: '/history',
-    label: 'History',
-    icon: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+    href: '/posts',
+    label: 'Posts',
+    icon: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
   },
   {
     href: '/articles',
@@ -73,6 +74,7 @@ function isActive(href: string): boolean {
   </ul>
 
   <div class="sidebar-footer">
+    <SessionMenu client:load />
     <ApiHealthDot client:load />
   </div>
 </nav>
@@ -180,6 +182,9 @@ function isActive(href: string): boolean {
   .sidebar-footer {
     padding: var(--sp-sm);
     border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-xs);
   }
 
   /* Below the tablet breakpoint, collapse to an icon rail. */
@@ -206,8 +211,7 @@ function isActive(href: string): boolean {
       display: none;
     }
     .sidebar-footer {
-      display: flex;
-      justify-content: center;
+      align-items: center;
       padding: var(--sp-sm) 0;
     }
   }

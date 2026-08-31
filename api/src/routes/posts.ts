@@ -2,6 +2,7 @@ import type { FastifyPluginAsync } from 'fastify';
 import {
   createPost,
   findPost,
+  listThemes,
   parse,
   queryPosts,
   removePost,
@@ -42,6 +43,23 @@ function markupOf(body: unknown): string | null {
   return typeof markup === 'string' ? markup : null;
 }
 
+/**
+ * An omitted or blank theme means "leave it to the column default"; anything
+ * else must name a theme on disk. `loadTheme` throws at render time otherwise,
+ * which would turn a bad save into a failure two steps later.
+ */
+function themeOf(body: unknown): string | undefined {
+  if (typeof body !== 'object' || body === null) return undefined;
+  const theme = (body as { theme?: unknown }).theme;
+  if (typeof theme !== 'string') return undefined;
+  const trimmed = theme.trim();
+  return trimmed === '' ? undefined : trimmed;
+}
+
+function unknownTheme(theme: string | undefined): boolean {
+  return theme !== undefined && !listThemes().includes(theme);
+}
+
 const postsRoutes: FastifyPluginAsync = async (fastify) => {
   /**
    * GET /api/posts?status=&keyword=&search=&limit=&offset=
@@ -73,12 +91,15 @@ const postsRoutes: FastifyPluginAsync = async (fastify) => {
    * POST /api/posts  { markup, theme? }
    */
   fastify.post('/api/posts', async (req, reply) => {
-    const body = (req.body ?? {}) as { theme?: string };
     const markup = markupOf(req.body);
     if (markup === null) {
       return reply.status(400).send({ error: 'markup is required and must be a string' });
     }
-    const post = createPost(db(), deriveInput(markup, body.theme));
+    const theme = themeOf(req.body);
+    if (unknownTheme(theme)) {
+      return reply.status(400).send({ error: `Unknown theme: "${theme}"` });
+    }
+    const post = createPost(db(), deriveInput(markup, theme));
     return reply.status(201).send(post);
   });
 
@@ -97,15 +118,18 @@ const postsRoutes: FastifyPluginAsync = async (fastify) => {
    */
   fastify.put('/api/posts/:id', async (req, reply) => {
     const id = Number((req.params as { id: string }).id);
-    const body = (req.body ?? {}) as { theme?: string };
     const markup = markupOf(req.body);
     if (markup === null) {
       return reply.status(400).send({ error: 'markup is required and must be a string' });
     }
+    const theme = themeOf(req.body);
+    if (unknownTheme(theme)) {
+      return reply.status(400).send({ error: `Unknown theme: "${theme}"` });
+    }
     const existing = Number.isInteger(id) ? findPost(db(), id) : undefined;
     if (!existing) return reply.status(404).send({ error: 'Post not found' });
 
-    const updated = updatePost(db(), id, deriveInput(markup, body.theme ?? existing.theme));
+    const updated = updatePost(db(), id, deriveInput(markup, theme ?? existing.theme));
     if (!updated) return reply.status(404).send({ error: 'Post not found' });
     return reply.send(updated);
   });

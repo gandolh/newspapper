@@ -1,0 +1,49 @@
+.session {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-xs);
+  padding: 0 4px;
+  font-size: var(--font-size-xs);
+}
+
+.username {
+  color: var(--on-surface);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.signOut {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  flex-shrink: 0;
+}
+
+.signOut:hover:not(:disabled) {
+  color: var(--primary);
+}
+
+.signOut:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+@media (max-width: 768px) {
+  .session {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .username {
+    display: none;
+  }
+}

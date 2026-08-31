@@ -1,30 +1,31 @@
 ---
-summary: Dated snapshot — v3 shipped and is now being deliberately dismantled; the Wizard rebuild is specced but not started.
-updated: 2026-08-27
+summary: Dated snapshot — the Wizard rebuild is thirteen of sixteen briefs in; the chrome, the render typeface and the docs pass remain.
+updated: 2026-08-31
 ---
 
 # Status
 
-_Snapshot: 2026-08-27_
+_Snapshot: 2026-08-31_
 
-> **Paused mid-run.** Nine of fifteen briefs are done on branch `wizard-rebuild`
-> at `fd96b9f` (build, 526 tests, lint and corpus lint all verified green there).
-> Briefs 59 and 65 were stopped mid-flight and must be **re-dispatched from
-> scratch**, not resumed. Full state, rulings and restart steps:
-> [../resume-2026-08-27.md](../resume-2026-08-27.md).
+> **Thirteen of sixteen briefs are done** on branch `wizard-rebuild`. The
+> wave-6 gate is verified green there: `npm run build`, **630 tests**,
+> `npm run lint`, `npx tsc -p ui --noEmit` (0 errors) and `corpus/lint.sh`.
+> Remaining: **64** (the chrome), **66** (the render typeface), **63** (docs).
 
-**Where things stand.** v3 is complete, verified, and **being replaced**. A
-grilling session on 2026-08-27 pivoted the product: Newspapper no longer
-generates copy with a model, and posts are now authored as
-[Newspapper Wizard](./markup.md) documents in a split-screen editor. The design
-is settled end to end — see [decisions.md](./decisions.md) — and **no code has
-been written against it yet**. No briefs are filed.
+**Where things stand.** The pivot has landed. Newspapper no longer generates
+copy with a model; a post is authored as a [Newspapper Wizard](./markup.md)
+document in a split-screen editor and compiled to JPEG slides. The `.wzd`
+language, its compiler, the editor, auth, uploads, the article library, JPEG
+output and the three-theme family are all built and tested. What is left is
+the *surface*: the app still wears v3's chrome, the rendered JPEG comes out in
+the wrong typeface, and the docs describe a product that is now two versions
+behind.
 
-The v3 code still runs. Treat the descriptive wiki pages
-([architecture.md](./architecture.md), [api.md](./api.md), [data.md](./data.md),
-[modules.md](./modules.md), [design-systems.md](./design-systems.md)) as
-accurate for *what exists today* and superseded in intent by
-[decisions.md](./decisions.md). They get rewritten as the work lands, not before.
+The descriptive wiki pages — [api.md](./api.md), [modules.md](./modules.md),
+[dependencies.md](./dependencies.md) — have been rewritten as the work landed
+and are accurate. [architecture.md](./architecture.md),
+[data.md](./data.md) and [design-systems.md](./design-systems.md) are brief
+63's job to reconcile.
 
 ## The design round — closed
 
@@ -33,8 +34,8 @@ The app chrome is being replaced alongside the code, and the world is settled:
 as complete editor screens rather than described; the owner chose it and it was
 then raised by five donations from the declined hand. `DESIGN.md` is rewritten
 from the approved comps, `PRODUCT.md` carries the register, and the rebuild is
-[brief 64](../briefs/todo/64-workstation-chrome.md) — which runs *after* brief
-59, since the editor's structure is what the world has to clothe.
+[brief 64](../briefs/todo/64-workstation-chrome.md) — now unblocked, since
+briefs 59 and 62 have landed the structure it has to clothe.
 
 Also settled: the slide theme is untouched and out of scope, and `animejs`
 4.5.0 is the motion engine.
@@ -62,8 +63,9 @@ storage · the npm workspace layout · the shared UI primitives on Base UI.
 
 ## Briefs
 
-Sixteen briefs in [`../briefs/todo/`](../briefs/todo/), in dependency waves.
-Each is self-contained — open only the one directing your work.
+Three briefs remain in [`../briefs/todo/`](../briefs/todo/); the other
+thirteen are in [`../briefs/done/`](../briefs/done/) with an outcome note each.
+Each brief is self-contained — open only the one directing your work.
 
 Waves below are the **executed** order, which differs from the originally filed
 one: file-ownership collisions the dependency graph alone did not show forced
@@ -88,7 +90,7 @@ nav/sidebar by 58, 62 and 64.
 | 4 | 58 | Retire templates and `/builder` — **done** | 54 |
 | 4 | 61 | Themes 2 and 3 — **done** | 54 |
 | 5 | 59 | The split-screen editor — **done** | 53, 54, 58 |
-| 6 | 62 | API surface and page map | 55, 59, 60 |
+| 6 | 62 | API surface and page map — **done** | 55, 59, 60 |
 | 7 | 64 | Rebuild the app chrome as The Mechanical | 59, 62 |
 | 5 | 65 | Finish the theme family — ramp, rename, guard — **done** | 61 |
 | 6 | 66 | Fix the render typeface | — |

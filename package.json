@@ -11,7 +11,7 @@
   ],
   "scripts": {
     "dev": "concurrently --kill-others-on-fail \"npm run dev --workspace=api\" \"npm run dev --workspace=ui\"",
-    "build": "npm run build --workspace=core && npm run build --workspace=api && npm run build --workspace=ui",
+    "build": "npm run build --workspace=core && npm run build --workspace=api && npm run typecheck --workspace=ui && npm run build --workspace=ui",
     "test": "vitest run",
     "lint": "eslint \"core/src/**/*.ts\" \"api/src/**/*.ts\"",
     "fmt": "prettier --write \"core/src/**/*.ts\" \"api/src/**/*.ts\" \"ui/src/**/*.{ts,tsx,astro}\""

@@ -1,0 +1,68 @@
+.page {
+  max-width: var(--content-narrow);
+  margin-inline: auto;
+}
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+}
+
+.sectionTitle {
+  margin: 0 0 4px;
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--on-surface);
+}
+
+.sectionHint {
+  margin: 0 0 var(--sp-sm);
+  font-size: var(--font-size-sm);
+  color: var(--muted);
+}
+
+.themeRow {
+  display: flex;
+  align-items: end;
+  gap: var(--sp-sm);
+}
+
+.themeSelect {
+  min-width: 220px;
+}
+
+.swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+  margin-bottom: 4px;
+}
+
+.swatchValue {
+  font-size: var(--font-size-xs);
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--sp-sm);
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 120px;
+}

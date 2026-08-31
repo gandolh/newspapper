@@ -9,6 +9,7 @@ import scrapeRoutes from './routes/scrape.js';
 import articlesRoutes from './routes/articles.js';
 import postsRoutes from './routes/posts.js';
 import renderRoutes from './routes/render.js';
+import rendersRoutes from './routes/renders.js';
 import publishRoutes from './routes/publish.js';
 import themesRoutes from './routes/themes.js';
 import sourcesRoutes from './routes/sources.js';
@@ -67,6 +68,7 @@ export async function buildApp() {
   await fastify.register(articlesRoutes);
   await fastify.register(postsRoutes);
   await fastify.register(renderRoutes);
+  await fastify.register(rendersRoutes);
   await fastify.register(publishRoutes);
   await fastify.register(themesRoutes);
   await fastify.register(sourcesRoutes);

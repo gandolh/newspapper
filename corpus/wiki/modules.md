@@ -1,6 +1,6 @@
 ---
 summary: The public API of @newspapper/core — what each module actually exports and from which entry point.
-updated: 2026-08-28
+updated: 2026-08-31
 ---
 
 # Modules
@@ -26,6 +26,34 @@ export async function fetchFeed(url: string): Promise<RssItem[]>   // scrape/rss
 export async function fetchBody(url: string, opts?): Promise<string>  // scrape/body.ts
 export function stripHtml(html: string): string
 ```
+
+## Wizard
+
+`core/src/wizard/**`, exported from the **`@newspapper/core/wizard`** subpath
+(one of four: `.`, `./templates`, `./publish`, `./wizard`). The language itself
+is documented in [markup.md](./markup.md) — this is the module surface.
+
+```ts
+// parse / format / lint — text <-> WzdDocument, with diagnostics over the tree
+export function parse(src: string): WzdParseResult      // forgiving; collects errors
+export function parseOrThrow(src: string): WzdDocument  // strict; throws WzdSyntaxError
+export function format(src: string, opts?: WzdFormatOptions): string
+export function lint(doc: WzdDocument, opts?: WzdLintOptions): WzdDiagnostic[]
+
+// compile — WzdDocument -> TNode trees the template interpreter renders
+export function compileDocument(doc: WzdDocument, theme: Theme): TNode[]  // strict
+export function compile(src: string, theme: Theme): WzdCompileResult      // forgiving
+```
+
+Two compile paths on purpose: `compileDocument` is strict and feeds the render
+pipeline; `compile`/`compileSource` are forgiving and feed the live preview,
+because a document is broken most of the time while it is being typed. The
+compile is **browser-safe** — no Node APIs — which is why the editor previews
+off the same code the renderer uses instead of a second copy of style
+resolution, and why `api/src/routes/preview.ts` was deleted rather than rebuilt.
+
+`WZD_COMPONENTS` is the catalogue, and it is data: the compiler, the linter and
+the editor's completions all read it rather than restating it.
 
 ## Render
 

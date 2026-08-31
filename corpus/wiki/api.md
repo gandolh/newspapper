@@ -1,6 +1,6 @@
 ---
 summary: Every HTTP route the Fastify API exposes — method, path, body, response shape, and which ones stream SSE.
-updated: 2026-08-28
+updated: 2026-08-31
 ---
 
 # HTTP API
@@ -89,31 +89,71 @@ distinct from the saved `Article` shape (no `id`, no `savedAt`) since it isn't a
 
 ## Posts
 
-| Method | Path | Body | Response |
-|--------|------|------|----------|
-| GET | `/api/posts` | — | `PostRow[]` |
-| GET | `/api/posts/:id` | — | `PostRow` |
-| PUT | `/api/posts/:id` | `{ payload: PostPayload }` | `PostRow` |
-| DELETE | `/api/posts/:id` | — | `{ ok: true }` |
+The markup is the source of truth. `title`, `description` and `keywords` are
+**derived server-side** from the document's `<head>` on every write, so a post
+cannot be saved with index columns that disagree with its own document. A
+half-typed `<head>` must not fail the debounced autosave, so a missing title
+falls back to `"Untitled post"` rather than 400ing — the editor's linter is what
+tells the author their title is missing.
+
+| Method | Path | Query / Body | Response |
+|--------|------|---------------|----------|
+| GET | `/api/posts` | query `status?` (`draft`\|`published`), `keyword?`, `search?`, `limit?`, `offset?` | `PostRow[]` |
+| POST | `/api/posts` | `{ markup, theme? }` | 201 `PostRow` · 400 missing markup or unknown theme |
+| GET | `/api/posts/:id` | — | `PostRow` · 404 |
+| PUT | `/api/posts/:id` | `{ markup, theme? }` | `PostRow` · 400 · 404. An omitted theme keeps the post's current one. |
+| PUT | `/api/posts/:id/status` | `{ status: 'draft' \| 'published' }` | `PostRow` · 400 · 404 |
+| DELETE | `/api/posts/:id` | — | `{ id, deleted: true }` · 404 — render records and keyword links cascade away |
+
+An unknown `theme` is rejected at save time, not render time — it would
+otherwise reach `loadTheme` and throw two steps later.
+
+## Renders
+
+| Method | Path | Query | Response |
+|--------|------|-------|----------|
+| GET | `/api/renders` | `postId?` | `RenderSummary[]` — the **latest** render of every post that has one (or just that post's, with `postId`) · 400 non-integer `postId` |
+
+`RenderSummary` is `{ id, postId, slideCount, optimized, createdAt, files }`,
+where `files` lists each slide **still on disk**. The run directory is read
+rather than reconstructed from `slideCount`: a pre-brief-57 run holds `1.png`
+and a cleaned-out run holds nothing, and `/posts` must show what exists, not
+what the row claims. `outputDir` is absent by design — it is a server path.
+One call gives every row its thumbnail and its export/publish availability.
 
 ## Render (SSE)
 
 | Method | Path | Body | SSE events |
 |--------|------|------|------------|
-| POST | `/api/posts/:id/render` | — | `progress: { done, total }` · `done: { post: PostRow, files: string[] }` · `error: { message }` |
+| POST | `/api/posts/:id/render` | — | `progress: { done, total }` · `done: { post, render, files }` · `error: { message }` |
+
+Compiles the post's markup with the strict `compileDocument` path and renders
+every slide to JPEG. Post not found, unknown theme, markup that will not
+compile, and a slideless document all arrive as an `error` event, not a status
+code — the response has already begun.
+
+## Publish
+
+| Method | Path | Response |
+|--------|------|----------|
+| POST | `/api/posts/:id/publish` | `{ ... }` · 404 not found · 409 anything else (e.g. never rendered) |
+
+Marks the post published and runs the JPEG optimization pass over its latest
+render **the first time only** — the render's `optimized` flag guards the
+re-encode, so publishing twice never degrades the image. In the UI it is a
+deliberate action behind a confirm; it never happens automatically.
 
 ## Export
 
 | Method | Path | Response |
 |--------|------|----------|
-| GET | `/api/posts/:id/export.zip` | `application/zip` — PNGs + slides.json + caption.txt |
+| GET | `/api/posts/:id/export.zip` | `application/zip` — the latest render's JPEGs + slides.json + caption.txt · 404 no such post, never rendered, or the output directory is gone |
 
 ## Themes
 
-`/api/preview` and every `/api/templates*` route are gone with the template
-system (brief 58 — see decisions.md "The template system is removed"). Theme
-listing wasn't part of that registry, so it survives in its own
-`api/src/routes/themes.ts`:
+`/api/preview` and every `/api/templates*` route went with the template system
+(see decisions.md "The template system is removed"). Theme listing was never
+part of that registry, so it survives on its own:
 
 | Method | Path | Body | Response |
 |--------|------|------|----------|
@@ -153,7 +193,7 @@ the filename.
 | Path | Serves |
 |------|--------|
 | `/assets/fonts/<name>.ttf` | Inter font files |
-| `/output/<dir>/<n>.png` | Rendered slide images |
+| `/output/<dir>/slide-NN.jpg` | Rendered slide images |
 | `/uploads/<ref>` | An upload's normalized copy — **public**, because headless Chromium fetches it at render time with no session cookie. Declares `config: { public: true }`. |
 | `/uploads/<ref>/original` | The untouched upload. Public for the same reason. |
 | `/` (all non-API paths) | `ui/dist/` (production mode only) |

@@ -549,3 +549,40 @@ would have hidden a whole module and the vitest `include` that would have kept
 the new guard test from ever executing. The pattern is worth naming: **green
 because nothing ran.** A passing command is not evidence of coverage, and the
 cheap check is to ask what the tool actually reached.
+
+## [2026-08-31] brief | 62 lands: the page map, the posts API, and `/api/renders`
+
+Wave 6 done. The four-step wizard is gone from the UI entirely — `wizard/`,
+`history/` and `export/` deleted, `/history` left as a redirect to `/posts` for
+one release. The page map is now `/` · `/posts` · `/articles` · `/settings` ·
+`/login`. Posts gained create, a status flip, and list filters; `GET
+/api/renders` is new so `/posts` can draw a thumbnail per row in one request
+rather than N.
+
+Two things worth keeping. **An unknown theme is now rejected at save time** on
+both `PUT /api/settings` and the post write paths — it used to be stored
+happily and then thrown on by `loadTheme` at the next render, so a bad save
+surfaced two steps later, on a different screen, as a render error. And
+`/api/renders` **reads the run directory rather than reconstructing filenames
+from `slideCount`**, because a pre-brief-57 run holds `1.png` and a cleaned-out
+run holds nothing: the library has to show what is on disk, not what the row
+claims.
+
+Gate: build, **630 tests**, lint, `tsc -p ui` at 0 errors, corpus lint.
+
+## [2026-08-31] corpus | api.md rewritten from the routers; the deferred pages caught up
+
+`api.md`'s Posts section had been describing the dead v2 `{ payload }` contract,
+and Renders, Publish and the JPEG output path were undocumented. Rewritten by
+reading `api/src/routes/*.ts`, not from memory — which is what brief 62's
+acceptance asked for and is the only way this page stays true.
+
+Also folded in the two updates brief 59 deferred: `modules.md` now documents the
+`@newspapper/core/wizard` subpath (and why there are two compile paths), and
+`dependencies.md` carries `@use-gesture/react@10.3.1` with the reason it
+replaced HTML5 drag-and-drop. `dependencies.md`'s UI rows still named the
+wizard, builder, history and prompt islands, all of which have been deleted.
+
+A note on provenance: the implementing agent's handoff was lost with the
+session's task registry, so brief 62's outcome note is reconstructed by the
+controller from the diff and the routers. The note says so at the top.

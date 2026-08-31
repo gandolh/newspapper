@@ -4,6 +4,11 @@ import react from '@astrojs/react';
 
 export default defineConfig({
   output: 'static',
+  // /history became /posts in brief 62. Kept for one release so a bookmark
+  // lands somewhere useful instead of 404ing.
+  redirects: {
+    '/history': '/posts',
+  },
   integrations: [react()],
   vite: {
     resolve: {

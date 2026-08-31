@@ -1,6 +1,6 @@
 ---
 summary: What each workspace depends on and why that package was chosen over the alternatives.
-updated: 2026-08-28
+updated: 2026-08-31
 ---
 
 # Dependencies
@@ -33,11 +33,12 @@ Per-workspace. Versions are locked in `package-lock.json`.
 | Package | Why |
 |---------|-----|
 | `astro` | Static site builder; React islands via `@astrojs/react`; `<ClientRouter />` for view transitions between pages. |
-| `@astrojs/react` | Astro integration for React client components (wizard, builder, etc.). |
-| `react`, `react-dom` | UI islands (wizard, editor, builder, settings, history, prompt). |
+| `@astrojs/react` | Astro integration for React client components. |
+| `react`, `react-dom` | UI islands — the editor, the post and article libraries, settings. |
 | `@base-ui/react` | Headless, accessible primitives behind the shared `components/ui/` library (Button, Input, Select, Toggle/Switch, Modal/Dialog, Toast). Styling-agnostic — styled with warm-industrial CSS-variable tokens. |
-| `@newspapper/core` | Type imports only (TemplateDoc, SlideBlock, etc.) — no Node APIs used. |
-| `animejs` | **Approved, not yet installed.** 4.5.0, MIT, no dependencies. The motion engine — framework-agnostic, so one import serves both Astro scripts and React islands. Chosen over motion-primitives and smoothui, which require Tailwind CSS; [why](./decisions-engineering.md#animejs-is-the-motion-engine-tailwind-bound-kits-are-references-only). |
+| `@newspapper/core` | Types, plus the browser-safe `./wizard` subpath — the editor parses, lints and compiles with the same code the renderer uses. No Node APIs. |
+| `@use-gesture/react` | Pointer gestures in the editor: the split-screen divider drag and slide reordering. Replaced a half-built HTML5 drag-and-drop; pointer events give one code path for mouse, touch and pen, and drag-and-drop cannot express a resize handle at all. |
+| `animejs` | **Approved, still not installed** — brief 64 installs it and builds the one authored motion moment (the compile: typed source settling into a set slide). 4.5.0, MIT, no dependencies. The motion engine — framework-agnostic, so one import serves both Astro scripts and React islands. Chosen over motion-primitives and smoothui, which require Tailwind CSS; [why](./decisions-engineering.md#animejs-is-the-motion-engine-tailwind-bound-kits-are-references-only). |
 
 ## Root dev deps
 
