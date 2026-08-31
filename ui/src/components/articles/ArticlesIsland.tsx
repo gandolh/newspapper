@@ -264,6 +264,11 @@ function LibraryPanel() {
   }, []);
 
   useEffect(() => {
+    // Kept as an effect: a fetch keyed on the query, not derivable state.
+    // `load` opens with `setLoading(true)` and that is deliberate — a refilter
+    // has to swap the rows for the skeleton, otherwise the table sits showing
+    // results for a filter the user has already changed.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void load();
   }, [load]);
 

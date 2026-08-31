@@ -128,40 +128,35 @@ interface SourceFormModalProps {
   onSaved: (sources: SourceConfig[]) => void;
 }
 
+/**
+ * The form is seeded straight from `source` rather than copied into state by an
+ * effect on open. `SourcesPanel` bumps `formKey` when it opens the modal, so a
+ * fresh instance mounts already holding the right values — no first render
+ * showing the previous feed's details, and no second render to correct it.
+ * The key is bumped on open only, never on close, so the dialog still animates
+ * out of an intact tree.
+ */
 function SourceFormModal({ open, source, onClose, onSaved }: SourceFormModalProps) {
   const isEdit = source !== null;
   const { addToast } = useToast();
 
-  const [name, setName] = useState('');
-  const [rss, setRss] = useState('');
-  const [id, setId] = useState('');
-  const [enabled, setEnabled] = useState(true);
+  const [name, setName] = useState(source?.name ?? '');
+  const [rss, setRss] = useState(source?.rss ?? '');
+  const [id, setId] = useState(source?.id ?? '');
+  const [enabled, setEnabled] = useState(source?.enabled ?? true);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Populate form when opening
-  useEffect(() => {
-    if (!open) return;
-    if (source) {
-      setName(source.name);
-      setRss(source.rss);
-      setId(source.id);
-      setEnabled(source.enabled);
-    } else {
-      setName('');
-      setRss('');
-      setId('');
-      setEnabled(true);
-    }
-    setErrors({});
-  }, [open, source]);
-
-  // Auto-slug id from name in add mode
-  useEffect(() => {
-    if (!isEdit) {
-      setId(slugify(name));
-    }
-  }, [name, isEdit]);
+  /**
+   * In add mode the id is slugged from the name as you type — from the
+   * keystroke, not from a lifecycle. Doing it here rather than in an effect is
+   * also what lets the field stay editable: the slug is a consequence of
+   * changing the name, so typing directly into the id field survives.
+   */
+  function handleNameChange(next: string) {
+    setName(next);
+    if (!isEdit) setId(slugify(next));
+  }
 
   function validate(): boolean {
     const errs: Record<string, string> = {};
@@ -217,7 +212,7 @@ function SourceFormModal({ open, source, onClose, onSaved }: SourceFormModalProp
             label="Name"
             placeholder="BBC News"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => handleNameChange(e.target.value)}
             error={errors.name}
             autoFocus
           />
@@ -281,9 +276,11 @@ export default function SourcesPanel() {
   const [pings, setPings] = useState<PingMap>({});
   const [pingAllLoading, setPingAllLoading] = useState(false);
 
-  // Modal state
+  // Modal state. `formKey` remounts the form on each open so it seeds itself
+  // from `editTarget` instead of being repopulated by an effect.
   const [modalOpen, setModalOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<SourceConfig | null>(null);
+  const [formKey, setFormKey] = useState(0);
 
   // Confirm delete state
   const [deleteTarget, setDeleteTarget] = useState<SourceConfig | null>(null);
@@ -348,12 +345,14 @@ export default function SourcesPanel() {
   // Open add modal
   function handleAdd() {
     setEditTarget(null);
+    setFormKey((k) => k + 1);
     setModalOpen(true);
   }
 
   // Open edit modal
   function handleEdit(source: SourceConfig) {
     setEditTarget(source);
+    setFormKey((k) => k + 1);
     setModalOpen(true);
   }
 
@@ -486,6 +485,7 @@ export default function SourcesPanel() {
 
       {/* Add/Edit modal */}
       <SourceFormModal
+        key={formKey}
         open={modalOpen}
         source={editTarget}
         onClose={() => setModalOpen(false)}

@@ -58,7 +58,18 @@ function DraftField({
   onCommit: (next: string) => void;
 }) {
   const [draft, setDraft] = useState(value);
-  useEffect(() => setDraft(value), [value]);
+
+  // The draft has to follow `value` when the markup changes underneath it — a
+  // source-pane edit, or a commit the sanitizer rewrote on the way through.
+  // Adjusted during render (React's "storing information from previous
+  // renders") rather than in an effect, so the corrected text lands in the same
+  // commit instead of one paint later. Typing does not trip it: `value` only
+  // moves when the document does.
+  const [lastValue, setLastValue] = useState(value);
+  if (value !== lastValue) {
+    setLastValue(value);
+    setDraft(value);
+  }
 
   const commit = (): void => {
     if (draft !== value) onCommit(draft);

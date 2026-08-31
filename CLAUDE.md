@@ -63,22 +63,28 @@ Ollama Cloud is the one sanctioned remote service: set `OLLAMA_HOST=https://olla
 
 ## Theme
 
-One theme ships: `warm-industrial`. Tokens in `assets/design-systems/warm-industrial.json`. Template JSON docs in `assets/templates/warm-industrial/`. Fonts in `assets/fonts/` (Inter, 400–900).
+**Two design systems, and they share nothing on purpose.**
 
-The `digital-broadsheet` theme was removed in v2. Satori/resvg rendering was removed in v3.
+The **slide themes** paint the 1080² artwork: `warm-industrial-1`, `-2`, `-3` — a family, not three designs, differing only in the primary colour. Tokens in `assets/design-systems/`. Inter lives in `assets/fonts/`, served to the render browser. See [design-systems.md](corpus/wiki/design-systems.md).
+
+The **app chrome** is The Mechanical, a paste-up board. Tokens in `ui/src/styles/global.css`, faces in `ui/public/fonts/`. `DESIGN.md` is canonical. See [chrome.md](corpus/wiki/chrome.md).
+
+The `digital-broadsheet` theme was removed in v2; Satori/resvg rendering in v3; the JSON template system and `/builder` in brief 58.
 
 ## Constraints / non-goals
 
-- **Playwright is allowed.** It's in `@newspapper/core` for Chromium rendering. Do NOT add Sharp, canvas, cheerio, Handlebars, inquirer, ora, axios, or Satori.
-- **No entity extraction.** The composer prompt sees raw articles.
-- **No clustering / no per-topic posts.** One post per day.
-- **No human-in-the-loop.** The wizard steps are UI-only; the pipeline runs without approval.
-- **Ollama only** for LLM (cloud or local). No OpenAI, Anthropic, or other providers.
+- **No LLM, from any provider.** The v3 pivot removed composing entirely — a post is written by hand in [Newspapper Wizard](corpus/wiki/markup.md), not generated. This supersedes the old "Ollama only" rule; there is no Ollama client left.
+- **Playwright is allowed.** It's in `@newspapper/core` for Chromium rendering.
+- **Sharp is allowed, for images only** — normalizing uploads (resize, strip EXIF). This reversed a standing ban on 2026-08-27; see [decisions.md](corpus/wiki/decisions.md#sharp-is-allowed-for-images-only). Still banned: canvas, cheerio, Handlebars, inquirer, ora, axios, Satori.
+- **Dependency versions are pinned exactly.** No `^`, no `~`, anywhere.
 - **ESM throughout.** All workspaces are `"type": "module"`. Paths must be resolved from `import.meta.url`, not `process.cwd()`.
+- **`npm run build` runs `fmt:check` first**, and `npm run lint` covers all three workspaces. Both were enforced in brief 68, after the linter was found to have enabled zero rules since the project began. Don't unwire either.
 
 ## Tests
 
-Co-located: `core/src/**/*.test.ts` and `api/src/**/*.test.ts`, run with `vitest`. Prefer unit tests on JSON parsing and date filtering over snapshot tests on rendered PNGs.
+Co-located `*.test.ts` under `core/src/`, `api/src/` and `ui/src/`, run with `vitest`. Prefer unit tests on parsing and filtering over snapshots of rendered images.
+
+**Read [`corpus/log.md`](corpus/log.md) for the entries titled "green because nothing ran" before you trust a green command.** That pattern — a tool reporting success while reaching nothing — has been hit eight times in this repo: a DB path the tests set but nothing read, a `.gitignore` rule that would have hidden a module, a vitest `include` that omitted `ui/`, a workspace bundled but never typechecked, a formatter with no config, a test control that collapsed into its subject, an ESLint config with zero rules enabled, and a test file whose import vanished from the lockfile. When a check passes, ask what it actually reached.
 ## Corpus (the project wiki)
 
 Project knowledge and work live in [`corpus/`](corpus/) — an LLM-maintained

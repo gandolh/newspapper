@@ -76,6 +76,35 @@ hover effects, everything gated behind `prefers-reduced-motion`, and **no motion
 inside the slide canvas** — the preview must never move in a way the renderer
 cannot reproduce.
 
+## The UI is a Vite + React SPA; Astro was removed
+
+_2026-08-31 (brief 70, owner's request)_ — Astro's reasons to exist were all
+unused here. Every one of the six pages mounted its island with `client:load`,
+so there was no partial hydration to lose; five of six page files were 8-line
+shells; the whole app sits behind auth with no SEO surface. All `.astro` totalled
+360 lines, 290 of it in two files.
+
+The two genuinely Astro-shaped things — `<ClientRouter />` and the tray's
+`transition:persist="sidebar"` — existed to keep the sidebar mounted across
+navigation. In an SPA the tray never unmounts, so both disappeared rather than
+needing replacements. (Worth knowing: the first cut had each page render its own
+`<App>`, and a DOM probe caught the tray remounting on every navigation — exactly
+what `transition:persist` had prevented. One `<App>` element with only `children`
+swapping fixes it, and the probe is the reason it was noticed.)
+
+**Routing is ~95 hand-rolled lines** in `ui/src/router.tsx`, over
+`useSyncExternalStore` on `window.location.pathname`. Rejected: **React Router**
+(data APIs and an `<Outlet/>` tree that six param-less routes do not use) and
+**wouter**. The decisive argument was not bundle size — `PostsIsland`,
+`SessionMenu` and `lib/api.ts` all navigate with `window.location.assign`, and
+the editor writes `?post=` with its own `replaceState`. A router that owns history
+argues with all of that; one that reads `window.location` on demand does not.
+
+The dev-only proof sheet is a Vite plugin serving a virtual module that resolves
+to `export default null` under `vite build`. It has to be **structural** rather
+than an `import.meta.env.DEV` branch: the proof island imports a stylesheet, so
+dead-code elimination would drop the component and keep its CSS.
+
 ## The renderer serves its own fonts from disk, not over HTTP
 
 Chromium rendered every slide in a serif fallback while the preview of the same

@@ -1,6 +1,6 @@
 ---
 summary: How the three npm workspaces fit together and how a post flows scrape → compose → edit → render → ZIP.
-updated: 2026-08-28
+updated: 2026-08-31
 ---
 
 # Architecture
@@ -13,7 +13,7 @@ Newspapper v3 is a **monorepo web app** with three npm workspaces:
 newspapper/          ← repo root (concurrently, vitest, ts, eslint)
   core/              ← @newspapper/core: pipeline library (Node-only)
   api/               ← @newspapper/api: Fastify HTTP server (port 3001)
-  ui/                ← @newspapper/ui: Astro + React islands (port 4321)
+  ui/                ← @newspapper/ui: Vite + React SPA (port 4321)
   assets/            ← fonts/, design-systems/, templates/
   data/              ← sources.json, prompt.md, newspapper.db (gitignored)
   output/            ← rendered slide images per run (gitignored)
@@ -43,13 +43,29 @@ Thin HTTP layer over `@newspapper/core`. Registers route plugins for every featu
 - `/uploads/<ref>` — uploaded images; public, so headless Chromium can fetch them mid-render
 - `/` — `ui/dist/` (prod only, when built)
 
-### `ui/` — Astro + React
+### `ui/` — Vite + React
 
-Static Astro site with React islands for interactive pages. Dev proxy sends `/api/*` to port 3001.
+A **single-page app**: one `index.html`, one bundle, one React root in `src/main.tsx`. Astro was removed in brief 70 — every island was `client:load`, so there was no partial hydration to lose, and the app is entirely behind auth with no SEO surface. `vite.config.ts` carries the `@/*` → `ui/src/*` alias and proxies `/api`, `/output`, `/uploads` and `/assets` to port 3001 in dev. The bundle is emitted to `ui/dist/_bundle/` rather than the Vite default `dist/assets/`, because the API already serves the repo's own `assets/fonts/` at that prefix.
 
-Pages: `/` (wizard), `/history`, `/sources`, `/settings`, `/prompt`, `/builder`.
+Routing is hand-rolled in `src/router.tsx` — about 90 lines over `useSyncExternalStore` and `history.pushState`. Six routes with no params, no nested layouts and no data loaders did not justify React Router, and several islands navigate with `window.location.assign` while the editor writes `?post=` with its own `replaceState`; a router that owned history would fight both.
 
-Every page mounts Astro's `<ClientRouter />` for crossfade navigation and renders the shared `components/Sidebar.astro` nav rail (`transition:persist`). Interactive UI is built from the `components/ui/` primitive library, which wraps `@base-ui/react`. See [design-systems.md](./design-systems.md) for the component conventions.
+The page map is in `src/routes.tsx`:
+
+| Route | Sheet |
+|---|---|
+| `/` | editor (fluid width) |
+| `/posts` | post list |
+| `/articles` | article search / library / sources |
+| `/settings` | theme default + password |
+| `/login` | sign-in — the only route outside the board |
+| `/history` | redirect to `/posts` (kept from brief 62) |
+| `/kitchen-sink` | the proof sheet — **dev only**, see below |
+
+Every route but `/login` renders inside **one `<App>` element at one position** in `routes.tsx`. That is load-bearing: React keeps an element's instance while its type and position hold, so `layouts/App.tsx` and the `components/Sidebar.tsx` tray inside it survive a navigation that only swaps `children`, and the tray's health probe never restarts. This replaced Astro's `<ClientRouter />` plus `transition:persist="sidebar"` — the persistence is now structural rather than a directive. If a route component ever renders its own `<App>` again, the tray silently starts remounting on every click.
+
+`/kitchen-sink` is gated by the `proofSheet` plugin in `vite.config.ts`, which serves `virtual:proof-sheet` as a re-export of the proof page under `vite dev` and as `export default null` under `vite build`. It has to be structural rather than an `import.meta.env.DEV` branch: `KitchenSinkIsland` imports a stylesheet, so dead-code elimination would drop the component but keep its CSS. Brief 69 has the reasoning for why the proof sheet must not ship — it is the one page that renders with no session at all.
+
+Interactive UI is built from the `components/ui/` primitive library, which wraps `@base-ui/react`. See [design-systems.md](./design-systems.md) for the component conventions.
 
 ## Pipeline
 

@@ -1,6 +1,6 @@
 ---
 summary: The locked product calls — no LLM, human-centred editing, the Wizard markup and its semantic component model, images, and where it runs.
-updated: 2026-08-28
+updated: 2026-08-31
 ---
 
 # Decisions — product

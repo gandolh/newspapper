@@ -23,6 +23,11 @@ export default function ApiHealthDot() {
   }
 
   useEffect(() => {
+    // Kept as an effect. This is the case the rule's own message sanctions:
+    // subscribing to an external system — /api/health, polled — where the
+    // status genuinely is not knowable at first render. `loading` is the honest
+    // first paint, not a placeholder waiting to be corrected.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void check();
     const id = setInterval(() => void check(), 30_000);
     return () => clearInterval(id);

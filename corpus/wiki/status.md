@@ -1,5 +1,5 @@
 ---
-summary: Dated snapshot — the Wizard rebuild is fifteen of sixteen briefs in; only the documentation pass remains, plus three briefs filed from findings.
+summary: Dated snapshot — the rebuild is done bar the documentation pass; Astro is gone, the chrome is The Mechanical, and eight "green because nothing ran" defects were found along the way.
 updated: 2026-08-31
 ---
 
@@ -10,16 +10,19 @@ _Snapshot: 2026-08-31_
 > **Fifteen of sixteen briefs are done** on branch `wizard-rebuild`. The
 > wave-7 gate is verified green there: `npm run build`, **637 tests**,
 > `npm run lint`, `npx tsc -p ui --noEmit` (0 errors) and `corpus/lint.sh`.
-> Of the original backlog only **63** (the documentation pass) is left. Also
-> open: **70**, replacing Astro with Vite + React (owner's request), and **72**,
-> the ten React effect findings brief 68 had to suppress.
+> **Everything is done but the documentation pass (63).** The wave-10 gate is
+> verified green: `npm run build` (which now runs `fmt:check` first), **657
+> tests**, `npm run lint` across all three workspaces, `npx tsc -p ui --noEmit`
+> at 0, and `corpus/lint.sh`.
 
 **Where things stand.** The pivot has landed. Newspapper no longer generates
 copy with a model; a post is authored as a [Newspapper Wizard](./markup.md)
 document in a split-screen editor and compiled to JPEG slides. The `.wzd`
 language, its compiler, the editor, auth, uploads, the article library, JPEG
 output and the three-theme family are all built and tested. The chrome is
-The Mechanical on every route, and the rendered JPEG is finally set in Inter.
+The Mechanical on every route, the rendered JPEG is finally set in Inter, and
+the UI is a plain Vite + React SPA — Astro was removed once it was clear that
+every page was fully hydrated behind auth, so nothing it offered was in use.
 What is left is the documentation, which still describes a product two versions
 behind.
 
@@ -66,11 +69,20 @@ storage · the npm workspace layout · the shared UI primitives on Base UI.
 
 ## Briefs
 
-Three briefs remain in [`../briefs/todo/`](../briefs/todo/): **70** (replace
-Astro with Vite + React, requested by the owner on 2026-08-31), **72** (the
-React effect findings), and **63** (the documentation pass, which runs last).
-Nineteen are in [`../briefs/done/`](../briefs/done/) with an outcome note each.
-Each brief is self-contained — open only the one directing your work.
+One brief remains in [`../briefs/todo/`](../briefs/todo/): **63**, the
+documentation pass, which runs last by design. Twenty-one are in
+[`../briefs/done/`](../briefs/done/) with an outcome note each. Each brief is
+self-contained — open only the one directing your work.
+
+**The thread worth reading before anything else** is [log.md](../log.md)'s
+entries titled *green because nothing ran*. Eight were found during this rebuild
+— a DB path the tests set but nothing read, a `.gitignore` rule that would have
+hidden a module, a vitest `include` omitting `ui/`, a workspace bundled but never
+typechecked, a formatter with no config, a test control that collapsed into its
+subject, an ESLint config with **zero rules enabled**, and a test whose import
+resolved only through a hoisted optional dependency. Most of this project's real
+defects were not in the code; they were in the things that were supposed to be
+checking it.
 
 Waves below are the **executed** order, which differs from the originally filed
 one: file-ownership collisions the dependency graph alone did not show forced
@@ -103,8 +115,8 @@ nav/sidebar by 58, 62 and 64.
 | 8 | 69 | Two loose ends in `ui/` — **done** | 64 |
 | 9 | 68 | `fmt` and `lint` cover what they claim — **done** | — |
 | 9 | 71 | The typeface guard's control; escaping style values — **done** | 67 |
-| 10 | 70 | Replace Astro with Vite + React | 68, 69 |
-| 10 | 72 | The React effect findings 68 suppressed | 68 |
+| 10 | 70 | Replace Astro with Vite + React — **done** | 68, 69 |
+| 10 | 72 | The React effect findings 68 suppressed — **done** | 68 |
 | 11 | 63 | Documentation pass | everything |
 
 Three ordering constraints that will bite if ignored: **58 must not start

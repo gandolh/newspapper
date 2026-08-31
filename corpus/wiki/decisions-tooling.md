@@ -63,9 +63,11 @@ available but unenforced — precisely how 106 files drifted. Accepted cost: an
 agent running `build` for type feedback mid-refactor hits a formatting failure
 before any type error.
 
-`.astro` was dropped from the `fmt` glob rather than adding a plugin, because
-[brief 70](../briefs/todo/70-vite-react.md) deletes every `.astro` file — a gap
-recorded as a decision, not an oversight. Ten `react-hooks` findings are
+`.astro` was dropped from the `fmt` glob rather than adding a plugin, on the
+reasoning that [brief 70](../briefs/done/70-vite-react.md) was about to delete
+every `.astro` file. It did, days later, and the glob gained `ui/vite.config.ts`
+and `ui/index.html` in the same pass — so the gap opened and closed as planned
+rather than becoming permanent. Ten `react-hooks` findings are
 suppressed at config level pending brief 72; `rules-of-hooks` and
 `exhaustive-deps`, the two that catch correctness bugs, are on and clean.
 

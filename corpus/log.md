@@ -839,3 +839,73 @@ reaching nothing.
 Third split this session, after `decisions-security.md` and `chrome.md`. The
 pattern is worth naming: pages hit the cap when a *second subject* has grown
 inside them, and shaving prose to fit is how the second subject stays hidden.
+
+## [2026-08-31] finding | the api's upload test had an undeclared dependency — the eighth
+
+`api/src/routes/uploads.test.ts` imports `sharp`. `api/package.json` declared
+none. It had been resolving against the hoisted copy **Astro pulled in as an
+optional dependency** — so the moment brief 70 removed Astro, the file failed at
+import and contributed **zero** tests instead of fourteen.
+
+Two facts, and the second is worse than the first. The api test had an
+undeclared dependency; and because it resolved to Astro's copy, it had been
+testing image handling against **sharp 0.34.5 while production ran 0.35.4**.
+Nothing announced either. Fixed by declaring `"sharp": "0.35.4"` in
+`api/package.json` devDependencies, matching `core`.
+
+The general shape: **a dependency that resolves only by hoisting is a test that
+passes by coincidence.** Removing an unrelated package is enough to break it,
+and the version it silently binds to is whatever the accident supplied.
+
+Also note the failure was *loud* — an import error, not a silent skip — but the
+signal still nearly got lost, because it surfaced inside a wave where two agents
+were editing concurrently and each reasonably attributed it to the other. It was
+resolved by checking `git show HEAD:package-lock.json` rather than by argument.
+
+## [2026-08-31] brief | 70 + 72: Astro is gone, and the hook rules are real
+
+**70** replaced Astro with a Vite + React SPA. The whole `.astro` surface was
+360 lines, five of six pages were 8-line shells, and every island was
+`client:load` — so nothing Astro offered was in use. Routing is ~95 hand-rolled
+lines over `useSyncExternalStore`; React Router and wouter were rejected because
+several components already navigate with `window.location.assign` and the editor
+writes `?post=` with its own `replaceState`, and a router that owns history
+argues with all of that.
+
+The moment worth keeping: the first cut had each page render its own `<App>`,
+and **a DOM probe caught the tray remounting on every navigation** — exactly what
+`transition:persist` had prevented, silently reintroduced by the migration whose
+premise was that it had become unnecessary. The premise was right and the
+implementation was not, and only measuring the difference showed it.
+
+**72** turned `set-state-in-effect` and `refs` back on and judged all ten sites:
+five fixed, five suppressed at the call site with reasons. The right split — a
+blanket rewrite would have been worse than the config blanket it replaced.
+
+It also produced a caveat now recorded next to the rules: **the React Compiler
+bails out silently on some components**, proved by planting a blatant violation
+that drew no finding while sites in a sibling component in the same file were
+still reported. A clean lint run means "nothing found", not "nothing there".
+
+## [2026-08-31] corpus | CLAUDE.md's constraints were describing a product that no longer exists
+
+Found while chasing the `sharp` question. `CLAUDE.md` still said **"Do NOT add
+Sharp"** — a rule `decisions.md` had explicitly reversed on 2026-08-27, and which
+`core/package.json` had been violating ever since, correctly. It also still
+described Ollama as the LLM, the four-step wizard, one theme, PNG output, and
+`/builder`.
+
+This matters more than an ordinary stale doc: `CLAUDE.md` is the first file every
+session reads, and the controller had been copying that dead Sharp rule into
+dispatch prompts all day. Constraints sections rot in the most dangerous
+direction — a wrong *prohibition* is obeyed silently and leaves no trace.
+
+Rewritten: no LLM at all, Sharp allowed for images, exact pinning, ESM, and the
+enforced `fmt:check`/lint wiring. The Tests section now points at this log's
+"green because nothing ran" entries by name, since eight of them is no longer a
+curiosity. The remaining stale half — the pipeline diagram, the data table, the
+Architecture section — is brief 63's, which runs next.
+
+Also moved the Vite/Astro decision from `decisions.md` to
+`decisions-engineering.md`: it is an engineering call, not a product-shaping one,
+and `decisions.md` was over the cap with it.

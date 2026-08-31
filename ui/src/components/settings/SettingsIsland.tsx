@@ -35,6 +35,11 @@ function ThemeSection() {
   }, [addToast]);
 
   useEffect(() => {
+    // Kept as an effect: load on mount. The settings and the theme list are
+    // both server state, so there is nothing to derive and nothing to lift —
+    // the flag this trips is `setLoading(false)` in `load`'s `finally`, which
+    // is what ends the skeleton.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void load();
   }, [load]);
 

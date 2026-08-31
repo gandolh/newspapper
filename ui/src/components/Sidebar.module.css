@@ -1,0 +1,130 @@
+.tray {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  height: var(--tray-h);
+  background: var(--board);
+  border-bottom: 1.5px solid var(--graphite);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.cells {
+  display: flex;
+  align-items: stretch;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.cell-item {
+  display: flex;
+}
+
+.cell {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--sp-hair);
+  padding: 0 var(--sp-half);
+  border-right: 1px solid var(--rule);
+  color: var(--graphite);
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.cell--brand {
+  justify-content: center;
+  padding: 0 var(--sp-unit);
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-decoration: none;
+  color: var(--graphite);
+}
+
+.brand-name {
+  font-family: var(--font-chrome);
+  font-size: var(--fs-brand);
+  font-weight: 800;
+  font-variation-settings: 'wdth' var(--wdth-brand);
+  letter-spacing: var(--ls-brand);
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.brand-caption {
+  font-family: var(--font-galley);
+  font-size: var(--fs-field);
+  font-weight: 500;
+  letter-spacing: var(--ls-field);
+  text-transform: uppercase;
+  color: var(--graphite-soft);
+}
+
+.cell--nav {
+  align-items: center;
+  width: 104px; /* 4 × 26 */
+  color: var(--graphite-soft);
+}
+
+.cell--nav:hover {
+  color: var(--graphite);
+}
+
+/* The compartment pulled forward: paper, waxed down. */
+.cell--current {
+  background: var(--paper);
+  box-shadow: var(--shadow-waxed);
+  color: var(--graphite);
+}
+
+.showing {
+  display: block;
+  width: 30px;
+  height: 30px;
+}
+
+.showing svg {
+  width: 30px;
+  height: 30px;
+}
+
+.caption {
+  font-family: var(--font-galley);
+  font-size: var(--fs-field);
+  font-weight: 500;
+  letter-spacing: var(--ls-field);
+  text-transform: uppercase;
+}
+
+.cell--current .caption {
+  font-weight: 700;
+  color: var(--graphite);
+}
+
+.cell--session {
+  margin-left: auto;
+  border-right: 0;
+  border-left: 1px solid var(--rule);
+  justify-content: center;
+  gap: var(--sp-hair);
+  padding: 0 var(--sp-half);
+  min-width: calc(var(--sp-unit) * 6);
+}
+
+@media (max-width: 768px) {
+  .cell--brand {
+    padding: 0 var(--sp-half);
+  }
+  .brand-caption {
+    display: none;
+  }
+  .cell--nav {
+    width: 78px; /* 3 × 26 */
+  }
+}

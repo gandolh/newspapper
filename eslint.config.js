@@ -16,7 +16,7 @@ import reactHooks from 'eslint-plugin-react-hooks';
  */
 export default [
   {
-    ignores: ['**/dist/**', '**/.astro/**', '**/node_modules/**'],
+    ignores: ['**/dist/**', '**/node_modules/**'],
   },
 
   js.configs.recommended,
@@ -54,19 +54,19 @@ export default [
     rules: {
       ...reactHooks.configs.recommended.rules,
 
-      // The two React Compiler rules below are OFF, and deliberately so.
-      // Both flag real patterns, but every fix is a behaviour change to a
-      // component, and brief 68 is a tooling brief. `rules-of-hooks` and
-      // `exhaustive-deps` — the rules that catch correctness bugs — stay on and
-      // pass clean.
+      // Both of these were 'off' between briefs 68 and 72, which hid ten
+      // findings behind a config-level blanket. They are on. Five of those ten
+      // sites were restructured; the other five carry an
+      // `eslint-disable-next-line` with the reason on the line above it, so the
+      // claim is checkable where the code is.
       //
-      // set-state-in-effect: 8 sites (ApiHealthDot, ArticlesIsland,
-      //   SourcesPanel ×2, EditorIsland, ImagePicker, InspectorPane,
-      //   SettingsIsland). Each is a load-on-mount or sync-prop-to-draft effect
-      //   that would need restructuring.
-      // refs: 2 sites (EditorIsland:142,144) — reads of a ref during render.
-      'react-hooks/set-state-in-effect': 'off',
-      'react-hooks/refs': 'off',
+      // Caveat worth knowing: this rule is not exhaustive. The compiler bails
+      // out silently on some components and reports nothing inside them — the
+      // `SourcesPanel` function in ui/src/components/articles/SourcesPanel.tsx
+      // is one; a synchronous setState added to `loadSources` there produces no
+      // finding. A clean run means "nothing found", not "nothing there".
+      'react-hooks/set-state-in-effect': 'error',
+      'react-hooks/refs': 'error',
     },
   },
 ];

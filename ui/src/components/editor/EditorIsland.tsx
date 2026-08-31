@@ -130,10 +130,27 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
   const zonesRef = useRef(new Map<string, MeasuredZone[]>());
   const activeZone = useRef<MeasuredZone | null>(null);
   const ghostRef = useRef<HTMLDivElement>(null);
+  // Latest-value mirrors, for the two callbacks that must not be re-created on
+  // every keystroke: `write` and `endDrag` both close over `[]`-ish deps and
+  // read the current text / drag payload out of a ref instead.
+  //
+  // Written at commit, not during render. A render can be started and thrown
+  // away under concurrent rendering, and a ref written by a discarded render
+  // would leave `write` splicing an edit into markup that was never shown.
+  // Nothing regresses by waiting for the commit: every `setSource` call site
+  // (`write`, `onSourceChange`, the post load below) already assigns
+  // `sourceRef.current` eagerly on the same line, so two edits chained inside
+  // one tick still see the newer text.
   const sourceRef = useRef(source);
-  sourceRef.current = source;
   const dragRef = useRef<DragPayload | null>(null);
-  dragRef.current = drag;
+
+  useEffect(() => {
+    sourceRef.current = source;
+  }, [source]);
+
+  useEffect(() => {
+    dragRef.current = drag;
+  }, [drag]);
 
   // ---- derived -----------------------------------------------------------
 
@@ -378,6 +395,16 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
     if (initialMarkup !== undefined) return;
     const id = propPostId ?? postIdFromUrl();
     if (!id) return;
+    // Kept as an effect: opening a post is a fetch — server state that arrives
+    // later, with nothing to derive from and nothing to lift to. The flagged
+    // line is what puts the skeleton up before the request resolves.
+    //
+    // It could only become the initial value of `loading` by calling
+    // `postIdFromUrl()` from a lazy `useState` initializer, which would make
+    // this component's first render depend on `window.location` — the one
+    // coupling that breaks the moment anything renders it anywhere but a
+    // browser tab. Not a bet worth taking to save one render.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     void (async () => {
       try {

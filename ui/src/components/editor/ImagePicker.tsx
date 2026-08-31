@@ -47,6 +47,12 @@ export default function ImagePicker({ open, onClose, onChoose }: ImagePickerProp
   }, []);
 
   useEffect(() => {
+    // Kept as an effect. Opening the picker is an event, but not one this
+    // component sees: `open` is flipped by three separate call sites in
+    // `EditorIsland` (the palette's Image button, the inspector's Choose, and a
+    // drop). The prop flip is the one place that sees all of them, and the list
+    // must be re-read on each open or a just-finished upload is missing.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (open) void load();
   }, [open, load]);
 

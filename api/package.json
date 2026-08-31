@@ -16,6 +16,7 @@
     "fastify": "5.8.5"
   },
   "devDependencies": {
+    "sharp": "0.35.4",
     "tsx": "4.22.1"
   }
 }

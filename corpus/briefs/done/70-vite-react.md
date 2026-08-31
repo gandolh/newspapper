@@ -102,3 +102,59 @@ production, so deep links are served today. Verify it, don't assume it.
 itself once missing — a guard test existed for two and a half months without
 ever executing (`log.md`, "green because nothing ran"). If you touch the test
 config, **prove the UI tests still run** by counting them, not by seeing green.
+
+---
+
+## Outcome — 2026-08-31
+
+Astro is gone. Gate verified by the controller: build ✓ (`fmt:check` still
+first), **657 tests / 46 files** ✓, lint ✓ (still covering `ui/src`), `tsc -p ui`
+at 0 ✓, corpus lint ✓. No `.astro` file, no `astro*` dependency, no lockfile
+entry. UI tests unchanged at **83 across 10 files**, before and after —
+`vitest.config.ts` was not touched.
+
+**The router is ~95 hand-rolled lines**, `useSyncExternalStore` over
+`window.location.pathname`. React Router and wouter were both rejected, and the
+decisive argument was not bundle size: `PostsIsland`, `SessionMenu` and
+`lib/api.ts` all navigate with `window.location.assign`, and the editor writes
+`?post=` with its own `replaceState`. A router that owns history argues with all
+of that; one that reads `window.location` on demand does not.
+
+**The best thing in this brief is a bug the agent caught in its own first cut.**
+That cut had each page render its own `<App>`, and a DOM probe proved the tray
+was remounting on every navigation — precisely what `transition:persist` had
+existed to prevent, silently reintroduced by the migration meant to make it
+unnecessary. Fixed by rendering one `<App>` element with only `children`
+swapping. It was caught because the agent measured the thing the brief claimed
+would become free, instead of assuming it had.
+
+**The kitchen-sink gate is structural, not a `DEV` branch**, and the reason is
+worth keeping: the proof island imports a stylesheet, so dead-code elimination
+would drop the component and keep its CSS. It is a Vite plugin serving a virtual
+module that resolves to `export default null` under `vite build`. Verified —
+`cornerDemo`, `heldOutDemo`, `frameDemo`, `Proof sheet` and `the rubylith wash`
+are all absent from `dist/`, and `/kitchen-sink` redirects to `/` in production.
+
+**Appearance was checked three ways**, not eyeballed: the CSS was extracted
+programmatically from each `.astro` file's `<style>` block (byte-identical
+rules, class tokens preserved verbatim), then measured live — tray 78px, nav
+cells 104px, sheet 1092px, `main` padding 26px, and **zero elements with a
+non-zero border-radius** across the whole document.
+
+Deep links were verified against the API serving `ui/dist`, not assumed: `/`,
+`/posts`, `/articles`, `/settings`, `/login`, `/history`, `/kitchen-sink` and
+`/no-such-page` all return 200 HTML containing `#root`; a hard refresh of
+`/settings` booted the SPA, 401'd to `/login?next=%2Fsettings`, and landed
+correctly after sign-in.
+
+**Two operational notes worth carrying.** The bundle goes to `ui/dist/_bundle/`
+rather than Vite's default `dist/assets/`, because the API serves the repo's own
+`assets/fonts/` at `/assets/` — Astro used `_astro/` for the same reason. And
+`@fastify/static` is registered with `wildcard: false`, so it enumerates
+`ui/dist` **at boot**: the API must be started after a UI build or hashed bundle
+filenames 404 into the index fallback. Pre-existing, but it cost the agent ten
+confused minutes.
+
+Findings handled by the controller rather than filed: the dead `**/.astro/**`
+ignore in `eslint.config.js` and `.astro/` in `.gitignore` are removed, and the
+undeclared `sharp` (below) is fixed.

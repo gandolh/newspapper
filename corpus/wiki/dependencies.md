@@ -32,9 +32,8 @@ Per-workspace. Versions are locked in `package-lock.json`.
 
 | Package | Why |
 |---------|-----|
-| `astro` | Static site builder; React islands via `@astrojs/react`; `<ClientRouter />` for view transitions between pages. |
-| `@astrojs/react` | Astro integration for React client components. |
-| `react`, `react-dom` | UI islands — the editor, the post and article libraries, settings. |
+| `vite` | Build tool and dev server (dev deps, with `@vitejs/plugin-react`). Replaced Astro in brief 70 — every page was `client:load` behind auth, so nothing Astro offered was in use; [why](./decisions-engineering.md#the-ui-is-a-vite--react-spa-astro-was-removed). |
+| `react`, `react-dom` | The whole UI. Routing is ~95 hand-rolled lines in `ui/src/router.tsx` over `useSyncExternalStore`; **no router dependency** — see the decision above. |
 | `@base-ui/react` | Headless, accessible primitives behind the shared `components/ui/` library (Button, Input, Select, Toggle/Switch, Modal/Dialog, Toast). Styling-agnostic — styled with warm-industrial CSS-variable tokens. |
 | `@newspapper/core` | Types, plus the browser-safe `./wizard` subpath — the editor parses, lints and compiles with the same code the renderer uses. No Node APIs. |
 | `@use-gesture/react` | Pointer gestures in the editor: the split-screen divider drag and slide reordering. Replaced a half-built HTML5 drag-and-drop; pointer events give one code path for mouse, touch and pen, and drag-and-drop cannot express a resize handle at all. |

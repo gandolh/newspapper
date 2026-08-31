@@ -79,3 +79,52 @@ of the ten.
 - The editor still works: open a post, type, watch the preview update, reorder a
   slide, select a node, change a prop. Say that you did this.
 - `npm run build`, `npm test`, `npm run lint` pass; `npx tsc -p ui --noEmit` at 0.
+
+---
+
+## Outcome — 2026-08-31
+
+Both rules are `'error'`. Gate verified by the controller: build ✓, **657 tests
+/ 46 files** ✓, lint ✓, `tsc -p ui` at 0 ✓.
+
+**Five fixed, five suppressed at the call site with reasons** — which was the
+right split, and the brief's point. A blanket rewrite of all ten would have been
+worse than the config-level suppression it replaced.
+
+Fixed: two `EditorIsland` refs assigned during render now assign at commit (safe
+because all three `setSource` sites already assigned `sourceRef.current` on the
+line before, so the render-time write was pure redundancy); `InspectorPane`'s
+`useEffect(() => setDraft(value), [value])` became a render-phase adjustment, so
+sanitizer-corrected text lands in the same commit rather than one paint later;
+and `SourcesPanel` stopped copying `source` into six `useState`s on open (a
+`formKey` counter bumped **on open only**, so the dialog still animates out of an
+intact tree) and moved auto-slugging from a lifecycle into the keystroke that
+causes it.
+
+Suppressed with reasons: `ApiHealthDot` (polling an external system — verbatim
+the case the rule's own message sanctions), `ArticlesIsland` (`setLoading(true)`
+on refilter is deliberate: without it the table shows results for a filter
+already changed), `EditorIsland` and `SettingsIsland` (server state arriving
+later), and `ImagePicker` (the `open` prop flip is the only place that sees all
+three call sites).
+
+**A caveat the agent proved rather than assumed, and recorded in the config:**
+the React Compiler bails out silently on some components, so the rule is not
+exhaustive. Adding a blatant `setLoading(true)` inside `SourcesPanel` produced
+**no** finding, while sites in a different component in the same file were still
+reported. A clean run means "nothing found", not "nothing there" — which is the
+same lesson as the eight `log.md` entries, arriving from a new direction.
+
+The agent exercised the editor by hand and reported specifics rather than a
+claim: autosave created a post and `GET /api/posts/1` confirmed the server
+received the typed text (direct proof the effect-written `sourceRef` is correct
+at save time); the 200ms preview debounce measured as not-at-120ms,
+updated-by-620ms; two reorders 60ms apart, where the second correctly read what
+the first wrote — the specific risk the ref change introduced.
+
+No new tests: three of the five are effect→render/event relocations that
+preserve output exactly, two are ref write-timing, and there is no jsdom/RTL
+harness in this repo to add one to.
+
+**This brief found the eighth "green because nothing ran"** — see the log. It
+also left a scratch post in the gitignored dev DB, which is harmless.
