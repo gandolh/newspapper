@@ -29,31 +29,10 @@ export function stripHtml(html: string): string
 
 ## Wizard
 
-`core/src/wizard/**`, exported from the **`@newspapper/core/wizard`** subpath
-(one of four: `.`, `./templates`, `./publish`, `./wizard`). The language itself
-is documented in [markup.md](./markup.md) — this is the module surface.
-
-```ts
-// parse / format / lint — text <-> WzdDocument, with diagnostics over the tree
-export function parse(src: string): WzdParseResult      // forgiving; collects errors
-export function parseOrThrow(src: string): WzdDocument  // strict; throws WzdSyntaxError
-export function format(src: string, opts?: WzdFormatOptions): string
-export function lint(doc: WzdDocument, opts?: WzdLintOptions): WzdDiagnostic[]
-
-// compile — WzdDocument -> TNode trees the template interpreter renders
-export function compileDocument(doc: WzdDocument, theme: Theme): TNode[]  // strict
-export function compile(src: string, theme: Theme): WzdCompileResult      // forgiving
-```
-
-Two compile paths on purpose: `compileDocument` is strict and feeds the render
-pipeline; `compile`/`compileSource` are forgiving and feed the live preview,
-because a document is broken most of the time while it is being typed. The
-compile is **browser-safe** — no Node APIs — which is why the editor previews
-off the same code the renderer uses instead of a second copy of style
-resolution, and why `api/src/routes/preview.ts` was deleted rather than rebuilt.
-
-`WZD_COMPONENTS` is the catalogue, and it is data: the compiler, the linter and
-the editor's completions all read it rather than restating it.
+`core/src/wizard/**`, on the **`@newspapper/core/wizard`** subpath (one of four:
+`.`, `./templates`, `./publish`, `./wizard`). The module surface — parse,
+format, lint, compile — is documented with the language it serves, in
+[markup.md](./markup.md#module-surface).
 
 ## Render
 
@@ -67,13 +46,22 @@ export async function renderSlides(
 export async function zipRun(outputDir: string): Promise<Uint8Array>
 ```
 
-`renderSlides` launches a Playwright Chromium browser, screenshots each HTML string at 1080×1080, writes PNGs + `slides.json` + optional `caption.txt`.
+`renderSlides` launches a Playwright Chromium browser, screenshots each HTML string at 1080×1080, writes JPEGs + `slides.json` + optional `caption.txt`.
 
 ```ts
-// core/src/templates/interpreter.ts (also re-exported from @newspapper/core/templates)
-// The compile target for `.wzd` documents (core/src/wizard/compile.ts), not
-// an authoring surface. `TemplateDoc`, the JSON template files, the registry
-// below, and `/builder` were all removed in brief 58 — see decisions.md
+// core/src/render/fonts.ts — brief 66
+export function installFontRoute(ctx: BrowserContext): Promise<void>
+```
+
+Serves the render page's `**/assets/fonts/*` from disk, not over HTTP:
+`setContent` leaves the page on an **opaque origin**, so the font fetch carries
+`Origin: null`, the API's UI-only CORS allowlist drops it, and Chromium discards
+bytes that arrived fine. [Why](./decisions-engineering.md#the-renderer-serves-its-own-fonts-from-disk-not-over-http).
+
+```ts
+// core/src/templates/interpreter.ts (also on @newspapper/core/templates)
+// The compile target for `.wzd`, not an authoring surface: `TemplateDoc`, the
+// template JSON, the registry and `/builder` went in brief 58 — decisions.md
 // "The template system is removed".
 export function renderTemplate(root: TNode, data: Record<string,unknown>, theme: Theme, opts: RenderTemplateOptions): string
 export function resolveStyle(style: TStyle, theme: Theme): Record<string, string>

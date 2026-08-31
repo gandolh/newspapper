@@ -63,3 +63,49 @@ are correct) · `api/**` · `ui/**`
 The existing render tests skip cleanly with a warning when Chromium is
 unavailable. Follow that pattern — a font assertion that silently skips in CI is
 worse than none, so make the skip visible.
+
+---
+
+## Outcome — 2026-08-31
+
+Fixed and guarded. `core/src/render/fonts.ts` (new) intercepts
+`**/assets/fonts/*` on the render context and fulfils it from local disk;
+`screenshot.ts` installs it and also awaits `document.fonts.ready`.
+
+**The brief's own hypothesis was wrong, and proving that was most of the work.**
+This was not a timing race. `page.setContent` leaves the render document on an
+**opaque origin**, so Chromium sends the `@font-face` fetch with `Origin: null`;
+font fetches are always CORS-mode; the API's allowlist is the two UI origins; so
+the response arrived complete — 200, all 407 kB — with no
+`Access-Control-Allow-Origin`, and Chromium discarded it. `FontFace.status` was
+`'error'`, and `document.fonts.status` was *already* `'loaded'` with `ready`
+resolved, because a face that errors is a settled face. A `fonts.ready` wait
+alone was measured to change nothing: byte-identical output. It was kept as
+cheap insurance for decode, but it is not the fix. Full reasoning and the
+rejected `data:` URI alternative are in
+[decisions-engineering.md](../../wiki/decisions-engineering.md#the-renderer-serves-its-own-fonts-from-disk-not-over-http).
+
+**Cost: +26 ms per slide**, median 583 → 609 ms over six timed renders. That is
+Chromium rasterising Inter — work it previously skipped by failing the fetch.
+
+**The guard handles the skip case properly**, which matters more here than
+usual. `core/src/render/fonts.test.ts` renders a slide and compares it against
+the same slide with Inter renamed out of existence, with a determinism
+assertion first so the inequality is signal rather than noise. Without Chromium
+the tests report **skipped** (never passed), write a banner to real stderr —
+vitest's default reporter swallows `console.error` from module scope, hooks, and
+passing or skipped tests — and **fail outright under `CI`**. Verified by the
+controller in both modes with `PLAYWRIGHT_BROWSERS_PATH=/nonexistent`.
+
+Chromium 148.0.7778.96 was available; the browser tests genuinely executed.
+
+**One finding was promoted to a brief.** The typography tokens in
+`assets/design-systems/*.json` carry a bare `"fontFamily": "Inter"` with no
+fallback, emitted as an inline style that outranks the interpreter's body rule —
+so a font failure lands on Chromium's default *serif*, not the intended sans.
+That is why this defect presented as "a serif fallback" rather than as a missing
+font. Latent now that fonts load from disk; filed as brief 67.
+
+Also noted, not filed: `api/src/server.ts` still gives `/assets/fonts/` the
+UI-only CORS allowlist. Harmless once the renderer stopped fetching over HTTP,
+but the next non-UI consumer of that path hits the same wall.

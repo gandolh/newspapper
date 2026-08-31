@@ -1,6 +1,6 @@
 ---
 summary: Newspapper Wizard (.wzd) — the JSX-like markup a post is written in: document shape, the component catalogue, the props model, and how it compiles to images.
-updated: 2026-08-27
+updated: 2026-08-31
 ---
 
 # Newspapper Wizard (`.wzd`)
@@ -168,3 +168,27 @@ copy on upload and runs the optimization pass when a post is
 [published](./decisions.md#publishing-is-a-manual-state-that-optimizes-the-output).
 Files live in `uploads/` — gitignored, with an env-overridable absolute path so
 the store can sit outside the repo.
+
+## Module surface
+
+`core/src/wizard/**`, exported from the `@newspapper/core/wizard` subpath.
+
+```ts
+// text <-> WzdDocument, with diagnostics over the tree
+export function parse(src: string): WzdParseResult      // forgiving; collects errors
+export function parseOrThrow(src: string): WzdDocument  // strict; throws WzdSyntaxError
+export function format(src: string, opts?: WzdFormatOptions): string
+export function lint(doc: WzdDocument, opts?: WzdLintOptions): WzdDiagnostic[]
+// WzdDocument -> the TNode trees the template interpreter renders
+export function compileDocument(doc: WzdDocument, theme: Theme): TNode[]  // strict
+export function compile(src: string, theme: Theme): WzdCompileResult      // forgiving
+```
+
+Two compile paths on purpose: strict for the render pipeline, forgiving for the
+live preview, because a document is broken most of the time while it is being
+typed. The compile is **browser-safe** — no Node APIs — so the editor previews
+off the same code the renderer uses rather than a second copy of style
+resolution, which is why `api/src/routes/preview.ts` was deleted, not rebuilt.
+`WZD_COMPONENTS` is the catalogue and it is data: compiler, linter and the
+editor's completions all read it instead of restating it.
+

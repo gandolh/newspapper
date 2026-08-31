@@ -28,6 +28,7 @@ New here? [wiki/overview.md](wiki/overview.md), then
 | [configuration.md](wiki/configuration.md) | Every env var, where settings come from and which source wins, and the Playwright Chromium install step. |
 | [data.md](wiki/data.md) | On-disk and in-DB shapes: the v4 SQLite schema for authored posts, the TNode compile-target shape, and the output/ folder convention. |
 | [decisions-engineering.md](wiki/decisions-engineering.md) | The locked engineering calls — workspaces and ESM, pinned dependencies, SQLite, the UI's type copy, and where project knowledge lives. |
+| [decisions-security.md](wiki/decisions-security.md) | The locked security calls — single-account auth and its lockout, password rotation, and which paths are guarded versus deliberately public. |
 | [decisions.md](wiki/decisions.md) | The locked product calls — no LLM, human-centred editing, the Wizard markup and its semantic component model, images, and where it runs. |
 | [dependencies.md](wiki/dependencies.md) | What each workspace depends on and why that package was chosen over the alternatives. |
 | [design-systems.md](wiki/design-systems.md) | The warm-industrial-1/2/3 theme family — the three palettes, the eleven-step type ramp and the size-to-token mapping it feeds, and how missingThemeTokens gates every theme in the directory. |
@@ -36,7 +37,7 @@ New here? [wiki/overview.md](wiki/overview.md), then
 | [modules.md](wiki/modules.md) | The public API of @newspapper/core — what each module actually exports and from which entry point. |
 | [open-questions.md](wiki/open-questions.md) | What's still unresolved after the pivot — theme palettes, auth details, and how the article library feeds authoring. |
 | [overview.md](wiki/overview.md) | What Newspapper is, the v1→v2→v3 lineage that explains its shape, and what lives where at the top level. |
-| [status.md](wiki/status.md) | Dated snapshot — v3 shipped and is now being deliberately dismantled; the Wizard rebuild is specced but not started. |
+| [status.md](wiki/status.md) | Dated snapshot — the Wizard rebuild is thirteen of sixteen briefs in; the chrome, the render typeface and the docs pass remain. |
 
 <!-- catalog:end -->
 

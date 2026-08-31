@@ -2,12 +2,19 @@
  * htmlToPng / htmlToJpeg — render a self-contained HTML string to an image Buffer.
  *
  * A new page is opened per call (pages are cheap; the browser singleton is
- * the expensive resource). networkidle wait ensures @font-face fonts finish
- * loading before the screenshot is taken.
+ * the expensive resource).
+ *
+ * Fonts: the HTML `renderTemplate` produces carries `@font-face` rules pointing
+ * at the API's `/assets/fonts/`. Those are served from disk instead (see
+ * `fonts.ts`) — an HTTP fetch would be blocked by CORS, because `setContent`
+ * puts the document on an opaque origin. The screenshot then waits for
+ * `document.fonts.ready`, so a face that is still decoding cannot be caught
+ * mid-flight; `networkidle` alone never guaranteed that.
  */
 
 import type { Page } from 'playwright';
 import { getBrowser } from './browser.js';
+import { installFontRoute } from './fonts.js';
 
 export interface HtmlToPngOptions {
   width?: number;
@@ -27,6 +34,9 @@ const DEFAULT_HEIGHT = 1080;
 /** Draft-quality JPEG — file size only matters once a post is published. */
 export const DEFAULT_JPEG_QUALITY = 92;
 
+/** Evaluated in the page: settles when every used @font-face has resolved. */
+const WAIT_FOR_FONTS = 'document.fonts.ready.then(() => true)';
+
 async function withRenderedPage<T>(
   html: string,
   width: number,
@@ -41,9 +51,16 @@ async function withRenderedPage<T>(
     deviceScaleFactor: 1,
   });
 
+  await installFontRoute(ctx);
+
   const page = await ctx.newPage();
   try {
     await page.setContent(html, { waitUntil: 'networkidle' });
+    // @font-face loading is lazy and not part of any navigation lifecycle:
+    // fonts.ready settles once every face the document actually used has
+    // finished (or failed). Written as a source string because `core` compiles
+    // without the DOM lib — `document` is not a name this workspace has.
+    await page.evaluate(WAIT_FOR_FONTS);
     return await fn(page);
   } finally {
     await page.close();

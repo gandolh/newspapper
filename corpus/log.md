@@ -586,3 +586,50 @@ wizard, builder, history and prompt islands, all of which have been deleted.
 A note on provenance: the implementing agent's handoff was lost with the
 session's task registry, so brief 62's outcome note is reconstructed by the
 controller from the diff and the routers. The note says so at the top.
+
+## [2026-08-31] brief | 66 fixes the render typeface — the cause was CORS, not a race
+
+Every rendered JPEG was coming out in a serif fallback while the preview of the
+same document showed Inter. The brief guessed a timing race — Chromium
+screenshotting before `@font-face` resolved — and that guess was wrong.
+
+`page.setContent` leaves the render document on an **opaque origin**, so the
+font fetch goes out with `Origin: null`. Font fetches are always CORS-mode, the
+API's allowlist is the two UI origins, and so the bytes arrived complete (200,
+407 kB) with no `Access-Control-Allow-Origin` and Chromium threw them away.
+That is why the font looked served and the bug looked like a render bug. The
+tell nobody had looked at: `FontFace.status === 'error'`, with
+`document.fonts.status` *already* `'loaded'` — an errored face is a settled
+face, so `fonts.ready` resolves immediately and waiting on it changes nothing.
+Measured: byte-identical output with and without the wait.
+
+The fix serves the fonts from disk via route interception. `data:` URIs were
+rejected — six weights injected per slide, ~547 kB each as base64, ~3.3 MB for
+a document that uses two or three faces. Cost of the fix: +26 ms per slide.
+
+Worth generalising: **an assumption inherited from the bug report is still an
+assumption.** The brief stated the hypothesis as near-settled and it survived
+into the dispatch prompt unchallenged. What broke it was insisting on a failing
+test first — reproducing the defect surfaced the console CORS error that no
+amount of reasoning about the render lifecycle would have produced.
+
+## [2026-08-31] corpus | decisions split; the wizard module surface moves to markup.md
+
+Two pages hit the 200-line cap in one session, which is the signal to split
+rather than to shave prose.
+
+`decisions-engineering.md` gave up its four security entries — lockout, password
+rotation, and what is guarded versus deliberately public — to a new
+`decisions-security.md`. They cohere on their own and share one premise worth
+stating at the top of that page: the app runs on loopback for one person, and
+that assumption is the first thing to revisit if it is ever exposed.
+
+`modules.md` handed the wizard module surface to `markup.md`, which already
+documents the language it serves, and kept a pointer. Someone asking what
+`@newspapper/core/wizard` exports and someone asking what `.wzd` is were being
+sent to two different pages.
+
+Also filed **brief 67** from a brief-66 finding: the slide's typography tokens
+carry a bare `"fontFamily": "Inter"`, emitted inline where it outranks the
+interpreter's body stack — so a font failure lands on serif rather than the
+intended sans. Latent, but it is why brief 66's defect looked like a render bug.

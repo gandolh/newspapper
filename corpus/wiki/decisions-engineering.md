@@ -1,13 +1,16 @@
 ---
 summary: The locked engineering calls — workspaces and ESM, pinned dependencies, SQLite, the UI's type copy, and where project knowledge lives.
-updated: 2026-08-27
+updated: 2026-08-31
 ---
 
 # Decisions — engineering
 
 How the repo and the stack are put together. Product-shaping calls live in
-[decisions.md](./decisions.md); the same rules apply here — don't reopen one
-without an explicit revisit and a [log.md](../log.md) entry.
+[decisions.md](./decisions.md), and the security posture — authentication,
+lockout, what is guarded and what is deliberately public — in
+[decisions-security.md](./decisions-security.md). The same rules apply to all
+three: don't reopen one without an explicit revisit and a
+[log.md](../log.md) entry.
 
 Reasons marked _(reconstructed)_ were recovered from `log.md` and the git
 history rather than recorded at the time.
@@ -94,6 +97,36 @@ hover effects, everything gated behind `prefers-reduced-motion`, and **no motion
 inside the slide canvas** — the preview must never move in a way the renderer
 cannot reproduce.
 
+## The renderer serves its own fonts from disk, not over HTTP
+
+Chromium rendered every slide in a serif fallback while the preview of the same
+document showed Inter. The cause was **not** a timing race, which is what it
+looked like: `page.setContent` leaves the document on an **opaque origin**, so
+the `@font-face` fetch goes out with `Origin: null`. Font fetches are always
+CORS-mode, the API's allowlist is the two UI origins, and the response came back
+with no `Access-Control-Allow-Origin` — 200, all 407 kB, then discarded. That is
+why the font looked served and the bug looked like a render bug.
+
+`document.fonts.ready` alone fixes nothing here, and was measured not to: with
+the CORS failure in place `document.fonts.status` was *already* `'loaded'`,
+because a face that errors is a settled face. The render with the wait was
+byte-identical to the one without.
+
+So `core/src/render/fonts.ts` intercepts `**/assets/fonts/*` on the render
+context and fulfils it from disk. **Rejected: inlining the TTFs as `data:`
+URIs** — the interpreter injects all six Inter weights into every slide, ~547 kB
+each as base64, so a self-contained slide would carry ~3.3 MB for a document
+that measurably uses two or three faces (a face loads lazily). Interception has
+the same properties — zero network, no CORS, no live API — with the HTML at
+1.4 kB, and leaves `interpreter.ts`, shared with the preview, untouched. Cost:
+**+26 ms per slide** (median 583 → 609 ms), which is Chromium rasterising Inter,
+work it previously skipped by failing the fetch.
+
+The guard, `core/src/render/fonts.test.ts`, compares a render against the same
+slide with Inter renamed out of existence. Without Chromium it reports
+**skipped**, not passed, banners to real stderr, and fails outright under `CI` —
+see the log's "green because nothing ran".
+
 ## npm workspaces, three packages, ESM throughout
 _2026-06-10_ — `core` / `api` / `ui`, all `"type": "module"`.
 Every runtime path must resolve from `import.meta.url`, **never**
@@ -124,40 +157,6 @@ The copy held for 2.5 months on discipline alone, and then brief 52 changed
 `Article` and added seven interfaces, at which point the mirror silently drifted.
 Brief 58 owns `ui/src/lib/types.ts` and must both re-sync it and add the guard
 test this entry always claimed existed.
-
-## Login lockout is keyed on address, never on username
-_2026-08-27_ — Five failed logins from one address earn a `429` with
-`Retry-After` for 60 seconds. In-memory, per-process, capped at 1000 keys,
-entries expiring after 15 idle minutes; a success clears the counter.
-Rejected: **an artificial delay**, which the brief suggested. Holding a
-connection open for N seconds *is* the denial of service the measure exists to
-prevent — it hands an attacker free socket exhaustion. Rejected more firmly:
-**keying on username.** Newspapper has exactly one account, so a username-keyed
-lockout lets any stranger who can reach the port lock the owner out of their own
-app indefinitely. The address is the only key that fails safe here.
-
-## The password can be rotated from inside the app
-_2026-08-27_ — `POST /api/password` (guarded, requires the current password,
-rotates the session cookie on success). No UI yet; the endpoint is ready for one.
-Rejected: seeding-only. `ADMIN_PASSWORD` is read at first boot **only**, so
-without a rotation path a compromised password could be changed only by
-hand-editing SQLite, and the plaintext would live in `.env` forever.
-
-## `/uploads/*` is public; `/api/*` and `/output/*` are guarded
-_2026-08-27_ — The upload asset routes serve without a session, deliberately.
-Headless Chromium fetches `<Image>` sources mid-render and carries no cookie, so
-guarding them would break rendering. The exposure is bounded rather than absent:
-a ref carries 32 bits of unguessable entropy, the app is single-user on
-loopback, and the routes are marked `public` explicitly so they keep working if
-the guarded prefix list grows.
-Rejected: minting a render-scoped token — more machinery than a local
-single-user app earns. Note this is a real trade, not an oversight: anyone who
-can reach the port can serve an upload whose ref they have. If Newspapper ever
-leaves loopback, this is the first thing to revisit.
-
-`/output/*` went the other way. The brief only asked for `/api/*`, but the
-rendered slides are the app's actual content and were being served to anyone who
-asked, so the guard covers them too.
 
 ## The default database path is overridable, and tests must override it
 _2026-08-27_ — `getDb()` with no argument resolves `NEWSPAPPER_DB_PATH` first,
