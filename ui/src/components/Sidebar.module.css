@@ -128,3 +128,76 @@
     width: 78px; /* 3 × 26 */
   }
 }
+
+/* One course stops fitting at about 620px: the brand block (151), four 78px
+   compartments (312) and the session cell (~150) want more strip than a phone
+   has. Written in grid multiples and still wrong — measured at 320px, the nav
+   list was left a 12px window onto 312px of compartments and every route but
+   the wordmark was unreachable.
+   The answer keeps the unit and gives up the fixed width. The strip stays
+   78px — 3 × 26 — and divides into two courses: one unit of head carrying the
+   wordmark and the session, two units of compartments under it. A compartment
+   is a *share* of its course, not a width it claims, so nothing is pushed off
+   the edge; the 26px grid governs the courses, which is where it was ever
+   load-bearing. */
+@media (max-width: 640px) {
+  .tray {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: var(--sp-unit) 1fr;
+    grid-template-areas:
+      'brand session'
+      'nav nav';
+  }
+
+  .cell--brand {
+    grid-area: brand;
+    min-width: 0;
+    overflow: hidden;
+    border-right: 0;
+  }
+
+  .cell--session {
+    grid-area: session;
+    flex-direction: row;
+    align-items: center;
+    margin-left: 0;
+    min-width: 0;
+    padding: 0 var(--sp-hair);
+    gap: var(--sp-half);
+  }
+
+  .cells {
+    grid-area: nav;
+    border-top: 1px solid var(--rule);
+  }
+
+  /* A share of the course, floored at 2 × 26. Below that the course scrolls
+     for real: the list is the scroll container, it now spans the whole strip,
+     and its items no longer outrun the window it was given. */
+  .cell-item {
+    flex: 1 1 0;
+    min-width: var(--sp-double);
+  }
+
+  .cell--nav {
+    width: 100%;
+    padding: 0 var(--sp-hair);
+    overflow: hidden;
+  }
+
+  .caption {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* One unit of showing, so the specimen and its caption sit inside the two
+     units the course has. */
+  .showing,
+  .showing svg {
+    width: var(--sp-unit);
+    height: var(--sp-unit);
+  }
+}

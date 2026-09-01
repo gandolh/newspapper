@@ -1219,3 +1219,60 @@ and exists for exactly this — the design system already held the answer.
 The generalisation for any future audit: **a contrast sweep that visits each
 element once, in its default state, does not cover selected, hovered, disabled,
 or sitting on a highlight.** That is now written into brief 75's scope.
+
+## [2026-09-01] brief | 75: the tray fits at 320, and the galley bug was bigger than filed
+
+**The brief's premise was wrong in both directions, and only measurement found
+it.** `document.scrollWidth - clientWidth === 0` was true — but `ul.cells` *was*
+an overflow-x scroll container, scrollWidth 312 against clientWidth 82 at 390px
+and 12 at 320px. At 390 the three routes were reachable by an invisible,
+undiscoverable scroll; at 320 they were genuinely unreachable, confirmed by
+hit-testing after `scrollIntoView`. Worse than filed at 320, milder at 390.
+
+Worth keeping: **the scroll was not the missing fix, it was the bug's
+disguise.** A container that technically scrolls, in a 12px window on a 78px
+strip, reads as "no overflow" to every check that asks whether overflow is
+handled. The check that found it asked a different question — can a person
+actually reach this — and hit-tested the answer.
+
+The tray now divides into two courses below 640px, inside the same 78px strip,
+so `--tray-h` never changed and `global.css` was never opened. The grid survives
+where the spec put it: courses are 1 and 2 units, the strip is 3. **Only the
+compartment width stopped being a multiple — and width was never in the spec**,
+which dimensions a tray cell by height alone. That is the resolution to the
+"grid-conformance is not fitting" tension: the rule was over-read, not wrong.
+
+**The galley bug was bigger than reported.** `--wax-ink` was not losing to two
+tokens; it was **never applying anywhere**. `.text` and `.component` were taking
+graphite at 10.17:1 on wax — which passes, so nothing flagged them, and the
+token existed unused. All eleven wax spans now measure 8.87:1.
+
+The fix removes the cascade fight rather than winning it: every token colour is
+written at zero specificity with `:where()`, so the wax mark's own
+`color: var(--wax-ink)` wins **regardless of module emit order**. Emit-order
+dependence was the actual defect; a specificity bump would have left it one
+refactor from returning. The agent then re-ran the whole sweep against the
+**production bundle**, because dev and prod concatenate CSS differently — the
+precise reason that mattered here.
+
+Measured in a real Chromium viewport via Playwright, twelve widths from 240 to
+1280, and said so rather than implying it. Before/after full-page screenshots at
+1280 are byte-identical on all four non-editor routes.
+
+## [2026-09-01] finding | the health mark breaks the chrome's own rule below 768px
+
+`ApiHealthDot.module.css` hides its label at `max-width: 768px`, so an offline
+API is signalled by a 6px red tick and nothing else — the 320px tray reads
+`NEWSPAPPER … SIGN OUT –`.
+
+That contradicts `design-components.md` §5 by name: *the ink is never the only
+signal — every tone has its own word.* The whole reason The Mechanical uses marks
+instead of coloured badges is that colour alone is not a signal, and this is the
+one place the chrome breaks its own rule. The `aria-label` survives, so the loss
+is visual only — which narrows the fix without excusing it, since the person
+most likely to miss a dead API on a phone is someone glancing at the tray.
+
+Filed as brief 76 with the judgement left open: keep the word, differentiate by
+shape, move the mark somewhere with room, or change the rule — but §5 and the
+code must agree at the end. **A rule the code openly violates is worse than no
+rule**, because it teaches the next reader that the rules are decorative.

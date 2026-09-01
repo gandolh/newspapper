@@ -85,11 +85,11 @@ What is left is genuinely benign:
 
 ## Briefs
 
-Twenty-four Wizard-rebuild briefs (51–74) are in
+Twenty-five Wizard-rebuild briefs (51–75) are in
 [`../briefs/done/`](../briefs/done/) with an outcome note each, alongside the
-thirteen v3 ones. One is open: **75**, the two chrome states nobody measured —
-the tray below 440px, and the galley on the selected line. Each brief is
-self-contained: open only the one directing your work.
+thirteen v3 ones. One is open: **76**, the API health mark losing its word at
+narrow widths. Each brief is self-contained: open only the one directing your
+work.
 
 Waves below are the **executed** order, which differs from the originally filed
 one: file-ownership collisions the dependency graph alone did not show forced

@@ -1,6 +1,6 @@
 ---
-summary: The Mechanical — the app chrome as shipped: tokens, the mark set, the tray, the two authored animations, and why it shares nothing with the slide themes.
-updated: 2026-08-31
+summary: The Mechanical — the app chrome as shipped: tokens, the mark set, the tray and its two-course narrow layout, the two authored animations, why it shares nothing with the slide themes, and the states a once-per-element contrast sweep cannot see.
+updated: 2026-09-01
 ---
 
 # The app chrome — The Mechanical
@@ -44,9 +44,58 @@ text; §9 records what the chrome does not yet carry.
 - **The tray** is `ui/src/components/Sidebar.tsx`: a full-width 78px strip of *showings* —
   each compartment renders what its route produces, not a label — pointing at
   `/`, `/posts`, `/articles`, `/settings`, and `/login` via `SessionMenu`.
+  It is 78px at every width. Below 640px, where one course stops fitting, it
+  divides into **two courses** instead — one unit of head (wordmark, session)
+  over two units of compartments, each compartment a share of its course
+  rather than a fixed width. See the note below on why the fixed width was
+  wrong even though it was a grid multiple.
 - **Primitives** in `ui/src/components/ui/` still sit on Base UI with
   unchanged wrapper APIs (`Select`'s `onValueChange`, `Toggle`'s
   `onCheckedChange`); keep raw `<input>`/`<button>`/dialog elements out of
   feature components. `/kitchen-sink` is the proof surface — every
   primitive and mark on one board — and it exists **only under `vite dev`**,
   via the `proofSheet` plugin in `ui/vite.config.ts`. Keep it current.
+
+## What a once-per-element sweep cannot see
+
+Brief 64 measured the chrome carefully and said what it measured: **one
+viewport, one state per element**. Brief 75 fixed the two defects that sat
+exactly in that blind spot. Both had shipped since 64; neither was a
+regression. Both are worth reading as a method note rather than as two bugs.
+
+**Grid-conformance is not fitting.** The tray's narrow branch was written in
+26px multiples — `width: 78px /* 3 × 26 */` — exactly as the One Grid Rule
+asks, and it was still broken: at a 320px viewport the brand block, four 78px
+compartments and the session cell wanted 619px of strip, the nav list was left
+a 12px window onto 312px of compartments, and `/posts`, `/articles` and
+`/settings` were unreachable — the hit test at each link's centre returned the
+session cell. A rule stated in units invites the belief that satisfying the
+units satisfies the layout. It does not: the unit says how big a thing may be,
+never whether there is room for it. The grid still governs the tray — the
+courses are 1 and 2 units and the strip is 3 — but a compartment's *width* is
+now a share of the space that exists. Anything sized in multiples along an axis
+that has to hold several of them needs a width measured in a browser, at the
+narrowest viewport it claims to support, not an arithmetic check that the
+number divides by 26.
+
+**Contrast is a property of a pair, and one of the pair moves.** Every galley
+token cleared 4.5:1 against paper, which is the surface the sweep visited. On
+the wax highlight that marks the selected element they did not: `punct` and
+`attr` measured 3.88:1 and `value` 4.43:1, because the token colours won the
+cascade over the wax mark's own ink and the galley spent the selected line
+writing paper ink on wax. `--wax-ink` (8.87:1 on wax) existed the whole time
+and never applied anywhere. The states a sweep must re-visit, because each one
+changes a surface or an ink under text that already passed:
+
+- **on a highlight** — wax in the galley; `::selection` anywhere text is selectable
+- **selected / current** — the waxed compartment, the lifted node, the inverted chip
+- **hover and focus-visible** — anything that swaps ink or ground on pointer or key
+- **disabled and held out** — rubylith wash and 45° hatch, both laid *over* live text
+- **error** — the rubylith wash under a lint-flagged run
+
+Two things that look like findings and are not. The galley's `<textarea>` is
+deliberately `color: transparent` over the painted `<pre>`; any sweep will flag
+it and it is correct as it stands. And on wax the galley pools its hues into
+`--wax-ink` on purpose: bold and italic still separate component from tag from
+comment, and the one hue that carried meaning — `process-blue` on prop values —
+is carrying it for the element the tissue is displaying in full at that moment.

@@ -92,3 +92,78 @@ over the highlight layer — a false positive. Do not "fix" it.
 - **Say which viewports you actually measured and how** — a real viewport, an
   iframe, or arithmetic. Brief 74's sub-1280 numbers were iframe-measured and it
   said so; do the same.
+
+---
+
+## Outcome — 2026-09-01
+
+Both fixed. Gate verified by the controller: build ✓, **659 tests / 47 files** ✓,
+lint ✓, `tsc -p ui` at 0 ✓, corpus lint ✓, zero non-zero `border-radius`.
+`global.css`, `core/`, `api/`, `assets/`, `ChipRow` and `/posts` are untouched —
+checked, not asserted.
+
+**The brief's own premise was wrong in both directions, and measurement found
+it.** `document.scrollWidth - clientWidth === 0` was true, but `ul.cells` *was*
+an overflow-x scroll container: scrollWidth 312 against clientWidth **82 at
+390px** and **12 at 320px**. So at 390 the three routes were reachable — by an
+invisible, undiscoverable scroll — and at **320 they were genuinely
+unreachable**, confirmed by hit-testing after `scrollIntoView`, where
+`elementFromPoint` returned the Sign-out button for all four nav links. Worse
+than reported at 320, milder at 390. The scroll was not the missing fix; it was
+the bug's disguise.
+
+**The tray divides into two courses below 640px** — 1 unit of head (wordmark
+left, session right) over 2 units of compartments, inside the same 78px strip.
+`--tray-h` is unchanged, so `EditorIsland`'s `calc(100vh - var(--tray-h) - …)`
+needed no edit and `global.css` was never opened. Compartments become equal
+`flex: 1 1 0` shares floored at `--sp-double`, below which the course scrolls for
+real.
+
+The grid survives where it matters: courses are 1 and 2 units, the strip is 3,
+the showing is 1. **Only the compartment *width* stopped being a multiple — and
+width was never in the spec**, which dimensions a tray cell by `height: 78px`
+alone. Rejected, each with a number: shrinking to 52px (at 320px one course needs
+151 + 208 + ~150 = 509, arithmetically impossible); horizontal scroll as the fix
+(it already existed and was the disguise); icon-only compartments (costs the
+caption and still does not fit); growing the tray to 104px (would edit
+`global.css` and a token other files consume).
+
+**The galley bug was bigger than filed.** `--wax-ink` was not merely losing to
+two tokens — it was **never applying anywhere**: `.text` and `.component` were
+taking graphite at 10.17:1 on wax, which passes, so nothing flagged them. All
+eleven wax spans now measure **8.87:1**.
+
+The fix is the right shape: every token *colour* is written at zero specificity
+with `:where()`, so `Marks.module.css`'s `color: var(--wax-ink)` on the wax run
+wins **regardless of module emit order**. Weight and slope stay at normal
+specificity, so `component` is still 700, `binding` 700, `comment` italic. That
+removes the cascade fight rather than winning it — the emit-order dependence was
+the actual defect, and a specificity bump would have left it one refactor away
+from returning.
+
+**`.value` pools into `--wax-ink`; the blue does not darken.** Four reasons, and
+the second is the good one: the blue's job is that prop values are the one thing
+the markup names — and on the *selected* run that job is redundant, because the
+tissue is displaying that element's props in full at that moment. Also: two inks
+on one line is two marks, against The One Mark Rule; the casing distinction
+survives in weight and slope; and keeping the blue needed a new token
+(process-blue needs L ≤ 0.1177 for 4.5:1 on wax and sits at 0.1208 — it fails by
+a hair) plus a `design.md` sidecar entry the brief did not own.
+
+**Measured in a real Chromium viewport, not iframes** — Playwright, already a
+dependency, driving `setViewportSize` across 240 / 280 / 320 / 390 / 480 / 600 /
+640 / 641 / 700 / 768 / 1024 / 1280. Zero unreachable routes, zero clipped
+compartments, zero document h-scroll at every one. **Then re-run against the
+production bundle**, which was worth doing precisely because the fix turns on CSS
+module ordering and dev and prod concatenate differently. One figure is
+arithmetic and labelled as such: `--wax-ink` over a lint-error run (16% rubylith
+wash on wax) computes to ~7.46:1, unmeasured.
+
+Nothing else changed at 1280: full-page screenshots of `/`, `/posts`,
+`/articles` and `/settings` before and after are **byte-identical PNGs**. Only
+the editor with a node selected differs, which is the intended change.
+
+**One finding outside its ownership, filed as brief 76:**
+`ApiHealthDot.module.css` hides its label below 768px, so an offline API is a
+6px red tick and nothing else — contradicting §5's *the ink is never the only
+signal*. Visual-only; the `aria-label` survives.

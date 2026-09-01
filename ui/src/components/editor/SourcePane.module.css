@@ -140,39 +140,65 @@
 
 /* ---- Syntax follows casing, not category (DESIGN.md §5, The Galley) ----
    lowercase document tags recede, capitalised components are the structure,
-   prop values are the one thing the markup itself names. */
-.text {
+   prop values are the one thing the markup itself names.
+
+   Every colour below is written at zero specificity, with `:where()`, and
+   that is load-bearing rather than tidy. A token span on the selected line
+   also carries the wax mark from `ui/Marks.module.css`, which paints the
+   wax ground and sets the ink that ground needs — `--wax-ink`, 8.87:1. These
+   rules used to win it on cascade order alone, so the galley spent the
+   selected line writing paper ink on wax: `punct` and `attr` at 3.88:1,
+   `value` at 4.43:1, and the wax's own ink never applied anywhere. At zero
+   specificity the mark wins whatever order the bundler emits the two modules
+   in, which is the part that must not depend on luck. Off the wax nothing
+   changes.
+
+   Weight and slope are *not* dropped to zero specificity: `component`,
+   `binding` and `comment` keep their bold and their italic on wax, so the
+   casing distinction the galley encodes survives the highlight. Only hue
+   pools — and hue on wax was carrying the one claim the wax already makes,
+   that this is the element the inspector is showing. */
+:where(.text) {
   color: var(--graphite);
 }
 
-.punct {
+:where(.punct) {
   color: var(--graphite-soft);
+}
+
+:where(.component) {
+  color: var(--graphite);
 }
 
 .component {
-  color: var(--graphite);
   font-weight: 700;
 }
 
-.structure {
+:where(.structure) {
   color: var(--graphite-soft);
 }
 
-.attr {
+:where(.attr) {
   color: var(--graphite-soft);
 }
 
-.value {
+:where(.value) {
   color: var(--process-blue);
+}
+
+:where(.comment) {
+  color: var(--graphite-soft);
 }
 
 .comment {
-  color: var(--graphite-soft);
   font-style: italic;
 }
 
-.binding {
+:where(.binding) {
   color: var(--process-blue);
+}
+
+.binding {
   font-weight: 700;
 }
 

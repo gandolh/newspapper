@@ -1,5 +1,5 @@
 ---
-summary: The Mechanical, §5–§9 — the component vocabulary (board, tray, galley, stage, tissue, marks), the two authored animations, browser surfaces, the do/don't list, and what the shipped chrome does not yet carry. §1–§4 and the tokens are in design.md.
+summary: The Mechanical, §5–§9 — the component vocabulary (board, the two-course tray, the galley and its wax ink, stage, tissue, marks), the two authored animations, browser surfaces, the do/don't list, and what the shipped chrome does not yet carry. §1–§4 and the tokens are in design.md.
 updated: 2026-09-01
 ---
 
@@ -20,8 +20,12 @@ The app ground. `#fbfbf9` under a 26px non-photo blue lattice drawn as two `repe
 ### The Tray (component palette / nav)
 A full-width strip at the top of the board, 78px, closed by a 1.5px graphite rule. Compartments divided by 1px `rule`, each holding one component as a **showing** plus a 8.5px mono caption. An unavailable compartment takes a 45° hatch (`repeating-linear-gradient(45deg, transparent 0 5px, rgba(43,43,43,.07) 5px 10px)`) — the same "held out" idea as rubylith, at tray scale. The comps also dropped it to 42% opacity; that puts a 9px caption at ~3.1:1, so the ink stays full and the hatch carries the state on its own.
 
+**A compartment's width is a share, not a multiple.** The strip is 78px (3 × 26) at every width. Below 640px, where one course no longer holds the brand block, four compartments and the session cell, it divides into **two courses** — one unit of head carrying the wordmark and the session, two units of compartments under it — and each compartment takes an equal share of the course, floored at 2 × 26, below which the course scrolls. Every route stays reachable down to 240px. Fixing the compartment width at a grid multiple is what made the tray unusable on a phone from brief 64 to brief 75: see [chrome.md](./chrome.md), *grid-conformance is not fitting*.
+
 ### The Galley (source pane)
 A **waxed** paper strip, 372px, top-aligned, with a graphite tab carrying the filename. The bottom edge is torn, not cut — a clip-path deckle that says the copy continues. Syntax colour follows **casing**: lowercase document tags in `graphite-soft`, capitalised components in graphite 700, prop values in `process-blue`. (The comps set the document tags in `#9d9d97`, which is 2.6:1 on paper — recede by weight and case, not by dropping below the ink floor.) The selected line is waxed (`#f5d97a`, bled 20px past the text on both sides); a lint-flagged line takes a 16% rubylith wash.
+
+**On wax the galley writes in `wax-ink`.** Wax is a surface, and a surface has its own ink: every token on the selected run takes `#3d3416` (8.87:1 on wax), because the paper inks do not hold 4.5:1 on it — `graphite-soft` measures 3.88:1 and `process-blue` 4.43:1. The casing distinction survives the highlight in weight and slope, not in hue: components stay 700, comments stay italic. Hue pools, and the one hue that carried meaning — `process-blue` on prop values — pools for the one element the tissue is displaying in full while it is selected. The token colours are written at zero specificity (`:where()`) so the wax mark wins on merit rather than on which CSS module the bundler emitted last.
 
 ### The Stage (canvas)
 The 1080² slide inside 30px of clearance, with **crop marks** — 1px L-ticks at each corner — and a **register target** (a 22px crosshair inside a circle) at each of the four corners. A dimension line across the top states the real size. The slide itself is warm-industrial and untouched by this system.
@@ -67,7 +71,7 @@ Boards in a grid, each a waxed card: crop marks around the slide thumbnail, then
 
 **The Fixed Scale Rule.** Every slide thumbnail in a set renders at one scale on a shared baseline, so the strip and the flat file are true comparisons.
 
-**The One Grid Rule.** 26px, everywhere, at every breakpoint. Elements snap to it; the grid never carries information.
+**The One Grid Rule.** 26px, everywhere, at every breakpoint. Elements snap to it; the grid never carries information. **Corollary — grid-conformance is not fitting.** A multiple of 26 is a legal size, never a proof that the size fits: a row of them can still be wider than the viewport. Anything sized in units along an axis that holds several of them is measured in a browser at the narrowest width it claims, or it is not measured.
 
 ## 6. Motion
 
@@ -106,6 +110,7 @@ digits — slide counts, dates, dimensions, ordinals.
 - **Do** give findings a leader line and a number (The Measured Note Rule).
 - **Do** scale the preview by integer factors only.
 - **Do** give every interactive element its full state set: default, hover, focus-visible, active, disabled, loading — and design the empty and error states before the happy path.
+- **Do** re-measure contrast in every state that moves a surface or an ink — on a highlight, selected, hover, focus-visible, disabled, held out, error — not once per element on its resting ground.
 
 ### Don't:
 - **Don't** round a corner. Anywhere. (The Flat Corner Rule.)
@@ -161,12 +166,14 @@ absence reads as a decision rather than unfinished work.
   inverts to solid rubylith. No scale in the Wizard catalogue has such a value,
   so `ChipRow` does not build the variant — an unused variant is one nobody has
   looked at. The line stands until a scale needs it.
-- **The tray below ~440px.** The One Grid Rule says *at every breakpoint*, and
-  the tray is where that is not yet true: its compartments are a fixed 78px
-  each, so at a 390px viewport `/posts`, `/articles` and `/settings` sit past
-  the right edge with nothing scrolling to reach them
-  (`ui/src/components/Sidebar.module.css`). Measured 2026-09-01; the rest of
-  `/posts` holds its grid from 320px up.
+
+**Carried since (75):** the tray below ~440px. Its compartments were a fixed
+78px each, so at 390px `/posts`, `/articles` and `/settings` sat past the right
+edge and at 320px none of the four was reachable at all. The strip now divides
+into two courses below 640px and a compartment is a share of its course; every
+route is reachable from 240px up, measured in a real Chromium viewport. The
+galley's contrast on wax went the same way — both are written up in
+[chrome.md](./chrome.md).
 
 The tissue also hinges on **selection change** rather than on source focus:
 selecting a node swings the sheet down with the notes already on it. Lifting it
