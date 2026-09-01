@@ -5,6 +5,7 @@ import {
   Button,
   Card,
   Input,
+  ChipRow,
   Select,
   Mark,
   Skeleton,
@@ -381,20 +382,14 @@ function ArticlesPage() {
         subtitle="Search RSS feeds by keyword, save what's worth writing about, and manage your sources."
       />
 
-      <div className={styles.tabBar} role="tablist">
-        {tabs.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            role="tab"
-            aria-selected={tab === t.id}
-            className={`${styles.tab} ${tab === t.id ? styles.tabActive : ''}`}
-            onClick={() => setTab(t.id)}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+      <ChipRow
+        className={styles.tabBar}
+        behavior="tablist"
+        ariaLabel="Articles panels"
+        options={tabs.map((t) => ({ value: t.id, label: t.label }))}
+        value={tab}
+        onValueChange={(v) => setTab(v as Tab)}
+      />
 
       <div className={styles.tabPanel}>
         {tab === 'search' && <SearchPanel />}

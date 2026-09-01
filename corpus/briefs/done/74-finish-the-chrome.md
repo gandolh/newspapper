@@ -78,3 +78,66 @@ If you find yourself building either, you have misread this brief.
   surface.
 - `npm run build`, `npm test`, `npm run lint` pass; `npx tsc -p ui --noEmit` at
   0; `bash corpus/lint.sh` clean.
+
+---
+
+## Outcome — 2026-09-01
+
+Both items shipped. Gate verified by the controller: build ✓, **659 tests / 47
+files** ✓, lint ✓, `tsc -p ui` at 0 ✓, corpus lint ✓. `core/`, `api/`,
+`assets/`, `global.css` and the editor's `edits/paths/props.ts` are untouched —
+checked, not asserted.
+
+**`ChipRow` is a shared primitive, and the brief's premise about it was wrong.**
+The dispatch said three places open-code a chip row. Only **two** do — `/posts`'s
+keyword filter and `/articles`'s panel switch, near-identical blocks differing
+only in horizontal padding. The third, the narrow editor's pane switcher, is
+`<Button variant={pane === name ? 'primary' : 'ghost'} size="sm">` in a 4px-gap
+flex; **only its CSS comment calls it a chip row.** Converting it would have
+changed its appearance (Archivo 12px → mono 9px uppercase) and reached brief
+59's three-pane layout, so it was left alone. Both real instances adopted the
+primitive in the same pass, so the chip CSS went from two copies to one — not,
+as the brief risked, to three.
+
+`size` (5 steps), `align` (3) and `emphasis` (3) — the only three scales in the
+catalogue — render as chips; no `Select` remains in the pane. Content props keep
+their fields. **`size` at five is the ceiling**: a scale past about six should go
+back to a `Select`, recorded in §9 and in the component's docstring.
+
+No rubylith chip was built. §5 specifies one for a masking value, but no scale
+in the catalogue has such a value, so building it would have meant a variant
+with no caller. §9 records it as still-not-carried.
+
+**Brief 64's "1280px only" gap is closed for `/posts`**: 1280 in a real viewport,
+then 1024 / 900 / 768 / 600 / 390 / 320 each in a same-origin iframe of that
+width — real layout and media queries, same engine and stylesheet, but **not** a
+resized window, and the outcome says so rather than implying viewport coverage.
+Columns 3/2/2/2/1/1/1, gutter 26px above 768 and 13px below, document overflow 0
+at every width including 320.
+
+**Appearance was held by a per-property control, not by eye.** For each adopted
+call site the *deleted* declarations were transcribed out of `git show HEAD:` into
+a live element beside the real one and computed styles diffed: `/articles` 3
+chips × 25 properties → 0 differences; `/posts` 8 chips × 20 properties → 0
+differences. A sanity assertion confirmed the control carried the old classes and
+the subject the new ones — so the control could not collapse into its subject,
+which is the failure that bit brief 66's guard and has its own log entry.
+
+Contrast re-measured rather than assumed: 111/111 text elements on `/posts` and
+78/78 on `/kitchen-sink` at ≥4.5:1. Every mark the list carried the grid still
+carries — 2 stamps, 5 tissue corners, 7 crop-mark sets, 24 `Mark`s, 7
+thumbnails — and publish and delete are still behind confirms.
+
+**Two findings outside its ownership, both filed as brief 75 and both verified
+by the controller.** The tray is unusable below ~440px: the `≤768px` branch fixes
+each nav cell at 78px, so at 390px the last three links sit at x = 230/308/386
+and `scrollWidth - clientWidth === 0` — those routes are unreachable, with no
+scroll to reach them. And ten galley elements fail 4.5:1 **on the wax of the
+selected line**: `.punct`/`.attr` at 3.88:1 and `.value` at 4.43:1, both
+confirmed numerically. Neither is a regression; both have shipped since brief 64,
+and both are states a once-per-element sweep at one viewport cannot reach.
+
+Method caveat the agent stated rather than hid: `git stash` is blocked by this
+environment, so no pre-change bundle could be built for a pixel diff. The
+injected-old-CSS control above is the substitute — stronger per-property, but it
+does not cover pixels nobody enumerated.

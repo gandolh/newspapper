@@ -2,44 +2,10 @@
    Articles — search, library, and sources on one sheet
    ============================================================= */
 
-/* A scale-chip row: equal chips, tick border, the current one inverted. */
+/* The panel switch is a `ChipRow` (DESIGN.md §5) — the chips themselves live
+   in `ui/ChipRow.module.css`; this only spaces the row off the panel. */
 .tabBar {
-  display: flex;
-  gap: 4px;
   margin-bottom: var(--sp-unit);
-}
-
-.tab {
-  appearance: none;
-  height: var(--sp-unit);
-  padding: 0 var(--sp-half);
-  border: 1px solid var(--tick);
-  background: var(--paper);
-  font-family: var(--font-galley);
-  font-size: var(--fs-field);
-  font-weight: 500;
-  letter-spacing: var(--ls-field);
-  text-transform: uppercase;
-  color: var(--graphite-soft);
-  cursor: pointer;
-}
-
-.tab:hover {
-  border-color: var(--graphite);
-  color: var(--graphite);
-}
-
-.tabActive {
-  background: var(--graphite);
-  border-color: var(--graphite);
-  color: var(--board);
-}
-
-/* `.tab:hover` is (0,1,1) and out-ranks `.tabActive` at (0,1,0), so without
-   this the active tab's label went graphite-on-graphite — 1:1, invisible — the
-   moment you pointed at it. (0,2,0) wins. */
-.tabActive:hover {
-  color: var(--board);
 }
 
 .tabPanel {

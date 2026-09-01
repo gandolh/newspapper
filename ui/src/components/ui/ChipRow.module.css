@@ -1,0 +1,101 @@
+/* The scale chip row — DESIGN.md §5, Fields.
+   Equal chips, a 1px tick edge, mono uppercase, zero radius, 4px gutters. The
+   active chip inverts to solid graphite on board, the same inversion
+   `Button --primary` makes. This file is the one place that CSS lives; before
+   it, `/posts` and `/articles` each open-coded their own copy. */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-hair);
+}
+
+/* Matches `Select`'s field label exactly — a chip row and a select are the
+   same kind of control and must not read as two different fields. */
+.label {
+  font-family: var(--font-galley);
+  font-size: var(--fs-field);
+  font-weight: 500;
+  line-height: var(--lh-field);
+  letter-spacing: var(--ls-field);
+  text-transform: uppercase;
+  color: var(--graphite-soft);
+}
+
+.row {
+  display: flex;
+  gap: 4px;
+}
+
+.row--wrap {
+  flex-wrap: wrap;
+}
+
+.chip {
+  appearance: none;
+  height: var(--sp-unit);
+  padding: 0 var(--sp-half);
+  border: 1px solid var(--tick);
+  background: var(--paper);
+  color: var(--graphite-soft);
+  font-family: var(--font-galley);
+  font-size: var(--fs-field);
+  font-weight: 500;
+  letter-spacing: var(--ls-field);
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* A row with many chips in it — the keyword filter — buys its width back
+   from the gutters rather than from the type. */
+.chip--hair {
+  padding: 0 var(--sp-hair);
+}
+
+/* "Equal chips": the row is a scale, so every step gets the same width
+   regardless of how long its name happens to be. Declared after
+   `.chip--hair` on purpose — an equal chip is sized by flex, so its own
+   `padding: 0` has to win if a caller passes both. */
+.chip--equal {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chip:hover {
+  border-color: var(--graphite);
+  color: var(--graphite);
+}
+
+/* Attribute selectors, not a modifier class: (0,2,0) out-ranks `:hover` at
+   (0,1,1) on its own, so the active chip cannot go graphite-on-graphite the
+   moment you point at it. */
+.chip[aria-pressed='true'],
+.chip[aria-selected='true'] {
+  background: var(--graphite);
+  border-color: var(--graphite);
+  color: var(--board);
+}
+
+/* Held out. `pointer-events: none` keeps `:hover` off it entirely, so the
+   active chip stays legible while the row is unusable. */
+.chip:disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.chip:disabled:not([aria-pressed='true']):not([aria-selected='true']) {
+  background: var(--board);
+  color: var(--graphite-soft);
+  border-color: var(--tick);
+}
+
+.hint {
+  font-family: var(--font-galley);
+  font-size: 10px;
+  line-height: 1.45;
+  color: var(--graphite-soft);
+}

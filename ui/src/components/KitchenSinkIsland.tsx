@@ -11,6 +11,7 @@ import { useState } from 'react';
 import {
   Button,
   Card,
+  ChipRow,
   ConfirmDialog,
   CropMarks,
   EmptyState,
@@ -33,6 +34,8 @@ import {
   WAX,
 } from './ui';
 import styles from './KitchenSinkIsland.module.css';
+
+const SIZE_SCALE = ['xs', 'sm', 'md', 'lg', 'xl'].map((value) => ({ value }));
 
 const SELECT_OPTIONS = [
   { value: 'warm-industrial-1', label: 'warm-industrial-1' },
@@ -72,6 +75,7 @@ export default function KitchenSinkIsland() {
   const [progress, setProgress] = useState(40);
   const [toggleOn, setToggleOn] = useState(false);
   const [theme, setTheme] = useState('warm-industrial-1');
+  const [size, setSize] = useState('md');
 
   return (
     <ToastProvider>
@@ -145,6 +149,23 @@ export default function KitchenSinkIsland() {
             <Input label="Feed" defaultValue="not a url" error="That is not a URL." />
             <Textarea label="Caption" placeholder="What goes with the post…" />
             <Select label="Theme" options={SELECT_OPTIONS} value={theme} onValueChange={setTheme} />
+            <ChipRow
+              label="size"
+              hint="A named scale picks itself in a row, not in a menu."
+              options={SIZE_SCALE}
+              value={size}
+              equal
+              onValueChange={setSize}
+            />
+            <ChipRow
+              label="align"
+              hint="Held out — the markup does not parse."
+              options={[{ value: 'left' }, { value: 'center' }, { value: 'right' }]}
+              value="center"
+              equal
+              disabled
+              onValueChange={() => {}}
+            />
             <Toggle
               label="Enabled"
               checked={toggleOn}

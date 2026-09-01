@@ -1120,3 +1120,102 @@ document, semantic token-only components, flow layout, markup as source of
 truth, format-and-lint-like-JSX, the editor's data model — against product
 shape. Fourth split; the trigger each time has been a second subject growing
 inside a page, not prose bloat.
+
+## [2026-09-01] brief | 74 finishes the chrome — one chip row, and /posts becomes a grid
+
+Brief 74's two items are built, and §9 of `design-components.md` now records
+what remains rather than what was pending.
+
+**The chip row is a primitive.** `ui/src/components/ui/ChipRow.tsx` — the
+scale-chip row §5 has always specified. It was open-coded in two places
+(`/posts`'s keyword filter, `/articles`'s panel switch) with near-identical
+declarations differing only in horizontal padding; both now import it, and the
+inspector's `size`/`align`/`emphasis` render through it instead of `Select`.
+Extracting was the call because the alternative — a third copy in the
+inspector — was the one the brief named as indefensible. The old CSS was
+transcribed out of `git show HEAD:` and rendered as a control beside the new
+control in a live browser: 0 differences across 20–25 computed properties per
+chip, plus rects, gutters and the row's bottom margin.
+
+The narrow editor's pane switcher was *called* a chip row in a comment but is
+built from `Button`s, and converting it would have both changed appearance and
+reached brief 59's three-pane layout. It stayed as it is; the comment is the
+only thing that was ever a chip there.
+
+**No rubylith chip.** §5 gives a masking value a chip that inverts to rubylith.
+No scale in the catalogue has such a value, so the variant is not built — an
+unused variant is one nobody has looked at.
+
+**`/posts` is a grid of boards**, `auto-fill` at a 13-unit minimum with a
+one-unit gutter: three across the 1092px column, two around 900, one below
+~700, and `min(…, 100%)` so a 320px viewport does not overflow.
+
+**The breakpoint gap brief 64 left open is now half closed.** 64 measured the
+grid at 1280px only. `/posts` was measured at 1280 in the real viewport and at
+1024/900/768/600/390/320 in same-origin iframes: column count, gutter, equal
+board heights, chip-row overflow and document overflow all hold, and the
+thumbnail keeps its one fixed scale throughout. What that measurement *found*
+is a defect nobody had seen: the tray's compartments are a fixed 78px, so below
+~440px `/posts`, `/articles` and `/settings` sit past the right edge with
+nothing scrolling to reach them. Recorded in §9, not fixed — the tray is not
+this brief's.
+
+Contrast was re-measured rather than assumed: 107 text elements on `/posts`, 78
+on `/kitchen-sink`, 0 below 4.5:1. The editor reports 11, all pre-existing and
+none of them chips — ten are the galley's syntax colours sitting on the wax of
+the selected line, and one is the deliberately transparent textarea over the
+highlight layer.
+
+## [2026-09-01] brief | 74: the chip row is a primitive, and the brief miscounted its callers
+
+Shipped both items. `ChipRow` now renders `size`, `align` and `emphasis` in the
+inspector — no `Select` left in the pane — and `/posts` is a grid of boards.
+
+**The dispatch was wrong about its own premise and the agent corrected it.** It
+claimed three places open-code a chip row. Only two do; the third — the narrow
+editor's pane switcher — is `<Button variant={...} size="sm">` in a flex, and
+**only its CSS comment calls it a chip row.** Converting it would have changed
+its appearance and reached brief 59's layout. So the extraction took chip CSS
+from two copies to one rather than, as instructed, to three. Worth remembering:
+a comment naming a pattern is not evidence the pattern is there, and the
+controller had propagated that comment into a contract.
+
+Appearance was held by a control worth copying: for each adopted call site the
+*deleted* declarations were transcribed out of `git show HEAD:` into a live
+element beside the real one and computed styles diffed property by property —
+0 differences across 3 chips × 25 properties and 8 chips × 20. A sanity
+assertion confirmed the control carried the old classes and the subject the new
+ones, so it could not collapse into its subject — the exact failure that bit
+brief 66's guard.
+
+Brief 64's "measured at 1280px only" gap is closed for `/posts` — 1024 down to
+320 — and the outcome says **iframe-measured**, not resized-window, because the
+tooling exposes no viewport control. Precision about method is the difference
+between closing a gap and appearing to.
+
+## [2026-09-01] finding | the tray is unreachable below 440px, and the galley fails on wax
+
+Both found by brief 74 while measuring what brief 64 could not, both verified by
+the controller, both filed as brief 75. Neither is a regression — they have
+shipped since brief 64.
+
+**The tray.** Its `@media (max-width: 768px)` branch sets `.cell--nav { width:
+78px }`, fixed. At a 390px viewport the last three links sit at x = 230/308/386
+with width 78, and `document.scrollWidth - clientWidth === 0` — so `/posts`,
+`/articles` and `/settings` are off-screen with **no scroll to reach them.**
+
+The reason it survived review is the interesting part. Brief 64's outcome note
+says the `≤768px` branch "is written in grid multiples but was never measured".
+It is written in grid multiples — 78 is 3 × 26 — and it is still broken.
+**Grid-conformance is not fitting**, and a rule stated in units invites the
+belief that satisfying the units satisfies the layout.
+
+**The galley.** On the wax of the *selected* line, `.punct`/`.attr` measure
+3.88:1 and `.value` 4.43:1. Brief 64 measured every colour against its own
+surface and each clears 4.5:1 on paper; they fail only in a state a
+once-per-element sweep never visits. `--wax-ink #3d3416` measures 8.87:1 on wax
+and exists for exactly this — the design system already held the answer.
+
+The generalisation for any future audit: **a contrast sweep that visits each
+element once, in its default state, does not cover selected, hovered, disabled,
+or sitting on a highlight.** That is now written into brief 75's scope.

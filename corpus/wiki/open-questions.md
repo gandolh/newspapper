@@ -17,7 +17,7 @@ The two that survived the v4 rebuild were both settled on 2026-09-01:
   reference, not a pipeline input; see
   [decisions.md](./decisions.md#a-saved-article-is-a-reference-not-a-pipeline-input).
 - *Which design-spec gaps are worth building?* — two are
-  [brief 74](../briefs/todo/74-finish-the-chrome.md) and two were dropped, in
+  [brief 74](../briefs/done/74-finish-the-chrome.md) and two were dropped, in
   [design-components.md §9](./design-components.md#9-what-the-shipped-chrome-does-not-carry).
 
 An empty page here is the goal state, not a gap. If a question sits here for

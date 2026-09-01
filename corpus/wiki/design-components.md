@@ -119,22 +119,27 @@ digits — slide counts, dates, dimensions, ordinals.
 
 ## 9. What the shipped chrome does not carry
 
-Brief 64 built §1–§7 across every route. Four things described above had no
-implementation, each blocked on changing a structure rather than clothing. On
-2026-09-01 they were split: two are [brief
-74](../briefs/todo/74-finish-the-chrome.md), and **two are dropped** — not
+Brief 64 built §1–§7 across every route and left four things described above
+without an implementation, each blocked on changing a structure rather than
+clothing. On 2026-09-01 they were split: two were built by [brief
+74](../briefs/done/74-finish-the-chrome.md), and **two are dropped** — not
 pending.
 
-**Briefed (74):**
+**Built (74):**
 
-- **The scale-chip row for constrained props** (§5, Fields). The inspector still
-  selects an enum through `Select`. The vocabulary is already in the app — the
-  keyword filter on `/posts` and the tab rows on `/articles` and the narrow
-  editor are scale chips — so this is using an existing control in the one pane
-  that lacks it.
-- **The flat file as a grid of boards** (§5). `/posts` carries every mark
-  already — stamp, tissue corner, crop marks, mono rows — but lays them out as a
-  row where the spec calls for a grid.
+- **The scale-chip row for constrained props** (§5, Fields) is
+  `ui/src/components/ui/ChipRow.tsx`. The inspector's `size`, `align` and
+  `emphasis` — the only three scales in the catalogue — pick themselves in a
+  row of equal chips; content props (`Image.src`, `Quote.by`, `Stat.label`)
+  keep their field. The row is also the keyword filter on `/posts` and the
+  panel switch on `/articles`, both of which open-coded the same CSS before and
+  now import it. **It is a row, and that is the constraint**: `size` at five
+  steps is the longest scale the 282px tissue holds, and a scale past about six
+  belongs back in a `Select`.
+- **The flat file is a grid of boards** (§5). `/posts` lays its boards out
+  `auto-fill` at a 13-unit minimum with a one-unit gutter — three across the
+  1092px column, two around 900, one below ~700 — each board carrying the marks
+  it carried as a row.
 
 **Dropped, deliberately:**
 
@@ -149,6 +154,19 @@ pending.
 The shared reason: a decoration that requires new structure is the point where
 the spec is asking for more than it is worth. Recording that here so their
 absence reads as a decision rather than unfinished work.
+
+**Still not carried:**
+
+- **The rubylith chip.** §5 gives a masking value (`Hold out`) a chip that
+  inverts to solid rubylith. No scale in the Wizard catalogue has such a value,
+  so `ChipRow` does not build the variant — an unused variant is one nobody has
+  looked at. The line stands until a scale needs it.
+- **The tray below ~440px.** The One Grid Rule says *at every breakpoint*, and
+  the tray is where that is not yet true: its compartments are a fixed 78px
+  each, so at a 390px viewport `/posts`, `/articles` and `/settings` sit past
+  the right edge with nothing scrolling to reach them
+  (`ui/src/components/Sidebar.module.css`). Measured 2026-09-01; the rest of
+  `/posts` holds its grid from 320px up.
 
 The tissue also hinges on **selection change** rather than on source focus:
 selecting a node swings the sheet down with the notes already on it. Lifting it

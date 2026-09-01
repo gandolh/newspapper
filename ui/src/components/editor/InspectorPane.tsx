@@ -11,6 +11,13 @@
  * will actually use. There is no raw-CSS field and no "advanced" section, by
  * design: a prop that carried a style value would be the one line that lets a
  * post drift off-brand.
+ *
+ * A prop whose values come from a named scale — `size`, `align`, `emphasis`,
+ * and those are the only three — picks itself in a `ChipRow`, because the
+ * whole scale should be on screen at once (DESIGN.md §5, Fields). The longest
+ * of them is `size` at five steps, which a row in the 282px tissue holds; a
+ * scale that grew past about six would have to go back to a `Select`. Content
+ * props keep their field.
  */
 
 import { useEffect, useRef, useState } from 'react';
@@ -22,7 +29,7 @@ import {
   WZD_HEAD_FIELDS,
   type WzdDocument,
 } from '@newspapper/core/wizard';
-import { Button, EmptyState, Input, Select, Textarea } from '../ui';
+import { Button, ChipRow, EmptyState, Input, Textarea } from '../ui';
 import { ancestorPaths, elementAtPath, type WzdPath } from './paths.js';
 import { inheritedAlign, textOf } from './props.js';
 import { hinge } from '@/lib/motion';
@@ -265,15 +272,16 @@ export default function InspectorPane(props: InspectorPaneProps) {
                     : (resolved[propSpec.name] ?? propSpec.default ?? '');
                 return (
                   <div className={styles.prop} key={propSpec.name}>
-                    <Select
+                    <ChipRow
                       label={propSpec.name}
                       hint={
                         isSet
                           ? propSpec.description
                           : `${propSpec.description} ${inherits ? 'Inherited' : 'Default'}: ${effective}.`
                       }
-                      options={values.map((value) => ({ value, label: value }))}
+                      options={values.map((value) => ({ value }))}
                       value={effective}
+                      equal
                       disabled={disabled}
                       onValueChange={(value) => onSetProp(selectedPath, propSpec.name, value)}
                     />

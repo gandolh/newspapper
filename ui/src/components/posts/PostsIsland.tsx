@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Button,
   Card,
+  ChipRow,
   ConfirmDialog,
   CropMarks,
   EmptyState,
@@ -31,6 +32,9 @@ interface RenderSummary {
 }
 
 type StatusFilter = 'all' | PostStatus;
+
+/** The keyword row's "no filter" chip. Not a keyword — `null` on the wire. */
+const ALL_KEYWORDS = '\u0000all';
 
 const STATUS_OPTIONS = [
   { value: 'all', label: 'All posts' },
@@ -202,34 +206,25 @@ function PostsPage() {
       </div>
 
       {allKeywords.length > 0 && (
-        <div className={styles.keywords}>
-          <button
-            type="button"
-            className={styles.keywordChip}
-            aria-pressed={keyword === null}
-            onClick={() => setKeyword(null)}
-          >
-            All keywords
-          </button>
-          {allKeywords.map((k) => (
-            <button
-              key={k}
-              type="button"
-              className={styles.keywordChip}
-              aria-pressed={keyword === k}
-              onClick={() => setKeyword(keyword === k ? null : k)}
-            >
-              {k}
-            </button>
-          ))}
-        </div>
+        <ChipRow
+          className={styles.keywords}
+          ariaLabel="Filter by keyword"
+          wrap
+          pad="hair"
+          options={[
+            { value: ALL_KEYWORDS, label: 'All keywords' },
+            ...allKeywords.map((k) => ({ value: k })),
+          ]}
+          value={keyword ?? ALL_KEYWORDS}
+          onValueChange={(v) => setKeyword(v === ALL_KEYWORDS || v === keyword ? null : v)}
+        />
       )}
 
       {loading ? (
         <div className={styles.list}>
-          <Skeleton height={120} />
-          <Skeleton height={120} />
-          <Skeleton height={120} />
+          <Skeleton height={312} />
+          <Skeleton height={312} />
+          <Skeleton height={312} />
         </div>
       ) : posts.length === 0 ? (
         <EmptyState
@@ -252,7 +247,7 @@ function PostsPage() {
 
             return (
               <li key={post.id}>
-                <Card className={styles.row}>
+                <Card className={styles.board}>
                   {post.status !== 'published' && <TissueCorner />}
                   <a
                     className={styles.thumbLink}

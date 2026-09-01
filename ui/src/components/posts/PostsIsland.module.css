@@ -1,5 +1,6 @@
-/* The flat file. Every board is the same board: one rigid label block, and
-   the marks do all the differentiating (DESIGN.md §5). */
+/* The flat file: a grid of boards, not a list (DESIGN.md §5). Every board is
+   the same board — the artwork waxed at the top inside crop marks, then one
+   rigid label block under it — and the marks do all the differentiating. */
 .filters {
   display: grid;
   grid-template-columns: calc(var(--sp-unit) * 8) 1fr;
@@ -12,54 +13,37 @@
   width: 100%;
 }
 
-/* A scale-chip row: equal chips, tick border, zero radius, the active one
-   inverted to solid graphite. */
+/* The keyword filter is a `ChipRow` (DESIGN.md §5); the chips live in
+   `ui/ChipRow.module.css`. This only spaces the row off the grid. */
 .keywords {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
   margin-bottom: var(--sp-unit);
 }
 
-.keywordChip {
-  height: var(--sp-unit);
-  padding: 0 var(--sp-hair);
-  border: 1px solid var(--tick);
-  background: var(--paper);
-  color: var(--graphite-soft);
-  font-family: var(--font-galley);
-  font-size: var(--fs-field);
-  font-weight: 500;
-  letter-spacing: var(--ls-field);
-  text-transform: uppercase;
-  cursor: pointer;
-}
-
-.keywordChip:hover {
-  border-color: var(--graphite);
-  color: var(--graphite);
-}
-
-.keywordChip[aria-pressed='true'] {
-  background: var(--graphite);
-  border-color: var(--graphite);
-  color: var(--board);
-}
-
+/* The grid. `auto-fill` at a 13-unit minimum gives three boards across the
+   1092px column, two around the narrow column, one on a phone; `min(…, 100%)`
+   keeps the single column from overflowing a 320px viewport. */
 .list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(calc(var(--sp-unit) * 13), 100%), 1fr));
   gap: var(--sp-unit);
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-.row {
-  display: grid;
-  grid-template-columns: 104px 1fr auto;
-  gap: var(--sp-unit);
-  align-items: start;
+.list > li {
+  display: flex;
+  min-width: 0;
+}
+
+/* One board. It fills its cell so the row of boards shares a baseline, and
+   the actions sit on the bottom edge whatever the label block does. */
+.board {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-half);
 }
 
 /* The thumbnail sits inside crop marks, at one fixed scale on every board. */
@@ -160,10 +144,10 @@
 
 .actions {
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 4px;
-  min-width: calc(var(--sp-unit) * 5);
+  margin-top: auto;
 }
 
 @media (max-width: 768px) {
@@ -171,19 +155,7 @@
     grid-template-columns: 1fr;
   }
 
-  .row {
-    grid-template-columns: 78px 1fr;
+  .list {
     gap: var(--sp-half);
-  }
-
-  .thumbLink {
-    width: 78px;
-    height: 78px;
-  }
-
-  .actions {
-    grid-column: 1 / -1;
-    flex-direction: row;
-    flex-wrap: wrap;
   }
 }
