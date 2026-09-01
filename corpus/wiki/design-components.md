@@ -57,6 +57,24 @@ State is carried by mark, never by a coloured badge:
 | Render frame | Crop marks |
 | Alignment | Register targets |
 
+**The API probe is the one mark that reports its own absence.** Two states, not
+three — a check in flight renders as *up*, because a state that resolves in
+milliseconds and cannot be acted on does not earn a form here. Above 640px it is
+a tick and a word in the tray's session cell. **Below 640px it renders nothing
+when the API is up, and a tick with `API DOWN` when it is not.**
+
+That is a deliberate exception to *state is carried by mark*, and it exists
+because the mark has no room to carry anything else: the tick is 6 × 1px, so
+hatching it, filling it or changing its form is invisible, and hiding the word —
+which is what shipped from brief 64 to 76 — left hue as the only signal. The
+word is the state. Spending width on it only when there is something to say is
+the way to keep it at the width where it would otherwise be dropped.
+
+The cost, accepted: *up* becomes absence, so a healthy API and a crashed probe
+look alike. In a single-account loopback tool where a dead API means every
+action is already erroring, that is a thin loss against losing the signal
+entirely.
+
 ### Notes and findings
 A finding is a grease-pencil block on the tissue: a 9px mono heading, the note in 10px mono `grease`, and a **2px leader line** running from the tissue's edge to the node it concerns, tipped with a small arrowhead. The note states the measurement — "Heading runs 3 characters past the measure at xl" — not a severity word.
 

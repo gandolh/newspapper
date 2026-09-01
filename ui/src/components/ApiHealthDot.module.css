@@ -3,8 +3,27 @@
   align-items: center;
 }
 
-@media (max-width: 768px) {
-  .label {
-    display: none;
+/* Below 640px — where brief 75 folds the tray into two courses — the probe
+   spends width only when it has something to say.
+
+   Up renders nothing. Down keeps the tick *and* the full word: the word is
+   the state, because the tick is `--sp-hair` × 1px and hatching, filling or
+   reshaping a 6 × 1 pixel dash is invisible. Hiding the word instead — what
+   shipped from brief 64 to 76, at a stale 768px breakpoint — left hue as the
+   only signal, which §5 forbids.
+
+   `up` is clipped, not removed: the word stays in the DOM and in the
+   accessibility tree, so a screen reader keeps the signal the sighted narrow
+   view is trading away. `display: none` would take it out of both. */
+@media (max-width: 640px) {
+  .up {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 }

@@ -1304,3 +1304,45 @@ find.
 
 Counts updated in `CLAUDE.md`, `status.md` and the page's own summary. The page
 now opens by noting that eight of nine were tooling and the ninth was aim.
+
+## [2026-09-01] brief | 76: the health mark keeps its word by spending width only when it has news
+
+The chrome's last self-contradiction. `ApiHealthDot` hid its label below 768px,
+leaving an offline API as a 6px red tick — hue as the whole signal, in the one
+place §5 forbids it.
+
+Settled in a design session before dispatch, because the obvious fix does not
+exist: **the tick is 6 × 1px**, so hatching it, filling it or reshaping it is
+invisible. Any hue-free distinction needs area, and hiding the word is precisely
+what removed the probe's only content. The grilling also turned up that the
+component had **three states and two tones** — `loading` and `online` both
+`dim` — so the word had always been the only thing telling "checking" from "up",
+at every width. And the 768px breakpoint was stale: brief 75 moved the tray's
+real squeeze to 640px, so between 641 and 768 the word was hidden for nothing.
+
+Shipped: two states; below 640px nothing renders when up, tick + full word when
+down. The up word is **clipped, not removed**, so it stays in the accessibility
+tree at the width where the sighted view gives it up.
+
+**The verification is worth copying.** Hue-independence was proved by
+screenshotting each tray strip in both states, converting to **greyscale**, and
+diffing pixel by pixel: before, the states differed by **6 grey pixels** — the
+tick itself — and after, by 628. A greyscale diff answers the actual rule (*is
+this distinguishable without hue*) rather than the proxy question of whether a
+colour changed. The accessibility tree was read through CDP rather than
+inferred, and the pre-change component was built into its own production bundle
+for a 0-subpixel comparison at 1280.
+
+The brief-72 eslint suppression was re-checked rather than carried: still
+required, but its stated reason named `loading` as "the honest first paint", and
+`loading` no longer exists. The reason was rewritten to match what ships —
+*never leave a suppression whose reason no longer holds*, working as intended.
+
+Recorded, not filed: at 240px in the down state the widened session cell clips
+the wordmark to `NEWSPAP`. Below the 320px floor, h-scroll 0, every route
+reachable. Nobody had seen it because brief 75 measured the tray with the probe
+6px wide — **giving the probe a word to carry is what put the brand cell under a
+wide session cell for the first time.** A measurement is only as general as the
+states it was taken in.
+
+**`corpus/briefs/todo/` is empty again.**
