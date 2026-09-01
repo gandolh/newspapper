@@ -1,6 +1,6 @@
 ---
 summary: The Mechanical, §5–§9 — the component vocabulary (board, tray, galley, stage, tissue, marks), the two authored animations, browser surfaces, the do/don't list, and what the shipped chrome does not yet carry. §1–§4 and the tokens are in design.md.
-updated: 2026-08-31
+updated: 2026-09-01
 ---
 
 # Design System: Newspapper — components, motion, rules
@@ -117,27 +117,40 @@ digits — slide counts, dates, dimensions, ordinals.
 - **Don't** invent a second treatment for a state that already has a mark.
 - **Don't** reintroduce the wizard-era vocabulary: the stepper, the terracotta accent as *chrome*, the rounded card, the eyebrow label above a section.
 
-## 9. What the shipped chrome does not yet carry
+## 9. What the shipped chrome does not carry
 
-Brief 64 built §1–§7 across every route. Four things described above have no
-implementation yet, each because it needs a change to a structure another
-brief owns rather than a change of clothing:
+Brief 64 built §1–§7 across every route. Four things described above had no
+implementation, each blocked on changing a structure rather than clothing. On
+2026-09-01 they were split: two are [brief
+74](../briefs/todo/74-finish-the-chrome.md), and **two are dropped** — not
+pending.
 
-- **The scale-chip row for constrained props** (§5, Fields). The inspector
-  still selects an enum through `Select`. The chip row is the right control
-  and the vocabulary is already in the app — the keyword filter on `/posts`
-  and the tab rows on `/articles` and the narrow editor are scale chips — but
-  swapping the inspector's control changes the pane brief 59 owns.
-- **The strip** (§5). There is no thumbnail strip in the editor to style; the
-  preview is a single scrolling column of stages.
-- **The flat file as a grid of boards** (§5). `/posts` is the list brief 62
-  shipped, restyled as boards. Every mark in the table is on it — stamp,
-  tissue corner, crop marks, mono rows — but the layout is a row, not a grid.
-- **The wax half of the compile** (§6). The moment animates the stage frame
-  re-setting. "The changed lines take the wax briefly" needs a line diff the
-  editor does not keep; the wax still marks the selected run, continuously.
+**Briefed (74):**
+
+- **The scale-chip row for constrained props** (§5, Fields). The inspector still
+  selects an enum through `Select`. The vocabulary is already in the app — the
+  keyword filter on `/posts` and the tab rows on `/articles` and the narrow
+  editor are scale chips — so this is using an existing control in the one pane
+  that lacks it.
+- **The flat file as a grid of boards** (§5). `/posts` carries every mark
+  already — stamp, tissue corner, crop marks, mono rows — but lays them out as a
+  row where the spec calls for a grid.
+
+**Dropped, deliberately:**
+
+- **The strip** (§5). There is no thumbnail strip in the editor; the preview is
+  a single scrolling column of stages. Building one means inventing a structure
+  to serve a decoration.
+- **The wax half of the compile** (§6). "The changed lines take the wax briefly"
+  needs the editor to retain a line diff it does not keep — making the editor
+  hold state purely so something can flash. The moment still animates the stage
+  re-setting, and the wax still marks the selected run, continuously.
+
+The shared reason: a decoration that requires new structure is the point where
+the spec is asking for more than it is worth. Recording that here so their
+absence reads as a decision rather than unfinished work.
 
 The tissue also hinges on **selection change** rather than on source focus:
-selecting a node swings the sheet down with the notes already on it. Lifting
-it off the board when the source takes focus would move a pane, and the
-three-pane layout is brief 59's.
+selecting a node swings the sheet down with the notes already on it. Lifting it
+off the board when the source takes focus would move a pane, and the three-pane
+layout is brief 59's.

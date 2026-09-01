@@ -1064,3 +1064,59 @@ Vite build against the source subpaths.
 
 **`corpus/briefs/todo/` is now empty.** Every brief filed for the v4 rebuild and
 everything it turned up is in `done/` with an outcome note.
+
+## [2026-09-01] decision | a saved article is a reference, not a pipeline input
+
+Settled in a grilling session. The article library holds source material you
+write **from**; nothing derives a post from one, and nothing will. Copy and
+paste is the connection, and that is the answer rather than a gap.
+
+Rejected: `POST /api/articles/:id/start-post`. It is genuinely cheap — the API
+already holds `title` and `url`, and the route would be additive — **which is
+exactly why it kept coming back.** It was in scope in brief 60 and withdrawn at
+dispatch, then handed to brief 59, which also did not build it. Twice specced,
+twice dropped, never once for a written reason. An idea that cheap and that
+recurrent will be re-proposed indefinitely until someone records why not.
+
+The why: seeding a document from an article makes the article an *input to a
+pipeline*, and the pivot's whole point is that there is no pipeline. A post is
+written, not derived. The mechanism would be a template rather than a model, but
+the shape is the same shape v4 removed — and shapes are what come back.
+
+Also added an `Article` glossary entry, which had none despite `Post` already
+listing "article" under `_Avoid_`. The term now carries its boundary:
+a reference, never an input.
+
+## [2026-09-01] decision | two design-spec gaps briefed, two dropped
+
+`design-components.md §9` listed four things the chrome does not carry. Split:
+the scale-chip row and `/posts` as a grid of boards became **brief 74**; the
+thumbnail strip and the wax half of the compile animation were **dropped**.
+
+The shared reason for dropping both: each requires inventing a structure to
+serve a decoration. There is no thumbnail strip in the editor to style, and "the
+changed lines take the wax briefly" needs the editor to retain a line diff
+purely so something can flash. §9 now records them as decisions rather than
+listing them as unfinished, because a permanent to-do list of things nobody
+intends to build is indistinguishable from neglect.
+
+`open-questions.md` is now empty, with a note that an empty page is the goal
+state rather than a gap.
+
+## [2026-09-01] maintenance | a promoted todo is deleted when its brief lands
+
+`corpus/todos/workstation-redesign.md` had been sitting at `status: promoted`
+since brief 64 shipped. The convention had states `open` → `promoted` and then
+nothing, so a finished todo stayed in a terminal-but-unnamed state that reads as
+live work to anyone triaging the directory.
+
+The workflow table's "Finish a brief" row now ends: delete the source todo. The
+brief plus its outcome note *is* the provenance — keeping both means two places
+to read and one to forget.
+
+Also split `decisions-authoring.md` out of `decisions.md`, which hit the 200-line
+cap again. The seam that had formed was **how a post is written** — the `.wzd`
+document, semantic token-only components, flow layout, markup as source of
+truth, format-and-lint-like-JSX, the editor's data model — against product
+shape. Fourth split; the trigger each time has been a second subject growing
+inside a page, not prose bloat.

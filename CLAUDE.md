@@ -169,7 +169,7 @@ recommend an action based on an unverified wiki claim about specific code.
 |---|---|
 | Capture an idea | Write `todos/<slug>.md` with `title` / `created` / `status: open` frontmatter. One todo per file. |
 | Promote to a brief | Next number across all three brief dirs, then `briefs/todo/<NN>-<slug>.md`: Context · Files you OWN · Files you must NOT touch · What to do · Acceptance. Mark the source todo `status: promoted`. |
-| Finish a brief | `git mv` it to `briefs/done/` (keep the number), append an outcome note at move time, add a `log.md` entry, then **fold the durable findings into `wiki/`** — `status.md` always, plus the relevant concept page. |
+| Finish a brief | `git mv` it to `briefs/done/` (keep the number), append an outcome note at move time, add a `log.md` entry, then **fold the durable findings into `wiki/`** — `status.md` always, plus the relevant concept page. **If a todo was promoted into it, delete that todo now** — the brief plus its outcome note is the provenance, and a `promoted` todo left behind reads as live work. |
 | Ingest a finding | Update the affected wiki pages; create a page if the concept has none; cross-link from `index.md`; log an `ingest` entry. |
 | Health check | `bash corpus/lint.sh`, then sweep by hand for contradictions, stale claims, orphan pages, and named-but-pageless concepts. Log a `lint` entry. |
 

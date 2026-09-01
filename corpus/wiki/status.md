@@ -1,6 +1,6 @@
 ---
 summary: Dated snapshot — the Wizard rebuild is complete and documented, gates green at 657 tests across 46 files, plus the six known strays left in the tree and the two questions still open.
-updated: 2026-08-31
+updated: 2026-09-01
 ---
 
 # Status
@@ -85,11 +85,11 @@ What is left is genuinely benign:
 
 ## Briefs
 
-Twenty-one Wizard-rebuild briefs (51–72) are in
+Twenty-three Wizard-rebuild briefs (51–73) are in
 [`../briefs/done/`](../briefs/done/) with an outcome note each, alongside the
-thirteen v3 ones. Only **63** — this pass — remains in
-[`../briefs/todo/`](../briefs/todo/), and it moves across when this work is
-committed. Each brief is self-contained: open only the one directing your work.
+thirteen v3 ones. One is open: **74**, the two design-spec items judged worth
+building on 2026-09-01. Each brief is self-contained: open only the one
+directing your work.
 
 Waves below are the **executed** order, which differs from the originally filed
 one: file-ownership collisions the dependency graph alone did not show forced

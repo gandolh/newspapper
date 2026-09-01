@@ -1,6 +1,6 @@
 ---
 summary: The project's vocabulary — one canonical definition per term Newspapper uses in a particular way, and the synonyms each one displaces.
-updated: 2026-08-31
+updated: 2026-09-01
 ---
 
 # Glossary
@@ -16,6 +16,13 @@ sense: the thing that turns written words into designed slides. Explicitly
 flow, and the four-step one it used to have is being deleted. If something in
 the UI ever needs that pattern, call it something else; this word is taken.
 _Avoid_: setup wizard, step flow, the wizard (for any UI), WZD (as a word)
+
+**Article**:
+A saved item from an RSS search — source material you write **from**, held in
+the `articles` table. A *reference*, never an input: nothing derives a post from
+one, by [decision](./decisions.md#a-saved-article-is-a-reference-not-a-pipeline-input).
+Distinct from a **Post**, which is the thing this app produces.
+_Avoid_: source (means a feed), draft, input, the post's article
 
 **Post**:
 One day's output as a single unit — an ordered set of slides plus a caption and

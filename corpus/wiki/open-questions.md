@@ -1,37 +1,25 @@
 ---
-summary: The two things genuinely still undecided — how a saved article becomes a post, and the four parts of the design spec the chrome has not yet grown. Everything the rebuild settled has been deleted from here.
-updated: 2026-08-31
+summary: Nothing is open. Both remaining questions were settled on 2026-09-01 — kept as a page so the next open question has somewhere to land.
+updated: 2026-09-01
 ---
 
 # Open Questions
 
 Only what is actually open. The moment one is answered, **delete it from this
-page** — the history belongs in [../log.md](../log.md).
+page** — the history belongs in [../log.md](../log.md), and the outcome in
+[decisions.md](./decisions.md) or a brief.
 
-The pivot itself is settled, and so is everything the rebuild touched: see
-[decisions.md](./decisions.md) and its three sibling pages. What follows is the
-residue.
+**Nothing is currently open.**
 
-## How does a saved article become a post?
+The two that survived the v4 rebuild were both settled on 2026-09-01:
 
-The article library saves the items you pick from an RSS search. Authoring
-happens in `.wzd`. **Nothing connects them** — copy and paste is the assumed
-answer, and it is still the only one; there is no `start-post` route or action
-anywhere in the code.
+- *How does a saved article become a post?* — it does not. A saved article is a
+  reference, not a pipeline input; see
+  [decisions.md](./decisions.md#a-saved-article-is-a-reference-not-a-pipeline-input).
+- *Which design-spec gaps are worth building?* — two are
+  [brief 74](../briefs/todo/74-finish-the-chrome.md) and two were dropped, in
+  [design-components.md §9](./design-components.md#9-what-the-shipped-chrome-does-not-carry).
 
-Brief 60 deliberately did not build a "start a post from this article" action
-(it was in scope in the original brief text, but the dispatch for that wave
-withdrew it as undecided and left it for the editor brief, 59, to own — which
-also did not build it). The API already has what such an action would need:
-`Article.title` and `Article.url` are enough to seed a starter document, so
-`POST /api/articles/:id/start-post` remains additive, not a redesign.
-
-## Four parts of the design spec the chrome does not carry
-
-Not undecided so much as unbuilt, and each is blocked on changing a structure
-rather than a style. They are listed with their reasons in
-[design-components.md § 9](./design-components.md#9-what-the-shipped-chrome-does-not-yet-carry):
-the scale-chip row for constrained props, the thumbnail strip, `/posts` as a
-grid of boards rather than a list, and the wax half of the compile animation.
-
-Whether any of them is worth a brief has not been decided.
+An empty page here is the goal state, not a gap. If a question sits here for
+weeks it is usually because nobody will pay the cost of deciding it — say so and
+close it, rather than letting it read as pending work.
