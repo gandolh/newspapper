@@ -101,6 +101,6 @@ document already loaded.
 
 Newspapper talks to nothing but the RSS feeds you configure. There is no LLM
 provider, no cloud storage, no telemetry, and no API key of any kind.
-`infra/docker-compose.yml` still defines an Ollama service; it is dead weight
+An Ollama-only `docker-compose.yml` survived here until 2026-08-31; it was dead weight <!-- lint-ok -->
 from v3 and nothing starts or contacts it — see
 [status.md](./status.md#known-strays).

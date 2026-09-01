@@ -17,12 +17,9 @@ MAX_BODY_LINES=200
 ABANDONED_ROOTS=(
   "docs/"          # → corpus/ (2026-08-27)
   ".claude/skills" # project-local skill copies removed 2026-08-27
-  "plans/swarm/0"  # briefs → corpus/briefs/done/ (2026-08-27)
-  "plans/swarm/1"
-  "plans/swarm/2"
-  "plans/swarm/3"
-  "plans/swarm/4"
-  "plans/swarm/5"
+  "plans/"         # v2/v3 build plans + reference, deleted 2026-08-31
+  "infra/"         # Ollama-only compose file, deleted 2026-08-31
+  "corpus/CLAUDE.md"  # merged into the root CLAUDE.md 2026-08-31
 )
 
 fail=0

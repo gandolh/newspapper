@@ -465,7 +465,7 @@ diff was committed to a dead-end branch `wave5-partial-abandoned` (`11d78f8`, 30
 files, +688 −1891) so nothing is destroyed, and `wizard-rebuild` was returned to
 `fd96b9f`. **59 and 65 get re-dispatched from their briefs, not resumed.**
 
-The resume document is [`resume-2026-08-27.md`](resume-2026-08-27.md), linked
+The resume document was `resume-2026-08-27.md` (deleted 2026-08-31), linked
 from `index.md` and `wiki/status.md`. It carries the wave plan and why it differs
 from the filed one, the file-ownership collisions and the two lanes assigned
 around them, the ruling ledger, the two live defects (both filed as brief 65),
@@ -980,3 +980,45 @@ Also deleted the `wave5-partial-abandoned` branch (`11d78f8`), kept since
 2026-08-27 as a safety copy of the mid-flight work stopped when briefs 59 and 65
 were interrupted. Both were re-dispatched from scratch and landed in `f315e01`,
 so the branch held nothing that is not superseded. It was never pushed.
+
+## [2026-08-31] maintenance | one CLAUDE.md, and the dead directories are gone
+
+`corpus/CLAUDE.md` merged into the repo-root `CLAUDE.md` under its Corpus
+section, and deleted. The two files had drifted into disagreeing — the corpus
+one still carried "Ollama only, no Sharp, one post per day" weeks after the root
+one was corrected, which is the specific hazard of a rule living in two places:
+fixing the copy you are looking at feels like fixing the rule. The merged
+section carries what the corpus file uniquely held — the layout, the full
+retrieval budget, the page rules, the source-of-truth ordering when code and
+wiki disagree, and the workflow table — deduped against what the root already
+said. Root `CLAUDE.md` is 181 lines.
+
+Deleted, all verified unreferenced by anything live first:
+
+- `corpus/resume-2026-08-27.md` — the pause it documented was resolved on
+  2026-08-31 and its own banner said so.
+- `plans/` — v2/v3 build plans plus a `reference/` tree of nine slide-variant
+  HTML specs and the old render TSX. The wiki called it "deliberate reference
+  material", but it referenced the template system deleted in brief 58; it was
+  reference for a thing that no longer exists.
+- `infra/` — a single `docker-compose.yml` defining only an Ollama service.
+- Root `tsconfig.json` — extended by no workspace, named by no script, and
+  pointing at a root `src/` that turned out to contain **zero files**, only
+  empty directories. That is why git never reported it: git does not track empty
+  directories, so a v2 skeleton had been sitting in the working tree, invisible
+  to `git status`, for months.
+
+`corpus/lint.sh`'s `ABANDONED_ROOTS` gained `plans/`, `infra/` and
+`corpus/CLAUDE.md`, which is what made this safe: it named all ten stale
+references across six wiki pages and one brief immediately, instead of leaving
+them to be found later by a reader following a dead path. The check exempts
+`log.md` and `briefs/done/`, so history keeps its old paths and only live pages
+were rewritten.
+
+Brief 73 was revised rather than closed — two of its four items (the compose
+file, the root tsconfig) were plain file deletions and are done; the two needing
+judgement remain, `loadConfig` and the `api` `start` script.
+
+Worth stating: **the cleanup was cheap because the linter already knew what
+"retired" meant.** A stale-path check that you feed when you delete a directory
+turns "did I miss a reference" from a grep-and-hope into a list.

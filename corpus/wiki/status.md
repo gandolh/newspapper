@@ -69,17 +69,18 @@ storage · the npm workspace layout · the shared UI primitives on Base UI.
 
 ## Known strays
 
-Found while writing the docs, left in the tree because brief 63 changes
-documentation only. None affects a shipped path.
+Found while writing the docs. **The file-level ones were deleted on 2026-08-31**
+— a v2/v3 build-plan tree, an Ollama-only compose file, a root `tsconfig.json`
+extended by nothing and pointing at a root `src/` that held no files, and the
+resolved resume document. What remains is code, and is [brief
+73](../briefs/todo/73-dead-config.md).
 
 | Stray | What it is |
 |---|---|
-| `infra/docker-compose.yml` | Tracked, and defines **only** an Ollama service. Nothing starts or contacts it. |
 | `core/src/util/config.ts` | `loadConfig()` is exported from the core barrel and **called nowhere**. Its eight env vars do nothing except `THEME`, which `storage/settings.ts` reads separately. |
-| Root `tsconfig.json` | `include: ["src/**/*"]` points at an untracked root `src/` left over from v2. No workspace uses it. |
 | `api`'s `start` script | `node dist/server.js`, but `api`'s build is `tsc --noEmit` and emits no `dist/`. |
-| `api/src/server.ts` | The SPA fallback still tries a per-route `index.html` first and its comment says "Astro directory output". Harmless — the root `index.html` fallback is what serves — but it describes a build that is gone. |
-| Root `src/`, `plans/`, `data/sources.json` | v1/v2 residue. `plans/swarm/reference/` is deliberate reference material; the rest is not. |
+| `api/src/server.ts` | The SPA fallback still tries a per-route `index.html` first and its comment names a build that is gone. Harmless — the root `index.html` fallback is what serves. |
+| `data/sources.json` | v2 residue: a one-time seed for the `sources` table. Nothing reads it afterwards. |
 
 ## Briefs
 

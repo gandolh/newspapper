@@ -153,8 +153,8 @@ The nine retired JSON template documents are kept as reference for how the
 built-in components should look, at
 `corpus/briefs/superseded/templates-warm-industrial/`. Unrelated to those:
 the original hand-authored visual-spec HTML files (`title-main.html` etc.,
-predating the JSON templates) are still archived at
-`plans/swarm/reference/html-specs/` and were never used at runtime.
+predating the JSON templates) were archived in a reference tree that was never
+used at runtime, and were deleted with it on 2026-08-31.
 
 ## Canvas
 

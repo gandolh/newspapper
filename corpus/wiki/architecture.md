@@ -18,7 +18,6 @@ newspapper/          ← repo root (concurrently, vitest, tsc, eslint, prettier)
   data/              ← newspapper.db (gitignored); sources.json is a one-time seed
   output/            ← rendered slide images per run (gitignored)
   uploads/           ← originals/ + normalized/ image store (gitignored, UPLOADS_DIR)
-  plans/swarm/       ← v2 reference material only
 ```
 
 Dependency direction is one way: `ui → api → core`. `core` imports neither.

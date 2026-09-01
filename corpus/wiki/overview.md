@@ -71,8 +71,6 @@ Full structure and dependency direction: [architecture.md](./architecture.md).
 | `uploads/` | `originals/` + `normalized/` image store. Gitignored, path overridable. |
 | `output/` | `YYYY-MM-DD-N/` — rendered JPEGs, `slides.json`, `caption.txt`. Gitignored. |
 | `corpus/` | This wiki, the brief archive, and the change log. |
-| `plans/swarm/reference/` | v2 render code and HTML specs, kept as reference. Historical. |
-| `infra/` | A single `docker-compose.yml`, now dead — see [status.md](./status.md#known-strays). |
 
 ## Where to read next
 

@@ -86,45 +86,96 @@ Co-located `*.test.ts` under `core/src/`, `api/src/` and `ui/src/`, run with `vi
 
 ## Corpus (the project wiki)
 
-Project knowledge and work live in [`corpus/`](corpus/) — an LLM-maintained
-wiki. **[`corpus/index.md`](corpus/index.md) is the entry point; read it before
-anything else.**
-[`corpus/CLAUDE.md`](corpus/CLAUDE.md) carries the full rules.
+Project knowledge and work live in [`corpus/`](corpus/), run as an
+LLM-maintained wiki: **the human curates the sources and asks the questions; the
+LLM curates the synthesis and tracks the work.** It is the durable counterpart to
+`TodoWrite` (in-session only) and to chat (which evaporates) — a reusable finding
+gets folded in here, not left in a transcript.
 
-The short version:
+**[`corpus/index.md`](corpus/index.md) is the entry point; read it before
+anything else.** Route with [`corpus/routing.md`](corpus/routing.md). Starting
+cold, read [`overview.md`](corpus/wiki/overview.md) then
+[`status.md`](corpus/wiki/status.md).
 
-- **Retrieval budget** — `index.md`, then **at most 2–3 wiki pages**. Triage on
-  each page's `summary:` frontmatter instead of opening it. Needing a fourth
-  page means a page must split.
-- **Layers** — `corpus/wiki/` is curated synthesis (the LLM owns it and rewrites
-  it freely); `corpus/briefs/` holds immutable work specs; `corpus/todos/`
-  captures pre-spec ideas; `corpus/log.md` is the append-only history.
-- **Start cold at** [`corpus/wiki/overview.md`](corpus/wiki/overview.md), then
-  [`status.md`](corpus/wiki/status.md).
-- **Before changing an approach**, check
-  [`corpus/wiki/decisions.md`](corpus/wiki/decisions.md) and its three siblings —
-  the constraints above are the *what*; those pages are the *why*, and it is not to be relitigated
-  without an explicit revisit plus a log entry.
-- **Never read `briefs/` or `todos/` wholesale.**
+```
+corpus/
+  index.md     the catalog. Generated: `bash corpus/lint.sh --index`
+  routing.md   which question goes to which layer
+  lint.sh      health check; exits non-zero on findings
+  log.md       append-only, chronological, newest last
+  todos/       captured ideas, prose, pre-spec
+  briefs/      work specs — todo/ · done/ · superseded/
+  wiki/        the synthesis layer. The LLM owns this.
+```
+
+### The retrieval budget
+
+A corpus exists to make an agent **cheaper**, not just better-informed.
+
+1. Read `index.md`, then **at most 2–3 wiki pages**. Prefer a page's `summary:`
+   line over opening it.
+2. Needing a fourth is a **signal, not a licence**: a page is straddling topics
+   and must split, or its `summary:` is not sharp enough. Fix the cause.
+3. Never read `briefs/` or `todos/` wholesale. `wiki/status.md` holds every
+   brief's state in one line; open a brief only for the spec that directed
+   specific work.
+
+### Rules
+
+- **Every wiki page opens with frontmatter** — exactly `summary:` and `updated:`.
+  The summary is written for an agent deciding whether to open the page, not as a
+  title. `index.md` is generated from these; never hand-edit the catalog block.
+- **One concept per file.** Split a page past ~200 body lines or straddling two
+  topics, and cross-link. The linter enforces the cap. **Split rather than shave
+  prose to fit** — a page hits the cap because a second subject has grown inside
+  it, and trimming is how that subject stays hidden.
+- **Briefs are immutable.** Numbers are stable — never renumber one when it
+  moves. Don't edit a brief in `done/`; if later work undoes it, move it to
+  `superseded/` with a one-line note. New work gets a new brief in `todo/`.
+- **The LLM curates `wiki/` freely.** Rewrite a page as understanding improves;
+  it is synthesis, not an append-only log. Stale phrasing is a bug, not history.
+- **Standard relative markdown links**, not `[[wikilinks]]`.
+- **Absolute dates** (`2026-08-27`), never "yesterday".
+- **Never commit corpus changes unless asked.** The user controls when they land.
+
+### Source of truth, when things disagree
+
+1. **The actual code** wins over any wiki claim.
+2. A brief in **`done/`** wins over `wiki/` if the wiki hasn't caught up.
+3. **`wiki/decisions.md`** and its siblings win over `wiki/status.md` for tech
+   choices not formally revisited.
+
+**Verify before quoting.** A page naming a path, function, or commit may have
+drifted: check the path exists, grep the symbol, `git log` the hash. Never
+recommend an action based on an unverified wiki claim about specific code.
 
 ### Maintenance rules
 
-1. **When you change route behavior** → update `corpus/wiki/api.md`.
-2. **When you change a schema** → update `corpus/wiki/data.md`.
-3. **When you add, remove, or rename a module** → update `corpus/wiki/modules.md` and `corpus/wiki/architecture.md`.
-4. **When you add or drop a dependency** → update `corpus/wiki/dependencies.md`.
-5. **When you change env vars or setup** → update `corpus/wiki/configuration.md` and `.env.example`.
-6. **When you lock a technical choice** → add an entry to the right decisions page, with what it rejected and why: `decisions.md` (product shape), `decisions-engineering.md` (runtime and library calls), `decisions-security.md` (auth and what is guarded), `decisions-tooling.md` (how the repo itself is built, formatted, linted, pinned).
-7. **After any corpus change** → append one entry to `corpus/log.md`:
-   ```
-   ## [YYYY-MM-DD] kind | one-line summary
-   ```
-8. **If you add a wiki page** → give it `summary:` + `updated:` frontmatter and run `bash corpus/lint.sh --index`.
-9. **Before committing corpus changes** → `bash corpus/lint.sh` must exit clean. Don't commit unless asked.
+1. **Change route behavior** → update `corpus/wiki/api.md`.
+2. **Change a schema** → update `corpus/wiki/data.md`.
+3. **Add, remove, or rename a module** → update `corpus/wiki/modules.md` and `architecture.md`.
+4. **Add or drop a dependency** → update `corpus/wiki/dependencies.md`.
+5. **Change env vars or setup** → update `corpus/wiki/configuration.md` and `.env.example`.
+6. **Lock a technical choice** → add an entry to the right decisions page, with what it rejected and why: `decisions.md` (product shape), `decisions-engineering.md` (runtime and library calls), `decisions-security.md` (auth and what is guarded), `decisions-tooling.md` (how the repo is built, formatted, linted, pinned).
+7. **After any corpus change** → append one entry at the bottom of `corpus/log.md`:
+   `## [YYYY-MM-DD] <kind> | <one-line summary>`, where kind is one of `done`,
+   `todo`, `maintenance`, `decision`, `ingest`, `lint`, `incident`, `resume`.
+8. **Add a wiki page** → give it `summary:` + `updated:` frontmatter and run `bash corpus/lint.sh --index`.
+9. **Before committing corpus changes** → `bash corpus/lint.sh` must exit clean.
+
+### Workflows
+
+| Task | Do |
+|---|---|
+| Capture an idea | Write `todos/<slug>.md` with `title` / `created` / `status: open` frontmatter. One todo per file. |
+| Promote to a brief | Next number across all three brief dirs, then `briefs/todo/<NN>-<slug>.md`: Context · Files you OWN · Files you must NOT touch · What to do · Acceptance. Mark the source todo `status: promoted`. |
+| Finish a brief | `git mv` it to `briefs/done/` (keep the number), append an outcome note at move time, add a `log.md` entry, then **fold the durable findings into `wiki/`** — `status.md` always, plus the relevant concept page. |
+| Ingest a finding | Update the affected wiki pages; create a page if the concept has none; cross-link from `index.md`; log an `ingest` entry. |
+| Health check | `bash corpus/lint.sh`, then sweep by hand for contradictions, stale claims, orphan pages, and named-but-pageless concepts. Log a `lint` entry. |
 
 ### What NOT to put in the corpus
 
 - Contents of `data/` or `output/` — both gitignored, ephemeral.
 - In-progress task state — use TodoWrite. `corpus/` is for what outlives the session.
 - One-session debugging notes — put them in the PR description.
-- A code graph's output as fact. The corpus is the *why*; structural questions go to `grep` (see [`corpus/routing.md`](corpus/routing.md)).
+- A code graph's output as fact. The corpus is the *why*; structural questions go to `grep`.
