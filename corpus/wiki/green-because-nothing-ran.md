@@ -1,6 +1,6 @@
 ---
-summary: The eight times a tool in this repo reported success while reaching nothing — what each one was, how it was caught, and the cheap check that would have caught it sooner. Read before trusting a green command here.
-updated: 2026-08-31
+summary: The nine times a check in this repo reported success while reaching nothing — what each one was, how it was caught, and the cheap check that would have caught it sooner. Read before trusting a green command here.
+updated: 2026-09-01
 ---
 
 # Green because nothing ran
@@ -17,7 +17,7 @@ They are collected here because an append-only [log](../log.md) buries a
 pattern, and this one is the most useful thing the project knows about itself.
 Each entry links back to its log entry for the full account.
 
-## The eight
+## The nine
 
 | # | The tool | What it reached | Found by |
 |---|---|---|---|
@@ -29,6 +29,7 @@ Each entry links back to its log entry for the full account.
 | 6 | The typeface guard's control | `fonts.test.ts` built its "no Inter" control with `html.replace(/'Inter'/g, …)`, which worked **only because the inline styles were unquoted**. Quote them and the rename hits both sides — control and subject become the same document. Its own comment claimed it renamed the family everywhere; it did not, and it worked *because* it did not. | A later change quoting the family, which failed the test closed — by luck |
 | 7 | `npm run lint` | `eslint.config.js` registered the parser and plugin, switched off the three rules it named, and imported no recommended config. **Zero rules were enabled**, for the project's entire history. Verified rather than assumed: a file with a plain unused variable drew exit 0 and no output. | Brief 68, filed about something else |
 | 8 | `api/src/routes/uploads.test.ts` | It imported `sharp` that `api/package.json` never declared, resolving against **the hoisted copy Astro pulled in as an optional dependency**. So it had been testing image handling against sharp 0.34.5 while production ran 0.35.4 — and the moment Astro was removed it contributed **zero** tests instead of fourteen. | An import error inside a two-agent wave, resolved by reading `git show HEAD:package-lock.json` rather than by argument |
+| 9 | `document.scrollWidth - clientWidth === 0`, checking the tray for overflow | It measured **the document**, not the tray's own scroll container. `ul.cells` *was* an `overflow-x` container — scrollWidth 312 against clientWidth 12 at 320px — so the check returned "no overflow" about an element it never looked at. Three routes were off-screen behind a 12px scroll window nobody could see or find. | Brief 75 hit-testing `elementFromPoint` after `scrollIntoView`, instead of inferring |
 
 ## What generalises
 
@@ -38,6 +39,9 @@ Each entry links back to its log entry for the full account.
   your machine proves nothing about a fresh clone. (2)
 - **A test that exists is not a test that runs.** Check the runner's `include`
   when you add a file in a new place. (3)
+- **A passing measurement of the wrong element is indistinguishable from a
+  passing measurement.** Ask what the check is pointed at, not just what it
+  returned. (9)
 - **A bundler is not a typechecker.** It only reaches what an entry point
   imports. And a config-level error can abort a checker before file one — zero
   errors and zero files checked look identical from outside. (4)
@@ -73,6 +77,15 @@ measure over one you can reason to:
 4. Grep for suppressions of rules, and skips of tests, that nothing defines.
 5. For a test's dependencies, check they are **declared** by the package that
    imports them.
+6. For anything about what a person can see or reach, **hit-test it** —
+   `elementFromPoint`, a real viewport, an actual click — rather than inferring
+   from a container's own numbers. A scroll that exists is not a scroll anyone
+   can find. (9)
+
+Eight of the nine were tooling. The ninth was a measurement, and it is the one
+worth re-reading: the check was correct, the reasoning from it was correct, and
+it was pointed at the wrong object. No amount of rigour downstream of a
+mis-aimed check recovers it.
 
 The gates the project runs today — `npm run build` (which runs `fmt:check`
 first, then typechecks all three workspaces), `npm test`, `npm run lint` across

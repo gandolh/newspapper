@@ -35,7 +35,7 @@ anything but history.
 
 ## The thread worth reading first
 
-[green-because-nothing-ran.md](./green-because-nothing-ran.md) — eight times a
+[green-because-nothing-ran.md](./green-because-nothing-ran.md) — nine times a
 tool in this repo reported success while reaching nothing. A DB path the tests
 set but nothing read; a `.gitignore` rule that would have hidden a module; a
 vitest `include` omitting `ui/`; a workspace bundled but never typechecked; a

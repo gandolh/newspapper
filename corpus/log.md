@@ -1276,3 +1276,31 @@ Filed as brief 76 with the judgement left open: keep the word, differentiate by
 shape, move the mark somewhere with room, or change the rule — but §5 and the
 code must agree at the end. **A rule the code openly violates is worse than no
 rule**, because it teaches the next reader that the rules are decorative.
+
+## [2026-09-01] ingest | a ninth instance, and the first that was not a tool
+
+Brief 74's agent, revisiting its own report after brief 75 landed, corrected
+finding #1 against itself — and the correction is the most transferable thing
+either brief produced.
+
+Its reachability check was `document.scrollWidth - clientWidth === 0`. That
+returned true, and the conclusion drawn from it ("nothing scrolls, so the routes
+are unreachable") was *nearly* right for the wrong reason. `ul.cells` **was** an
+`overflow-x` scroll container — scrollWidth 312 against clientWidth 82 at 390px
+and 12 at 320px. The check asked whether the **document** overflowed; the
+question was whether the **tray's own container** did.
+
+In its words: *a check that passes because it never reached the thing.* That is
+this repo's own pattern, arriving from a new direction — the first of the nine
+that was not a build tool but a **measurement**. The check was correct, the
+reasoning from it was correct, and it was aimed at the wrong object; nothing
+downstream of a mis-aimed check recovers it.
+
+Added to `green-because-nothing-ran.md` as #9, with the rule it yields: for
+anything about what a person can see or reach, **hit-test it** —
+`elementFromPoint`, a real viewport, an actual click — rather than inferring
+from a container's own numbers. A scroll that exists is not a scroll anyone can
+find.
+
+Counts updated in `CLAUDE.md`, `status.md` and the page's own summary. The page
+now opens by noting that eight of nine were tooling and the ninth was aim.
