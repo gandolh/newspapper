@@ -129,9 +129,14 @@ Theme JSON files live at `assets/design-systems/<name>.json`.
 ## Util
 
 ```ts
-// core/src/util/config.ts
-export function loadConfig(): Config   // reads .env, applies defaults
+// core/src/util/config.ts — no exports. Side effect only: `import 'dotenv/config'`.
 ```
+
+The repo's **only** `dotenv` call site, imported first by `core/src/index.ts`.
+`api` gets `.env` purely by importing that barrel. It exports nothing, so it
+reads as dead and is not — remove either half and `SESSION_SECRET`, `PORT`,
+`NEWSPAPPER_DB_PATH`, `UPLOADS_DIR`, `THEME` and friends silently fall back to
+defaults with no error. `config.test.ts` guards both halves.
 
 ```ts
 // core/src/util/logger.ts

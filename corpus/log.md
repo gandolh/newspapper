@@ -1022,3 +1022,45 @@ judgement remain, `loadConfig` and the `api` `start` script.
 Worth stating: **the cleanup was cheap because the linter already knew what
 "retired" meant.** A stale-path check that you feed when you delete a directory
 turns "did I miss a reference" from a grep-and-hope into a list.
+
+## [2026-08-31] brief | 73 closes the backlog — and the brief was wrong about its own premise
+
+The last open brief. It said `core/src/util/config.ts` was dead: `loadConfig()`
+exported from the barrel and called nowhere, seven environment variables
+settable and inert. All true, and the obvious action — delete the file — would
+have been a serious regression.
+
+**Line 1 of that file is `import 'dotenv/config'`, the only dotenv call site in
+the repo.** The barrel imports the module, `api` imports the barrel, and that
+chain is the entire mechanism by which `.env` reaches `process.env`. Deleting it
+would have taken `SESSION_SECRET`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `PORT`,
+`NEWSPAPPER_DB_PATH`, `UPLOADS_DIR`, `UPLOADS_BASE_URL` and `THEME` with it —
+with no throw and no log. The app would simply have booted on defaults, in
+production, with a default session secret.
+
+That is **instance nine**, and it would have been built by hand inside the brief
+filed to prevent the other eight. It was avoided by measuring instead of
+reasoning: with a probe variable in `.env`, a script whose only statement was
+`import '@newspapper/core'` printed it; the same script without that import
+printed `undefined`.
+
+The lesson is the inverse of the previous eight, and worth stating as its own
+rule: those were **things that looked wired up and were not**. This was a thing
+that **looked dead and was load-bearing**. Both are the same underlying error —
+inferring behaviour from the shape of the code instead of observing it. A module
+that exports nothing is the hardest possible case, because every tool that could
+have warned you is looking for references, and a side effect has none.
+
+So the side effect is kept and promoted to the barrel's first statement, both
+sites carry comments saying they are load-bearing *because* they look removable,
+and `config.test.ts` guards both halves. The controller mutation-checked it:
+delete the barrel import and the test fails.
+
+`api`'s `start` script was deleted rather than fixed, on evidence — the agent
+compiled `api` and ran the result, which dies with `ERR_MODULE_NOT_FOUND`
+reaching into `core`, whose `exports` map points at raw TypeScript. Making it
+work means compiling `core` and re-pointing its exports, which breaks `ui`'s
+Vite build against the source subpaths.
+
+**`corpus/briefs/todo/` is now empty.** Every brief filed for the v4 rebuild and
+everything it turned up is in `done/` with an outcome note.

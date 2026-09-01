@@ -68,3 +68,58 @@ different hat.
 - No script in any `package.json` fails when run.
 - `npm run build`, `npm test`, `npm run lint` pass; `npx tsc -p ui --noEmit` at 0;
   `bash corpus/lint.sh` clean.
+
+---
+
+## Outcome — 2026-08-31
+
+Both items resolved. Gate verified by the controller: build ✓, **659 tests / 47
+files** ✓, lint ✓, `tsc -p ui` at 0 ✓, corpus lint ✓.
+
+**This brief was wrong about its own first item, and the agent caught it.**
+`core/src/util/config.ts` line 1 is `import 'dotenv/config'` — **the only dotenv
+call site in the repo.** The barrel imported that module, `api` imports the
+barrel, and that is the entire mechanism by which `.env` reaches
+`process.env`. Deleting the file as "dead" — which is what this brief described,
+and what a reader skimming for a `loadConfig()` would do — would have silently
+stopped `.env` being read at all, taking `SESSION_SECRET`, `ADMIN_USERNAME`,
+`ADMIN_PASSWORD`, `PORT`, `NEWSPAPPER_DB_PATH`, `UPLOADS_DIR`,
+`UPLOADS_BASE_URL` and `THEME` with it. No throw, no log — the app just boots on
+defaults.
+
+That is instance **nine**, and it would have been built by hand inside the brief
+filed to prevent it. It was avoided by measuring rather than reasoning: with a
+probe variable appended to `.env`, a script whose only statement was
+`import '@newspapper/core'` printed it; the same script without that import
+printed `undefined`.
+
+So: `loadConfig()`, the `Config` interface and all seven inert variables are
+deleted; the side effect is kept and **promoted to the barrel's first
+statement**, with both sites commented to say they are load-bearing despite
+exporting nothing. A new `core/src/util/config.test.ts` guards both halves, and
+the controller mutation-checked it — removing the barrel import fails the test,
+restoring it passes.
+
+**`api`'s `start` script is deleted, and "make it emit" was rejected on
+evidence rather than argument.** The agent compiled `api` for real and ran the
+output: it dies with `ERR_MODULE_NOT_FOUND` reaching into `core`, because
+`core`'s `exports` map points at `./src/index.ts` — raw TypeScript, resolvable
+only under a TS-aware loader. Making the script work would require compiling
+`core` and re-pointing its exports, which would break `ui`'s Vite build against
+the `./wizard` and `./templates` source subpaths.
+
+**The reader-per-variable table is in `configuration.md`**, and every surviving
+variable has a named reader: `PORT`, `SESSION_SECRET`, `ADMIN_USERNAME`,
+`ADMIN_PASSWORD`, `NEWSPAPPER_DB_PATH`, `UPLOADS_DIR`, `UPLOADS_BASE_URL`,
+`THEME`. `USER_AGENT` was a near-miss worth noting — `core/src/scrape/index.ts`
+has a `DEFAULT_USER_AGENT` constant and a `userAgent` option, but never
+consulted the env var.
+
+`THEME` was verified end-to-end against the changed code with a real `.env` and
+a scratch DB, not via the existing `vi.stubEnv` tests — those would have passed
+with dotenv gone, which is exactly the trap.
+
+Every script in every `package.json` was run. Three docs the agent flagged
+outside its ownership were fixed by the controller: `commands.md` described the
+now-deleted `start` script, `modules.md` still listed `loadConfig()`, and
+`status.md`'s strays table still carried both resolved rows.

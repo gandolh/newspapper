@@ -69,16 +69,17 @@ storage · the npm workspace layout · the shared UI primitives on Base UI.
 
 ## Known strays
 
-Found while writing the docs. **The file-level ones were deleted on 2026-08-31**
-— a v2/v3 build-plan tree, an Ollama-only compose file, a root `tsconfig.json`
-extended by nothing and pointing at a root `src/` that held no files, and the
-resolved resume document. What remains is code, and is [brief
-73](../briefs/todo/73-dead-config.md).
+Found while writing the docs, and **all but two are now resolved.** Deleted
+2026-08-31: a v2/v3 build-plan tree, an Ollama-only compose file, a root
+`tsconfig.json` extended by nothing and pointing at a root `src/` that held no
+files, and the resolved resume document. Brief 73 then took the code half —
+`loadConfig()` and its seven inert variables, and `api`'s unrunnable `start`
+script.
+
+What is left is genuinely benign:
 
 | Stray | What it is |
 |---|---|
-| `core/src/util/config.ts` | `loadConfig()` is exported from the core barrel and **called nowhere**. Its eight env vars do nothing except `THEME`, which `storage/settings.ts` reads separately. |
-| `api`'s `start` script | `node dist/server.js`, but `api`'s build is `tsc --noEmit` and emits no `dist/`. |
 | `api/src/server.ts` | The SPA fallback still tries a per-route `index.html` first and its comment names a build that is gone. Harmless — the root `index.html` fallback is what serves. |
 | `data/sources.json` | v2 residue: a one-time seed for the `sources` table. Nothing reads it afterwards. |
 

@@ -1,5 +1,11 @@
 // Core library entry point — re-exports all public types and modules.
 
+// Side effect, deliberately first: loads `.env` into `process.env` before any
+// module below can read it. This is the repo's only `dotenv` call site, and
+// `api` gets it purely by importing this barrel. It exports nothing, so it
+// looks removable — it is not. See ./util/config.ts and its test.
+import './util/config.js';
+
 // Types (canonical source of truth for PostPayload, SlideBlock, Article, PostRow, Theme, etc.)
 export * from './types.js';
 
@@ -20,8 +26,6 @@ export type {
 } from './scrape/index.js';
 
 // Util
-export { loadConfig } from './util/config.js';
-export type { Config } from './util/config.js';
 export { log } from './util/logger.js';
 export { ensureDir, ensureParent, todayLocal, nextOutputDir } from './util/paths.js';
 

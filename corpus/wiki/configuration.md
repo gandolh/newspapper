@@ -1,6 +1,6 @@
 ---
-summary: Every env var and whether anything actually reads it, the auth variables and their strict-mode behaviour, settings precedence, and one-time setup including Playwright Chromium.
-updated: 2026-08-31
+summary: Every env var and the code that reads it, how .env reaches process.env at all, the auth variables and their strict-mode behaviour, settings precedence, and one-time setup including Playwright Chromium.
+updated: 2026-09-01
 ---
 
 # Configuration
@@ -27,15 +27,36 @@ developer's real database — the first entry in
 [green-because-nothing-ran.md](./green-because-nothing-ran.md), and now
 [a locked decision](./decisions-engineering.md#the-default-database-path-is-overridable-and-tests-must-override-it).
 
-### Variables that read as configuration but are not
+**The table above is the whole list.** Every row names code that reads it:
 
-`core/src/util/config.ts` defines `loadConfig()` over
-`MAX_ARTICLES_PER_SOURCE`, `USER_AGENT`, `REQUEST_TIMEOUT`, `MAX_RETRIES`,
-`THEME`, `OUTPUT_DIR`, `DB_PATH` and `DEFAULT_RETENTION_DAYS`. **Nothing in the
-repo calls `loadConfig()`** — it is exported from the core barrel and never
-invoked, a survivor of the CLI era. Setting any of those except `THEME` (which
-is separately read by `storage/settings.ts`) has no effect on the running app.
-Left in place rather than described as live.
+| Variable | Read by |
+|----------|---------|
+| `PORT` | `api/src/server.ts`, `api/src/routes/render.ts`, `core/src/uploads/index.ts` |
+| `SESSION_SECRET` | `api/src/auth/secret.ts` |
+| `ADMIN_USERNAME` / `ADMIN_PASSWORD` | `api/src/auth/seed.ts` |
+| `NEWSPAPPER_DB_PATH` | `core/src/storage/db.ts`, `api/src/lib/db.ts` |
+| `UPLOADS_DIR` | `core/src/uploads/store.ts` |
+| `UPLOADS_BASE_URL` | `core/src/uploads/index.ts` |
+| `THEME` | `core/src/storage/settings.ts` |
+
+### How `.env` reaches `process.env`
+
+`core/src/util/config.ts` is the only `dotenv` call site in the repo. It exports
+nothing — it just runs `import 'dotenv/config'` — and `core/src/index.ts` pulls
+it in as a side effect, which is how `api` gets it: every `api` module imports
+that barrel. Delete either half and `.env` stops being read, silently, on
+defaults, with no error. `core/src/util/config.test.ts` fails if either half
+goes.
+
+Until brief 73 that file also exported `loadConfig()`, a CLI-era survivor called
+nowhere, over seven variables — `MAX_ARTICLES_PER_SOURCE`, `USER_AGENT`,
+`REQUEST_TIMEOUT`, `MAX_RETRIES`, `OUTPUT_DIR`, `DB_PATH`,
+`DEFAULT_RETENTION_DAYS` — that nothing consulted. **They were settable and
+inert**, the shape catalogued in
+[green-because-nothing-ran.md](./green-because-nothing-ran.md). The function and
+the variables are gone; the `.env` side effect was the only live part and
+stayed. There is no `Config` object: each consumer reads the one variable it
+needs, where it needs it.
 
 ## Authentication
 

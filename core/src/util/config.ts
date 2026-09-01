@@ -1,31 +1,26 @@
+/**
+ * Loads `.env` into `process.env`. That is the whole job.
+ *
+ * **This module is load-bearing precisely because it looks like it is not.**
+ * It exports nothing, so a reader skimming for a `loadConfig()` will conclude
+ * it is dead and delete it. It is the *only* `dotenv` call site in the repo,
+ * and it is pulled in by `core/src/index.ts` — the barrel every `api` module
+ * imports. Remove either half and `.env` silently stops being read, taking
+ * `SESSION_SECRET`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `PORT`,
+ * `NEWSPAPPER_DB_PATH`, `UPLOADS_DIR`, `UPLOADS_BASE_URL` and `THEME` with it.
+ * Nothing throws; the app just boots on defaults. `config.test.ts` guards both
+ * halves.
+ *
+ * It used to also export `loadConfig()`, a CLI-era survivor called nowhere,
+ * over seven environment variables (`MAX_ARTICLES_PER_SOURCE`, `USER_AGENT`,
+ * `REQUEST_TIMEOUT`, `MAX_RETRIES`, `OUTPUT_DIR`, `DB_PATH`,
+ * `DEFAULT_RETENTION_DAYS`) that no code path ever consulted. Brief 73 deleted
+ * the function and the variables; only this side effect was real.
+ *
+ * There is no `Config` object. Each consumer reads the one variable it needs,
+ * where it needs it: `storage/db.ts` (`NEWSPAPPER_DB_PATH`),
+ * `storage/settings.ts` (`THEME`), `uploads/store.ts` (`UPLOADS_DIR`),
+ * `uploads/index.ts` (`UPLOADS_BASE_URL`, `PORT`), `api/src/auth/*`
+ * (`SESSION_SECRET`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`).
+ */
 import 'dotenv/config';
-
-export interface Config {
-  maxArticlesPerSource: number;
-  userAgent: string;
-  requestTimeoutMs: number;
-  maxRetries: number;
-  theme: string;
-  outputDir: string;
-  dbPath: string;
-  defaultRetentionDays: number;
-}
-
-function num(value: string | undefined, fallback: number): number {
-  if (!value) return fallback;
-  const n = Number(value);
-  return Number.isFinite(n) ? n : fallback;
-}
-
-export function loadConfig(): Config {
-  return Object.freeze({
-    maxArticlesPerSource: num(process.env.MAX_ARTICLES_PER_SOURCE, 5),
-    userAgent: process.env.USER_AGENT ?? 'Newspapper/2.0',
-    requestTimeoutMs: num(process.env.REQUEST_TIMEOUT, 30_000),
-    maxRetries: num(process.env.MAX_RETRIES, 3),
-    theme: process.env.THEME ?? 'warm-industrial-1',
-    outputDir: process.env.OUTPUT_DIR ?? './output',
-    dbPath: process.env.DB_PATH ?? './data/newspapper.db',
-    defaultRetentionDays: num(process.env.DEFAULT_RETENTION_DAYS, 30),
-  });
-}

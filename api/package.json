@@ -5,8 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc --noEmit",
-    "start": "node dist/server.js"
+    "build": "tsc --noEmit"
   },
   "dependencies": {
     "@fastify/cors": "10.1.0",

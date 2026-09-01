@@ -70,9 +70,15 @@ npm run dev --workspace=api      # the API serves ui/dist/ at /
 ```
 
 When `ui/dist/` exists the API serves it at `/` and falls back to `index.html`
-for any non-`/api/` path, which is what the client-side router needs. `api`'s
-`start` script (`node dist/server.js`) refers to a build output the current
-scripts do not produce; run the API through `tsx` as above.
+for any non-`/api/` path, which is what the client-side router needs.
+
+**There is no `start` script**, and the API runs under `tsx` in production too.
+`core` is consumed as TypeScript *source* — its `exports` map points at
+`./src/index.ts` — so plain `node` cannot load it, and compiling `api` alone
+produces a `dist/` that dies on `ERR_MODULE_NOT_FOUND` reaching into `core`.
+Making `node dist/server.js` work would mean compiling `core` and re-pointing
+its exports, which would break `ui`'s Vite build against the `./wizard` and
+`./templates` source subpaths. Brief 73 measured this and deleted the script.
 
 Outside development, `SESSION_SECRET`, `ADMIN_USERNAME` and `ADMIN_PASSWORD` are
 required and the server exits non-zero without them.
