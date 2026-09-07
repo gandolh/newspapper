@@ -1,0 +1,266 @@
+/*
+ * Newspapper's docs are on the board.
+ *
+ * `corpus/wiki/design.md` §1 gives the north star: **"The Paste-Up Board."**
+ * Newspapper is a mechanical on a layout artist's board — the slide pasted down
+ * inside crop marks, the markup waxed on beside it as a galley, the inspector on
+ * a tissue overlay, a non-photo blue grid printed under everything.
+ *
+ * Its four key characteristics are load-bearing, and three of them are directly
+ * enforceable in a documentation surface:
+ *
+ *   1. **Zero radius everywhere.** "Nothing on a board has a rounded corner."
+ *      Starlight rounds code blocks, asides, cards and the search box by default;
+ *      all of it is squared off below.
+ *   2. **One 26px non-photo blue grid**, printed under everything, which "never
+ *      carries information". It is drawn here at very low opacity on the page
+ *      ground for the same reason it exists in the app: it governs alignment and
+ *      must never be mistaken for content.
+ *   3. **Two shadows, both physical** — waxed-down (hard, short) and hinged
+ *      (soft, directional). Never ambient decoration. A docs page has one
+ *      physical fact available to it: a code block or a diagram is *waxed onto*
+ *      the board, so it gets the hard short shadow and nothing else does.
+ *
+ * The fourth — **state is a mark, not a colour badge** — is why the asides below
+ * are given a left rule in rubylith or grease rather than a tinted pill. A pill
+ * is a badge; a rule is a mark.
+ *
+ * §1 also draws the distinction this site has to respect: the world separates
+ * the **workstation** from the **artwork**. The warm-industrial theme belongs to
+ * the 1080² slide and appears nowhere else. These docs are workstation — board,
+ * graphite and marks — and none of the slide palette is used here.
+ *
+ * Type is the app's own pair: Archivo for anything set, Spline Sans Mono for the
+ * galley. Code on this site is galley.
+ */
+
+@import '@fontsource-variable/archivo';
+@import '@fontsource/spline-sans-mono/400.css';
+
+:root,
+:root[data-theme='light'],
+:root[data-theme='dark'] {
+  --board: #fbfbf9;
+  --paper: #ffffff;
+  --graphite: #2b2b2b;
+  --graphite-soft: #6d6a62;
+  --graphite-tint: #7a7a76;
+  --hairline: #e2e2dd;
+  --rule: #cfcfca;
+  --tick: #c4c1b8;
+  --non-photo: #7fb6e8;
+  --process-blue: #1d63a8;
+  --rubylith: #e8452e;
+  --rubylith-ink: #c0331f;
+  --grease: #c0331f;
+  --wax: #f5d97a;
+  --wax-ink: #3d3416;
+  --tissue: #fcfaf2;
+  --tissue-edge: #b9b6ac;
+  --tissue-ink: #8d8a80;
+
+  --font-set: 'Archivo Variable', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-galley: 'Spline Sans Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* The two physical shadows. There is no third. */
+  --shadow-waxed: 0 1px 0 rgba(43, 43, 43, 0.16);
+  --shadow-hinged: 2px 4px 12px rgba(43, 43, 43, 0.1);
+
+  --sl-color-accent-low: #e4eef7;
+  --sl-color-accent: var(--process-blue);
+  --sl-color-accent-high: #14456f;
+
+  --sl-color-white: var(--paper);
+  --sl-color-black: var(--graphite);
+  --sl-color-gray-1: #3a3a38;
+  --sl-color-gray-2: var(--graphite-soft);
+  --sl-color-gray-3: var(--graphite-tint);
+  --sl-color-gray-4: var(--tick);
+  --sl-color-gray-5: var(--rule);
+  --sl-color-gray-6: var(--hairline);
+  --sl-color-gray-7: var(--board);
+
+  --sl-color-text: var(--graphite);
+  --sl-color-text-accent: var(--process-blue);
+  --sl-color-bg: var(--board);
+  --sl-color-bg-nav: var(--board);
+  --sl-color-bg-sidebar: var(--board);
+  --sl-color-bg-inline-code: var(--tissue);
+  --sl-color-hairline: var(--hairline);
+  --sl-color-hairline-light: var(--hairline);
+  --sl-color-hairline-shade: var(--rule);
+
+  --sl-font: var(--font-set);
+  --sl-font-mono: var(--font-galley);
+
+  /* State is a mark. The three inks each own one job. */
+  --sl-color-green: var(--process-blue);
+  --sl-color-green-low: #e4eef7;
+  --sl-color-green-high: #14456f;
+  --sl-color-orange: var(--wax-ink);
+  --sl-color-orange-low: var(--wax);
+  --sl-color-orange-high: var(--wax-ink);
+  --sl-color-red: var(--rubylith-ink);
+  --sl-color-red-low: #fbe7e3;
+  --sl-color-red-high: var(--rubylith-ink);
+  --sl-color-blue: var(--graphite-soft);
+  --sl-color-blue-low: var(--tissue);
+  --sl-color-blue-high: var(--graphite);
+  --sl-color-purple: var(--process-blue);
+  --sl-color-purple-low: #e4eef7;
+  --sl-color-purple-high: #14456f;
+}
+
+/* --- 1. Zero radius everywhere ------------------------------------------- */
+*,
+*::before,
+*::after {
+  border-radius: 0 !important;
+}
+
+/* --- 2. The non-photo blue grid, printed under everything ---------------- */
+/* 26px, the app's pitch. Very low opacity: it governs alignment and must never
+   carry information, which on a text page means it must never compete with a
+   line of type. */
+body {
+  background-color: var(--board);
+  background-image:
+    linear-gradient(to right, rgba(127, 182, 232, 0.09) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(127, 182, 232, 0.09) 1px, transparent 1px);
+  background-size: 26px 26px;
+}
+
+/* --- Type ---------------------------------------------------------------- */
+.site-title {
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  font-variation-settings: 'wdth' 115;
+  text-transform: uppercase;
+  font-size: 0.95rem;
+}
+
+.sl-markdown-content h1,
+.content-panel h1 {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variation-settings: 'wdth' 112;
+}
+
+.sl-markdown-content h2,
+.sl-markdown-content h3 {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* --- Marks, not badges --------------------------------------------------- */
+/* A rule down the edge is a mark on a board; a tinted pill is a badge. */
+.sl-markdown-content .starlight-aside {
+  border-left-width: 3px;
+  border-top: none;
+  border-right: none;
+  border-bottom: none;
+  background: var(--tissue);
+}
+
+/* --- Paper is waxed onto board ------------------------------------------- */
+/* Anything waxed down is brighter than the board, which is what makes it read as
+   *on* it — and it casts the hard short shadow. Nothing else casts anything. */
+.expressive-code .frame pre,
+.sl-markdown-content pre,
+.sl-markdown-content table {
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  box-shadow: var(--shadow-waxed);
+}
+
+.sl-markdown-content pre code {
+  font-family: var(--font-galley);
+  font-size: 0.8125rem;
+  line-height: 1.86;
+}
+
+.sl-markdown-content :not(pre) > code {
+  background: var(--tissue);
+  border: 1px solid var(--tissue-edge);
+  padding: 0.05em 0.3em;
+  font-size: 0.85em;
+}
+
+/* --- Tables: a register, dense and square -------------------------------- */
+.sl-markdown-content table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.sl-markdown-content th {
+  text-align: left;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  letter-spacing: -0.01em;
+  border-bottom: 1px solid var(--graphite);
+  padding: 0.4rem 0.7rem;
+}
+
+.sl-markdown-content td {
+  border-bottom: 1px solid var(--hairline);
+  padding: 0.4rem 0.7rem;
+  vertical-align: top;
+}
+
+/* --- Diagram frames: pasted down inside a rule --------------------------- */
+.doc-diagram {
+  margin: 1.75rem 0;
+}
+
+.doc-diagram__frame {
+  width: 100%;
+  display: block;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  box-shadow: var(--shadow-waxed);
+}
+
+.doc-diagram__caption {
+  margin-top: 0.5rem;
+  font-family: var(--font-galley);
+  font-size: 0.75rem;
+  color: var(--tissue-ink);
+  line-height: 1.6;
+}
+
+/* --- Key/value facts: a caption slip ------------------------------------- */
+.doc-facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.35rem 1.25rem;
+  margin: 1.5rem 0;
+  padding: 0.9rem 1.1rem;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  box-shadow: var(--shadow-waxed);
+  font-size: 0.9rem;
+}
+
+.doc-facts dt {
+  font-family: var(--font-galley);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--tissue-ink);
+  padding-top: 0.15rem;
+}
+
+.doc-facts dd {
+  margin: 0;
+  color: var(--graphite);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

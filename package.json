@@ -1,13 +1,14 @@
 {
   "name": "newspapper",
   "version": "3.0.0",
-  "description": "Turn today's news into an Instagram-style slide post \u2014 v3 web app.",
+  "description": "Turn today's news into an Instagram-style slide post — v3 web app.",
   "private": true,
   "type": "module",
   "workspaces": [
     "core",
     "api",
-    "ui"
+    "ui",
+    "docs"
   ],
   "scripts": {
     "dev": "concurrently --kill-others-on-fail \"npm run dev --workspace=api\" \"npm run dev --workspace=ui\"",

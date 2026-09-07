@@ -1,0 +1,250 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "From .wzd source to uploadable slides",
+    "viewBox": [
+      1080,
+      760
+    ],
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "compile",
+        "label": "The compile path",
+        "focus": [
+          "source",
+          "parse",
+          "html",
+          "chromium",
+          "jpegs"
+        ],
+        "note": "The slide is a real DOM before it is an image; the screenshot is taken of that."
+      },
+      {
+        "id": "material",
+        "label": "RSS is source material",
+        "focus": [
+          "rss",
+          "library",
+          "source"
+        ],
+        "note": "Feeds are a library to write FROM — deliberately not a pipeline that produces a post."
+      },
+      {
+        "id": "assets",
+        "label": "Where images come from",
+        "focus": [
+          "uploads",
+          "chromium"
+        ],
+        "note": "The render context serves images from disk rather than fetching them over HTTP."
+      }
+    ]
+  },
+  "stages": [
+    {
+      "label": "Gather"
+    },
+    {
+      "label": "Write"
+    },
+    {
+      "label": "Compile"
+    },
+    {
+      "label": "Render"
+    },
+    {
+      "label": "Ship"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "rss",
+      "type": "external",
+      "label": "RSS feeds",
+      "sublabel": "searched by keyword",
+      "stage": 0,
+      "row": 3,
+      "tag": "not a pipeline"
+    },
+    {
+      "id": "library",
+      "type": "database",
+      "label": "Saved items",
+      "sublabel": "source material",
+      "stage": 1,
+      "row": 3
+    },
+    {
+      "id": "source",
+      "type": "frontend",
+      "label": ".wzd document",
+      "sublabel": "written by a person",
+      "stage": 1,
+      "row": 0,
+      "tag": "the input"
+    },
+    {
+      "id": "parse",
+      "type": "backend",
+      "label": "Compile",
+      "sublabel": "markup → slide model",
+      "stage": 2,
+      "row": 0
+    },
+    {
+      "id": "uploads",
+      "type": "database",
+      "label": "Uploads",
+      "sublabel": "images on disk",
+      "stage": 2,
+      "row": 3
+    },
+    {
+      "id": "html",
+      "type": "backend",
+      "label": "HTML + theme",
+      "sublabel": "a real 1080² DOM",
+      "stage": 3,
+      "row": 0,
+      "tag": "the artwork"
+    },
+    {
+      "id": "chromium",
+      "type": "backend",
+      "label": "Headless Chromium",
+      "sublabel": "screenshots each slide",
+      "stage": 3,
+      "row": 2
+    },
+    {
+      "id": "jpegs",
+      "type": "database",
+      "label": "1080² JPEGs",
+      "sublabel": "plus a caption",
+      "stage": 4,
+      "row": 1,
+      "tag": "the output"
+    },
+    {
+      "id": "ship",
+      "type": "external",
+      "label": "Publish or ZIP",
+      "sublabel": "ready to upload",
+      "stage": 4,
+      "row": 3
+    }
+  ],
+  "flows": [
+    {
+      "id": "f-rss",
+      "from": "rss",
+      "to": "library",
+      "label": "save what is useful",
+      "classification": "reading, not ingesting",
+      "variant": "dashed",
+      "labelAt": [
+        208,
+        542
+      ]
+    },
+    {
+      "id": "f-quote",
+      "from": "library",
+      "to": "source",
+      "label": "quote into a post",
+      "classification": "by hand",
+      "variant": "dashed",
+      "labelAt": [
+        315,
+        590
+      ]
+    },
+    {
+      "id": "f-parse",
+      "from": "source",
+      "to": "parse",
+      "label": "the markup",
+      "classification": "authored",
+      "variant": "emphasis"
+    },
+    {
+      "id": "f-html",
+      "from": "parse",
+      "to": "html",
+      "label": "slide model",
+      "classification": "themed",
+      "variant": "emphasis"
+    },
+    {
+      "id": "f-img",
+      "from": "uploads",
+      "to": "chromium",
+      "label": "served from disk",
+      "classification": "no HTTP fetch",
+      "variant": "security"
+    },
+    {
+      "id": "f-shot",
+      "from": "html",
+      "to": "chromium",
+      "label": "load and screenshot",
+      "classification": "one per slide",
+      "variant": "emphasis",
+      "labelAt": [
+        745,
+        200
+      ]
+    },
+    {
+      "id": "f-out",
+      "from": "chromium",
+      "to": "jpegs",
+      "label": "encode",
+      "classification": "1080 × 1080",
+      "variant": "emphasis"
+    },
+    {
+      "id": "f-ship",
+      "from": "jpegs",
+      "to": "ship",
+      "label": "download or post",
+      "classification": "final",
+      "labelAt": [
+        960,
+        314
+      ]
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "The slide is a DOM first",
+      "items": [
+        "Compiling produces real HTML with the theme applied, not a drawing",
+        "Chromium screenshots that page, so what ships is what a browser rendered",
+        "Which means a slide can be inspected in devtools while it is being designed"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "RSS is a library, not a pipeline",
+      "items": [
+        "Feeds are searched by keyword and useful items are saved",
+        "A post is written by a person quoting from that library",
+        "Nothing turns a feed item into a post automatically, by decision"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Images are removed, not authorised",
+      "items": [
+        "Chromium carries no cookie, so /uploads/* used to be public to feed it",
+        "The render context already served fonts from disk; images now go the same way",
+        "So the request never leaves the process — no new credential exists"
+      ]
+    }
+  ]
+}

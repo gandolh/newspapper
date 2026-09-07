@@ -1346,3 +1346,110 @@ wide session cell for the first time.** A measurement is only as general as the
 states it was taken in.
 
 **`corpus/briefs/todo/` is empty again.**
+
+## [2026-09-06] change | newspapper moves to Ward, and `/uploads/*` finally stops being public
+
+Identity is Ward's. Deleted: the stateless 30-day HMAC session cookie,
+`SESSION_SECRET`, the scrypt password check, the IP-keyed lockout, the `users`
+table (schema v5), `POST /api/login`, `POST /api/logout`, `POST /api/password`,
+the login page and the login island. Newspapper holds **no credential of any
+kind**.
+
+**The headline is not the cutover — it is `/uploads/*`.** That route was
+`config: { public: true }` because headless Chromium fetches `<Image>` sources
+mid-render carrying no cookie. On loopback the exposure was bounded by 32 bits
+of ref entropy **and an unreachable port**; on the shared VPS only the entropy
+would have been left, and `decisions-security.md` named this as the first thing
+to revisit on exposure.
+
+The expected fix was a render-scoped token, and the reason the original decision
+rejected one — "more machinery than a local single-user app earns" — really had
+stopped being true. It was rejected again anyway, for a better reason: **the
+request can be removed rather than authorised.** `render/uploads-route.ts`
+intercepts `/uploads/*` inside the render browser's own context and fulfils it
+from disk — which is exactly what `render/fonts.ts` already did for
+`@font-face` files, there for a CORS reason and here for a security one. The
+precedent was sitting in the same directory.
+
+That is strictly stronger than a token. No new bearer credential exists, so
+there is no lifetime, no signing key, no leak path through logs and no
+revocation story to get wrong. The route stops being public *at all*, so a ref's
+entropy goes back to being an identifier instead of a security boundary. And
+rendering no longer depends on the API being reachable, exactly as fonts already
+did — it is also one fewer HTTP round trip per image per slide.
+
+The cost is one coupling, and it is written down where it will be found:
+`renderSlides` now needs the uploads database handle, and **a run that renders
+images without passing it produces blank images**, because the fetch falls
+through to the network and gets a 401. That is the intended failure and it is
+loud; a silent fallback to an unauthenticated fetch is the thing that must not
+happen. `render.test.ts`'s text-only fixtures pass nothing and are unaffected.
+
+**The lockout was removed rather than retuned.** Tightening the numbers on
+exposure would have solved a problem newspapper no longer has: there is no
+credential here to brute-force. Login is Ward's, and Ward has its own lockout
+with its own budget — the right place for it, since a per-app counter would have
+guarded one of six front doors to the same accounts.
+
+**The guard grew a third outcome.** 401 is no session; **403 is a live Ward
+session holding no `newspapper` grant**, which must not redirect because signing
+in again cannot fix it; 503 is Ward unreachable or newspapper's own app key
+refused, which fails closed and is never reported as "signed out". The
+`config: { public: true }` route convention survived intact — it was a good
+pattern, and only what stood behind it changed.
+
+**Tests got a fake Ward client rather than stubbed guards** (`ward/fake-ward.ts`),
+so the real guard decides. That is what makes `ward.guard.test.ts`'s two most
+valuable assertions meaningful: a session holding only `prm:user` gets a 403,
+and an anonymous `/uploads/:ref` now gets a 401 rather than bytes.
+
+595 tests pass, typecheck clean across core/api/ui. Nothing has been run against
+a real browser or a deployed Ward, and **the rendering path in particular has
+not been exercised end to end** — the interception is unit-shaped only.
+
+## [2026-09-06] done | A documentation site at `/newspapper/docs`, almost entirely rendered
+
+`docs/` — Astro + Starlight, built by `npm run docs -w @newspapper/docs-site`,
+deployed at the estate's `/<project>/docs` convention.
+
+**Exactly one page is authored.** This corpus already carries `api.md`,
+`data.md`, `architecture.md`, `modules.md`, `configuration.md`, `commands.md`
+and `markup.md` — the reference material a docs site would normally write for
+itself. Restating any of it would create a second copy to keep in step with the
+first, and the second copy always loses. So all 24 corpus pages are *rendered*
+on every build, banner-marked and gitignored, and the only hand-written page is
+an orientation index carrying the diagram. `@newspapper/core`'s public barrel is
+TypeDoc'd alongside them.
+
+The index deliberately points a first-time reader at
+[green-because-nothing-ran.md](./wiki/green-because-nothing-ran.md) before
+anything else, because a suite that is green because it never reached the code
+is the thing most likely to mislead someone picking this repo up.
+
+**One archify diagram** of the compile pipeline, `.wzd` → HTML → Chromium →
+1080² JPEGs, drawn so two facts are visible rather than asserted: the slide is a
+real DOM before it is an image, and RSS is a *library to write from* rather than
+a pipeline that produces a post. The third card records the `/uploads/*` fix —
+the request is removed rather than authorised, so no new bearer credential
+exists.
+
+**The docs are on the board.** `wiki/design.md` §1's north star — the paste-up
+board — is enforced rather than quoted: **zero radius everywhere** (Starlight
+rounds code blocks, asides, cards and the search box by default; all squared
+off), the **26px non-photo blue grid** printed under everything at an opacity
+that keeps it from competing with type, and **only the two physical shadows** —
+anything waxed onto the board gets the hard short one and nothing else gets
+anything. Asides carry a left rule in rubylith or wax rather than a tinted pill,
+because §1 says state is a *mark*, not a colour badge. Archivo and Spline Sans
+Mono, as in the app; code on the site is galley.
+
+The workstation/artwork separation is respected: none of the warm-industrial
+slide palette appears here. These docs are board, graphite and marks.
+
+595 tests pass. `docs` added to the root `workspaces` array; `lint` and
+`fmt:check` glob `core/src`, `api/src` and `ui/src` explicitly, so neither picks
+the docs workspace up.
+
+**Pre-existing and untouched:** `npm run lint` reports one unused `db` binding
+and `fmt:check` flags three `api/src/ward/*` files. Both predate this change and
+are left alone.
