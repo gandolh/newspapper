@@ -1,8 +1,9 @@
 /**
- * The page map: `/` · `/posts` · `/articles` · `/settings` · `/login`, plus
- * `/kitchen-sink` in dev only.
+ * The page map: `/` · `/posts` · `/articles` · `/settings`, plus
+ * `/kitchen-sink` in dev only. (`/login` is gone — it is Ward's now, on a
+ * different app entirely; the stale path is forwarded there.)
  *
- * Every route but `/login` renders inside one `<App>` element at one position
+ * Every route renders inside one `<App>` element at one position
  * in the tree, and that is load-bearing rather than tidy: React keeps an
  * element's instance when its type and position hold, so the layout — and the
  * tray inside it, and the tray's health probe — survives a navigation that
@@ -23,8 +24,8 @@ import ArticlesIsland from './components/articles/ArticlesIsland';
 import EditorIsland from './components/editor/EditorIsland';
 import PostsIsland from './components/posts/PostsIsland';
 import SettingsIsland from './components/settings/SettingsIsland';
-import LoginPage from './pages/Login';
 import { Redirect, usePathname } from './router';
+import { wardLoginUrl } from './lib/api';
 
 type Sheet = { title: string; width?: 'default' | 'fluid'; Island: ComponentType };
 
@@ -40,8 +41,16 @@ const sheets: Record<string, Sheet> = {
 export default function Routes() {
   const path = usePathname();
 
-  // The only route outside the board.
-  if (path === '/login') return <LoginPage />;
+  /*
+   * `/login` was the only route outside the board. It is gone: newspapper has
+   * no login page, and signing in is a navigation to Ward's. A bookmark or a
+   * stale link lands here, and sending it to Ward rather than to `/` is what
+   * makes that bookmark still do what the person meant by it.
+   */
+  if (path === '/login') {
+    if (typeof window !== 'undefined') window.location.assign(wardLoginUrl());
+    return null;
+  }
 
   const sheet = sheets[path];
   if (!sheet) {

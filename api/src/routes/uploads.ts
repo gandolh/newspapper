@@ -158,10 +158,23 @@ const uploadsRoutes: FastifyPluginAsync = async (fastify) => {
   });
 
   /**
-   * GET /uploads/:ref — normalized bytes. Public: headless Chromium fetches
-   * this at render time and carries no session cookie.
+   * GET /uploads/:ref — normalized bytes. **Guarded**, as of the Ward cutover.
+   *
+   * This route used to be `config: { public: true }`, because the headless
+   * Chromium that renders slides fetches images mid-render and carries no
+   * session cookie. While newspapper was loopback-only that exposure was
+   * bounded by the ref's entropy **and by an unreachable port**; moving to the
+   * shared VPS would have left only the entropy.
+   *
+   * It is closed now because the renderer stopped making the request:
+   * `core/src/render/uploads-route.ts` intercepts `/uploads/*` inside the
+   * browser context and fulfils it from disk — the same mechanism `fonts.ts`
+   * already used, and chosen over a render-scoped token because it removes the
+   * request rather than authorising it. **If rendering ever starts producing
+   * blank images, that interception is what broke**, and the fix is there
+   * rather than reopening this route.
    */
-  fastify.get('/uploads/:ref', { config: { public: true } }, async (req, reply) => {
+  fastify.get('/uploads/:ref', async (req, reply) => {
     const ref = parseUploadRef((req.params as { ref: string }).ref);
     const upload = ref ? findUploadByRef(db(), ref) : undefined;
     if (!upload) return reply.status(404).send({ error: 'Upload not found' });
@@ -169,9 +182,13 @@ const uploadsRoutes: FastifyPluginAsync = async (fastify) => {
   });
 
   /**
-   * GET /uploads/:ref/original — the untouched upload.
+   * GET /uploads/:ref/original — the untouched upload. Guarded, same as above.
+   *
+   * The render interception deliberately does **not** serve this variant: the
+   * renderer only ever wants the normalized bytes, and widening it would be a
+   * second decision hiding inside a performance change.
    */
-  fastify.get('/uploads/:ref/original', { config: { public: true } }, async (req, reply) => {
+  fastify.get('/uploads/:ref/original', async (req, reply) => {
     const ref = parseUploadRef((req.params as { ref: string }).ref);
     const upload = ref ? findUploadByRef(db(), ref) : undefined;
     if (!upload) return reply.status(404).send({ error: 'Upload not found' });

@@ -10,6 +10,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { zipSync } from 'fflate';
 import { DEFAULT_JPEG_QUALITY, htmlToJpeg } from './screenshot.js';
+import type { DB } from '../storage/db.js';
 import { nextOutputDir, writeRun } from './output.js';
 
 // ---- Public types ----
@@ -34,6 +35,16 @@ export interface RenderSlidesOptions {
   quality?: number;
   /** Called after each slide is written: (done, total). */
   onProgress?: (done: number, total: number) => void;
+  /**
+   * The uploads database, so image bytes reach the render browser from disk
+   * rather than over HTTP.
+   *
+   * **A run that renders slides with images must pass this.** `/uploads/*` is
+   * a guarded route since newspapper left loopback, and the render browser
+   * carries no session — so without it every `<Image>` fetches a 401 and comes
+   * out blank. See `render/uploads-route.ts`.
+   */
+  db?: DB;
 }
 
 // ---- Orchestration ----
@@ -61,7 +72,7 @@ export async function renderSlides(
 
   const jpegBuffers: Buffer[] = [];
   for (let i = 0; i < html.length; i++) {
-    const buf = await htmlToJpeg(html[i], { quality });
+    const buf = await htmlToJpeg(html[i], { quality, ...(opts.db ? { db: opts.db } : {}) });
     jpegBuffers.push(buf);
     opts.onProgress?.(i + 1, html.length);
   }
@@ -101,6 +112,7 @@ export async function zipRun(dir: string): Promise<Buffer> {
 
 export { getBrowser, closeBrowser } from './browser.js';
 export { htmlToPng, htmlToJpeg, DEFAULT_JPEG_QUALITY } from './screenshot.js';
+export { installUploadsRoute, localUploadFile, UPLOADS_ROUTE_GLOB } from './uploads-route.js';
 export type { HtmlToPngOptions, HtmlToJpegOptions } from './screenshot.js';
 export { nextOutputDir, writeRun } from './output.js';
 export type { OutputFile } from './output.js';

@@ -15,10 +15,14 @@
 import type { Page } from 'playwright';
 import { getBrowser } from './browser.js';
 import { installFontRoute } from './fonts.js';
+import { installUploadsRoute } from './uploads-route.js';
+import type { DB } from '../storage/db.js';
 
 export interface HtmlToPngOptions {
   width?: number;
   height?: number;
+  /** See {@link HtmlToJpegOptions.db}. */
+  db?: DB;
 }
 
 export interface HtmlToJpegOptions {
@@ -26,6 +30,21 @@ export interface HtmlToJpegOptions {
   height?: number;
   /** JPEG quality, 0–100. Defaults to DEFAULT_JPEG_QUALITY. */
   quality?: number;
+  /**
+   * The uploads database, so `<Image>` bytes are served to the render page from
+   * disk instead of fetched over HTTP.
+   *
+   * **Optional, and omitting it is a real choice rather than a default.**
+   * Without it the page falls back to fetching `/uploads/<ref>` from the API —
+   * which now requires a session the render browser does not have, so images
+   * come out blank. That is the intended failure: `/uploads/*` stopped being a
+   * public route when newspapper left loopback, and a silent fallback to an
+   * unauthenticated fetch is exactly what must not happen. Callers that render
+   * slides with images pass it; `render.test.ts`'s text-only fixtures do not.
+   *
+   * See `uploads-route.ts` for why interception beat a render-scoped token.
+   */
+  db?: DB;
 }
 
 const DEFAULT_WIDTH = 1080;
@@ -42,6 +61,7 @@ async function withRenderedPage<T>(
   width: number,
   height: number,
   fn: (page: Page) => Promise<T>,
+  db?: DB,
 ): Promise<T> {
   const browser = await getBrowser();
 
@@ -52,6 +72,9 @@ async function withRenderedPage<T>(
   });
 
   await installFontRoute(ctx);
+  // Same mechanism as the fonts above, for a security reason rather than a
+  // CORS one: it is what lets `/uploads/*` be a guarded route.
+  if (db) await installUploadsRoute(ctx, db);
 
   const page = await ctx.newPage();
   try {
@@ -72,8 +95,12 @@ export async function htmlToPng(html: string, opts?: HtmlToPngOptions): Promise<
   const width = opts?.width ?? DEFAULT_WIDTH;
   const height = opts?.height ?? DEFAULT_HEIGHT;
 
-  const buffer = await withRenderedPage(html, width, height, (page) =>
-    page.screenshot({ type: 'png', clip: { x: 0, y: 0, width, height } }),
+  const buffer = await withRenderedPage(
+    html,
+    width,
+    height,
+    (page) => page.screenshot({ type: 'png', clip: { x: 0, y: 0, width, height } }),
+    opts?.db,
   );
   return Buffer.from(buffer);
 }
@@ -86,8 +113,12 @@ export async function htmlToJpeg(html: string, opts?: HtmlToJpegOptions): Promis
   const height = opts?.height ?? DEFAULT_HEIGHT;
   const quality = opts?.quality ?? DEFAULT_JPEG_QUALITY;
 
-  const buffer = await withRenderedPage(html, width, height, (page) =>
-    page.screenshot({ type: 'jpeg', quality, clip: { x: 0, y: 0, width, height } }),
+  const buffer = await withRenderedPage(
+    html,
+    width,
+    height,
+    (page) => page.screenshot({ type: 'jpeg', quality, clip: { x: 0, y: 0, width, height } }),
+    opts?.db,
   );
   return Buffer.from(buffer);
 }

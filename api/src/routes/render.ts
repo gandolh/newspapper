@@ -89,6 +89,9 @@ const renderRoutes: FastifyPluginAsync = async (fastify) => {
         date,
         slidesJson: { title: post.title, theme: post.theme, head },
         caption,
+        // Required: `/uploads/*` is guarded, and the render browser has no
+        // session. This is what lets it read image bytes from disk instead.
+        db: db(),
         onProgress: (done, doneTotal) => {
           sseWrite(reply, 'progress', { done, total: doneTotal });
         },

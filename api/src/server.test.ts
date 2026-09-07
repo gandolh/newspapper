@@ -12,14 +12,19 @@ import { join } from 'node:path';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { buildApp } from './server.js';
 import { resetDb } from './lib/db.js';
-import { resetSessionSecret } from './auth/secret.js';
-import { SESSION_COOKIE } from './auth/session.js';
+import { createFakeWard } from './ward/fake-ward.js';
 
-// Every /api/* route is behind the session guard, so these tests sign in once
-// and replay the cookie. Auth itself is covered in routes/auth.test.ts.
-const USERNAME = 'tester';
-const PASSWORD = 'correct-horse-9';
-const SECRET = 'server-test-session-secret-value';
+/*
+ * Every /api/* route is behind the Ward guard, so these tests hand `buildApp` a
+ * fake Ward client and replay one cookie. The **real** guard still runs and
+ * still checks the `newspapper` grant — the fake only decides which session a
+ * cookie names, which is exactly what a real Ward would be deciding.
+ *
+ * There is no sign-in step any more: newspapper cannot sign anybody in.
+ */
+const SESSION_COOKIE = 'ward_session';
+const TOKEN = 'server-test-session';
+const SUBJECT = 'subject_tester';
 
 type Method = 'GET' | 'POST' | 'PUT' | 'DELETE';
 interface InjectOpts {
@@ -35,36 +40,26 @@ let tmpDir: string;
 beforeAll(() => {
   tmpDir = mkdtempSync(join(tmpdir(), 'newspapper-test-'));
   process.env['NEWSPAPPER_DB_PATH'] = join(tmpDir, 'test.db');
-  process.env['SESSION_SECRET'] = SECRET;
-  process.env['ADMIN_USERNAME'] = USERNAME;
-  process.env['ADMIN_PASSWORD'] = PASSWORD;
 });
 
 afterAll(() => {
   resetDb();
-  resetSessionSecret();
   delete process.env['NEWSPAPPER_DB_PATH'];
-  delete process.env['SESSION_SECRET'];
-  delete process.env['ADMIN_USERNAME'];
-  delete process.env['ADMIN_PASSWORD'];
   rmSync(tmpDir, { recursive: true, force: true });
 });
 
 describe('API server', () => {
   let app: Awaited<ReturnType<typeof buildApp>>;
-  let cookie = '';
+  const cookie = TOKEN;
 
   beforeEach(async () => {
-    app = await buildApp();
+    const ward = createFakeWard();
+    // A `newspapper` grant is what opens the app — a live Ward session without
+    // one is a 403, which is the estate's actual security boundary.
+    ward.signIn(TOKEN, SUBJECT, { newspapper: ['editor'] });
+
+    app = await buildApp({ ward });
     await app.ready();
-    if (!cookie) {
-      const res = await app.inject({
-        method: 'POST',
-        url: '/api/login',
-        payload: { username: USERNAME, password: PASSWORD },
-      });
-      cookie = res.cookies.find((c) => c.name === SESSION_COOKIE)?.value ?? '';
-    }
   });
 
   afterEach(async () => {

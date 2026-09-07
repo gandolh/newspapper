@@ -1,0 +1,41 @@
+# Newspapper's compose file. The build context is the repo root (..) because the
+# image needs the root lockfile and every workspace manifest.
+#
+#   docker compose -f infrastructure/docker-compose.yml up -d newspapper
+#
+# `.env` in THIS directory is read twice: compose interpolates ${...} below from
+# it, and the service declares it as env_file so the same values reach the
+# process. It is git-ignored — it carries WARD_APP_KEY, newspapper's own Ward
+# service key, which is shown once in Ward's console and cannot be read back.
+services:
+  newspapper:
+    build:
+      context: ..
+      dockerfile: infrastructure/Dockerfile
+      target: prod
+    image: newspapper:3.0
+    ports:
+      # LOOPBACK ONLY, and the prefix is load-bearing. "3001:3001" would publish
+      # on every interface, putting the app on plain HTTP past Caddy and its
+      # TLS. The server's own bind is 0.0.0.0 because that is inside the
+      # container's network namespace; this line is what decides who can reach it.
+      - "127.0.0.1:${PORT:-3001}:${PORT:-3001}"
+    env_file:
+      - .env
+    volumes:
+      # The database and the upload store. Bind-mounted from the host so a
+      # deploy replaces the image and never the content.
+      - ${NEWSPAPPER_DATA_DIR:-../data}:/data
+      # Rendered output, separate because the code resolves it to <repo>/output
+      # with no environment override. See the Dockerfile's note.
+      - ${NEWSPAPPER_OUTPUT_DIR:-../output}:/app/output
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:'+(process.env.PORT||3001)+'/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      start_period: 20s

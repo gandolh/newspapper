@@ -6,7 +6,7 @@
  * it is dead and delete it. It is the *only* `dotenv` call site in the repo,
  * and it is pulled in by `core/src/index.ts` — the barrel every `api` module
  * imports. Remove either half and `.env` silently stops being read, taking
- * `SESSION_SECRET`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `PORT`,
+ * `WARD_PUBLIC_ORIGIN`, `WARD_API_BASE_PATH`, `WARD_APP_KEY`, `PORT`,
  * `NEWSPAPPER_DB_PATH`, `UPLOADS_DIR`, `UPLOADS_BASE_URL` and `THEME` with it.
  * Nothing throws; the app just boots on defaults. `config.test.ts` guards both
  * halves.
@@ -20,7 +20,7 @@
  * There is no `Config` object. Each consumer reads the one variable it needs,
  * where it needs it: `storage/db.ts` (`NEWSPAPPER_DB_PATH`),
  * `storage/settings.ts` (`THEME`), `uploads/store.ts` (`UPLOADS_DIR`),
- * `uploads/index.ts` (`UPLOADS_BASE_URL`, `PORT`), `api/src/auth/*`
- * (`SESSION_SECRET`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`).
+ * `uploads/index.ts` (`UPLOADS_BASE_URL`, `PORT`), `api/src/ward/config.ts`
+ * (`WARD_PUBLIC_ORIGIN`, `WARD_API_BASE_PATH`, `WARD_APP_KEY`).
  */
 import 'dotenv/config';

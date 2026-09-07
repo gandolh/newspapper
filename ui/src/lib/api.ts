@@ -21,18 +21,39 @@ export class ApiError extends Error {
 // Core fetch wrapper
 // ---------------------------------------------------------------------------
 
-/** Where an unauthenticated browser is sent. */
-export const LOGIN_PATH = '/login';
+/**
+ * Newspapper's root on the shared origin. Where Ward sends people back to.
+ */
+const NEWSPAPPER_ROOT = '/newspapper/';
 
-/** Routes that answer 401 as a normal outcome rather than a lost session. */
-const NO_REDIRECT = new Set(['/api/login', '/api/logout']);
+/**
+ * Ward's login page, returning to `next`.
+ *
+ * `next` is a **path**, never an absolute URL: Ward validates it against the
+ * estate's own path roots and refuses anything absolute — including the
+ * estate's own origin spelled out in full, because accepting one absolute host
+ * is how a later edit accepts two.
+ */
+export function wardLoginUrl(next?: string): string {
+  const target = next ?? NEWSPAPPER_ROOT;
+  return `/ward/login?next=${encodeURIComponent(target)}`;
+}
 
-function redirectToLogin(path: string): void {
+/** Ward's account page — where signing out lives. Newspapper has no logout. */
+export const WARD_ACCOUNT_PATH = '/ward/account';
+
+/**
+ * Send the browser to Ward's login page.
+ *
+ * There is no local `/login` any more, and no `NO_REDIRECT` set: it existed
+ * because `/api/login` answered 401 as a normal "wrong password" outcome, and
+ * neither that route nor that outcome exists here now. Every 401 from this app
+ * means one thing — Ward's session is gone — and has one response.
+ */
+function redirectToLogin(_path: string): void {
   if (typeof window === 'undefined') return;
-  if (NO_REDIRECT.has(path)) return;
-  if (window.location.pathname === LOGIN_PATH) return;
   const next = window.location.pathname + window.location.search;
-  window.location.assign(`${LOGIN_PATH}?next=${encodeURIComponent(next)}`);
+  window.location.assign(wardLoginUrl(next));
 }
 
 export async function api<T = unknown>(

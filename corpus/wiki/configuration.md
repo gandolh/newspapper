@@ -13,12 +13,12 @@ variables, which are required outside development.
 | Variable | Default | Meaning |
 |----------|---------|---------|
 | `PORT` | `3001` | API server port. Also the origin the render browser uses for `/uploads/*` and `/assets/fonts/*`. |
-| `SESSION_SECRET` | — | HMAC key for the session cookie. Min 16 chars. **Required outside development.** |
-| `ADMIN_USERNAME` | — | The one account's username. Read on first boot only. **Required outside development.** |
-| `ADMIN_PASSWORD` | — | That account's password, min 8 chars. Read on first boot only. **Required outside development.** |
+| `WARD_PUBLIC_ORIGIN` | — | Ward's public origin, and the exact `iss` on every access token. Bare origin, no trailing slash. **Required.** |
+| `WARD_API_BASE_PATH` | — | Ward's prefix behind Caddy: `/ward-api`. **Required, and deliberately undefaulted** — an empty value resolves the JWKS to a path nothing serves, so every token would be rejected. |
+| `WARD_APP_KEY` | — | Newspapper's own Ward service key. **A secret.** Issued from Ward's console, shown once, not readable back. **Required.** |
 | `NEWSPAPPER_DB_PATH` | `<repo>/data/newspapper.db` | Override the SQLite path. Tests must set it — see below. |
 | `UPLOADS_DIR` | `<repo>/uploads` | Where uploaded images live. An absolute path puts the store outside the repo; a relative value resolves against the repo root, never the cwd. |
-| `UPLOADS_BASE_URL` | `http://127.0.0.1:$PORT` | Origin the render browser fetches `/uploads/<ref>` from. Only needed when the renderer cannot reach the API on loopback. |
+| `UPLOADS_BASE_URL` | `http://127.0.0.1:$PORT` | Origin compiled slides resolve `/uploads/<ref>` against. Since the Ward cutover the render browser does not fetch it — `core/src/render/uploads-route.ts` intercepts and serves from disk — but the URL still has to be well-formed. |
 | `THEME` | `warm-industrial-1` | Default slide theme, as an env-level fallback under the DB setting. |
 
 **`NEWSPAPPER_DB_PATH` is not optional for tests.** It exists because
@@ -32,8 +32,7 @@ developer's real database — the first entry in
 | Variable | Read by |
 |----------|---------|
 | `PORT` | `api/src/server.ts`, `api/src/routes/render.ts`, `core/src/uploads/index.ts` |
-| `SESSION_SECRET` | `api/src/auth/secret.ts` |
-| `ADMIN_USERNAME` / `ADMIN_PASSWORD` | `api/src/auth/seed.ts` |
+| `WARD_PUBLIC_ORIGIN` / `WARD_API_BASE_PATH` / `WARD_APP_KEY` | `api/src/ward/config.ts` |
 | `NEWSPAPPER_DB_PATH` | `core/src/storage/db.ts`, `api/src/lib/db.ts` |
 | `UPLOADS_DIR` | `core/src/uploads/store.ts` |
 | `UPLOADS_BASE_URL` | `core/src/uploads/index.ts` |
@@ -60,27 +59,39 @@ needs, where it needs it.
 
 ## Authentication
 
-The app is behind [a single account](./decisions.md#access-is-behind-a-single-account).
-Three variables drive it, all read at startup:
+**Newspapper authenticates nobody.** Identity is
+[Ward's](../../../wzd_auth/corpus/wiki/overview.md), the estate's identity
+service: the browser holds a `ward_session` cookie for the whole origin, and
+newspapper verifies it locally then asks Ward whether the session is still
+live. There is no account, no password hash, no session secret and no login
+page in this repo.
 
-- **`SESSION_SECRET`** signs the session cookie (HMAC-SHA256). Generate one with
-  `openssl rand -hex 32`. Unset in development, the server mints a random secret
-  per boot and logs a warning — every session ends on restart. Unset outside
-  development, **the server exits non-zero** rather than booting with a guessable
-  key. Changing it signs everyone out.
-- **`ADMIN_USERNAME` / `ADMIN_PASSWORD`** create the account, but **only on the
-  first boot against an empty `users` table**. Editing them later does nothing;
-  change the password through `POST /api/password` instead. Unset outside
-  development, the server exits non-zero. Unset *in* development, it seeds
-  `admin` / `newspapper-dev` and logs a warning.
+Three variables drive it, all required, all read while the guard is being
+registered — so a missing one stops the boot before the server listens:
 
-"Development" means `NODE_ENV` is unset, `development`, or `test`. Anything else
-— `production` above all — is strict.
+- **`WARD_PUBLIC_ORIGIN`** is Ward's origin *and* the exact `iss` compared on
+  every token.
+- **`WARD_API_BASE_PATH`** is `/ward-api`. It has **no default on purpose**: an
+  empty value resolves the JWKS to `<origin>/.well-known/jwks.json`, a path
+  nothing serves, and newspapper would reject every token with a clean log.
+- **`WARD_APP_KEY`** is newspapper's own service key, sent as `x-ward-app-key`
+  on every introspection. It is a **secret**, issued from Ward's console, shown
+  once and not readable back; Ward refuses unkeyed calls, so a missing or
+  revoked key is a total outage rather than a degraded mode. `@ward` surfaces
+  that as a distinct error naming this variable, so it cannot be mistaken for
+  Ward being down.
 
-Passwords are hashed with `node:crypto` scrypt (N=16384, r=8, p=1, 16-byte
-random salt) and stored as `scrypt$N$r$p$salt$hash`, so the cost can be raised
-later without invalidating existing accounts. No plaintext, salt, or hash is
-ever logged. The rest of the posture is in
+Authority is a **grant**, not an account: a live Ward session holding no
+`newspapper` grant gets a **403**, not a 401, because signing in again cannot
+fix it. Ward being unreachable is a **503** and fails closed — never a 401,
+which would send somebody to a login page served by the service that is down.
+
+`SESSION_SECRET`, `ADMIN_USERNAME` and `ADMIN_PASSWORD` are gone, along with
+the scrypt hashing, the `users` table and the IP-keyed lockout. The lockout was
+not retuned but removed: there is no credential here to brute-force, and login
+is Ward's, which has its own budget — the right place for it, since a per-app
+counter would have guarded one of six front doors to the same accounts. The
+rest of the posture is in
 [decisions-security.md](./decisions-security.md).
 
 ## Settings precedence

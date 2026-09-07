@@ -1,0 +1,32 @@
+# Keep the build context small and hermetic. node_modules in particular must
+# never be copied in: the image runs `npm ci` itself, and a host tree built for
+# a different libc would poison better-sqlite3 and sharp.
+node_modules
+**/node_modules
+**/dist
+.git
+corpus
+docs
+.scratch
+.impeccable
+*.md
+.env
+.env.*
+!.env.example
+infrastructure/.env
+
+# Runtime state. All three are VOLUMES at runtime, and the host copies are
+# large, stale and irrelevant to a build.
+#
+# `data/sources.json` is the exception and is force-included: it is the seed
+# list a fresh database is populated from, it is committed, and it is read from
+# `/app/data/sources.json` INSIDE the image rather than from the volume. See
+# the Dockerfile's note on why the database moved to /data and this file did not.
+data/*
+!data/sources.json
+output
+uploads
+
+*.log
+**/*.map
+coverage

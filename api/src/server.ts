@@ -5,6 +5,7 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import staticPlugin from '@fastify/static';
 import health from './routes/health.js';
+import meRoutes from './routes/me.js';
 import scrapeRoutes from './routes/scrape.js';
 import articlesRoutes from './routes/articles.js';
 import postsRoutes from './routes/posts.js';
@@ -15,18 +16,25 @@ import themesRoutes from './routes/themes.js';
 import sourcesRoutes from './routes/sources.js';
 import settingsRoutes from './routes/settings.js';
 import uploadsRoutes from './routes/uploads.js';
-import authRoutes from './routes/auth.js';
 import { db } from './lib/db.js';
-import { registerAuthGuard } from './auth/guard.js';
-import { seedAdminAccount } from './auth/seed.js';
-import { getSessionSecret, sessionSecretIsEphemeral } from './auth/secret.js';
+import { registerAuthGuard } from './ward/ward.guard.js';
+import type { WardClient } from './ward/ward.client.js';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const repoRoot = resolve(__dirname, '../..');
 
 export const PORT = Number(process.env.PORT ?? 3001);
 
-export async function buildApp() {
+export interface BuildAppOptions {
+  /**
+   * Inject a Ward client, so a test can decide who is signed in without a real
+   * Ward, a signing key, or a network. Production passes nothing and the guard
+   * builds one from the environment.
+   */
+  ward?: WardClient;
+}
+
+export async function buildApp(options: BuildAppOptions = {}) {
   const fastify = Fastify({ logger: true });
 
   await fastify.register(cors, {
@@ -34,18 +42,15 @@ export async function buildApp() {
     credentials: true,
   });
 
-  // Auth: fail fast on a missing secret, seed the single account, then guard.
-  getSessionSecret();
-  if (sessionSecretIsEphemeral()) {
-    fastify.log.warn(
-      'SESSION_SECRET is unset — using a random per-boot secret. Every session ends when the server restarts.',
-    );
-  }
-  await seedAdminAccount(db(), {
-    info: (msg: string) => fastify.log.info(msg),
-    warn: (msg: string) => fastify.log.warn(msg),
-  });
-  registerAuthGuard(fastify);
+  /*
+   * Identity is Ward's. There is no secret to check and no account to seed:
+   * newspapper holds no credential, and its single admin account is now an
+   * ordinary Ward account holding a `newspapper` grant.
+   *
+   * `wardConfig()` is read inside this call, so a missing `WARD_APP_KEY` stops
+   * the boot here — before `listen`, and with a message naming the variable.
+   */
+  registerAuthGuard(fastify, options.ward ? { client: options.ward } : {});
 
   // Serve font assets at /assets/fonts/
   await fastify.register(staticPlugin, {
@@ -63,7 +68,7 @@ export async function buildApp() {
 
   // Register all API routes
   await fastify.register(health);
-  await fastify.register(authRoutes);
+  await fastify.register(meRoutes);
   await fastify.register(scrapeRoutes);
   await fastify.register(articlesRoutes);
   await fastify.register(postsRoutes);

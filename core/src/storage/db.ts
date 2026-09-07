@@ -26,7 +26,7 @@ function defaultSourcesPath(): string {
   return resolve(thisFile, '..', '..', '..', '..', 'data', 'sources.json');
 }
 
-const CURRENT_SCHEMA_VERSION = 4;
+const CURRENT_SCHEMA_VERSION = 5;
 
 export function getDb(dbPath?: string): DB {
   const p = resolve(dbPath ?? defaultDbPath());
@@ -43,14 +43,18 @@ export function open(path: string): DB {
   return getDb(path);
 }
 
+/*
+ * There is no `users` table. Identity is Ward's (2026-09-06): newspapper holds
+ * no username, no password hash and no session row. `migrateV4ToV5` drops the
+ * table from an existing database; this constant is what a fresh one gets, and
+ * it deliberately never creates it.
+ *
+ * Nothing else here needed re-keying, which is worth stating because it is
+ * unusual in this cutover: a post, an article, a render and an upload belong to
+ * the **installation**, not to a person, so no row in this schema ever
+ * referenced `users.id`.
+ */
 const SCHEMA_CURRENT = `
-  CREATE TABLE IF NOT EXISTS users (
-    id            INTEGER PRIMARY KEY AUTOINCREMENT,
-    username      TEXT NOT NULL UNIQUE,
-    password_hash TEXT NOT NULL,
-    created_at    TEXT NOT NULL
-  );
-
   CREATE TABLE IF NOT EXISTS posts (
     id           INTEGER PRIMARY KEY AUTOINCREMENT,
     title        TEXT NOT NULL,
@@ -292,6 +296,24 @@ function migrateV3ToV4(db: DB): void {
   }
 }
 
+/**
+ * v4 → v5: drop `users`. Identity moved to Ward.
+ *
+ * **This destroys the account**, which is the decision rather than a side
+ * effect: newspapper had exactly one, its password hash is the only thing in
+ * the row worth anything, and there is nothing to migrate it to — Ward keys
+ * people on a subject it mints, and no mapping exists that was not invented
+ * here. The replacement is an ordinary Ward account holding a `newspapper`
+ * grant, created from Ward's console.
+ *
+ * Nothing references the table, so this needs no rebuild and no cascade: no row
+ * in newspapper's schema was ever keyed on a user. Everything the app actually
+ * holds — posts, articles, renders, uploads, sources, settings — is untouched.
+ */
+function migrateV4ToV5(db: DB): void {
+  db.exec(`DROP TABLE IF EXISTS users`);
+}
+
 export function migrate(db: DB): void {
   let version = (db.pragma('user_version', { simple: true }) as number) ?? 0;
   if (version >= CURRENT_SCHEMA_VERSION) return;
@@ -316,6 +338,11 @@ export function migrate(db: DB): void {
   if (version === 3) {
     migrateV3ToV4(db);
     version = 4;
+  }
+
+  if (version === 4) {
+    migrateV4ToV5(db);
+    version = 5;
   }
 
   db.pragma(`user_version = ${CURRENT_SCHEMA_VERSION}`);

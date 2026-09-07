@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { api, ApiError, LOGIN_PATH } from '@/lib/api';
+import { api, ApiError, WARD_ACCOUNT_PATH, wardLoginUrl } from '@/lib/api';
 import type { User } from '@/lib/types';
 import styles from './SessionMenu.module.css';
 
@@ -8,17 +8,22 @@ import styles from './SessionMenu.module.css';
  * tray is Astro-rendered and static, so the one thing on it that needs the
  * session lives here as its own island.
  *
- * With no session it shows the way in instead, which is what puts `/login`
- * in the tray alongside the four page routes.
+ * With no session it shows the way in instead — which is now a link **off this
+ * app**, to Ward's login page, because newspapper has no login of its own.
  *
- * `skipAuthRedirect` on the /api/me probe: an expired session should not
- * bounce the login page itself, and every other island on the page already
- * redirects when its own first request comes back 401.
+ * Signing out is likewise Ward's, and newspapper must not fake one: the session
+ * belongs to the estate, so ending it here while atrium and prm still honoured
+ * it would be a lie the cookie contradicts on the next request. The button
+ * became a link to Ward's account page, where signing out actually revokes
+ * something.
+ *
+ * `skipAuthRedirect` on the `/api/me` probe: this component renders on every
+ * page, and without it a signed-out browser would be redirected by the tray
+ * before the page it asked for had a chance to render anything.
  */
 export default function SessionMenu() {
   const [user, setUser] = useState<User | null>(null);
   const [checked, setChecked] = useState(false);
-  const [signingOut, setSigningOut] = useState(false);
 
   useEffect(() => {
     void (async () => {
@@ -35,21 +40,11 @@ export default function SessionMenu() {
     })();
   }, []);
 
-  async function signOut() {
-    setSigningOut(true);
-    try {
-      await api('/api/logout', { method: 'POST' });
-    } catch {
-      // A failed logout still means this browser should stop pretending.
-    }
-    window.location.assign(LOGIN_PATH);
-  }
-
   if (!user) {
     if (!checked) return null;
     return (
       <span className={styles.session}>
-        <a className={styles.signIn} href={LOGIN_PATH}>
+        <a className={styles.signIn} href={wardLoginUrl()}>
           Sign in
         </a>
       </span>
@@ -61,14 +56,11 @@ export default function SessionMenu() {
       <span className={styles.username} title={user.username}>
         {user.username}
       </span>
-      <button
-        type="button"
-        className={styles.signOut}
-        onClick={() => void signOut()}
-        disabled={signingOut}
-      >
-        {signingOut ? 'Signing out…' : 'Sign out'}
-      </button>
+      {/* A link, not a button: signing out happens at Ward, which is where the
+          session actually lives. */}
+      <a className={styles.signOut} href={WARD_ACCOUNT_PATH}>
+        Account
+      </a>
     </span>
   );
 }

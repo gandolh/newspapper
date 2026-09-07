@@ -58,15 +58,12 @@ export {
 } from './uploads.js';
 export type { NewUpload } from './uploads.js';
 
-export {
-  createUser,
-  findUser,
-  findUserByUsername,
-  listUsers,
-  countUsers,
-  setUserPassword,
-  removeUser,
-} from './users.js';
+/*
+ * `users.ts` is gone (2026-09-06). newspapper holds no accounts: identity is
+ * Ward's, and this app's rows are keyed on nothing user-shaped — a post, an
+ * article and a render belong to the installation rather than to a person,
+ * which is why nothing below needed re-keying when the accounts left.
+ */
 
 export { getSettings, saveSettings } from './settings.js';
 

@@ -32,11 +32,11 @@ function indexNames(db: ReturnType<typeof getDb>): string[] {
 }
 
 describe('getDb — fresh install', () => {
-  it('sets user_version to 4', () => {
+  it('sets user_version to 5', () => {
     const db = getDb(join(tmpDir, 'fresh.db'));
     const ver = db.pragma('user_version', { simple: true }) as number;
     db.close();
-    expect(ver).toBe(4);
+    expect(ver).toBe(5);
   });
 
   it('defaults posts.theme to the renamed theme', () => {
@@ -58,7 +58,6 @@ describe('getDb — fresh install', () => {
     const tables = tableNames(db);
     db.close();
     for (const t of [
-      'users',
       'posts',
       'keywords',
       'post_keywords',
@@ -170,7 +169,7 @@ describe('migrate — idempotence', () => {
     const ver = db.pragma('user_version', { simple: true }) as number;
     const rows = db.prepare('SELECT title FROM posts').all() as Array<{ title: string }>;
     db.close();
-    expect(ver).toBe(4);
+    expect(ver).toBe(5);
     expect(rows).toHaveLength(1);
     expect(rows[0].title).toBe('Kept');
   });
@@ -242,7 +241,7 @@ describe('migrate — v3 → v4 (the warm-industrial rename)', () => {
     }>;
     const ver = db.pragma('user_version', { simple: true }) as number;
     db.close();
-    expect(ver).toBe(4);
+    expect(ver).toBe(5);
     expect(rows).toEqual([
       { title: 'Legacy', theme: 'warm-industrial-1' },
       { title: 'Already moved', theme: 'warm-industrial-2' },
@@ -327,7 +326,7 @@ describe('migrate — v3 → v4 (the warm-industrial rename)', () => {
     migrate(fresh);
     const ver = fresh.pragma('user_version', { simple: true }) as number;
     fresh.close();
-    expect(ver).toBe(4);
+    expect(ver).toBe(5);
   });
 });
 
@@ -399,7 +398,7 @@ describe('migrate — v2 schema (payload posts) with existing rows', () => {
     const db = getDb(dbPath);
     const ver = db.pragma('user_version', { simple: true }) as number;
     db.close();
-    expect(ver).toBe(4);
+    expect(ver).toBe(5);
   });
 
   it('drops every payload post — they carry no markup to derive from', () => {
@@ -439,7 +438,7 @@ describe('migrate — v2 schema (payload posts) with existing rows', () => {
     const db = getDb(dbPath);
     const tables = tableNames(db);
     db.close();
-    for (const t of ['users', 'keywords', 'post_keywords', 'renders', 'sources', 'uploads']) {
+    for (const t of ['keywords', 'post_keywords', 'renders', 'sources', 'uploads']) {
       expect(tables).toContain(t);
     }
   });
@@ -452,7 +451,7 @@ describe('migrate — v2 schema (payload posts) with existing rows', () => {
     const ver = db.pragma('user_version', { simple: true }) as number;
     const tables = tableNames(db);
     db.close();
-    expect(ver).toBe(4);
+    expect(ver).toBe(5);
     expect(tables).toContain('post_keywords');
   });
 });
@@ -502,7 +501,7 @@ describe('migrate — v1 schema (old CLI era)', () => {
     const cols = columns(db, 'posts');
     const rows = db.prepare('SELECT COUNT(*) AS n FROM posts').get() as { n: number };
     db.close();
-    expect(ver).toBe(4);
+    expect(ver).toBe(5);
     expect(cols).toContain('markup');
     expect(rows.n).toBe(0);
   });
