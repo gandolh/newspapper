@@ -19,6 +19,14 @@
  * `useSyncExternalStore` rather than `useState` + `useEffect` is deliberate —
  * `react-hooks/set-state-in-effect` is an error in this repo (brief 68) and
  * the store is the primitive that pattern is a workaround for.
+ *
+ * ── App paths vs origin paths ───────────────────────────────────────────────
+ *
+ * Everything this module exposes speaks APP paths: `/posts`, not
+ * `/newspapper/posts`. The base is applied on the way out (`navigate`, and the
+ * `href` a `<Link>` renders) and removed on the way in (`pathnameSnapshot`), so
+ * `routes.tsx` matches the same four strings whether the app is at the origin
+ * root or under a Caddy sub-path. See `lib/base.ts`.
  */
 import {
   useEffect,
@@ -28,6 +36,7 @@ import {
   type MouseEvent,
   type ReactNode,
 } from 'react';
+import { stripBase, withBase } from './lib/base';
 
 const listeners = new Set<() => void>();
 
@@ -45,7 +54,7 @@ function subscribe(listener: () => void): () => void {
 }
 
 function pathnameSnapshot(): string {
-  return window.location.pathname;
+  return stripBase(window.location.pathname);
 }
 
 /** The current pathname, re-read on pushState, replaceState and Back/Forward. */
@@ -53,10 +62,15 @@ export function usePathname(): string {
   return useSyncExternalStore(subscribe, pathnameSnapshot);
 }
 
-/** Navigate without a page load. `replace` swaps the entry instead of adding one. */
+/**
+ * Navigate without a page load. `replace` swaps the entry instead of adding one.
+ *
+ * `to` is an APP path; the history entry written is the origin path.
+ */
 export function navigate(to: string, options?: { replace?: boolean }): void {
-  if (options?.replace) window.history.replaceState({}, '', to);
-  else window.history.pushState({}, '', to);
+  const url = withBase(to);
+  if (options?.replace) window.history.replaceState({}, '', url);
+  else window.history.pushState({}, '', url);
   emit();
 }
 
@@ -64,6 +78,11 @@ export function navigate(to: string, options?: { replace?: boolean }): void {
  * A real `<a>` that stays a real `<a>`: middle-click, ⌘/Ctrl-click, a
  * `target`, a `download` and any off-site href all fall through to the
  * browser. Only the plain left click is intercepted.
+ *
+ * `href` is an APP path and the rendered attribute is the origin path — which
+ * is what those fall-through cases need. A ⌘-click opens what the browser
+ * reads off the element, so a base-less `href` here would open a new tab on a
+ * URL this app does not serve.
  */
 export function Link({
   href,
@@ -86,7 +105,7 @@ export function Link({
   }
 
   return (
-    <a {...rest} href={href} onClick={onClick}>
+    <a {...rest} href={withBase(href)} onClick={onClick}>
       {children}
     </a>
   );
@@ -100,7 +119,8 @@ export function Link({
  */
 export function Redirect({ to }: { to: string }): null {
   useEffect(() => {
-    if (window.location.pathname !== to) navigate(to, { replace: true });
+    // Both sides are app paths: `to` already is, and the location is stripped.
+    if (stripBase(window.location.pathname) !== to) navigate(to, { replace: true });
   }, [to]);
   return null;
 }

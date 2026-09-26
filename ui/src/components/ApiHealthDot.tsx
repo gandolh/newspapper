@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Mark } from './ui';
+import { withBase } from '../lib/base';
 import styles from './ApiHealthDot.module.css';
 
 type Status = 'up' | 'down';
@@ -25,7 +26,11 @@ export default function ApiHealthDot() {
 
   async function check() {
     try {
-      const res = await fetch('/api/health', {
+      // A raw fetch rather than `api()`, because a failed probe is the normal
+      // outcome here and must not trigger the 401 redirect. That also means the
+      // base is not applied for us — this is the one API URL in the app that
+      // has to say so itself.
+      const res = await fetch(withBase('/api/health'), {
         signal: AbortSignal.timeout(5000),
       });
       setStatus(res.ok ? 'up' : 'down');

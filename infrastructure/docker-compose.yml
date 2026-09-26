@@ -13,6 +13,10 @@ services:
       context: ..
       dockerfile: infrastructure/Dockerfile
       target: prod
+      # Sub-path build arg (default root, for a standalone run). The VPS deploy
+      # exports NEWSPAPPER_BASE=/newspapper/ before `docker compose build`.
+      args:
+        NEWSPAPPER_BASE: ${NEWSPAPPER_BASE:-/}
     image: newspapper:3.0
     ports:
       # LOOPBACK ONLY, and the prefix is load-bearing. "3001:3001" would publish

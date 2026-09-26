@@ -1,7 +1,13 @@
 /**
  * Typed API client for the Newspapper backend.
- * All requests go to /api/* (Astro dev server proxies to :3001).
+ *
+ * All requests go to `<base>/api/*` — `/api/*` in dev, where Vite proxies to
+ * :3001, and `/newspapper/api/*` behind Caddy, which strips the prefix again
+ * before Fastify sees it. `api()` and `sse()` below are the ONE place that
+ * prefix is applied, which is why every call site can go on writing the plain
+ * `/api/...` path it always did.
  */
+import { BASE, withBase } from './base';
 
 // ---------------------------------------------------------------------------
 // Error type
@@ -23,11 +29,19 @@ export class ApiError extends Error {
 
 /**
  * Newspapper's root on the shared origin. Where Ward sends people back to.
+ *
+ * Derived from the base rather than written out, so the fallback destination
+ * and the app's actual location cannot disagree — the failure that spelling it
+ * as a literal invites is a login that succeeds and returns to a 404.
  */
-const NEWSPAPPER_ROOT = '/newspapper/';
+const NEWSPAPPER_ROOT = BASE;
 
 /**
  * Ward's login page, returning to `next`.
+ *
+ * NOT base-relative, and that is the point: Ward is a different app on the same
+ * origin, so `withBase` here would send someone signing in to
+ * `/newspapper/ward/login`, which nothing serves.
  *
  * `next` is a **path**, never an absolute URL: Ward validates it against the
  * estate's own path roots and refuses anything absolute — including the
@@ -39,7 +53,8 @@ export function wardLoginUrl(next?: string): string {
   return `/ward/login?next=${encodeURIComponent(target)}`;
 }
 
-/** Ward's account page — where signing out lives. Newspapper has no logout. */
+/** Ward's account page — where signing out lives. Newspapper has no logout.
+ *  Origin-absolute for the same reason as `wardLoginUrl` above. */
 export const WARD_ACCOUNT_PATH = '/ward/account';
 
 /**
@@ -70,7 +85,7 @@ export async function api<T = unknown>(
     body = JSON.stringify(json);
   }
 
-  const url = path.startsWith('/') ? path : `/${path}`;
+  const url = withBase(path);
   const res = await fetch(url, { ...rest, headers, body });
 
   if (!res.ok) {
@@ -108,7 +123,7 @@ export interface SseHandlers {
  * a non-2xx HTTP status. Aborted via `handlers.signal`.
  */
 export async function sse(path: string, body: unknown, handlers: SseHandlers): Promise<void> {
-  const url = path.startsWith('/') ? path : `/${path}`;
+  const url = withBase(path);
 
   const res = await fetch(url, {
     method: 'POST',

@@ -18,6 +18,7 @@ import {
   useToast,
 } from '../ui';
 import { api, sse } from '@/lib/api';
+import { withBase } from '@/lib/base';
 import type { Post, PostStatus } from '@/lib/types';
 import styles from './PostsIsland.module.css';
 
@@ -186,7 +187,7 @@ function PostsPage() {
       <PageHeader
         title="Posts"
         subtitle="Everything you have written. Open one to keep editing, or render it out."
-        actions={<Button onClick={() => window.location.assign('/')}>New post</Button>}
+        actions={<Button onClick={() => window.location.assign(withBase('/'))}>New post</Button>}
       />
 
       <div className={styles.filters}>
@@ -234,7 +235,7 @@ function PostsPage() {
               ? 'Try a wider filter.'
               : 'Start writing and the first save lands here.'
           }
-          action={<Button onClick={() => window.location.assign('/')}>New post</Button>}
+          action={<Button onClick={() => window.location.assign(withBase('/'))}>New post</Button>}
         />
       ) : (
         <ul className={styles.list} role="list">
@@ -313,7 +314,7 @@ function PostsPage() {
                     <Button
                       size="sm"
                       variant="secondary"
-                      onClick={() => window.location.assign(`/?post=${post.id}`)}
+                      onClick={() => window.location.assign(withBase(`/?post=${post.id}`))}
                     >
                       Open
                     </Button>
@@ -330,7 +331,9 @@ function PostsPage() {
                       size="sm"
                       variant="secondary"
                       disabled={!rendered}
-                      onClick={() => window.location.assign(`/api/posts/${post.id}/export.zip`)}
+                      onClick={() =>
+                        window.location.assign(withBase(`/api/posts/${post.id}/export.zip`))
+                      }
                     >
                       Export ZIP
                     </Button>

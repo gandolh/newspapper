@@ -61,7 +61,19 @@ RUN npx playwright install chromium
 FROM deps AS builder
 COPY core ./core
 COPY ui ./ui
-RUN npm run build -w @newspapper/ui
+# Where the app will be served from, baked into the bundle.
+#
+# Defaults to the origin root, which is right for a standalone `docker compose
+# up`. The VPS deploy passes /newspapper/, because Caddy serves the app under
+# that prefix (and strips it again before Fastify, so nothing downstream of the
+# browser knows about it). Vite rewrites index.html and CSS asset URLs with it
+# and re-exports it as import.meta.env.BASE_URL, which ui/src/lib/base.ts reads
+# for the app's own URLs — one value, so the two cannot drift apart.
+#
+# A build arg rather than a runtime env because the bundle is written here: by
+# the time the container starts, every URL in it is already decided.
+ARG NEWSPAPPER_BASE=/
+RUN NEWSPAPPER_BASE=$NEWSPAPPER_BASE npm run build -w @newspapper/ui
 
 # ---------------------------------------------------------------------------
 # prod — source under tsx, plus the browser and its system libraries

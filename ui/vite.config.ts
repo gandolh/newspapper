@@ -53,7 +53,21 @@ function proofSheet(): Plugin {
   };
 }
 
+/**
+ * Where the app is served from. `/` for a local run and for the standalone
+ * container; `/newspapper/` behind Caddy, which strips the prefix before
+ * Fastify sees it.
+ *
+ * Set as a BUILD ARG (see infrastructure/Dockerfile), because it is baked into
+ * the bundle: Vite rewrites every asset URL in index.html and in CSS with it,
+ * and re-exports it as `import.meta.env.BASE_URL`, which `src/lib/base.ts`
+ * reads so the app's own URLs cannot drift from the bundle's. That is the one
+ * variable — there is deliberately no second one for the router.
+ */
+const base = process.env.NEWSPAPPER_BASE ?? '/';
+
 export default defineConfig({
+  base,
   plugins: [react(), proofSheet()],
   resolve: {
     alias: {
