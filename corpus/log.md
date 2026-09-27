@@ -1453,3 +1453,47 @@ the docs workspace up.
 **Pre-existing and untouched:** `npm run lint` reports one unused `db` binding
 and `fmt:check` flags three `api/src/ward/*` files. Both predate this change and
 are left alone.
+
+## [2026-09-27] todo | an improvements sweep files 26 briefs (77–102)
+
+A read-only audit across correctness, security, performance, coverage, debt and
+DX — five parallel finders plus controller vetting; ~40 raw findings, 26 filed
+after re-reading/reproducing each. Nothing in the code was changed. The backlog
+now sits in `briefs/todo/`.
+
+**The headline is security, and it is the first audit since newspapper left
+loopback for the shared VPS.** Brief 77: the Ward guard tests the *raw* request
+URL while Fastify routes the *decoded* one, so `GET /%61pi/posts` and
+`POST /%61pi/posts` skip auth entirely — anonymous full read/write of the whole
+API on the public origin. Reproduced with `app.inject` against a fake Ward, no
+cookie. One-line fix (guard on `req.routeOptions.url`). Brief 85: RSS body fetch
+follows attacker-controlled feed links with no host allowlist (SSRF to
+loopback/metadata) and no size cap. Brief 79: the 500 handler echoes internal
+exception text.
+
+**The base-path work (HEAD) shipped half-done.** Brief 78: post links use raw
+`/?post=` hrefs (off-app under `/newspapper/`) and thumbnails, the image picker
+and the live preview all request un-prefixed `/output`·`/uploads` URLs (every
+image 404s in production) — while `lib/api.ts` gets it right.
+
+**The Ward move's new code is largely untested** (88 uploads-route interception,
+89 the real Ward client — only the fake runs, 90 render route/`/api/me`/UI),
+**local dev cannot authenticate at all** (84), a **crash mid-migration bricks the
+DB** (86, `db.exec` is not transactional), and **the docs still describe the
+deleted login system** and ship it to the public docs site (83).
+
+Performance (measured): browser-launch race orphans a Chromium (92), no render
+timeout hangs the SSE forever (93), output-dir collision (94), N+1 + full-markup
+list payloads (95), sequential source fetch (96), full-res thumbnails (97).
+Plus: autosave races (87), a parser stack-overflow that blanks the editor with no
+ErrorBoundary (98), eight hand-rolled repo-root paths (99), advisory-carrying
+production deps (100), a publish-ENOENT status/path leak (101).
+
+**Housekeeping:** `bash corpus/lint.sh` reports three findings, all false
+positives from a single stale `ABANDONED_ROOTS` entry — `docs/` was retired to
+corpus on 2026-08-27 but re-added as the Starlight docs workspace on 2026-09-07,
+and briefs 83/100 are the first corpus files to reference it since. Brief 102
+drops that one line; do it first to restore a clean lint. The sweep's tooling
+also left a stray untracked `:memory:` SQLite file in the repo root (a
+`getDb(':memory:')` from a scratch script resolving against the repo cwd) — safe
+to delete.
