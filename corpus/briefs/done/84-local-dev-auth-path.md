@@ -84,3 +84,25 @@ bypass is inert under `NODE_ENV==='production'`. Confirm the choice before codin
 If the owner picks (B), this brief becomes docs-only (README + commands.md +
 configuration.md describing the tunnel) and no guard code changes — move it to a
 docs pass and say so at completion.
+
+## Outcome (2026-09-27)
+
+Done by neither option. The owner chose, for every Ward app at once, to run a
+real Ward locally (`wzd_auth/infrastructure/local`) and have the UI dev server
+stand in for Caddy: the app under `/newspapper/`, the API's paths proxied there
+with the prefix stripped, and `/ward` + `/ward-api` proxied to
+`WARD_PUBLIC_ORIGIN`. No guard code changed, so the bypass and its
+production-inertness test do not exist. Recorded in
+[decisions-security.md](../../wiki/decisions-security.md#local-development-signs-in-through-a-local-ward).
+
+Also fixed on the way: the root `.env` never reached `npm run dev`, because
+`dotenv/config` reads the working directory and the API runs in `api/`. Both dev
+scripts now load it with `--env-file-if-exists=../.env`.
+
+Verified against the local Ward with `NEWSPAPPER_DB_PATH` and `UPLOADS_DIR` on a
+scratch base: `http://localhost:4321/newspapper/` sent a signed-out browser to
+`/ward/login?next=/newspapper/`, and signing in returned to the editor with the
+account in the header. Env that produced it: `.env.example` plus the key the Ward
+container's `seed.mjs` wrote. `npm test` 608 pass, `npm run build` (with
+`fmt:check`) clean, `corpus/lint.sh` clean. `npm run lint` reports one error that
+predates this change: an unused `db` at `api/src/server.ts:19`.

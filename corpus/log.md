@@ -1497,3 +1497,20 @@ drops that one line; do it first to restore a clean lint. The sweep's tooling
 also left a stray untracked `:memory:` SQLite file in the repo root (a
 `getDb(':memory:')` from a scratch script resolving against the repo cwd) — safe
 to delete.
+
+## [2026-09-27] done | Brief 84 — local dev signs in through a local Ward; the root `.env` finally reaches `npm run dev`
+
+Neither of the brief's options: on the owner's call, local dev runs Ward's
+container and the UI dev server proxies `/ward`, `/ward-api` and the API's paths
+under `/newspapper/`, so the browser sees the deploy's single origin and the
+guard runs unchanged. Decision in `decisions-security.md`; setup in
+`configuration.md` ("Local sign-in").
+
+A tenth green-because-nothing-ran, found on the way: `dotenv/config` reads `.env`
+from the working directory, and `npm run dev` runs the API in `api/`, so the
+root `.env` had never reached the dev server. Both dev scripts now load it with
+Node's `--env-file-if-exists=../.env`.
+
+Browser-verified against the local Ward on a scratch database and upload store.
+608 tests pass; build clean. `npm run lint` fails on a pre-existing unused `db`
+in `api/src/server.ts:19`, not touched here.

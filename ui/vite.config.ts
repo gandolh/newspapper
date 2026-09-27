@@ -1,5 +1,5 @@
 import { fileURLToPath } from 'node:url';
-import { defineConfig, type Plugin } from 'vite';
+import { defineConfig, type Plugin, type ProxyOptions } from 'vite';
 import react from '@vitejs/plugin-react';
 
 /**
@@ -54,9 +54,10 @@ function proofSheet(): Plugin {
 }
 
 /**
- * Where the app is served from. `/` for a local run and for the standalone
- * container; `/newspapper/` behind Caddy, which strips the prefix before
- * Fastify sees it.
+ * Where the app is served from. `/newspapper/` behind Caddy, which strips the
+ * prefix before Fastify sees it, and in `npm run dev`, which loads it from the
+ * repo-root .env so local dev is laid out like the deploy (see `devProxy`
+ * below). `/` for the standalone container.
  *
  * Set as a BUILD ARG (see infrastructure/Dockerfile), because it is baked into
  * the bundle: Vite rewrites every asset URL in index.html and in CSS with it,
@@ -65,6 +66,46 @@ function proofSheet(): Plugin {
  * variable — there is deliberately no second one for the router.
  */
 const base = process.env.NEWSPAPPER_BASE ?? '/';
+
+/**
+ * The dev server stands in for Caddy. The API's paths are proxied under `base`
+ * with the prefix stripped, as `handle_path` strips it in the deploy, and
+ * `/ward` + `/ward-api` go to WARD_PUBLIC_ORIGIN: the Ward the API trusts,
+ * locally the container in wzd_auth/infrastructure/local. One origin is what
+ * lets Ward's cookie, its redirect back into the app and signing out work as in
+ * the deploy.
+ *
+ * Ward refuses /refresh and /logout unless the request's Origin is its own. A
+ * request from a page on this dev server would be same-origin in the deploy, so
+ * its Origin is rewritten to say so. Anything else keeps its Origin and its
+ * Sec-Fetch-Site, and Ward still refuses it.
+ */
+function devProxy(): Record<string, ProxyOptions> {
+  const api = `http://localhost:${process.env.PORT ?? 3001}`;
+  const prefix = base.replace(/\/+$/, '');
+  const proxy: Record<string, ProxyOptions> = {};
+  for (const path of ['/api', '/output', '/uploads', '/assets']) {
+    proxy[`${prefix}${path}`] = {
+      target: api,
+      rewrite: (url) => url.slice(prefix.length),
+    };
+  }
+  if (!process.env.WARD_PUBLIC_ORIGIN) return proxy;
+
+  const ward = new URL(process.env.WARD_PUBLIC_ORIGIN).origin;
+  proxy['^/ward(-api)?(/|$)'] = {
+    target: ward,
+    configure: (server) => {
+      server.on('proxyReq', (proxyReq, req) => {
+        const origin = req.headers.origin;
+        if (origin && URL.canParse(origin) && new URL(origin).host === req.headers.host) {
+          proxyReq.setHeader('origin', ward);
+        }
+      });
+    },
+  };
+  return proxy;
+}
 
 export default defineConfig({
   base,
@@ -83,11 +124,6 @@ export default defineConfig({
   server: {
     port: 4321,
     strictPort: true,
-    proxy: {
-      '/api': 'http://localhost:3001',
-      '/output': 'http://localhost:3001',
-      '/uploads': 'http://localhost:3001',
-      '/assets': 'http://localhost:3001',
-    },
+    proxy: devProxy(),
   },
 });

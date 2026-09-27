@@ -1,6 +1,6 @@
 ---
 summary: Every env var and the code that reads it, how .env reaches process.env at all, the auth variables and their strict-mode behaviour, settings precedence, and one-time setup including Playwright Chromium.
-updated: 2026-09-01
+updated: 2026-09-27
 ---
 
 # Configuration
@@ -20,6 +20,7 @@ variables, which are required outside development.
 | `UPLOADS_DIR` | `<repo>/uploads` | Where uploaded images live. An absolute path puts the store outside the repo; a relative value resolves against the repo root, never the cwd. |
 | `UPLOADS_BASE_URL` | `http://127.0.0.1:$PORT` | Origin compiled slides resolve `/uploads/<ref>` against. Since the Ward cutover the render browser does not fetch it — `core/src/render/uploads-route.ts` intercepts and serves from disk — but the URL still has to be well-formed. |
 | `THEME` | `warm-industrial-1` | Default slide theme, as an env-level fallback under the DB setting. |
+| `NEWSPAPPER_BASE` | `/` | The path the UI is served under. A **build arg** in the deploy (`/newspapper/`), and in `npm run dev` read from `.env` so local dev is laid out the same way (see [Local sign-in](#local-sign-in)). The API never reads it. |
 
 **`NEWSPAPPER_DB_PATH` is not optional for tests.** It exists because
 `defaultDbPath()` once ignored it and every `npm test` run migrated the
@@ -37,6 +38,7 @@ developer's real database — the first entry in
 | `UPLOADS_DIR` | `core/src/uploads/store.ts` |
 | `UPLOADS_BASE_URL` | `core/src/uploads/index.ts` |
 | `THEME` | `core/src/storage/settings.ts` |
+| `NEWSPAPPER_BASE` | `ui/vite.config.ts` (config time only) |
 
 ### How `.env` reaches `process.env`
 
@@ -46,6 +48,15 @@ it in as a side effect, which is how `api` gets it: every `api` module imports
 that barrel. Delete either half and `.env` stops being read, silently, on
 defaults, with no error. `core/src/util/config.test.ts` fails if either half
 goes.
+
+**`dotenv/config` reads `.env` from the working directory, not the repo root.**
+`npm run dev` starts the API with `--workspace=api`, whose working directory is
+`api/`, where there is no `.env`. Until 2026-09-27 the root file therefore never
+reached the dev server: the dotenv half was another green-because-nothing-ran.
+Both dev scripts now load it themselves with Node's `--env-file-if-exists=../.env`
+(the API through `tsx watch`, which forwards the flag; the UI by running Vite's
+CLI under `node`). dotenv still covers a server started from the repo root, and
+never overrides a variable already set.
 
 Until brief 73 that file also exported `loadConfig()`, a CLI-era survivor called
 nowhere, over seven variables — `MAX_ARTICLES_PER_SOURCE`, `USER_AGENT`,
@@ -121,13 +132,22 @@ with a loud banner (and fail outright under `CI`).
 npm install
 npx playwright install chromium
 cp .env.example .env
-# fill in SESSION_SECRET / ADMIN_USERNAME / ADMIN_PASSWORD, or leave them
-# blank and use the development defaults
 npm run dev
 ```
 
-Open `http://localhost:4321`, sign in, and you are on the editor with a starter
-document already loaded.
+Open `http://localhost:4321/newspapper/`, sign in, and you are on the editor with
+a starter document already loaded. Signing in needs a Ward: see below.
+
+### Local sign-in
+
+Local dev is laid out like the deploy ([decision](./decisions-security.md#local-development-signs-in-through-a-local-ward)).
+The UI dev server serves the app under `/newspapper/` and proxies the API's paths
+(`/newspapper/api`, `/output`, `/uploads`, `/assets`) to `:3001` with the prefix
+stripped, the way Caddy's `handle_path` does, and `/ward` + `/ward-api` to
+`WARD_PUBLIC_ORIGIN`. Locally that is Ward's container in
+`../wzd_auth/infrastructure/local`; its `seed.mjs` registers newspapper, grants
+your account and writes `WARD_APP_KEY` into `.env`. Without a Ward, the API boots
+and every guarded route answers 503.
 
 ## No external services
 

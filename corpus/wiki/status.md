@@ -87,8 +87,13 @@ What is left is genuinely benign:
 
 Twenty-six Wizard-rebuild briefs (51–76) are in
 [`../briefs/done/`](../briefs/done/) with an outcome note each, alongside the
-thirteen v3 ones. **Nothing is open.** Each brief is self-contained: open only
-the one directing your work.
+thirteen v3 ones. Each brief is self-contained: open only the one directing
+your work.
+
+**Open since 2026-09-26:** the improvements sweep filed briefs 77–102 into
+[`../briefs/todo/`](../briefs/todo/). Of those, 84 (a local dev sign-in path) is
+done as of 2026-09-27: local dev signs in through a local Ward, see
+[configuration.md](./configuration.md#local-sign-in).
 
 Waves below are the **executed** order, which differs from the originally filed
 one: file-ownership collisions the dependency graph alone did not show forced

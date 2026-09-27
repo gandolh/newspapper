@@ -1,6 +1,6 @@
 ---
-summary: The locked security calls — single-account auth and its lockout, password rotation, and which paths are guarded versus deliberately public.
-updated: 2026-09-06
+summary: The locked security calls — Ward identity and grants, the retired single-account auth and its lockout, which paths are guarded versus deliberately public, and how local development signs in through a local Ward.
+updated: 2026-09-27
 ---
 
 # Decisions — security
@@ -123,3 +123,24 @@ and `wzd_auth/client/` is the tested reference it was adapted from. There is no
 logout here and there must not be: the session belongs to the estate, so ending
 it in one app while the others still honoured it would be a lie the cookie
 contradicts on the next request.
+
+## Local development signs in through a local Ward
+_2026-09-27_ — Brief 84's question, answered by the owner for every Ward app at
+once, and with neither of the brief's options. Local development runs a real Ward
+in Docker (`wzd_auth/infrastructure/local`) and the UI dev server stands in for
+Caddy: it serves the app under `/newspapper/`, proxies the API's paths there with
+the prefix stripped, and proxies `/ward` and `/ward-api` to `WARD_PUBLIC_ORIGIN`.
+The browser then sees one origin, so Ward's cookie, `redirectToLogin`'s
+`?next=/newspapper/…` and the guard's 401/403/503 behave exactly as deployed, and
+**no line of the guard changes**. The one concession is in the proxy: it rewrites
+`Origin` to Ward's for requests from a page on the dev server, because Ward
+refuses `/refresh` and `/logout` from any other Origin. Anything else keeps its
+`Origin` and `Sec-Fetch-Site`, so Ward's same-origin check still refuses a
+cross-site request.
+
+**Rejected:** the brief's recommended A, a dev-only guard bypass behind a flag.
+It is a switch that turns authentication off, safe only for as long as every
+future edit keeps it provably inert in production, and it would leave the real
+Ward path untested locally. **Rejected:** B, pointing dev at the production Ward
+through a tunnel or hosts entry: production credentials in a dev loop, and only
+the owner could ever run it.

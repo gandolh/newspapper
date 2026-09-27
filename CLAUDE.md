@@ -12,7 +12,7 @@ A local web app for writing an Instagram-style slide post by hand and compiling 
 
 A post is authored in [Newspapper Wizard](corpus/wiki/markup.md) markup in a split-screen editor (source · live canvas · inspector · palette). **No model is involved anywhere.** RSS survives only as a searchable library of source material to write *from*.
 
-UI at `http://localhost:4321`, API at `http://localhost:3001`. No CLI. Single account, loopback only.
+UI at `http://localhost:4321/newspapper/`, API at `http://localhost:3001`. No CLI. Sign-in is Ward's; locally, the container in `../wzd_auth/infrastructure/local`.
 
 ## Commands
 
