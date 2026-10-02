@@ -1608,3 +1608,7 @@ The render route (pixels from a real upload), `/api/me`'s narrowing, the UI's `a
 ## [2026-10-03] done | Brief 92 — the render browser can't be orphaned, and failed setups close their context
 
 The render browser can't be orphaned by concurrent launches (one shared in-flight launch, and close waits for it), and a render whose setup fails still closes its context.
+
+## [2026-10-03] done | Brief 93 — a stuck slide times out instead of hanging the render
+
+A slide that never settles (content or fonts) now fails within 20 s / 10 s with a clear error, closing its page and context, instead of hanging the render and its SSE stream forever.

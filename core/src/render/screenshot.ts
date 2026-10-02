@@ -56,6 +56,36 @@ export const DEFAULT_JPEG_QUALITY = 92;
 /** Evaluated in the page: settles when every used @font-face has resolved. */
 const WAIT_FOR_FONTS = 'document.fonts.ready.then(() => true)';
 
+/**
+ * How long one slide may take to settle, and to finish loading its fonts.
+ *
+ * Playwright's `setContent` defaults to **no** timeout and `evaluate` takes none,
+ * so one subresource that never settled used to hang the slide, then the
+ * sequential render, then the SSE response, forever, with its context leaked.
+ * A real slide settles in well under a second (a 20-slide render is ~11 s in
+ * total), so 20 s and 10 s fail only a slide that is genuinely stuck, and fail
+ * it loudly.
+ */
+export const RENDER_TIMEOUTS = { settleMs: 20_000, fontsMs: 10_000 } as const;
+
+export class RenderTimeoutError extends Error {
+  constructor(step: string, ms: number) {
+    super(`Rendering a slide timed out: ${step} did not finish within ${ms / 1000} s`);
+    this.name = 'RenderTimeoutError';
+  }
+}
+
+/** Reject after `ms`. The losing promise's own later rejection is swallowed,
+ * since closing the page in `finally` makes it reject. */
+function within<T>(promise: Promise<T>, ms: number, step: string): Promise<T> {
+  promise.catch(() => undefined);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new RenderTimeoutError(step, ms)), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
 async function withRenderedPage<T>(
   html: string,
   width: number,
@@ -82,6 +112,7 @@ export async function renderInBrowser<T>(
   height: number,
   fn: (page: Page) => Promise<T>,
   db?: DB,
+  timeouts: { settleMs: number; fontsMs: number } = RENDER_TIMEOUTS,
 ): Promise<T> {
   let ctx: BrowserContext | undefined;
   let page: Page | undefined;
@@ -98,12 +129,16 @@ export async function renderInBrowser<T>(
     if (db) await installUploadsRoute(ctx, db);
 
     page = await ctx.newPage();
-    await page.setContent(html, { waitUntil: 'networkidle' });
+    await within(
+      page.setContent(html, { waitUntil: 'networkidle', timeout: timeouts.settleMs }),
+      timeouts.settleMs,
+      'loading the slide',
+    );
     // @font-face loading is lazy and not part of any navigation lifecycle:
     // fonts.ready settles once every face the document actually used has
     // finished (or failed). Written as a source string because `core` compiles
     // without the DOM lib — `document` is not a name this workspace has.
-    await page.evaluate(WAIT_FOR_FONTS);
+    await within(page.evaluate(WAIT_FOR_FONTS), timeouts.fontsMs, 'loading its fonts');
     return await fn(page);
   } finally {
     await page?.close().catch(() => undefined);

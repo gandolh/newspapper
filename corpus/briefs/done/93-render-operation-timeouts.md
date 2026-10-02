@@ -61,3 +61,25 @@ user's retries stack more stuck contexts on the shared browser.
 ## Related
 
 Overlaps `screenshot.ts` with brief 92 — serialize if dispatched together.
+
+## Outcome — 2026-10-03
+
+`renderInBrowser` bounds both waits:
+- `setContent` gets `timeout: settleMs` (Playwright's default is none) *and*
+  our own `within()` race;
+- `evaluate(fonts.ready)`, which takes no timeout, gets `within(fontsMs)`.
+
+The budgets are `RENDER_TIMEOUTS = { settleMs: 20_000, fontsMs: 10_000 }`,
+with the reasoning in a comment: a real slide settles in well under a second.
+A stuck step throws `RenderTimeoutError` ("Rendering a slide timed out:
+loading the slide did not finish within 20 s"). The brief-92 `finally` then
+closes the page and context, and the route's existing catch turns it into an
+SSE `error`. The losing promise's later rejection is swallowed. The timeouts
+are an optional last argument, so tests run in milliseconds. The public render
+API is unchanged.
+
+Tests (`browser.test.ts`): a fake page whose `setContent`, or whose `evaluate`,
+never settles rejects with `RenderTimeoutError` in under 1 s on a 50 ms budget,
+and both the page and the context are closed. The real budget is passed to
+Playwright's `setContent`. Real renders still pass well inside the budget.
+`npm test`, lint and build are clean.
