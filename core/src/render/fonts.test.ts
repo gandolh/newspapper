@@ -37,64 +37,16 @@ import type { AddressInfo } from 'node:net';
 import { renderTemplate } from '../templates/interpreter.js';
 import type { Theme, TNode } from '../types.js';
 import { htmlToJpeg } from './screenshot.js';
-import { getBrowser, closeBrowser } from './browser.js';
+import { probeChromium } from './test-support/chromium.js';
 import { FONT_DIR, localFontPath } from './fonts.js';
 
 // ---------------------------------------------------------------------------
 // Browser availability — probed once, loudly
 // ---------------------------------------------------------------------------
 
-let browserAvailable = true;
-let browserError = '';
-try {
-  const browser = await getBrowser();
-  if (!browser.isConnected()) throw new Error('browser not connected');
-} catch (err) {
-  browserAvailable = false;
-  browserError = (err as Error).message.split('\n')[0] ?? String(err);
-}
+const chromium = await probeChromium('fonts.test', 'that rendered slides are set in Inter');
 
-const SKIP_NOTE = 'Chromium unavailable — the typeface guard did NOT verify any pixels';
-
-function unavailableBanner(): string {
-  const rule = '='.repeat(78);
-  return [
-    '',
-    rule,
-    '[fonts.test] CHROMIUM UNAVAILABLE — THE TYPEFACE GUARD DID NOT RUN.',
-    '[fonts.test] Nothing here verified that rendered slides are set in Inter.',
-    '[fonts.test] Run `npx playwright install chromium` before trusting this run.',
-    `[fonts.test] cause: ${browserError}`,
-    rule,
-    '',
-  ].join('\n');
-}
-
-/**
- * Skip loudly, or — in CI, where Chromium is meant to be installed — not at all:
- * a guard that cannot run is a failure there, not a quiet pass.
- */
-function browserOrSkip(skip: (note?: string) => void): boolean {
-  if (browserAvailable) return true;
-  const banner = unavailableBanner();
-  console.error(banner);
-  if (process.env['CI']) {
-    throw new Error(`${SKIP_NOTE}. In CI that is a failure, not a skip.${banner}`);
-  }
-  skip(SKIP_NOTE);
-  return false;
-}
-
-afterAll(async () => {
-  if (browserAvailable) {
-    await closeBrowser();
-    return;
-  }
-  // Vitest's default reporter swallows console output from passing/skipped
-  // tests, so the warning goes straight to the real stderr. This is the line
-  // that keeps an unrun guard from reading as a pass.
-  process.stderr.write(unavailableBanner());
-});
+afterAll(() => chromium.close());
 
 // ---------------------------------------------------------------------------
 // A font origin with the API's CORS posture: bytes served, no ACAO header.
@@ -316,7 +268,7 @@ describe('the no-Inter control', () => {
 
 describe('rendered slides are set in Inter', () => {
   it('a rendered slide does not match the same slide with no Inter in it', async (ctx) => {
-    if (!browserOrSkip((note) => ctx.skip(note))) return;
+    if (!chromium.orSkip((note) => ctx.skip(note))) return;
 
     const origin = await startFontOrigin();
     const html = slideHtml(origin.baseUrl);
@@ -339,7 +291,7 @@ describe('rendered slides are set in Inter', () => {
   }, 60_000);
 
   it('renders Inter without reaching the HTTP font origin at all', async (ctx) => {
-    if (!browserOrSkip((note) => ctx.skip(note))) return;
+    if (!chromium.orSkip((note) => ctx.skip(note))) return;
 
     const origin = await startFontOrigin();
     await htmlToJpeg(slideHtml(origin.baseUrl));

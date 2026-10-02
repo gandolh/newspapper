@@ -1,0 +1,26 @@
+# The full gate, with CI=1 so the Chromium suites fail rather than skip when a
+# browser is missing (core/src/render/test-support/chromium.ts). Until this
+# existed nothing ever set CI, so "fails under CI" was a promise nothing kept.
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    env:
+      CI: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24 # matches infrastructure/Dockerfile
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - run: npm test
+      - run: npm run lint
+      - run: bash corpus/lint.sh

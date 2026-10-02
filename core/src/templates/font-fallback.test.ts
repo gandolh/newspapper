@@ -31,7 +31,7 @@ import { compileSource } from '../wizard/compile.js';
 import { renderTemplate, resolveStyle, withFallbackFamily } from './interpreter.js';
 import type { Theme, TNode } from '../types.js';
 import { htmlToPng } from '../render/screenshot.js';
-import { getBrowser, closeBrowser } from '../render/browser.js';
+import { probeChromium } from '../render/test-support/chromium.js';
 
 // ---------------------------------------------------------------------------
 // CSS generic families — the vocabulary a complete stack ends in
@@ -186,52 +186,12 @@ describe('withFallbackFamily', () => {
 // 2. Pixel — the fallback is a sans, proved by rendering it
 // ---------------------------------------------------------------------------
 
-let browserAvailable = true;
-let browserError = '';
-try {
-  const browser = await getBrowser();
-  if (!browser.isConnected()) throw new Error('browser not connected');
-} catch (err) {
-  browserAvailable = false;
-  browserError = (err as Error).message.split('\n')[0] ?? String(err);
-}
+const chromium = await probeChromium(
+  'font-fallback.test',
+  'that the fallback stack renders as a sans',
+);
 
-const SKIP_NOTE = 'Chromium unavailable — the fallback-stack guard did NOT verify any pixels';
-
-function unavailableBanner(): string {
-  const rule = '='.repeat(78);
-  return [
-    '',
-    rule,
-    '[font-fallback.test] CHROMIUM UNAVAILABLE — THE PIXEL HALF DID NOT RUN.',
-    '[font-fallback.test] Nothing here verified that the fallback renders as a sans.',
-    '[font-fallback.test] Run `npx playwright install chromium` before trusting this run.',
-    `[font-fallback.test] cause: ${browserError}`,
-    rule,
-    '',
-  ].join('\n');
-}
-
-function browserOrSkip(skip: (note?: string) => void): boolean {
-  if (browserAvailable) return true;
-  const banner = unavailableBanner();
-  console.error(banner);
-  if (process.env['CI']) {
-    throw new Error(`${SKIP_NOTE}. In CI that is a failure, not a skip.${banner}`);
-  }
-  skip(SKIP_NOTE);
-  return false;
-}
-
-afterAll(async () => {
-  if (browserAvailable) {
-    await closeBrowser();
-    return;
-  }
-  // Vitest's reporter swallows console output from skipped tests, so the
-  // warning goes straight to the real stderr.
-  process.stderr.write(unavailableBanner());
-});
+afterAll(() => chromium.close());
 
 /** A theme identical but for the family its typography asks for. */
 function themeWithFamily(fontFamily: string): Theme {
@@ -285,7 +245,7 @@ function html(fontFamily: string): string {
 
 describe('the fallback a missing face lands on is a sans', () => {
   it('renders as sans-serif, not as the browser default serif', async (ctx) => {
-    if (!browserOrSkip((note) => ctx.skip(note))) return;
+    if (!chromium.orSkip((note) => ctx.skip(note))) return;
 
     // Nothing on the machine may answer to this name, so the stack's tail is
     // what draws the text.

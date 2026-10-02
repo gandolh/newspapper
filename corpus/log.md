@@ -1588,3 +1588,7 @@ Settings no longer shows a password form for a route that no longer exists; it p
 ## [2026-10-02] done | Brief 88 — the render-time upload interception is tested end to end
 
 The render-time uploads interception is now tested end to end: a real upload renders red with the db and blank without it, traversals are not served, and the suite fails if the route glob or the interception is broken.
+
+## [2026-10-03] done | Brief 91 — one Chromium guard for every browser test, plus a CI workflow
+
+All five Chromium test files share one guard (skip loudly locally, fail under CI), verified in all three modes, and a CI workflow runs the full gate with CI=1. It has not run yet: nothing is pushed.

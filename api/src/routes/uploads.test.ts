@@ -4,7 +4,11 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import Fastify, { type FastifyInstance } from 'fastify';
 import sharp from 'sharp';
-import { MAX_UPLOAD_BYTES, closeBrowser, getBrowser, htmlToPng } from '@newspapper/core';
+import { MAX_UPLOAD_BYTES, htmlToPng } from '@newspapper/core';
+import {
+  probeChromium,
+  type ChromiumGuard,
+} from '../../../core/src/render/test-support/chromium.js';
 import uploadsRoutes from './uploads.js';
 import { db, resetDb } from '../lib/db.js';
 
@@ -199,24 +203,19 @@ describe('DELETE /api/uploads/:id', () => {
 });
 
 describe('the upload URL is reachable from headless Chromium', () => {
-  let browserAvailable = true;
+  let chromium: ChromiumGuard;
 
   beforeAll(async () => {
-    try {
-      const browser = await getBrowser();
-      if (!browser.isConnected()) throw new Error('browser not connected');
-    } catch (err) {
-      browserAvailable = false;
-      console.warn('[uploads.test] Chromium unavailable — render test skipped.', err);
-    }
+    chromium = await probeChromium(
+      'uploads.test',
+      'that an <img> loads from /uploads during a render',
+    );
   });
 
-  afterAll(async () => {
-    if (browserAvailable) await closeBrowser();
-  });
+  afterAll(() => chromium.close());
 
-  it('loads <img> from /uploads/:ref during a render', async () => {
-    if (!browserAvailable) return;
+  it('loads <img> from /uploads/:ref during a render', async (ctx) => {
+    if (!chromium.orSkip((note) => ctx.skip(note))) return;
 
     const hits: { url: string; status: number }[] = [];
     const server = Fastify();

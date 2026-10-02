@@ -7,7 +7,7 @@
  *   - zipRun
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, afterAll } from 'vitest';
 import { mkdtemp, rm, readdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -16,7 +16,7 @@ import { unzipSync } from 'fflate';
 import { htmlToJpeg } from './screenshot.js';
 import { nextOutputDir, writeRun } from './output.js';
 import { renderSlides, zipRun } from './index.js';
-import { getBrowser, closeBrowser } from './browser.js';
+import { probeChromium } from './test-support/chromium.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -47,37 +47,17 @@ function parseJpegDimensions(buf: Buffer): { width: number; height: number } {
 // Browser availability guard
 // ---------------------------------------------------------------------------
 
-let browserAvailable = true;
+const chromium = await probeChromium('render.test', 'the rendered JPEG bytes');
 
-beforeAll(async () => {
-  try {
-    const browser = await getBrowser();
-    if (!browser.isConnected()) throw new Error('browser not connected');
-  } catch (err) {
-    browserAvailable = false;
-    console.warn(
-      '[render.test] Chromium unavailable — browser-dependent tests will be skipped.',
-      err,
-    );
-  }
-});
-
-afterAll(async () => {
-  if (browserAvailable) {
-    await closeBrowser();
-  }
-});
+afterAll(() => chromium.close());
 
 // ---------------------------------------------------------------------------
 // htmlToJpeg
 // ---------------------------------------------------------------------------
 
 describe('htmlToJpeg', () => {
-  it('returns a JPEG with 1080×1080 dimensions', async () => {
-    if (!browserAvailable) {
-      console.warn('skipping htmlToJpeg test — Chromium not available');
-      return;
-    }
+  it('returns a JPEG with 1080×1080 dimensions', async (ctx) => {
+    if (!chromium.orSkip((note) => ctx.skip(note))) return;
 
     const html =
       '<html><body style="margin:0"><div style="width:1080px;height:1080px;background:#a2391a"></div></body></html>';
@@ -90,11 +70,8 @@ describe('htmlToJpeg', () => {
     expect(height).toBe(1080);
   });
 
-  it('respects custom dimensions', async () => {
-    if (!browserAvailable) {
-      console.warn('skipping custom-dimension test — Chromium not available');
-      return;
-    }
+  it('respects custom dimensions', async (ctx) => {
+    if (!chromium.orSkip((note) => ctx.skip(note))) return;
 
     const html =
       '<html><body style="margin:0"><div style="width:400px;height:300px;background:#111"></div></body></html>';
@@ -106,11 +83,8 @@ describe('htmlToJpeg', () => {
     expect(height).toBe(300);
   });
 
-  it('a lower quality produces a smaller file for the same image', async () => {
-    if (!browserAvailable) {
-      console.warn('skipping quality test — Chromium not available');
-      return;
-    }
+  it('a lower quality produces a smaller file for the same image', async (ctx) => {
+    if (!chromium.orSkip((note) => ctx.skip(note))) return;
 
     // A busy gradient so JPEG quality actually affects size (a flat fill
     // compresses to roughly the same size at any quality).
@@ -214,11 +188,8 @@ describe('writeRun', () => {
 // ---------------------------------------------------------------------------
 
 describe('renderSlides', () => {
-  it('creates slide-01.jpg, slide-02.jpg, slides.json, caption.txt and fires progress', async () => {
-    if (!browserAvailable) {
-      console.warn('skipping renderSlides test — Chromium not available');
-      return;
-    }
+  it('creates slide-01.jpg, slide-02.jpg, slides.json, caption.txt and fires progress', async (ctx) => {
+    if (!chromium.orSkip((note) => ctx.skip(note))) return;
 
     const tmpRoot = await mkdtemp(join(tmpdir(), 'render-slides-'));
     try {
@@ -259,11 +230,8 @@ describe('renderSlides', () => {
     }
   });
 
-  it('omits caption.txt when caption is not provided', async () => {
-    if (!browserAvailable) {
-      console.warn('skipping renderSlides (no-caption) test — Chromium not available');
-      return;
-    }
+  it('omits caption.txt when caption is not provided', async (ctx) => {
+    if (!chromium.orSkip((note) => ctx.skip(note))) return;
 
     const tmpRoot = await mkdtemp(join(tmpdir(), 'render-nocap-'));
     try {
@@ -289,11 +257,8 @@ describe('renderSlides', () => {
 // ---------------------------------------------------------------------------
 
 describe('zipRun', () => {
-  it('round-trips file names through a ZIP archive', async () => {
-    if (!browserAvailable) {
-      console.warn('skipping zipRun test — Chromium not available');
-      return;
-    }
+  it('round-trips file names through a ZIP archive', async (ctx) => {
+    if (!chromium.orSkip((note) => ctx.skip(note))) return;
 
     const tmpRoot = await mkdtemp(join(tmpdir(), 'zip-run-'));
     try {

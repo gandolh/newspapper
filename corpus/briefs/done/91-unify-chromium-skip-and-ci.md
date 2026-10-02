@@ -64,3 +64,31 @@ product's output.
 
 Briefs 88 and 90 rely on this helper for their Chromium tests — landing 91 first
 keeps them from re-inventing the guard.
+
+## Outcome — 2026-10-03
+
+New `core/src/render/test-support/chromium.ts` exports `probeChromium(suite,
+unverified)`, which returns `{ available, orSkip(skip), close() }`. Locally a
+missing browser skips with a boxed banner (stderr, at the test and again at
+teardown). Under `CI` it **throws**. All five Chromium suites use it:
+`fonts`, `font-fallback`, `render` (six early-`return` tests converted to
+`ctx.skip`), the api `uploads` sub-test, and brief 88's `uploads-route`.
+`grep browserAvailable` over the tests is now empty.
+
+**The three modes, verified** by pointing `PLAYWRIGHT_BROWSERS_PATH` at an
+empty directory to simulate a missing install:
+- **present:** 54/54 pass in the five files;
+- **absent, `CI` unset:** 37 pass and 13 are skipped, with a banner from every
+  one of the five suites;
+- **absent, `CI=1`:** 13 fail and all 5 files are red.
+
+**CI:** `.github/workflows/ci.yml` runs on push and PR with `CI=1`: `npm ci`,
+`npx playwright install --with-deps chromium`, build, test, lint, corpus lint,
+on Node 24 like the Dockerfile. **It has not run yet:** nothing is pushed.
+Locally the same gate is green (666 tests, lint, build). Gating `vps-deploy` on
+it would mean the deploy checking the commit's workflow status (for example
+`gh run list --commit <sha> --json conclusion`) before building. Left for the
+owner, as the brief says.
+
+`CLAUDE.md`'s Tests paragraph now names the five files, the guard and the
+workflow.
