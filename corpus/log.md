@@ -1572,3 +1572,7 @@ Production deps carry no advisories: `@fastify/static` 10.1.5 (a major, no behav
 ## [2026-10-02] done | Brief 101 — publishing with a deleted output folder is a clean 404
 
 Publishing a post whose render folder is gone answers a clean 404 instead of a 409 carrying the filesystem path; unexpected publish errors now go to the generic 500 handler.
+
+## [2026-10-02] done | Brief 82 — User is the real /api/me shape; UserRecord deleted
+
+The fossil `UserRecord` type is gone; `User` is now the real `/api/me` shape `{ subject, username }` in core and the UI mirror, and the route is typed with it.

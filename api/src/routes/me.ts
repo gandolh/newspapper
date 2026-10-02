@@ -1,4 +1,5 @@
 import type { FastifyPluginAsync } from 'fastify';
+import type { User } from '@newspapper/core';
 
 /**
  * `GET /api/me` — who the browser is, as newspapper sees it.
@@ -34,12 +35,10 @@ const meRoutes: FastifyPluginAsync = async (fastify) => {
     // 500 rather than an answer that looks like a signed-out user.
     const ward = req.ward!;
 
-    return {
-      user: {
-        subject: ward.subject,
-        username: ward.username,
-      },
-    };
+    // Typed with the shared `User`, so the UI's mirror of it describes what
+    // this route actually sends.
+    const user: User = { subject: ward.subject, username: ward.username };
+    return { user };
   });
 };
 

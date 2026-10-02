@@ -22,10 +22,10 @@ const uiTypesPath = fileURLToPath(new URL('./types.ts', import.meta.url));
 const coreTypesPath = fileURLToPath(new URL('../../../core/src/types.ts', import.meta.url));
 const coreScrapePath = fileURLToPath(new URL('../../../core/src/scrape/index.ts', import.meta.url));
 
-// Node-side types (only meaningful to the Node interpreter/theme loader) and
-// server-only types (UserRecord carries a password hash) intentionally do not
-// appear in the browser-facing mirror.
-const CORE_ONLY = new Set(['Theme', 'RenderTemplateOptions', 'UserRecord']);
+// Node-side types (only meaningful to the Node interpreter/theme loader)
+// intentionally do not appear in the browser-facing mirror. (`UserRecord`, the
+// password-hash type, was here until the Ward move deleted it from core.)
+const CORE_ONLY = new Set(['Theme', 'RenderTemplateOptions']);
 
 // Mirrored from a core module other than types.ts — checked against that
 // module directly rather than against the core/types.ts ↔ ui diff.

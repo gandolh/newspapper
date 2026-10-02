@@ -77,14 +77,15 @@ export interface Keyword {
   postCount: number;
 }
 
+/**
+ * The signed-in person, as `GET /api/me` reports them: Ward's subject and
+ * username, nothing else. Identity is Ward's (brief 55's `users` table was
+ * dropped in schema v5), so there is no id, no created-at and no password hash
+ * here any more.
+ */
 export interface User {
-  id: number;
+  subject: string;
   username: string;
-  createdAt: string;
-}
-
-export interface UserRecord extends User {
-  passwordHash: string;
 }
 
 export interface Upload {

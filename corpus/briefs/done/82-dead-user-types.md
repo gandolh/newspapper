@@ -50,3 +50,21 @@ consistently.
 
 - `api/src/routes/me.ts` — its shape is the source of truth this aligns to
 - `corpus/log.md`, `corpus/wiki/status.md`
+
+## Outcome — 2026-10-02
+
+`UserRecord` is deleted from core and from the parity test's `CORE_ONLY` set.
+`User` is **redefined rather than deleted**, in core and in the UI mirror
+alike, as `{ subject: string; username: string }`: the real `GET /api/me`
+payload.
+
+Deviation, with the reason: the brief said to delete `User` from core and
+redefine only the UI's. But `ui/src/lib/types.test.ts` asserts the mirror has
+no exports beyond core, so a UI-only `User` would fail that test, and the brief
+also said to keep the test. Instead the core type is now real: `api/src/routes
+/me.ts` builds its response as a `User`, so the type the UI mirrors is the one
+the route sends, with one source of truth. `SessionMenu.tsx` reads only
+`.username` and typechecks unchanged.
+
+`tsc` is clean for ui, core and api. The parity test and the api tests pass (82),
+`npm test` passes, and lint is clean.

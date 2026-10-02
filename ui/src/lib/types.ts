@@ -5,8 +5,7 @@
 // rather than re-exporting, to keep the UI self-contained.
 //
 // This mirror is core/src/types.ts minus the Node-side types (`Theme`,
-// `RenderTemplateOptions`) and `UserRecord` (carries a password hash — no
-// legitimate reason to exist in browser-facing code). See
+// `RenderTemplateOptions`). See
 // corpus/wiki/decisions-engineering.md "The UI keeps its own copy of the
 // shared types". ui/src/lib/types.test.ts fails if this drifts from core.
 
@@ -93,9 +92,8 @@ export interface Keyword {
 }
 
 export interface User {
-  id: number;
+  subject: string;
   username: string;
-  createdAt: string;
 }
 
 export interface Upload {
