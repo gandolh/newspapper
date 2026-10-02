@@ -3,6 +3,7 @@
  * optimization pass that runs once, the first time a render is published.
  */
 
+import { existsSync } from 'node:fs';
 import { findPost, latestRender, markRenderOptimized, setPostStatus } from '../storage/index.js';
 import type { DB } from '../storage/index.js';
 import type { Post, RenderRecord } from '../types.js';
@@ -14,6 +15,18 @@ export {
   slideFilesIn,
   PUBLISH_JPEG_QUALITY,
 } from './optimize.js';
+
+/**
+ * The render's output directory is gone (manual cleanup, disk pruning). Its own
+ * class so the route can answer a clean 404 without echoing a filesystem path,
+ * the way the export route already does for the same case.
+ */
+export class OutputDirMissingError extends Error {
+  constructor() {
+    super('Output directory no longer exists');
+    this.name = 'OutputDirMissingError';
+  }
+}
 
 export interface PublishResult {
   post: Post;
@@ -37,6 +50,12 @@ export async function publishPost(db: DB, postId: number): Promise<PublishResult
   const render = latestRender(db, postId);
   if (!render) {
     throw new Error(`Post ${postId} has not been rendered yet`);
+  }
+
+  // Checked up front, before the re-encode scans the directory: otherwise the
+  // scan's ENOENT carried the absolute path out to the caller.
+  if (!existsSync(render.outputDir)) {
+    throw new OutputDirMissingError();
   }
 
   let reencoded = 0;

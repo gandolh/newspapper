@@ -1568,3 +1568,7 @@ The editor's saves go through a single-flight queue (`saveQueue.ts`): one POST p
 ## [2026-10-02] done | Brief 100 — production dependencies carry no advisories
 
 Production deps carry no advisories: `@fastify/static` 10.1.5 (a major, no behaviour change found), `fastify` 5.12.5, and in-range transitive fixes.
+
+## [2026-10-02] done | Brief 101 — publishing with a deleted output folder is a clean 404
+
+Publishing a post whose render folder is gone answers a clean 404 instead of a 409 carrying the filesystem path; unexpected publish errors now go to the generic 500 handler.

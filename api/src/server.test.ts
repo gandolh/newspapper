@@ -11,7 +11,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { buildApp } from './server.js';
-import { resetDb } from './lib/db.js';
+import { db as appDb, resetDb } from './lib/db.js';
+import { recordRender } from '@newspapper/core';
 import { createFakeWard } from './ward/fake-ward.js';
 
 /*
@@ -403,6 +404,24 @@ describe('API server', () => {
       const { id } = created.json();
       const res = await inject({ method: 'POST', url: `/api/posts/${id}/publish` });
       expect(res.statusCode).toBe(409);
+      await inject({ method: 'DELETE', url: `/api/posts/${id}` });
+    });
+
+    // Brief 101: the render's folder was cleaned up before publishing. This
+    // used to be a 409 carrying ENOENT's absolute path.
+    it('404 with no path when the render output directory is gone', async () => {
+      const created = await inject({
+        method: 'POST',
+        url: '/api/posts',
+        payload: { markup: '<body>\n  <Slide />\n</body>\n' },
+      });
+      const { id } = created.json();
+      const gone = join(tmpdir(), 'newspapper-output-that-does-not-exist', '2026-10-02-1');
+      recordRender(appDb(), { postId: id, outputDir: gone, slideCount: 1 });
+      const res = await inject({ method: 'POST', url: `/api/posts/${id}/publish` });
+      expect(res.statusCode).toBe(404);
+      expect(res.json()).toEqual({ error: 'Output directory no longer exists' });
+      expect(res.body).not.toContain(tmpdir());
       await inject({ method: 'DELETE', url: `/api/posts/${id}` });
     });
   });

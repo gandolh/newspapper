@@ -1,5 +1,5 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { publishPost } from '@newspapper/core/publish';
+import { OutputDirMissingError, publishPost } from '@newspapper/core/publish';
 import { db } from '../lib/db.js';
 
 const publishRoutes: FastifyPluginAsync = async (fastify) => {
@@ -17,9 +17,18 @@ const publishRoutes: FastifyPluginAsync = async (fastify) => {
       const result = await publishPost(db(), Number(id));
       return reply.send(result);
     } catch (err) {
+      if (err instanceof OutputDirMissingError) {
+        return reply.status(404).send({ error: err.message });
+      }
+      // The two failures publishPost reports on purpose; their messages name a
+      // post id, nothing internal. Anything else is a fault, so it goes to the
+      // global handler, which keeps its message out of the response.
       const message = (err as Error).message;
-      const status = message.includes('not found') ? 404 : 409;
-      return reply.status(status).send({ error: message });
+      if (/^Post \d+ not found$/.test(message)) return reply.status(404).send({ error: message });
+      if (/^Post \d+ has not been rendered yet$/.test(message)) {
+        return reply.status(409).send({ error: message });
+      }
+      throw err;
     }
   });
 };

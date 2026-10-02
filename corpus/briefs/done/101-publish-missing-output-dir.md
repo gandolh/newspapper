@@ -43,3 +43,22 @@ confirmed the route maps it to 409 with the path leaked.
 
 - `core/src/publish/optimize.ts`'s re-encode logic (only the missing-dir guard)
 - `corpus/log.md`, `corpus/wiki/status.md`
+
+## Outcome — 2026-10-02
+
+`publishPost` checks `existsSync(render.outputDir)` before the re-encode scans
+it, and throws a new exported `OutputDirMissingError` ("Output directory no
+longer exists"). The publish route maps that to a clean **404**, mirroring the
+export handler.
+
+The route's catch no longer turns every message into a 404/409. Only the two
+deliberate failures are mapped: `Post N not found` → 404 and `Post N has not
+been rendered yet` → 409. Anything else is rethrown to the global handler,
+which after brief 79 answers a generic 500, so no other publish error can echo
+a path.
+
+Test in `server.test.ts`: a post with a render row pointing at a nonexistent
+directory publishes to 404 `{ error: 'Output directory no longer exists' }`,
+and the body contains no temp path. The existing publish tests, normal
+re-encode and idempotence included, pass unchanged. `npm test` 661/661, lint
+and build clean.
