@@ -57,6 +57,7 @@ import {
 import { starterDocument } from './starter.js';
 import styles from './EditorIsland.module.css';
 import { withBase } from '@/lib/base';
+import { createSaveQueue, type SaveQueue } from './saveQueue';
 
 /**
  * Compile options for the live preview canvas. Its `<Image>` backgrounds are
@@ -402,6 +403,47 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
     })();
   }, [initialTheme]);
 
+  // Saves go through one queue: at most one request in flight, so a new post
+  // gets one POST and an older PUT can never land after a newer one
+  // (`saveQueue.ts`). It is created in an effect and reads the content through
+  // refs when it sends, never during render.
+  const themeRef = useRef(themeName);
+  const addToastRef = useRef(addToast);
+  useEffect(() => {
+    themeRef.current = themeName;
+    addToastRef.current = addToast;
+  }, [themeName, addToast]);
+  const saveQueue = useRef<SaveQueue | null>(null);
+  useEffect(() => {
+    saveQueue.current = createSaveQueue({
+      read: () => ({ markup: sourceRef.current, theme: themeRef.current }),
+      create: (body) => api<Post>('/api/posts', { method: 'POST', json: body }),
+      update: (id, body) => api<Post>(`/api/posts/${id}`, { method: 'PUT', json: body }),
+      onStart: () => setSaveState('saving'),
+      onSaved: (body, id, created) => {
+        if (created) {
+          setPostId(id);
+          const url = new URL(window.location.href);
+          url.searchParams.set('post', String(id));
+          window.history.replaceState({}, '', url);
+        }
+        // Clean only if nothing changed while the request was out; otherwise
+        // the edit still needs saving and stays dirty.
+        const current = body.markup === sourceRef.current && body.theme === themeRef.current;
+        if (current) setDirty(false);
+        setSaveState(current ? 'saved' : 'dirty');
+      },
+      onError: (err) => {
+        setSaveState('error');
+        addToastRef.current(
+          err instanceof ApiError ? err.message : 'Could not save this post.',
+          'error',
+        );
+      },
+    });
+  }, []);
+  const save = useCallback(() => saveQueue.current?.save() ?? Promise.resolve(), []);
+
   useEffect(() => {
     if (initialMarkup !== undefined) return;
     const id = propPostId ?? postIdFromUrl();
@@ -424,6 +466,7 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
         setSource(post.markup);
         setPreviewSource(post.markup);
         setPostId(post.id);
+        saveQueue.current?.setId(post.id);
         if (post.theme) setThemeName(post.theme);
         setDirty(false);
         setSaveState('clean');
@@ -434,27 +477,6 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
       }
     })();
   }, [propPostId, initialMarkup, addToast]);
-
-  const save = useCallback(async () => {
-    setSaveState('saving');
-    try {
-      const body = { markup: sourceRef.current, theme: themeName };
-      const saved = postId
-        ? await api<Post>(`/api/posts/${postId}`, { method: 'PUT', json: body })
-        : await api<Post>('/api/posts', { method: 'POST', json: body });
-      if (!postId) {
-        setPostId(saved.id);
-        const url = new URL(window.location.href);
-        url.searchParams.set('post', String(saved.id));
-        window.history.replaceState({}, '', url);
-      }
-      setDirty(false);
-      setSaveState('saved');
-    } catch (err) {
-      setSaveState('error');
-      addToast(err instanceof ApiError ? err.message : 'Could not save this post.', 'error');
-    }
-  }, [postId, themeName, addToast]);
 
   useEffect(() => {
     if (!dirty || loading) return;
@@ -578,7 +600,12 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
           }}
           className={styles.themeSelect}
         />
-        <Button variant="secondary" size="sm" onClick={() => void save()} disabled={!dirty}>
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={() => void save()}
+          disabled={!dirty || saveState === 'saving'}
+        >
           Save
         </Button>
         <Button

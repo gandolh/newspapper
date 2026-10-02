@@ -1560,3 +1560,7 @@ Post links, post and picker thumbnails, and the preview canvas's images carry th
 ## [2026-10-02] done | Brief 86 — migrations are transactional per step
 
 Every schema migration step now commits with its `user_version` bump in one transaction, so a crash mid-rebuild rolls back to an openable, re-migratable database instead of one with no `posts` table. A test makes the real v3 → v4 rebuild fail between DROP and RENAME to prove it.
+
+## [2026-10-02] done | Brief 87 — editor saves are single-flight
+
+The editor's saves go through a single-flight queue (`saveQueue.ts`): one POST per new post, writes in order, and the last edit always the one that lands. The `updated_at` precondition was left for the owner's call.

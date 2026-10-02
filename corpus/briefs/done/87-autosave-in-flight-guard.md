@@ -58,3 +58,40 @@ Confirmed no `AbortController`/`savingRef`/in-flight tracking exists in the file
 
 - the `<App>`/routing structure (`ui/src/routes.tsx`) — load-bearing
 - `corpus/log.md`, `corpus/wiki/status.md`
+
+## Outcome — 2026-10-02
+
+Saves go through a new `ui/src/components/editor/saveQueue.ts`, a single-flight
+queue. At most one request is in flight. A save requested meanwhile is
+remembered, and **one** more runs when the current one settles, reading the
+content at send time. So:
+- a new post gets exactly one POST, and later saves wait for its id and PUT;
+- requests reach the server in order, so the DB's last write is the latest
+  edit;
+- responses arrive in order, so an older one can't overwrite the UI's newer
+  state.
+
+`onSaved` marks the editor clean only if the written body still equals the
+current content. Otherwise it stays dirty and the next save goes out. A failed
+save ends its run (no blind retry loop), and the next edit or Save retries.
+The Save button is disabled while saving.
+
+The queue is created in an effect and reads content through refs. The React
+compiler lint forbids ref access during render, which ruled out a
+`useState`-initializer version. The load effect calls `setId` when another
+post is opened.
+
+Tests (`saveQueue.test.ts`, a fake server whose requests resolve on command):
+- two rapid saves on a new post produce exactly one POST, then one PUT;
+- three overlapping edits on an existing post never have two PUTs in flight,
+  the second request carries the latest content, the DB ends on the last edit,
+  and the UI sees `v1` then `v3`, never `v1` after `v3`;
+- a failure ends the run and the next save retries.
+
+`npm test` 660/660, `tsc -p ui`, `npm run lint` and `npm run build` are clean.
+
+**Not done:**
+- The optional server-side `updated_at` precondition on PUT. It needs the
+  owner's call between 409 and last-writer-wins. Two *tabs* editing one post
+  are still last-writer-wins; within one tab the queue already orders writes.
+- The manual rapid-typing check in a signed-in browser.
