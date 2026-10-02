@@ -1548,3 +1548,7 @@ never requested. A DNS-rebinding residual is documented in `safe-url.ts`.
 ## [2026-10-02] done | Brief 80 — npm run lint is green again
 
 `npm run lint` is green again: one unused import left by the Ward move.
+
+## [2026-10-02] done | Brief 81 — vitest collects .test.tsx too
+
+The vitest `include` globs match `.test.tsx` as well, before the first component test lands. A throwaway `.tsx` test was collected under the new glob and not under the old.

@@ -50,3 +50,13 @@ Fix the glob **before** those briefs run.
 If a real `.tsx` component test needs a DOM, adding `jsdom`/`happy-dom` as a
 pinned devDependency is in scope for the brief that writes that test (90), not
 this one — this brief is only the glob.
+
+## Outcome — 2026-10-02
+
+The three globs are now `{core,api,ui}/**/*.test.{ts,tsx}`, a superset of the
+old ones. **Proof:** with a throwaway `ui/src/x.test.tsx` present,
+`npx vitest list --filesOnly` collected 46 files under the old glob (x.test.tsx
+absent) and 47 under the new one (present). With it deleted, 46 again. That is
+the original 44 plus this session's `core/src/scrape/safe-url.test.ts` and
+brief 78's in-progress `ui/src/components/base-urls.test.ts`, so no file was
+dropped. `npm test` and corpus lint are clean.
