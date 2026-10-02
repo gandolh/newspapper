@@ -73,3 +73,31 @@ on the box.
 Brief 93 (render timeouts) and 94 (output-dir collision) touch the same render
 path — they are independent fixes; if dispatched together, expect file-ownership
 overlap on `screenshot.ts` between 92 and 93 and serialize them.
+
+## Outcome — 2026-10-03
+
+**Launch race.** `getBrowser` keeps the in-flight launch promise
+(`_launching`), so every caller that arrives while it runs shares it, and it is
+cleared in `finally`. `closeBrowser` first awaits an in-flight launch (ignoring
+its failure), then closes, so a launch can't land after a close and run
+unreferenced.
+
+**Context leak.** `withRenderedPage` now delegates to an exported
+`renderInBrowser(browser, …)`, and everything from `newContext` through `fn`
+sits inside one `try`. The `finally` closes `page?` and `ctx?`, each guarded
+and with errors swallowed, so a failing route install, `newPage` or
+`setContent` still closes the context. The public API of
+`core/src/render/index.ts` is unchanged.
+
+Tests (`browser.test.ts`):
+- three concurrent `getBrowser()` calls give **one** `chromium.launch` (a
+  passthrough spy on real Chromium) and the same instance, and after
+  `closeBrowser()` it is disconnected;
+- `closeBrowser()` during an in-flight launch leaves that browser
+  disconnected;
+- with a fake browser failing at route install, `newPage` or `setContent`,
+  the context is closed exactly once (and the page too, when it existed).
+
+The race tests fail on the old code. The existing render tests pass on real
+Chromium. `npm test` 712/712, lint, `tsc` and build are clean, and no orphaned
+headless Chromium was left after the runs.

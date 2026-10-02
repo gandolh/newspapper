@@ -12,7 +12,7 @@
  * mid-flight; `networkidle` alone never guaranteed that.
  */
 
-import type { Page } from 'playwright';
+import type { Browser, BrowserContext, Page } from 'playwright';
 import { getBrowser } from './browser.js';
 import { installFontRoute } from './fonts.js';
 import { installUploadsRoute } from './uploads-route.js';
@@ -63,21 +63,41 @@ async function withRenderedPage<T>(
   fn: (page: Page) => Promise<T>,
   db?: DB,
 ): Promise<T> {
-  const browser = await getBrowser();
+  return renderInBrowser(await getBrowser(), html, width, height, fn, db);
+}
 
-  // Use a BrowserContext so we can fix viewport and deviceScaleFactor.
-  const ctx = await browser.newContext({
-    viewport: { width, height },
-    deviceScaleFactor: 1,
-  });
-
-  await installFontRoute(ctx);
-  // Same mechanism as the fonts above, for a security reason rather than a
-  // CORS one: it is what lets `/uploads/*` be a guarded route.
-  if (db) await installUploadsRoute(ctx, db);
-
-  const page = await ctx.newPage();
+/**
+ * One render in its own context on `browser`. Exported for tests, which hand it
+ * a fake browser to prove the cleanup.
+ *
+ * Everything from `newContext` on sits inside the `try`: a route install or
+ * `newPage` that throws used to leave its context open on the long-lived
+ * browser, one leaked context per transient failure until the process
+ * restarted.
+ */
+export async function renderInBrowser<T>(
+  browser: Pick<Browser, 'newContext'>,
+  html: string,
+  width: number,
+  height: number,
+  fn: (page: Page) => Promise<T>,
+  db?: DB,
+): Promise<T> {
+  let ctx: BrowserContext | undefined;
+  let page: Page | undefined;
   try {
+    // Use a BrowserContext so we can fix viewport and deviceScaleFactor.
+    ctx = await browser.newContext({
+      viewport: { width, height },
+      deviceScaleFactor: 1,
+    });
+
+    await installFontRoute(ctx);
+    // Same mechanism as the fonts above, for a security reason rather than a
+    // CORS one: it is what lets `/uploads/*` be a guarded route.
+    if (db) await installUploadsRoute(ctx, db);
+
+    page = await ctx.newPage();
     await page.setContent(html, { waitUntil: 'networkidle' });
     // @font-face loading is lazy and not part of any navigation lifecycle:
     // fonts.ready settles once every face the document actually used has
@@ -86,8 +106,8 @@ async function withRenderedPage<T>(
     await page.evaluate(WAIT_FOR_FONTS);
     return await fn(page);
   } finally {
-    await page.close();
-    await ctx.close();
+    await page?.close().catch(() => undefined);
+    await ctx?.close().catch(() => undefined);
   }
 }
 

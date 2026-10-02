@@ -1604,3 +1604,7 @@ A Ward key-set outage now fails closed with 503 instead of telling the person th
 ## [2026-10-03] done | Brief 90 — the render route, /api/me, api() and the router base path are tested
 
 The render route (pixels from a real upload), `/api/me`'s narrowing, the UI's `api()` wrapper and the router's base-path call sites are tested, each against the mutation it guards.
+
+## [2026-10-03] done | Brief 92 — the render browser can't be orphaned, and failed setups close their context
+
+The render browser can't be orphaned by concurrent launches (one shared in-flight launch, and close waits for it), and a render whose setup fails still closes its context.
