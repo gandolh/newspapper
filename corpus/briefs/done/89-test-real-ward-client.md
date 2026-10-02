@@ -65,3 +65,38 @@ injected `fetch` (the `WardClientOptions.fetch` seam) and locally signed tokens:
   changing (if a test finds a real bug, file a new brief)
 - `fake-ward.ts` — it stays the guard's double; this brief tests the real client
 - `corpus/log.md`, `corpus/wiki/status.md`
+
+## Outcome — 2026-10-03
+
+New `api/src/ward/ward.client.test.ts` drives the **real** `createWardClient`.
+One fake `fetch` answers both endpoints: it is stubbed globally, because jose
+fetches the JWKS through the global `fetch` rather than the client's option,
+and passed as the client's `fetch` for introspection. Tokens are signed locally
+with a fresh Ed25519 key. There is no network.
+
+22 cases:
+- **verify:** a valid token; `alg:none`; HS256 signed with the public PEM;
+  expired; wrong `iss`; wrong `aud`; missing `sid`; an unknown signing key; and
+  an ES256 token whose key *is* in the JWKS. That last one is the only case the
+  algorithm pin uniquely stops, because jose 6 already refuses the first two on
+  its own.
+- **introspect:** active maps to a caller, and the `x-ward-app-key` header and
+  body are sent; `{active:false}` is inactive, and `authenticate` gives 401;
+  HTTP 500 is unavailable and not a configuration error; 401 is a
+  configuration error; malformed or off-contract JSON is unavailable; a network
+  failure is unavailable.
+- **cache:** a repeat within 30 s is served from cache and re-fetched after;
+  caching is per token, not per subject; concurrent cold calls collapse to one.
+- **authenticate:** a cookie yields a caller with its `sid`; no or empty cookie,
+  and a forged token, are refused without asking Ward.
+
+**Mutations, each tried and reverted, each caught:** removing the algorithm
+pin, the issuer check, the required claims, the cache or the in-flight dedupe;
+dropping the app-key header; treating a 5xx as inactive.
+
+**Bug found, filed as brief 104 and pinned as `it.fails`:** `verify` wraps a
+JWKS fetch failure as `WardAuthenticationError`, so a Ward key-endpoint outage
+answers 401 ("signed out") instead of failing closed with 503. The client
+wasn't changed here, per the brief.
+
+`npm test`, lint and build are clean.

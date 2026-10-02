@@ -1592,3 +1592,7 @@ The render-time uploads interception is now tested end to end: a real upload ren
 ## [2026-10-03] done | Brief 91 — one Chromium guard for every browser test, plus a CI workflow
 
 All five Chromium test files share one guard (skip loudly locally, fail under CI), verified in all three modes, and a CI workflow runs the full gate with CI=1. It has not run yet: nothing is pushed.
+
+## [2026-10-03] done | Brief 89 — the real Ward client is tested; a JWKS-outage bug filed
+
+The real Ward client is tested: signature and claim checks, introspection's fail-closed mapping, the cache and in-flight dedupe, each with a mutation that breaks it. A JWKS outage was found to answer 401 instead of 503; filed as brief 104.
