@@ -75,3 +75,42 @@ are third-party — validate the item links regardless of trust in the feed host
 - `core/src/scrape/index.ts`'s matching/ranking logic (the search semantics are a
   locked decision) — you may change only how a body is fetched
 - `corpus/log.md`, `corpus/wiki/status.md`
+
+## Outcome — 2026-10-02
+
+New `core/src/scrape/safe-url.ts`:
+- `vetUrl` allows http(s) only, and the host must resolve to **only** public
+  addresses. A `net.BlockList` covers 0/8, 10/8, 100.64/10, 127/8, 169.254/16,
+  172.16/12, 192.0.0/24, 192.168/16, 198.18/15, multicast and reserved,
+  `::`, `::1`, `fc00::/7`, `fe80::/10` and `ff00::/8`. IPv4-mapped IPv6 is
+  judged as the IPv4 address it carries.
+- `safeFetch` uses `redirect: 'manual'` and follows up to 5 hops by hand,
+  vetting each one.
+- `readCapped` is a streaming read that cancels at the cap.
+
+`fetchBody` uses all three with a 2 MB body cap and keeps its never-throws,
+`''`-on-refusal contract. `fetchFeed` (the `POST /api/sources` URL) now fetches
+through `safeFetch` with a 10 MB cap and calls `parseString`, instead of
+rss-parser's `parseURL`, which followed any redirect and read any size. It
+still throws on failure, as before. Both take optional `{ fetch, lookup }`
+dependencies for tests. `index.ts`'s matching and ranking are untouched.
+
+Tests (`safe-url.test.ts`, injected fetch and DNS, no network):
+- `fetchBody` refuses `http://127.0.0.1:9999/`, `http://169.254.169.254/…` and
+  a name resolving to 10.0.0.5 with **zero** fetch calls.
+- A public page that 302s to `127.0.0.1` is fetched once and the inner URL
+  never is.
+- A public-to-public redirect is followed, and a normal article still returns
+  its text.
+- `readCapped` read about 4 chunks of a 64 MB stream, not 1000.
+- `fetchFeed` refuses an internal feed without fetching and parses a public one.
+
+`npm test` 650/650 and `npm run build` (with `fmt:check`) are clean, and eslint
+on the touched files is clean. Repo-wide `npm run lint` still has brief 80's
+pre-existing error.
+
+**Known residual, documented in the module:** the check runs at resolve time,
+and the connection resolves again, so DNS rebinding with a short TTL could still
+swap in a private address. Closing it needs a connect-time lookup in a custom
+dispatcher. **Also:** a feed over 10 MB now fails to parse rather than being
+read whole.

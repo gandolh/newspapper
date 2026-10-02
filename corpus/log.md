@@ -1529,3 +1529,12 @@ session: anonymous read and write of the whole API on the public origin. It now
 guards on the matched route pattern as well (`requiresSession`), and nine new
 tests cover every encoded spelling the sweep reproduced. Static-plugin requests
 do carry a matched pattern (`/output/*`), which the encoded output test proves.
+
+## [2026-10-02] done | Brief 85 — RSS fetches: public addresses only, per-hop checks, capped bodies
+
+Feed item links, and feed URLs, are now fetched only to public http(s)
+addresses, with every redirect hop re-checked and bodies capped (2 MB for
+articles, 10 MB for feeds). Before this, a hostile feed could make the server
+fetch loopback or the metadata address and show the answer as an article, or
+stream it gigabytes. Injected fetch and DNS tests prove internal targets are
+never requested. A DNS-rebinding residual is documented in `safe-url.ts`.
