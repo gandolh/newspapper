@@ -15,7 +15,7 @@ import { unzipSync } from 'fflate';
 
 import { htmlToJpeg } from './screenshot.js';
 import { nextOutputDir, reserveOutputDir, writeRun } from './output.js';
-import { renderSlides, zipRun } from './index.js';
+import { renderSlides, zipRun, THUMB_FILE } from './index.js';
 import { probeChromium } from './test-support/chromium.js';
 
 // ---------------------------------------------------------------------------
@@ -150,8 +150,8 @@ describe('reserveOutputDir (brief 94)', () => {
         }),
       ]);
       expect(a.dir).not.toBe(b.dir);
-      expect((await readdir(a.dir)).filter((f) => f.endsWith('.jpg'))).toHaveLength(2);
-      expect((await readdir(b.dir)).filter((f) => f.endsWith('.jpg'))).toHaveLength(1);
+      expect((await readdir(a.dir)).filter((f) => f.startsWith('slide-'))).toHaveLength(2);
+      expect((await readdir(b.dir)).filter((f) => f.startsWith('slide-'))).toHaveLength(1);
     } finally {
       await rm(tmpRoot, { recursive: true, force: true });
     }
@@ -335,6 +335,44 @@ describe('zipRun', () => {
       expect(names).toContain('slide-01.jpg');
       expect(names).toContain('slides.json');
       expect(names).toContain('caption.txt');
+    } finally {
+      await rm(tmpRoot, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('the grid thumbnail (brief 97)', () => {
+  it('a render writes a 220 px thumb.jpg, far smaller than the slide, and the export leaves it out', async (ctx) => {
+    if (!chromium.orSkip((note) => ctx.skip(note))) return;
+    const tmpRoot = await mkdtemp(join(tmpdir(), 'thumb-'));
+    try {
+      const noisy = Array.from(
+        { length: 400 },
+        (_, i) =>
+          `<div style="position:absolute;left:${(i * 37) % 1080}px;top:${(i * 53) % 1080}px;width:60px;height:60px;background:hsl(${i * 47},70%,50%)"></div>`,
+      ).join('');
+      const run = await renderSlides(
+        [`<html><body style="margin:0;width:1080px;height:1080px">${noisy}</body></html>`],
+        {
+          date: '2024-02-02',
+          slidesJson: {},
+          outputRoot: tmpRoot,
+        },
+      );
+      expect(run.thumb).toBe(join(run.dir, THUMB_FILE));
+      const sharp = (await import('sharp')).default;
+      const meta = await sharp(run.thumb!).metadata();
+      expect([meta.width, meta.height]).toEqual([220, 220]);
+      const { statSync } = await import('node:fs');
+      const slideBytes = statSync(join(run.dir, 'slide-01.jpg')).size;
+      const thumbBytes = statSync(run.thumb!).size;
+      expect(thumbBytes * 5).toBeLessThan(slideBytes);
+      // Not in the run's file list, and not in the export.
+      expect(run.files.some((f) => f.endsWith(THUMB_FILE))).toBe(false);
+      const names = Object.keys(unzipSync(new Uint8Array(await zipRun(run.dir))));
+      expect(names).not.toContain(THUMB_FILE);
+      expect(names).toContain('slide-01.jpg');
+      process.stderr.write(`[thumb] slide-01 ${slideBytes} bytes, thumb ${thumbBytes} bytes\n`);
     } finally {
       await rm(tmpRoot, { recursive: true, force: true });
     }

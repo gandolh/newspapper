@@ -1,8 +1,8 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { basename, resolve, sep } from 'node:path';
+import { basename, join, resolve, sep } from 'node:path';
 import { existsSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { latestRender, latestRenders, type RenderRecord } from '@newspapper/core';
+import { latestRender, latestRenders, THUMB_FILE, type RenderRecord } from '@newspapper/core';
 import { db } from '../lib/db.js';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
@@ -18,6 +18,11 @@ export interface RenderSummary {
   createdAt: string;
   /** `/output/<dir>/slide-NN.jpg` for every slide still on disk, in order. */
   files: string[];
+  /**
+   * What the post grid shows: the run's small `thumb.jpg` when it has one, else
+   * its first slide (runs rendered before thumbnails existed), else null.
+   */
+  thumb: string | null;
 }
 
 /**
@@ -37,14 +42,24 @@ function slideFiles(outputDir: string): string[] {
     .map((f) => `/output/${name}/${f}`);
 }
 
+/** `/output/<dir>/thumb.jpg` if the run has one, with the same containment
+ * check as the slides. */
+function thumbFile(outputDir: string): string | null {
+  const dir = resolve(outputDir);
+  if (dir !== outputRoot && !dir.startsWith(outputRoot + sep)) return null;
+  return existsSync(join(dir, THUMB_FILE)) ? `/output/${basename(dir)}/${THUMB_FILE}` : null;
+}
+
 function toSummary(render: RenderRecord): RenderSummary {
+  const files = slideFiles(render.outputDir);
   return {
     id: render.id,
     postId: render.postId,
     slideCount: render.slideCount,
     optimized: render.optimized,
     createdAt: render.createdAt,
-    files: slideFiles(render.outputDir),
+    files,
+    thumb: thumbFile(render.outputDir) ?? files[0] ?? null,
   };
 }
 

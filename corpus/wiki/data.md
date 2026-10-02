@@ -1,6 +1,6 @@
 ---
 summary: On-disk and in-DB shapes — the v5 SQLite schema for authored posts, the TNode compile target, and the output/YYYY-MM-DD-N convention. Nothing here is a file format the user edits; the .wzd document is in markup.md.
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 # Data
@@ -171,7 +171,8 @@ output/
     slide-01.jpg, slide-02.jpg, …slide-NN.jpg   (1080×1080, one per slide)
     slides.json
     caption.txt             (present only if a caption was set before render)
-  YYYY-MM-DD-2/             (same-day re-render → increments N)
+    thumb.jpg               (220×220 grid thumbnail of slide 1; not exported, not a slide)
+  YYYY-MM-DD-2/             (same-day re-render → increments N; reserved by mkdir when picked)
 ```
 
 JPEG only, no `.png` ([decisions.md](decisions.md#output-is-jpeg-not-png)) —

@@ -40,6 +40,8 @@ interface RenderSummary {
   optimized: boolean;
   createdAt: string;
   files: string[];
+  /** A small thumbnail, or the first slide for older runs. */
+  thumb: string | null;
 }
 
 type StatusFilter = 'all' | PostStatus;
@@ -251,7 +253,8 @@ function PostsPage() {
         <ul className={styles.list} role="list">
           {posts.map((post) => {
             const render = renders.get(post.id);
-            const thumb = render?.files[0] ?? null;
+            // The render's 220 px thumbnail, not the full 1080 px slide (brief 97).
+            const thumb = render?.thumb ?? null;
             const rendered = (render?.files.length ?? 0) > 0;
             const isRendering = renderingId === post.id;
             const busy = busyId === post.id;

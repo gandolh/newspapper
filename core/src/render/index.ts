@@ -6,9 +6,10 @@
  * core barrel at '@newspapper/core').
  */
 
-import { readdirSync, readFileSync } from 'node:fs';
+import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { zipSync } from 'fflate';
+import sharp from 'sharp';
 import { DEFAULT_JPEG_QUALITY, htmlToJpeg } from './screenshot.js';
 import type { DB } from '../storage/db.js';
 import { reserveOutputDir, writeRun } from './output.js';
@@ -21,6 +22,29 @@ export interface RenderedRun {
   dir: string;
   /** Absolute paths to each written file, JPEGs first in slide order. */
   files: string[];
+  /** Absolute path of the grid thumbnail (`THUMB_FILE`), when one was made. */
+  thumb?: string;
+}
+
+/**
+ * The post grid's thumbnail, written beside the slides at render time. Not a
+ * `slide-NN.jpg`, so nothing that lists, optimizes or publishes slides sees it,
+ * and the export zip leaves it out.
+ */
+export const THUMB_FILE = 'thumb.jpg';
+
+/** 2x the grid's 104 px cell, so it is sharp on a high-DPR screen. */
+const THUMB_SIZE = 220;
+
+/**
+ * A small JPEG of the first slide. The grid used to load each post's full
+ * 1080x1080 `slide-01.jpg` (~150-950 KB) to show a 104 px stamp (brief 97).
+ */
+export async function makeThumbnail(slide: Buffer): Promise<Buffer> {
+  return sharp(slide)
+    .resize(THUMB_SIZE, THUMB_SIZE, { fit: 'cover' })
+    .jpeg({ quality: 80 })
+    .toBuffer();
 }
 
 export interface RenderSlidesOptions {
@@ -97,7 +121,18 @@ export async function renderSlides(
   await writeRun(dir, outputFiles);
 
   const writtenFiles = outputFiles.map((f) => join(dir, f.name));
-  return { dir, files: writtenFiles };
+  // Once, here, rather than per grid load. A thumbnail is a convenience: if it
+  // fails, the grid falls back to the first slide, so the render still stands.
+  let thumb: string | undefined;
+  if (jpegBuffers[0]) {
+    try {
+      thumb = join(dir, THUMB_FILE);
+      writeFileSync(thumb, await makeThumbnail(jpegBuffers[0]));
+    } catch {
+      thumb = undefined;
+    }
+  }
+  return { dir, files: writtenFiles, ...(thumb ? { thumb } : {}) };
 }
 
 // ---- ZIP export ----
@@ -110,6 +145,8 @@ export async function zipRun(dir: string): Promise<Buffer> {
   const entries = readdirSync(dir);
   const zipInput: Record<string, Uint8Array> = {};
   for (const name of entries) {
+    // The grid thumbnail is the app's, not part of the post being exported.
+    if (name === THUMB_FILE) continue;
     const data = readFileSync(join(dir, name));
     zipInput[name] = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
   }

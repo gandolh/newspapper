@@ -50,3 +50,29 @@ landed; otherwise this brief only adds the derivative.)
 Brief 78 (base-path `src` fix on the same element) and brief 95 (`/api/renders`
 shape) both touch `renders.ts`/PostsIsland — coordinate ownership if dispatched
 together.
+
+## Outcome — 2026-10-03
+
+`renderSlides` writes `thumb.jpg` (`THUMB_FILE`, 220×220 cover, q80, from the
+first slide's JPEG via sharp) beside the slides, **once at render time**, and
+returns it as `RenderedRun.thumb`. A thumbnail failure doesn't fail the render;
+the grid falls back. The name is not `slide-NN.jpg`, so the slide lists, the
+publish optimizer and the run's `files` ignore it, and `zipRun` skips it so the
+export holds only the post.
+
+`GET /api/renders` adds `thumb`: the run's `thumb.jpg` (same containment check
+as slides), else the first slide (runs from before this brief), else null.
+`PostsIsland` shows `render.thumb` through `withBase`.
+
+**Measured:** a busy 1080² slide was 165,282 bytes; its thumbnail is 21,467
+bytes, about 7.7× less per grid cell (the sweep cites 150-950 KB slides).
+
+Tests:
+- core: a render produces a 220×220 thumb more than 5× smaller than the slide,
+  absent from the file list and the export zip;
+- api (`renders.test.ts`): `thumb` points at `thumb.jpg` when present, and
+  falls back to `slide-01.jpg` for an older run.
+
+Brief 94's concurrency test now counts `slide-*` files instead of every `.jpg`.
+`api.md` and `data.md` are updated. `npm test` 728/728, lint and build are
+clean.
