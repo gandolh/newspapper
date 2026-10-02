@@ -36,3 +36,16 @@ into the wrong app, and fails with a 404 when submitted.
 - `grep -rn "/api/password\|/api/login\|/api/logout" ui/src` returns nothing.
 - `npx tsc -p ui --noEmit`, `npm run lint`, `npm test`, `npm run build` clean.
 - `corpus/wiki/architecture.md`'s route table drops the "brief 103" note.
+
+## Outcome — 2026-10-02
+
+`PasswordSection` is deleted. In its place, an `AccountSection` card says the
+password and sign-in are managed by Ward, and links to `WARD_ACCOUNT_PATH`
+(origin-absolute, like `SessionMenu`'s). The now-unused `Input` import and the
+`.fields` CSS class are removed. `grep -rn "/api/password\|/api/login\|/api/logout"
+ui/src` finds no call. Its one hit is a historical comment in `lib/api.ts`
+explaining `skipAuthRedirect`'s origin, which isn't this brief's file. The
+`architecture.md` route table no longer carries the brief-103 note.
+
+`tsc -p ui`, `npm run lint`, `npm test` 661/661 and `npm run build` are clean.
+Not checked in a browser.

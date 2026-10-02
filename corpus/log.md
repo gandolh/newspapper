@@ -1580,3 +1580,7 @@ The fossil `UserRecord` type is gone; `User` is now the real `/api/me` shape `{ 
 ## [2026-10-02] done | Brief 83 — the docs describe Ward, the VPS and the base path
 
 Documentation pass for the Ward, VPS and base-path moves: README, CLAUDE.md and ten wiki pages now match the code. Filed brief 103 for the dead Settings password form found along the way.
+
+## [2026-10-02] done | Brief 103 — Settings points at Ward instead of a dead password form
+
+Settings no longer shows a password form for a route that no longer exists; it points at Ward's account page instead.

@@ -90,9 +90,9 @@ thirteen v3 ones. Each brief is self-contained: open only the one directing
 your work.
 
 **Open since 2026-09-26:** the improvements sweep filed briefs 77–102 into
-[`../briefs/todo/`](../briefs/todo/). Done so far: 77–87 and 100–102 (84 on
-2026-09-27, the rest on 2026-10-02). Brief 103 (the dead Settings password form)
-was filed during 83.
+[`../briefs/todo/`](../briefs/todo/). Done so far: 77–87 and 100–103 (84 on
+2026-09-27, the rest on 2026-10-02; 103, the dead Settings password form, was
+found and filed during 83).
 
 Waves below are the **executed** order, which differs from the originally filed
 one: file-ownership collisions the dependency graph alone did not show forced

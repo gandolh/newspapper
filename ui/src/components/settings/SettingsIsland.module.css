@@ -56,12 +56,6 @@
   margin-bottom: var(--sp-hair);
 }
 
-.fields {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-half);
-}
-
 .formActions {
   display: flex;
   justify-content: flex-end;

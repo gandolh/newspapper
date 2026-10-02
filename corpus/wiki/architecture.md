@@ -85,7 +85,7 @@ The page map is in `src/routes.tsx`:
 | `/` | the editor (fluid width) |
 | `/posts` | post list — render, publish, export, delete |
 | `/articles` | article search / saved library / sources |
-| `/settings` | default theme (it still renders a password form for a removed route, brief 103) |
+| `/settings` | default theme, and a pointer to Ward's account page for the password |
 | `/login` | no page any more: redirects to Ward's login, so an old bookmark still signs you in |
 | `/history` | redirect to `/posts` (kept from brief 62) |
 | `/kitchen-sink` | the proof sheet — **dev only**, see below |

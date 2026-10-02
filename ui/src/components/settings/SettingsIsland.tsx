@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Button, Card, Input, PageHeader, Select, Skeleton, ToastProvider, useToast } from '../ui';
-import { api } from '@/lib/api';
+import { Button, Card, PageHeader, Select, Skeleton, ToastProvider, useToast } from '../ui';
+import { api, WARD_ACCOUNT_PATH } from '@/lib/api';
 import type { Settings } from '@/lib/types';
 import styles from './SettingsIsland.module.css';
 
@@ -109,84 +109,22 @@ function ThemeSection() {
   );
 }
 
-function PasswordSection() {
-  const { addToast } = useToast();
-
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  async function save(e: React.FormEvent) {
-    e.preventDefault();
-    if (newPassword !== confirmPassword) {
-      setError('The two new passwords do not match.');
-      return;
-    }
-    setError(null);
-    setSaving(true);
-    try {
-      await api('/api/password', {
-        method: 'POST',
-        json: { currentPassword, newPassword },
-      });
-      addToast('Password changed', 'success');
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setSaving(false);
-    }
-  }
-
+/**
+ * The account half of Settings. There is no password here to change: identity
+ * is Ward's, and so are the password, sign-in and sign-out, on Ward's account
+ * page. This used to be a password form posting to the password route the
+ * Ward move deleted, so it invited people to type their password into the wrong
+ * app and then 404ed. Origin-absolute link, like `SessionMenu`'s: Ward is a
+ * different app on the same origin, so it must not carry this app's base.
+ */
+function AccountSection() {
   return (
     <Card>
-      <form onSubmit={save} noValidate>
-        <h2 className={styles.sectionTitle}>Password</h2>
-        <p className={styles.sectionHint}>
-          Changing it signs this browser back in with a fresh cookie; any other browser is signed
-          out.
-        </p>
-
-        <div className={styles.fields}>
-          <Input
-            label="Current password"
-            type="password"
-            autoComplete="current-password"
-            value={currentPassword}
-            onChange={(e) => setCurrentPassword(e.target.value)}
-          />
-          <Input
-            label="New password"
-            type="password"
-            autoComplete="new-password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-          />
-          <Input
-            label="Repeat new password"
-            type="password"
-            autoComplete="new-password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            error={error ?? undefined}
-          />
-        </div>
-
-        <div className={styles.formActions}>
-          <Button
-            type="submit"
-            variant="secondary"
-            loading={saving}
-            disabled={!currentPassword || !newPassword || !confirmPassword}
-          >
-            Change password
-          </Button>
-        </div>
-      </form>
+      <h2 className={styles.sectionTitle}>Account</h2>
+      <p className={styles.sectionHint}>
+        Your password and sign-in are managed by Ward, which signs you in to every app on this site.{' '}
+        <a href={WARD_ACCOUNT_PATH}>Open your Ward account</a> to change your password or sign out.
+      </p>
     </Card>
   );
 }
@@ -200,7 +138,7 @@ function SettingsPage() {
       />
       <div className={styles.sections}>
         <ThemeSection />
-        <PasswordSection />
+        <AccountSection />
       </div>
     </div>
   );
