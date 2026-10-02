@@ -1,6 +1,6 @@
 ---
 summary: What each workspace depends on and why that package was chosen over the alternatives.
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 # Dependencies
@@ -38,6 +38,7 @@ Per-workspace. Versions are locked in `package-lock.json`.
 | `@newspapper/core` | Types, plus the browser-safe `./wizard` subpath — the editor parses, lints and compiles with the same code the renderer uses. No Node APIs. |
 | `@use-gesture/react` | Pointer gestures in the editor: the split-screen divider drag and slide reordering. Replaced a half-built HTML5 drag-and-drop; pointer events give one code path for mouse, touch and pen, and drag-and-drop cannot express a resize handle at all. |
 | `animejs` | **4.5.0, installed by brief 64.** Drives the two authored motion moments — the compile and the tissue hinge — and nothing else; the canvas never animates. MIT, no dependencies, framework-agnostic. Chosen over motion-primitives and smoothui, which require Tailwind CSS; [why](./decisions-engineering.md#animejs-is-the-motion-engine-tailwind-bound-kits-are-references-only). |
+| `happy-dom` (dev) | A DOM for the few UI tests that must really mount: an error boundary only works in a live render (`ErrorBoundary.test.tsx`, brief 98). Opted into per file with `// @vitest-environment happy-dom`; every other test runs in node. |
 
 ## Root dev deps
 
