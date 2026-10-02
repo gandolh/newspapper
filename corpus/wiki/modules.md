@@ -1,6 +1,6 @@
 ---
 summary: The public API of @newspapper/core — what each module actually exports and from which entry point.
-updated: 2026-08-31
+updated: 2026-10-02
 ---
 
 # Modules
@@ -40,13 +40,21 @@ format, lint, compile — is documented with the language it serves, in
 // core/src/render/index.ts
 export async function renderSlides(
   htmlList: string[],
-  opts: { date: string; slidesJson: unknown; caption?: string; onProgress?: (done, total) => void }
+  opts: {
+    date: string;
+    slidesJson: unknown;
+    caption?: string;
+    outputRoot?: string;
+    quality?: number;
+    onProgress?: (done, total) => void;
+    db?: DB; // required in practice for slides with images: see below
+  }
 ): Promise<{ dir: string; files: string[] }>
 
 export async function zipRun(outputDir: string): Promise<Uint8Array>
 ```
 
-`renderSlides` launches a Playwright Chromium browser, screenshots each HTML string at 1080×1080, writes JPEGs + `slides.json` + optional `caption.txt`.
+`renderSlides` launches a Playwright Chromium browser, screenshots each HTML string at 1080×1080, writes JPEGs + `slides.json` + optional `caption.txt`. **Pass `db`** for any run with `<Image>`s: `/uploads/*` is guarded and the render browser has no session, so the images are served from disk through `render/uploads-route.ts`, which resolves refs through the DB. Without it they come out blank.
 
 ```ts
 // core/src/render/fonts.ts — brief 66

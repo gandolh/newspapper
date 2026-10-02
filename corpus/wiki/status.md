@@ -1,37 +1,36 @@
 ---
-summary: Dated snapshot — the Wizard rebuild is complete and documented, gates green at 657 tests across 46 files, plus the six known strays left in the tree and the two questions still open.
-updated: 2026-09-01
+summary: Dated snapshot (2026-10-02) — the Wizard rebuild is done, identity is Ward's, it runs on the VPS under /newspapper/, and the 2026-09-27 improvements sweep is partly worked through; plus the known strays and open questions.
+updated: 2026-10-02
 ---
 
 # Status
 
-_Snapshot: 2026-08-31. Branch `wizard-rebuild`, not yet merged to `main`._
-
-> **Twenty-one of the twenty-two Wizard-rebuild briefs are in
-> [`../briefs/done/`](../briefs/done/); the twenty-second is 63, this
-> documentation pass, and it lands with the commit that carries this line.**
-> The final gate is verified green:
-> `npm run build` (which runs `fmt:check`, then typechecks all three
-> workspaces), **657 tests across 46 files**, `npm run lint` over all three
-> workspaces, and `bash corpus/lint.sh`.
+_Snapshot: 2026-10-02. Branch `local-ward-dev`, not merged, nothing pushed._
 
 ## Where things stand
 
-The pivot has landed and the documentation has caught up with it. Newspapper no
-longer generates copy with a model; a post is authored as a
+The Wizard rebuild (briefs 51-76) is done: a post is authored as a
 [Newspapper Wizard](./markup.md) document in a split-screen editor and compiled
-to JPEG slides. The `.wzd` language, its compiler, the editor, auth, uploads,
-the article library, JPEG output and the three-theme family are all built and
-tested. The chrome is The Mechanical on every route, the rendered JPEG is set in
-Inter, and the UI is a plain Vite + React SPA — Astro was removed once it was
-clear that every page was fully hydrated behind auth, so nothing it offered was
-in use.
+to JPEG slides, with no model anywhere. Since then three moves changed where and
+how it runs:
 
-Brief 63 (this pass) rewrote the root `README.md` and `CLAUDE.md`, moved
-`PRODUCT.md` and `DESIGN.md` into the corpus, and reconciled every descriptive
-wiki page with the shipped code. The wiki no longer describes Ollama, compose,
-the template system, `/builder`, PNG output, the four-step wizard or Astro as
-anything but history.
+- **Identity is Ward's** (2026-09-06): no account, password or login page here;
+  a `newspapper` grant on a Ward account opens the app
+  ([decisions-security.md](./decisions-security.md)).
+- **It runs on the shared VPS** at `https://gandolh.ro/newspapper/`, behind
+  Caddy, which strips the prefix. The UI builds every browser URL with the base
+  (`ui/src/lib/base.ts`).
+- **Local dev signs in through a local Ward** (brief 84,
+  [configuration.md](./configuration.md#local-sign-in)).
+
+The 2026-09-27 improvements sweep (briefs 77-102) is being worked through. The
+security findings are fixed: an encoded-path auth bypass (77), SSRF in the RSS
+fetch (85), leaked 5xx messages (79), a publish path leak (101), and advisory
+dependencies (100). So are the base-path breakage (78), transactional migrations
+(86), single-flight editor saves (87), the lint gate (80, 81, 102), the dead
+user types (82) and this documentation pass (83). The rest are in
+[`../briefs/todo/`](../briefs/todo/). Gates: `npm run build`, `npm run lint`,
+`npm test` (661 tests, 47 files) and `bash corpus/lint.sh`, all green.
 
 ## The thread worth reading first
 
@@ -91,9 +90,9 @@ thirteen v3 ones. Each brief is self-contained: open only the one directing
 your work.
 
 **Open since 2026-09-26:** the improvements sweep filed briefs 77–102 into
-[`../briefs/todo/`](../briefs/todo/). Of those, 84 (a local dev sign-in path) is
-done as of 2026-09-27: local dev signs in through a local Ward, see
-[configuration.md](./configuration.md#local-sign-in).
+[`../briefs/todo/`](../briefs/todo/). Done so far: 77–87 and 100–102 (84 on
+2026-09-27, the rest on 2026-10-02). Brief 103 (the dead Settings password form)
+was filed during 83.
 
 Waves below are the **executed** order, which differs from the originally filed
 one: file-ownership collisions the dependency graph alone did not show forced

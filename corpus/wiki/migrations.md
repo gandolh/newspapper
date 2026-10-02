@@ -16,8 +16,9 @@ note pushed that page past the cap.
 | 2 | Web app: `posts.payload` + `status draft\|rendered` + `output_dir`, `settings` |
 | 3 | Authored posts: `posts.markup`, `keywords`, `post_keywords`, `renders`, `users`, `uploads`, `sources` in the DB |
 | 4 | The theme family: `warm-industrial` → `warm-industrial-1` in `posts.theme`, the column default, and the `defaultTheme` setting |
+| 5 | Identity moves to Ward: the `users` table is dropped. Nothing referenced it, so nothing else changes. |
 
-A fresh database is created at version 4 directly; an existing one walks every
+A fresh database is created at version 5 directly; an existing one walks every
 step in one boot. `migrate()` (`core/src/storage/db.ts`) keys on
 `PRAGMA user_version` and uses `IF NOT EXISTS` throughout, so re-running is a
 no-op. **Each step is one transaction** together with its `user_version` bump

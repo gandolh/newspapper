@@ -30,7 +30,7 @@ times a tool here reported success while reaching nothing.
 | [chrome.md](wiki/chrome.md) | The Mechanical — the app chrome as shipped: tokens, the mark set, the tray and its two-course narrow layout, the health probe's two states, the two authored animations, why it shares nothing with the slide themes, and the states a once-per-element contrast sweep cannot see. |
 | [commands.md](wiki/commands.md) | Every npm script — what each one actually covers, in what order, and what it does not cover — plus ports, production mode, and the Playwright install step. |
 | [configuration.md](wiki/configuration.md) | Every env var and the code that reads it, how .env reaches process.env at all, the auth variables and their strict-mode behaviour, settings precedence, and one-time setup including Playwright Chromium. |
-| [data.md](wiki/data.md) | On-disk and in-DB shapes — the v4 SQLite schema for authored posts, the TNode compile target, and the output/YYYY-MM-DD-N convention. Nothing here is a file format the user edits; the .wzd document is in markup.md. |
+| [data.md](wiki/data.md) | On-disk and in-DB shapes — the v5 SQLite schema for authored posts, the TNode compile target, and the output/YYYY-MM-DD-N convention. Nothing here is a file format the user edits; the .wzd document is in markup.md. |
 | [decisions-authoring.md](wiki/decisions-authoring.md) | The locked calls about how a post is written — the .wzd document, semantic token-only components, flow layout, the markup as source of truth, formatting and linting it like JSX, and the editor's data model. |
 | [decisions-engineering.md](wiki/decisions-engineering.md) | The locked engineering calls — workspaces and ESM, pinned dependencies, SQLite, the UI's type copy, and where project knowledge lives. |
 | [decisions-security.md](wiki/decisions-security.md) | The locked security calls — Ward identity and grants, the retired single-account auth and its lockout, which paths are guarded (decided from the matched route) versus public, safe server-side fetches of feed URLs, generic 5xx bodies, and how local development signs in through a local Ward. |
@@ -48,7 +48,7 @@ times a tool here reported success while reaching nothing.
 | [open-questions.md](wiki/open-questions.md) | Nothing is open. Both remaining questions were settled on 2026-09-01 — kept as a page so the next open question has somewhere to land. |
 | [overview.md](wiki/overview.md) | What Newspapper is — write a post in .wzd markup, compile it to 1080² JPEGs — plus the v1→v3 lineage and the Wizard pivot that explain its shape, the three workspaces, and what lives where at the top level. |
 | [product.md](wiki/product.md) | Who Newspapper is for, what it is for, the brand personality (The Mechanical), the anti-references it is defined against, and the six design principles. The register, not the implementation. |
-| [status.md](wiki/status.md) | Dated snapshot — the Wizard rebuild is complete and documented, gates green at 657 tests across 46 files, plus the six known strays left in the tree and the two questions still open. |
+| [status.md](wiki/status.md) | Dated snapshot (2026-10-02) — the Wizard rebuild is done, identity is Ward's, it runs on the VPS under /newspapper/, and the 2026-09-27 improvements sweep is partly worked through; plus the known strays and open questions. |
 
 <!-- catalog:end -->
 

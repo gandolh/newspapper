@@ -1,6 +1,6 @@
 ---
 summary: How the three npm workspaces fit together, the SPA's routing and its load-bearing single-App rule, and how a post flows write → compile → render → publish/ZIP.
-updated: 2026-08-31
+updated: 2026-10-02
 ---
 
 # Architecture
@@ -51,15 +51,15 @@ Exact signatures: [modules.md](./modules.md).
 ### `api/` — Fastify server
 
 A thin HTTP layer over `@newspapper/core`, with one route plugin per feature
-area. Every route is behind the single-account session guard except
-`/api/health`, `/api/login`, `/api/logout` and the two `/uploads/*` reads. SSE is
+area. Every route is behind the Ward session guard except `/api/health`. SSE is
 used for the two long operations, **search and render**. It serves:
 
 - `/api/*` — all endpoints ([api.md](./api.md))
-- `/assets/fonts/*` — Inter TTFs
+- `/assets/fonts/*` — Inter TTFs (public)
 - `/output/*` — rendered slide images (guarded)
-- `/uploads/<ref>` — uploaded images; public, so headless Chromium can fetch
-  them mid-render
+- `/uploads/<ref>` — uploaded images (guarded). The render browser carries no
+  session, so it does not fetch them: `core/src/render/uploads-route.ts`
+  intercepts the request inside the browser and serves the bytes from disk.
 - `/` — `ui/dist/` in production, when built
 
 ### `ui/` — Vite + React SPA
@@ -85,8 +85,8 @@ The page map is in `src/routes.tsx`:
 | `/` | the editor (fluid width) |
 | `/posts` | post list — render, publish, export, delete |
 | `/articles` | article search / saved library / sources |
-| `/settings` | default theme + password change |
-| `/login` | sign-in — the only route outside the board |
+| `/settings` | default theme (it still renders a password form for a removed route, brief 103) |
+| `/login` | no page any more: redirects to Ward's login, so an old bookmark still signs you in |
 | `/history` | redirect to `/posts` (kept from brief 62) |
 | `/kitchen-sink` | the proof sheet — **dev only**, see below |
 
@@ -171,4 +171,7 @@ The UI reads these with `fetch()` (not `EventSource`) and parses lines manually 
   font request. [Why](./decisions-engineering.md#the-renderer-serves-its-own-fonts-from-disk-not-over-http).
 - **ESM throughout.** All workspaces are `"type": "module"`. Paths resolve from
   `import.meta.url`, never `process.cwd()`.
-- **No cloud services at all.** Everything is loopback.
+- **Deployed on the shared VPS** at `https://gandolh.ro/newspapper/`, behind
+  Caddy's `handle_path`, which strips the prefix before Fastify. Identity is
+  Ward's; the only other outside services are the RSS feeds. The browser-side
+  URLs carry the base (`ui/src/lib/base.ts`); the server never sees it.

@@ -91,3 +91,41 @@ sequence 84 first, or write only what is already true.
 - source code — this is a docs-only brief; if a doc and the code disagree, the
   code wins and the doc changes
 - `corpus/log.md` — the controller logs this pass at move time
+
+## Outcome — 2026-10-02
+
+Reconciled against the code (Ward guard and client, schema 5, `routes/me.ts`,
+`render/index.ts`, the deploy and base path):
+- **README:** the Ward-based quick start (local container, seed writes the key,
+  503 without a Ward) and the `/newspapper/` URLs.
+- **CLAUDE.md:** schema v5, no `users`. The "loopback only" line was already
+  gone after brief 84.
+- **commands.md:** sign-in through Ward on `/newspapper/`; `npm run start` is
+  the Docker `CMD` (the "no start script" claim was false).
+- **configuration.md:** the three Ward variables are required everywhere;
+  "No external services" becomes "External services: RSS and Ward".
+- **api.md:** login, logout, password and the HMAC cookie are gone; `/api/me`
+  is documented with its real `{ user: { subject, username } }`; guard
+  semantics (401/403/503, matched-route guarding, generic 5xx).
+- **architecture.md:** guard exceptions, `/uploads` guarded and served from
+  disk by the render interception, `/login` as a redirect to Ward, the VPS and
+  base path instead of "loopback".
+- **data.md:** schema 5, and the `users` section replaced by a note.
+  `migrations.md` gains the v5 row.
+- **overview.md:** Ward, the VPS and the route list. **chrome.md:** SessionMenu
+  links off-app to Ward.
+- **decisions.md:** "single account" struck through with a dated supersession
+  note pointing at `decisions-security.md`.
+- **modules.md:** `renderSlides`' full options including `db`, and why it is
+  needed.
+- **status.md:** a new 2026-10-02 snapshot.
+
+**Found and filed, not fixed (docs-only brief):**
+- Brief **103**: Settings still renders a password form that POSTs to the
+  deleted `/api/password`.
+- Also noted, not fixed: `SessionMenu.tsx:8`'s comment still says the tray is
+  "Astro-rendered". That's source code, outside this brief.
+
+Corpus lint is clean (index regenerated). `npm run docs -w
+@newspapper/docs-site` builds, so the public site now carries the corrected
+pages.

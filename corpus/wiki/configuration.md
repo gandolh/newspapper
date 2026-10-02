@@ -1,14 +1,15 @@
 ---
 summary: Every env var and the code that reads it, how .env reaches process.env at all, the auth variables and their strict-mode behaviour, settings precedence, and one-time setup including Playwright Chromium.
-updated: 2026-09-27
+updated: 2026-10-02
 ---
 
 # Configuration
 
 ## `.env`
 
-Copy `.env.example` to `.env`. Everything has a default except the three auth
-variables, which are required outside development.
+Copy `.env.example` to `.env`. Everything has a default except the three Ward
+variables, which are required everywhere: the server refuses to boot without
+them, development included.
 
 | Variable | Default | Meaning |
 |----------|---------|---------|
@@ -149,10 +150,11 @@ stripped, the way Caddy's `handle_path` does, and `/ward` + `/ward-api` to
 your account and writes `WARD_APP_KEY` into `.env`. Without a Ward, the API boots
 and every guarded route answers 503.
 
-## No external services
+## External services
 
-Newspapper talks to nothing but the RSS feeds you configure. There is no LLM
-provider, no cloud storage, no telemetry, and no API key of any kind.
+Two, and only two: the RSS feeds you configure, and **Ward**, the estate's
+identity service, which newspapper calls to introspect sessions with its own
+`WARD_APP_KEY`. There is no LLM provider, no cloud storage and no telemetry.
 An Ollama-only `docker-compose.yml` survived here until 2026-08-31; it was dead weight <!-- lint-ok -->
 from v3 and nothing starts or contacts it — see
 [status.md](./status.md#known-strays).

@@ -48,7 +48,7 @@ See [corpus/wiki/architecture.md](corpus/wiki/architecture.md) for the full flow
 
 | Path | Contents |
 |------|----------|
-| `data/newspapper.db` | SQLite (schema v4): `posts`, `keywords`, `post_keywords`, `renders`, `users`, `sources`, `articles`, `uploads`, `settings` |
+| `data/newspapper.db` | SQLite (schema v5): `posts`, `keywords`, `post_keywords`, `renders`, `sources`, `articles`, `uploads`, `settings`. No `users`: identity is Ward's. |
 | `data/sources.json` | v2 residue — a one-time seed for the `sources` table. Nothing reads it afterwards. |
 | `assets/design-systems/` | The three slide themes as JSON tokens |
 | `assets/fonts/` | Inter TTFs, read off disk by the render browser |

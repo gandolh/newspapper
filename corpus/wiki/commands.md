@@ -1,6 +1,6 @@
 ---
 summary: Every npm script — what each one actually covers, in what order, and what it does not cover — plus ports, production mode, and the Playwright install step.
-updated: 2026-08-31
+updated: 2026-10-02
 ---
 
 # Running the app
@@ -55,12 +55,14 @@ npm run dev
 Two processes:
 
 - **API** — `tsx watch api/src/server.ts` on `http://localhost:3001`
-- **UI** — the Vite dev server on `http://localhost:4321`, proxying `/api`,
-  `/output`, `/uploads` and `/assets` to 3001
+- **UI** — the Vite dev server on `http://localhost:4321`, serving the app under
+  `/newspapper/` and proxying the API's paths to 3001 (and `/ward`, `/ward-api`
+  to Ward)
 
-Open `http://localhost:4321`. You will land on `/login`; the account comes from
-`ADMIN_USERNAME` / `ADMIN_PASSWORD`, or `admin` / `newspapper-dev` in
-development — see [configuration.md](./configuration.md#authentication).
+Open `http://localhost:4321/newspapper/`. Signing in goes through Ward, the
+estate's identity service; locally its container in
+`../wzd_auth/infrastructure/local`. See
+[configuration.md](./configuration.md#local-sign-in).
 
 ## Production mode
 
@@ -72,7 +74,8 @@ npm run dev --workspace=api      # the API serves ui/dist/ at /
 When `ui/dist/` exists the API serves it at `/` and falls back to `index.html`
 for any non-`/api/` path, which is what the client-side router needs.
 
-**There is no `start` script**, and the API runs under `tsx` in production too.
+**`npm run start -w @newspapper/api` is `tsx src/server.ts`**, and it is the
+Docker image's production `CMD`: the API runs under `tsx` in production too.
 `core` is consumed as TypeScript *source* — its `exports` map points at
 `./src/index.ts` — so plain `node` cannot load it, and compiling `api` alone
 produces a `dist/` that dies on `ERR_MODULE_NOT_FOUND` reaching into `core`.

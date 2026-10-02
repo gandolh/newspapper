@@ -1,6 +1,6 @@
 ---
 summary: Every HTTP route the Fastify API exposes — method, path, body, response shape, and which ones stream SSE.
-updated: 2026-08-31
+updated: 2026-10-02
 ---
 
 # HTTP API
@@ -9,10 +9,15 @@ All endpoints are prefixed with `/api/`. The server runs on port 3001 by default
 
 SSE endpoints stream `event: <type>\ndata: <json>\n\n` frames. Long-running endpoints emit `progress` events during work and end with `done` or `error`.
 
-Every route is behind the [single-account session guard](./configuration.md#authentication)
-except `/api/health`, `/api/login` and `/api/logout`. Unauthenticated requests
-get **401 `{ error: "Authentication required" }`** — never a redirect, so the UI
-decides where to send the user. `/output/` is guarded too; `/assets/fonts/` is not.
+Every route is behind the [Ward session guard](./configuration.md#authentication)
+except `/api/health`. Without a session: **401 `{ error: "Authentication required" }`**,
+never a redirect, so the UI decides where to send the user (to Ward). A live
+session with no `newspapper` grant: **403**. Ward unreachable: **503**, failing
+closed. `/output/*` and `/uploads/*` are guarded too; `/assets/fonts/` is not.
+Guardedness is decided from the route the router *matched*, so a percent-encoded
+spelling of a guarded path is guarded too
+([decision](./decisions-security.md#the-guard-decides-from-the-matched-route-not-the-raw-url)).
+A 5xx answers `{ error: "Internal Server Error" }`; the real error is only logged.
 
 A route opts out by declaring `config: { public: true }` in its Fastify route
 options.
@@ -23,26 +28,19 @@ options.
 |--------|------|----------|
 | GET | `/api/health` | `{ ok: true }` |
 
-## Auth
+## Who is signed in
 
-| Method | Path | Body | Response |
-|--------|------|------|----------|
-| POST | `/api/login` | `{ username, password }` | `{ user: User }` + `Set-Cookie` · 401 `{ error }` · 429 `{ error, retryAfterSeconds }` |
-| POST | `/api/logout` | — | `{ ok: true }` + expired cookie |
-| GET | `/api/me` | — | `{ user: User }` · 401 when there is no session |
-| POST | `/api/password` | `{ currentPassword, newPassword }` | `{ ok: true }` + rotated cookie · 400 too short · 401 wrong current |
+| Method | Path | Response |
+|--------|------|----------|
+| GET | `/api/me` | `{ user: { subject, username } }` (`User`), `Cache-Control: no-store` |
 
-`/api/login` and `/api/logout` are public; `/api/me` and `/api/password` are guarded.
-
-The session cookie is `newspapper_session`: `HttpOnly`, `SameSite=Lax`,
-`Path=/`, `Secure` unless the request is plain HTTP on loopback, 30-day
-`Max-Age`. Its value is `v1.<userId>.<expiresAtMs>.<base64url HMAC-SHA256>` —
-stateless, so there is no sessions table and a restart with a stable
-`SESSION_SECRET` keeps everyone signed in.
-
-A wrong password and an unknown username return the identical 401 body, and both
-cost the same wall-clock time. Five failed attempts from one address lock that
-address out for 60 seconds (in-memory, per-process, cleared by a success).
+That is the whole auth surface. Signing in and out are **Ward's**, at one login
+page for the estate: the browser carries Ward's `ward_session` cookie, and
+newspapper verifies it and asks Ward whether it is still live. `/api/login`,
+`/api/logout` and `/api/password` were removed in the Ward move (2026-09-06),
+along with the `newspapper_session` cookie and the login lockout.
+`/api/me` answers narrowly: Ward's grant map for the person never leaves the
+server.
 
 ## Sources
 

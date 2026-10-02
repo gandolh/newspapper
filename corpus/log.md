@@ -1576,3 +1576,7 @@ Publishing a post whose render folder is gone answers a clean 404 instead of a 4
 ## [2026-10-02] done | Brief 82 — User is the real /api/me shape; UserRecord deleted
 
 The fossil `UserRecord` type is gone; `User` is now the real `/api/me` shape `{ subject, username }` in core and the UI mirror, and the route is typed with it.
+
+## [2026-10-02] done | Brief 83 — the docs describe Ward, the VPS and the base path
+
+Documentation pass for the Ward, VPS and base-path moves: README, CLAUDE.md and ten wiki pages now match the code. Filed brief 103 for the dead Settings password form found along the way.

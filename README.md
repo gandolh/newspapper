@@ -31,16 +31,18 @@ npx playwright install chromium     # the renderer; not part of npm install
 
 # 2. Configure
 cp .env.example .env
-# Leave SESSION_SECRET / ADMIN_USERNAME / ADMIN_PASSWORD blank for local dev and
-# you get admin / newspapper-dev with a per-boot session key. Fill them in for
-# anything else — the server refuses to start without them outside development.
+# Sign-in is Ward's, the estate's identity service. Locally that is Ward's
+# container in ../wzd_auth/infrastructure/local, whose seed writes WARD_APP_KEY
+# into this .env for you. Without a Ward the API boots, but every guarded route
+# answers 503.
 
 # 3. Run
 npm run dev
-# API on http://localhost:3001, UI on http://localhost:4321
+# API on http://localhost:3001, UI on http://localhost:4321/newspapper/
 ```
 
-Open <http://localhost:4321> and sign in.
+Open <http://localhost:4321/newspapper/> and sign in through Ward. Deployed, the
+app lives at `https://gandolh.ro/newspapper/`.
 
 ## Making a post
 

@@ -1,5 +1,5 @@
 ---
-summary: On-disk and in-DB shapes — the v4 SQLite schema for authored posts, the TNode compile target, and the output/YYYY-MM-DD-N convention. Nothing here is a file format the user edits; the .wzd document is in markup.md.
+summary: On-disk and in-DB shapes — the v5 SQLite schema for authored posts, the TNode compile target, and the output/YYYY-MM-DD-N convention. Nothing here is a file format the user edits; the .wzd document is in markup.md.
 updated: 2026-10-02
 ---
 
@@ -7,7 +7,7 @@ updated: 2026-10-02
 
 ## SQLite — `data/newspapper.db`
 
-Schema version: **4**. Auto-created and migrated on boot. The path is resolved
+Schema version: **5**. Auto-created and migrated on boot. The path is resolved
 from `core/src/storage/db.ts` via `import.meta.url`, never from the CWD.
 Foreign keys are enforced (`PRAGMA foreign_keys = ON`).
 
@@ -75,14 +75,9 @@ rows in one transaction.
 
 One row per render run; a post's export and thumbnail read the newest.
 
-### `users`
-
-| Column | Type | Notes |
-|--------|------|-------|
-| `id` | INTEGER PK | |
-| `username` | TEXT NOT NULL UNIQUE | |
-| `password_hash` | TEXT NOT NULL | hashing is the caller's job — storage never sees plaintext |
-| `created_at` | TEXT ISO-8601 | |
+No `users` table since v5 (2026-09-06): identity is Ward's, so newspapper holds
+no account and no password hash. The v4 → v5 migration drops the table; see
+[migrations.md](./migrations.md).
 
 ### `sources`
 

@@ -1,6 +1,6 @@
 ---
 summary: The locked product calls — no LLM, human-centred editing, the Wizard markup and its semantic component model, images, and where it runs.
-updated: 2026-09-01
+updated: 2026-10-02
 ---
 
 # Decisions — product
@@ -139,12 +139,18 @@ was *today's* feed. The date survives as a label and in the output path, not as
 an identity or a limit. Still rejected from that same call: entity extraction,
 clustering, and per-topic splitting.
 
-## Access is behind a single account
+## ~~Access is behind a single account~~
 _2026-08-27_ — Newspapper requires a username and password. One account, one
 person.
 Rejected: no auth at all (the v3 assumption baked into `PRODUCT.md`). Still
 rejected: multi-tenancy, roles, and user management — an authenticated app is
 not the same thing as a multi-user one, and this stays single-user.
+
+> **Superseded 2026-09-06 — identity is Ward's.** The account, the password and
+> the login page are gone: sign-in is the estate's, and what opens newspapper is
+> a `newspapper` grant on a Ward account. It is still single-user in practice
+> and still has no roles of its own. The full posture is in
+> [decisions-security.md](./decisions-security.md#identity-is-wards-and-authority-is-a-grant).
 
 ## Headless Chromium renders the slides
 _2026-06-10_ — Components compile to HTML, which Playwright Chromium screenshots
