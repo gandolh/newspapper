@@ -1564,3 +1564,7 @@ Every schema migration step now commits with its `user_version` bump in one tran
 ## [2026-10-02] done | Brief 87 — editor saves are single-flight
 
 The editor's saves go through a single-flight queue (`saveQueue.ts`): one POST per new post, writes in order, and the last edit always the one that lands. The `updated_at` precondition was left for the owner's call.
+
+## [2026-10-02] done | Brief 100 — production dependencies carry no advisories
+
+Production deps carry no advisories: `@fastify/static` 10.1.5 (a major, no behaviour change found), `fastify` 5.12.5, and in-range transitive fixes.

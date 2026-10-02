@@ -70,3 +70,24 @@ pinning-hygiene issue noted for the owner, not fixed here.
 Landing brief 77 (guard on matched route) is the actual fix for the guard-bypass
 *class*; this bump is defence-in-depth on the static plugin. Do 77 regardless of
 this.
+
+## Outcome — 2026-10-02
+
+`api/package.json` pins `@fastify/static` 10.1.5 (from 8.3.0, a major) and
+`fastify` 5.12.5 (from 5.8.5), exactly. A plain `npm audit fix` (no `--force`,
+lockfile only) moved the transitive packages inside their ranges:
+`find-my-way` 9.9.0, `fast-uri` 3.1.8, `brace-expansion` 5.0.12. **`npm audit
+--omit=dev` reports 0 vulnerabilities.** Dev-only advisories remain, out of
+scope.
+
+**Behaviour after the static major**, probed with `app.inject` against the real
+app and a fixture file:
+- `/assets/fonts/Inter-Bold.ttf` 200;
+- `/output/<dir>/slide-01.jpg` 200 with a session and 401 without;
+- the SPA fallback `/posts` 200 `text/html`;
+- three traversal spellings (`..%2f`, `%2e%2e/`, `../`) all get the SPA shell,
+  never `package.json` or `sources.json`.
+
+The brief-77 encoded-path guard tests pass, and so do all 660 tests, the build
+and lint. `jose`'s caret range is the separate pinning-hygiene issue the brief
+names and is untouched. `wiki/dependencies.md` notes the versions.

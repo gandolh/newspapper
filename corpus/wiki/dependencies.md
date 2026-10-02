@@ -1,6 +1,6 @@
 ---
 summary: What each workspace depends on and why that package was chosen over the alternatives.
-updated: 2026-08-31
+updated: 2026-10-02
 ---
 
 # Dependencies
@@ -22,9 +22,9 @@ Per-workspace. Versions are locked in `package-lock.json`.
 
 | Package | Why |
 |---------|-----|
-| `fastify` | HTTP server with schema-based request handling and plugin system. |
+| `fastify` | HTTP server with schema-based request handling and plugin system. 5.12.5 since 2026-10-02 (brief 100), clearing its own advisories and, transitively, `find-my-way` and `fast-uri`. |
 | `@fastify/cors` | CORS for dev-server proxy requests from port 4321 (the Vite dev server; Astro's until brief 70). |
-| `@fastify/static` | Serves `/assets/fonts/`, `/output/`, and `ui/dist/` in prod. Not used for `/uploads/` — that route resolves refs through the DB and streams the file itself. |
+| `@fastify/static` | Serves `/assets/fonts/`, `/output/`, and `ui/dist/` in prod. Not used for `/uploads/` — that route resolves refs through the DB and streams the file itself. 10.x since 2026-10-02 (brief 100): 8.3.0 carried a static-plugin guard-bypass advisory class; the 8 → 10 major changed nothing newspapper relies on. |
 | `@fastify/multipart` | Parses the single-file `POST /api/uploads` body, with a streaming 10 MB `fileSize` limit so an oversized upload is cut off rather than buffered. |
 | `@newspapper/core` | All pipeline logic. |
 
