@@ -27,7 +27,20 @@ export type {
 
 // Util
 export { log } from './util/logger.js';
-export { ensureDir, ensureParent, todayLocal, nextOutputDir } from './util/paths.js';
+export {
+  ensureDir,
+  ensureParent,
+  todayLocal,
+  nextOutputDir,
+  repoRoot,
+  outputRoot,
+  uploadsRoot as uploadsRootDir,
+  dbPath,
+  sourcesSeedPath,
+  fontsDir,
+  designSystemsDir,
+  uiDistDir,
+} from './util/paths.js';
 
 // Render
 export * from './render/index.js';

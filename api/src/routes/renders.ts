@@ -1,12 +1,16 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { basename, join, resolve, sep } from 'node:path';
 import { existsSync, readdirSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { latestRender, latestRenders, THUMB_FILE, type RenderRecord } from '@newspapper/core';
+import {
+  latestRender,
+  latestRenders,
+  outputRoot as outputRootDir,
+  THUMB_FILE,
+  type RenderRecord,
+} from '@newspapper/core';
 import { db } from '../lib/db.js';
 
-const __dirname = fileURLToPath(new URL('.', import.meta.url));
-const outputRoot = resolve(__dirname, '../../..', 'output');
+const outputRoot = outputRootDir();
 
 const SLIDE_FILE = /^slide-\d+\.jpg$/i;
 

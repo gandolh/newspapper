@@ -1,6 +1,6 @@
 ---
 summary: Every env var and the code that reads it, how .env reaches process.env at all, the auth variables and their strict-mode behaviour, settings precedence, and one-time setup including Playwright Chromium.
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 # Configuration
@@ -19,6 +19,7 @@ them, development included.
 | `WARD_APP_KEY` | — | Newspapper's own Ward service key. **A secret.** Issued from Ward's console, shown once, not readable back. **Required.** |
 | `NEWSPAPPER_DB_PATH` | `<repo>/data/newspapper.db` | Override the SQLite path. Tests must set it — see below. |
 | `UPLOADS_DIR` | `<repo>/uploads` | Where uploaded images live. An absolute path puts the store outside the repo; a relative value resolves against the repo root, never the cwd. |
+| `OUTPUT_DIR` | `<repo>/output` | Where rendered runs are written. Same rules as `UPLOADS_DIR`. Read once, in `outputRoot()` (`core/src/util/paths.ts`), so the renderer, the static `/output/` route and the render routes always agree. Not `NEWSPAPPER_OUTPUT_DIR`, which is the compose file's host mount path. |
 | `UPLOADS_BASE_URL` | `http://127.0.0.1:$PORT` | Origin compiled slides resolve `/uploads/<ref>` against. Since the Ward cutover the render browser does not fetch it — `core/src/render/uploads-route.ts` intercepts and serves from disk — but the URL still has to be well-formed. |
 | `THEME` | `warm-industrial-1` | Default slide theme, as an env-level fallback under the DB setting. |
 | `NEWSPAPPER_BASE` | `/` | The path the UI is served under. A **build arg** in the deploy (`/newspapper/`), and in `npm run dev` read from `.env` so local dev is laid out the same way (see [Local sign-in](#local-sign-in)). The API never reads it. |

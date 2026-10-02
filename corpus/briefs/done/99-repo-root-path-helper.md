@@ -67,3 +67,38 @@ Dockerfile bind-mounts a `VOLUME` at the hardcoded path to work around it.
 Touches many files that other briefs also edit (render.ts, renders.ts, output.ts,
 db.ts). Sequence after the render/DB briefs (86, 92-95, 97) or expect merge
 coordination — this is a mechanical consolidation and is the lowest-risk done last.
+
+## Outcome — 2026-10-03
+
+`core/src/util/paths.ts` now resolves the repo root once, from its own
+`import.meta.url` (`'../../..'`). It derives everything else from that:
+`outputRoot()`, `uploadsRoot()`, `dbPath()`, `sourcesSeedPath()`, `fontsDir()`,
+`designSystemsDir()` and `uiDistDir()`. All eight sites use it:
+- core: `render/output.ts`, `storage/db.ts` (both paths), `uploads/store.ts`
+  (`uploadsRoot` delegates) and `themes/index.ts`;
+- api: `server.ts` (fonts, output, ui/dist), `routes/render.ts` and
+  `routes/renders.ts`, via `@newspapper/core`.
+
+A grep for `'../..'`-style root walking in `core/src` and `api/src` (tests
+aside) now hits only the helper.
+
+**New override: `OUTPUT_DIR`**, with the same rules as `UPLOADS_DIR` (absolute
+as given, relative from the repo root, blank means default). **Not**
+`NEWSPAPPER_OUTPUT_DIR`, the name the brief suggested: compose already uses that
+as the *host* path of the output mount, and its `env_file` hands it to the
+process. Reading it would have written VPS renders to an unmounted path inside
+the container. The variable is documented in `.env.example` (with its single
+reader), `infrastructure/.env.example`, `configuration.md`, and the Dockerfile
+and compose comments, which claimed no override existed. The volume stays at
+`/app/output` so existing VPS runs don't move.
+
+**Moving a consumer can't change its root anymore:** no consumer knows its
+own depth. The helper's test checks that `repoRoot()/package.json` is
+`newspapper`, so a wrong depth in the one place that has one fails the suite.
+Other tests cover the defaults for every directory and the overrides (absolute,
+relative, blank, and `NEWSPAPPER_DB_PATH`).
+
+`npm test` 740/740, lint, build and corpus lint are clean. **Not verified:**
+the Docker build. Docker Desktop's WSL integration was off this session. The
+helper sits at the same depth inside the image (`/app/core/src/util`), so the
+resolved paths are unchanged.

@@ -1632,3 +1632,7 @@ The post grid loads a 220 px thumbnail made once at render time (about 21 KB) in
 ## [2026-10-03] done | Brief 98 — the parser caps nesting; the editor has an error boundary
 
 A document nested thousands deep no longer crashes the parser (one diagnostic past 200 levels), and the editor sits in an error boundary, so one bad post can't blank the app or lock itself out.
+
+## [2026-10-03] done | Brief 99 — one module knows the repo root; OUTPUT_DIR override
+
+One module (`core/src/util/paths.ts`) now knows where the repo root is, and every root derives from it, with a new `OUTPUT_DIR` override. It is deliberately not `NEWSPAPPER_OUTPUT_DIR`, which compose already uses for the host mount.

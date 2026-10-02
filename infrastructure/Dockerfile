@@ -127,10 +127,10 @@ ENV NODE_ENV=production \
 # The database and the upload store. A BIND MOUNT on the VPS, so this survives
 # every deploy.
 VOLUME /data
-# Rendered output is SEPARATE and cannot join /data: core/src/render/output.ts
-# and two API routes resolve it to <repo>/output from their own file location,
-# with no environment override. Pointing it elsewhere is a code change, so the
-# volume comes to it instead.
+# Rendered output is a separate volume at the code's default, <repo>/output.
+# Since brief 99 it is overridable (OUTPUT_DIR, read once in
+# core/src/util/paths.ts), so it could join /data; it stays put because moving
+# it would also move every existing run on the VPS.
 VOLUME /app/output
 EXPOSE 3001
 # node's global fetch rather than curl or wget: bookworm-slim ships neither, and

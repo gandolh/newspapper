@@ -1,10 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import { existsSync, rmSync } from 'node:fs';
-import { basename, isAbsolute, resolve, sep } from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-const moduleDir = fileURLToPath(new URL('.', import.meta.url));
-const repoRoot = resolve(moduleDir, '../../..');
+import { basename, resolve, sep } from 'node:path';
+import { uploadsRoot as pathsUploadsRoot } from '../util/paths.js';
 
 export const ORIGINALS_DIR = 'originals';
 export const NORMALIZED_DIR = 'normalized';
@@ -25,9 +22,7 @@ const MAX_DISPLAY_NAME_LENGTH = 200;
  * override resolves against the repo root, never process.cwd().
  */
 export function uploadsRoot(): string {
-  const override = process.env['UPLOADS_DIR']?.trim();
-  if (override) return isAbsolute(override) ? resolve(override) : resolve(repoRoot, override);
-  return resolve(repoRoot, 'uploads');
+  return pathsUploadsRoot();
 }
 
 export function isValidRef(ref: unknown): ref is string {

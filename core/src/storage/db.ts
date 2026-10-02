@@ -1,9 +1,8 @@
 import Database from 'better-sqlite3';
 import type { Database as DB } from 'better-sqlite3';
-import { ensureParent } from '../util/paths.js';
+import { dbPath, ensureParent, sourcesSeedPath } from '../util/paths.js';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import type { SourceConfig } from '../types.js';
 
 export type { DB };
@@ -12,18 +11,14 @@ export type { DB };
  * Default DB path. NEWSPAPPER_DB_PATH wins so tests and alternate instances can
  * point somewhere else; otherwise resolved from this file's location so it lands
  * on repo_root/data/newspapper.db regardless of the process CWD.
- * (db.ts → storage/ → src/ → core/ → repo root)
+ * (`util/paths.ts` owns where the repo root is.)
  */
 function defaultDbPath(): string {
-  const override = process.env['NEWSPAPPER_DB_PATH'];
-  if (override !== undefined && override !== '') return resolve(override);
-  const thisFile = fileURLToPath(import.meta.url);
-  return resolve(thisFile, '..', '..', '..', '..', 'data', 'newspapper.db');
+  return dbPath();
 }
 
 function defaultSourcesPath(): string {
-  const thisFile = fileURLToPath(import.meta.url);
-  return resolve(thisFile, '..', '..', '..', '..', 'data', 'sources.json');
+  return sourcesSeedPath();
 }
 
 const CURRENT_SCHEMA_VERSION = 5;

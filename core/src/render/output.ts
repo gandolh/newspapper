@@ -8,13 +8,11 @@
 import { existsSync, readdirSync, mkdirSync, unlinkSync } from 'node:fs';
 import { writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { outputRoot } from '../util/paths.js';
 
 /** Resolve the repo root (four levels up from core/src/render/output.ts). */
 function defaultOutputRoot(): string {
-  // output.ts → render/ → src/ → core/ → repo root (4 x '..')
-  const thisFile = fileURLToPath(import.meta.url);
-  return resolve(thisFile, '..', '..', '..', '..', 'output');
+  return outputRoot();
 }
 
 /**

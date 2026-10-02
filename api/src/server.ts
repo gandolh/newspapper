@@ -1,6 +1,7 @@
-import { resolve, join } from 'node:path';
+import { join } from 'node:path';
 import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { fontsDir, outputRoot, uiDistDir } from '@newspapper/core';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import staticPlugin from '@fastify/static';
@@ -18,9 +19,6 @@ import settingsRoutes from './routes/settings.js';
 import uploadsRoutes from './routes/uploads.js';
 import { registerAuthGuard } from './ward/ward.guard.js';
 import type { WardClient } from './ward/ward.client.js';
-
-const __dirname = fileURLToPath(new URL('.', import.meta.url));
-const repoRoot = resolve(__dirname, '../..');
 
 export const PORT = Number(process.env.PORT ?? 3001);
 
@@ -53,14 +51,14 @@ export async function buildApp(options: BuildAppOptions = {}) {
 
   // Serve font assets at /assets/fonts/
   await fastify.register(staticPlugin, {
-    root: resolve(repoRoot, 'assets/fonts'),
+    root: fontsDir(),
     prefix: '/assets/fonts/',
     decorateReply: false,
   });
 
   // Serve rendered output at /output/
   await fastify.register(staticPlugin, {
-    root: resolve(repoRoot, 'output'),
+    root: outputRoot(),
     prefix: '/output/',
     decorateReply: false,
   });
@@ -93,7 +91,7 @@ export async function buildApp(options: BuildAppOptions = {}) {
   });
 
   // Production static: serve ui/dist if present (fallback to index.html for non-API GETs)
-  const uiDist = resolve(repoRoot, 'ui/dist');
+  const uiDist = uiDistDir();
   if (existsSync(uiDist)) {
     await fastify.register(staticPlugin, {
       root: uiDist,

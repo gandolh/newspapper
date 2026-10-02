@@ -1,7 +1,5 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { resolve } from 'node:path';
 import { existsSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import {
   findPost,
   latestRender,
@@ -15,13 +13,12 @@ import {
   zipRun,
   uploadsBaseUrl,
   todayLocal,
+  outputRoot,
 } from '@newspapper/core';
 import { db } from '../lib/db.js';
 import { sseHeaders, sseWrite, sseDone, sseError } from '../lib/sse.js';
 
-const __dirname = fileURLToPath(new URL('.', import.meta.url));
-const repoRoot = resolve(__dirname, '../../..');
-const outputPrefix = resolve(repoRoot, 'output');
+const outputPrefix = outputRoot();
 
 const PORT = Number(process.env.PORT ?? 3001);
 

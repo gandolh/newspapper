@@ -30,8 +30,8 @@ services:
       # The database and the upload store. Bind-mounted from the host so a
       # deploy replaces the image and never the content.
       - ${NEWSPAPPER_DATA_DIR:-../data}:/data
-      # Rendered output, separate because the code resolves it to <repo>/output
-      # with no environment override. See the Dockerfile's note.
+      # Rendered output, at the app's default <repo>/output (the app could take
+      # OUTPUT_DIR, but existing runs live here). See the Dockerfile's note.
       - ${NEWSPAPPER_OUTPUT_DIR:-../output}:/app/output
     restart: unless-stopped
     healthcheck:
