@@ -511,3 +511,41 @@ describe('API server', () => {
     });
   });
 });
+
+// =========================================================================
+// Error bodies (brief 79): a 5xx never echoes the exception's own text
+// =========================================================================
+
+describe('the global error handler', () => {
+  let app: Awaited<ReturnType<typeof buildApp>>;
+
+  beforeEach(async () => {
+    app = await buildApp({ ward: createFakeWard() });
+    // Routes outside the guarded prefixes, so no session is needed to reach them.
+    app.get('/__test/boom', async () => {
+      throw new Error('secret internal detail: /srv/newspapper/data/newspapper.db');
+    });
+    app.get('/__test/bad-request', async () => {
+      throw Object.assign(new Error('title is required'), { statusCode: 400 });
+    });
+    await app.ready();
+  });
+
+  afterEach(async () => {
+    await app.close();
+  });
+
+  it('answers an unexpected throw with a generic 500 body', async () => {
+    const res = await app.inject({ method: 'GET', url: '/__test/boom' });
+    expect(res.statusCode).toBe(500);
+    expect(res.body).not.toContain('secret internal detail');
+    expect(res.body).not.toContain('/srv/');
+    expect(res.json()).toEqual({ error: 'Internal Server Error' });
+  });
+
+  it('keeps a deliberate 4xx message', async () => {
+    const res = await app.inject({ method: 'GET', url: '/__test/bad-request' });
+    expect(res.statusCode).toBe(400);
+    expect(res.json()).toEqual({ error: 'title is required' });
+  });
+});

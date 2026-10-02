@@ -47,3 +47,18 @@ independent of it.
 
 - Route files (they set their own 4xx messages, which stay)
 - `corpus/log.md`, `corpus/wiki/status.md`
+
+## Outcome — 2026-10-02
+
+The global error handler sends `{ error: 'Internal Server Error' }` for any
+status `>= 500` and still logs the real error. A deliberate 4xx keeps
+`err.message`. Status codes are unchanged.
+
+Tests in `server.test.ts`: a test-only route throwing
+`Error('secret internal detail: /srv/…')` returns 500 with a generic body
+containing neither the detail nor the path, and a `statusCode: 400` throw keeps
+its message. The 500 test fails before the change. `npm test` and
+`npm run build` are clean. Repo lint has one pre-existing error, brief 80's.
+
+The security decisions for briefs 77, 85 and 79 are recorded in
+`wiki/decisions-security.md`.

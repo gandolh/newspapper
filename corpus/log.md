@@ -1538,3 +1538,9 @@ articles, 10 MB for feeds). Before this, a hostile feed could make the server
 fetch loopback or the metadata address and show the answer as an article, or
 stream it gigabytes. Injected fetch and DNS tests prove internal targets are
 never requested. A DNS-rebinding residual is documented in `safe-url.ts`.
+
+## [2026-10-02] done | Brief 79 — 5xx bodies are generic; three security decisions recorded
+
+5xx responses carry a generic body; the exception text stays in the server log.
+4xx messages are unchanged. Also folded briefs 77, 85 and 79 into
+`wiki/decisions-security.md` as three new entries.

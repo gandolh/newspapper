@@ -81,10 +81,16 @@ export async function buildApp(options: BuildAppOptions = {}) {
   await fastify.register(uploadsRoutes);
 
   // Global error handler
+  // A 4xx carries a message a route chose to show the caller. A 5xx is a fault,
+  // and its message is whatever the exception said: SQL fragments, file paths,
+  // "Cannot read properties of null". That stays in the server log, never in
+  // the response.
   fastify.setErrorHandler((err: Error & { statusCode?: number }, _req, reply) => {
     const status = err.statusCode ?? 500;
     fastify.log.error(err);
-    void reply.status(status).send({ error: err.message });
+    void reply
+      .status(status)
+      .send({ error: status >= 500 ? 'Internal Server Error' : err.message });
   });
 
   // Production static: serve ui/dist if present (fallback to index.html for non-API GETs)

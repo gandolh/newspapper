@@ -1,6 +1,6 @@
 ---
-summary: The locked security calls — Ward identity and grants, the retired single-account auth and its lockout, which paths are guarded versus deliberately public, and how local development signs in through a local Ward.
-updated: 2026-09-27
+summary: The locked security calls — Ward identity and grants, the retired single-account auth and its lockout, which paths are guarded (decided from the matched route) versus public, safe server-side fetches of feed URLs, generic 5xx bodies, and how local development signs in through a local Ward.
+updated: 2026-10-02
 ---
 
 # Decisions — security
@@ -144,3 +144,39 @@ future edit keeps it provably inert in production, and it would leave the real
 Ward path untested locally. **Rejected:** B, pointing dev at the production Ward
 through a tunnel or hosts entry: production credentials in a dev loop, and only
 the owner could ever run it.
+
+## The guard decides from the matched route, not the raw URL
+
+_2026-10-02 (brief 77)_ — Whether a request needs a session is decided from
+`req.routeOptions.url`, the route pattern the router matched, as well as from the
+raw URL. A request is public only if neither is guarded. Rejected: **deciding
+from the raw URL alone**, which was the bug. find-my-way percent-decodes before
+matching, so `/%61pi/posts` looked unguarded and reached `/api/posts`: anonymous
+read and write of the whole API on the public origin. Rejected too: **decoding
+the URL ourselves** and re-testing the prefix. Double-encoding, `..` and mixed
+case make a hand decoder easy to get wrong, while the matched pattern is
+already the router's own answer. `@fastify/static` routes carry a pattern too
+(`/output/*`).
+
+## Server-side fetches of feed-chosen URLs go to public addresses only
+
+_2026-10-02 (brief 85)_ — Feed URLs and item links are fetched through
+`core/src/scrape/safe-url.ts`:
+- http(s) only;
+- every resolved address must be public (private, loopback, link-local, CGNAT
+  and IPv4-mapped forms are refused);
+- redirects are followed by hand, with the check repeated per hop;
+- bodies are capped (2 MB for articles, 10 MB for feeds).
+
+Rejected: **trusting the feed host.** Sources are operator-added, but item
+links are third-party. Rejected: `redirect: 'follow'`, since one public 302 is
+all it takes to reach loopback. Accepted residual: the check is at resolve
+time, so DNS rebinding remains possible until a connect-time check is worth
+the machinery.
+
+## A 5xx never shows the caller the exception's text
+
+_2026-10-02 (brief 79)_ — The global error handler answers any `>= 500` with
+`{ "error": "Internal Server Error" }` and logs the real error. A deliberate 4xx
+keeps its message. Rejected: echoing `err.message` for everything, which leaked
+SQL fragments, file paths and null-dereference text.
