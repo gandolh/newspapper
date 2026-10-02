@@ -107,6 +107,24 @@ function readCookie(header: string | string[] | undefined, name: string): string
   return undefined;
 }
 
+/**
+ * Whether a `jwtVerify` failure is about *fetching the key set* rather than the
+ * token. jose reports a JWKS timeout and a malformed set with their own codes,
+ * and a non-200 or unparseable JWKS response as a bare generic `JOSEError`. A
+ * network failure never becomes a jose error at all. Every token problem (bad
+ * signature, expired, wrong claim, unknown `kid`) carries its own specific code,
+ * so it stays a 401.
+ */
+function isKeySetUnavailable(error: unknown): boolean {
+  const code = (error as { code?: unknown } | null)?.code;
+  if (code === 'ERR_JWKS_TIMEOUT' || code === 'ERR_JWKS_INVALID') return true;
+  if (code === 'ERR_JOSE_GENERIC') {
+    const message = (error as Error).message;
+    return message.includes('JSON Web Key Set');
+  }
+  return typeof code !== 'string' || !code.startsWith('ERR_');
+}
+
 interface CacheEntry {
   result: SessionResolution;
   expiresAt: number;
@@ -156,6 +174,13 @@ export function createWardClient(options: WardClientOptions): WardClient {
       });
       return payload as unknown as AccessTokenClaims;
     } catch (cause) {
+      // Ward's key set could not be had: that is Ward being down, so fail
+      // closed with 503 like introspection does. Answering 401 told a person
+      // they were signed out and sent them to a login page served by the same
+      // Ward that was down (brief 104).
+      if (isKeySetUnavailable(cause)) {
+        throw new WardUnavailableError("Ward's signing keys could not be fetched", { cause });
+      }
       throw new WardAuthenticationError('access token is not valid', { cause });
     }
   }

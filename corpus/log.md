@@ -1596,3 +1596,7 @@ All five Chromium test files share one guard (skip loudly locally, fail under CI
 ## [2026-10-03] done | Brief 89 — the real Ward client is tested; a JWKS-outage bug filed
 
 The real Ward client is tested: signature and claim checks, introspection's fail-closed mapping, the cache and in-flight dedupe, each with a mutation that breaks it. A JWKS outage was found to answer 401 instead of 503; filed as brief 104.
+
+## [2026-10-03] done | Brief 104 — a JWKS outage fails closed with 503
+
+A Ward key-set outage now fails closed with 503 instead of telling the person they are signed out (401); token problems, unknown kid included, stay 401.

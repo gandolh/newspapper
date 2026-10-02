@@ -185,15 +185,38 @@ describe('verify: the signature and claims checks', () => {
     ).rejects.toBeInstanceOf(WardAuthenticationError);
   });
 
-  // KNOWN BUG, filed as brief 104: `verify` wraps every jose error, a failed
-  // JWKS fetch included, as WardAuthenticationError, so a Ward outage at the
-  // key endpoint answers 401 ("signed out") instead of failing closed with 503.
-  // `it.fails` documents it; when the client is fixed this flips and must
-  // become a plain `it`.
-  it.fails('a JWKS outage is unavailable (503), not unauthenticated (401)', async () => {
+  // Brief 104: a key-set outage is Ward being down, so it fails closed (503)
+  // rather than telling the person they are signed out (401).
+  it('a JWKS outage is unavailable (503), not unauthenticated (401)', async () => {
     const { client, ward } = setup();
     ward.jwks = () => new Response('down', { status: 500 });
     await expect(client.verify(await token())).rejects.toBeInstanceOf(WardUnavailableError);
+  });
+});
+
+describe('verify: key-set failures fail closed', () => {
+  it('a network failure fetching the JWKS is unavailable', async () => {
+    const { client, ward } = setup();
+    ward.jwks = () => {
+      throw new TypeError('fetch failed');
+    };
+    await expect(client.verify(await token())).rejects.toBeInstanceOf(WardUnavailableError);
+  });
+
+  it('an unparseable JWKS is unavailable', async () => {
+    const { client, ward } = setup();
+    ward.jwks = () => new Response('<html>', { status: 200 });
+    await expect(client.verify(await token())).rejects.toBeInstanceOf(WardUnavailableError);
+  });
+
+  it('an unknown kid with a healthy JWKS is still unauthenticated', async () => {
+    const { client } = setup();
+    const other = await generateKeyPair('EdDSA', { crv: 'Ed25519' });
+    const err = await client
+      .verify(await token({}, { key: other.privateKey, kid: 'unknown-kid' }))
+      .catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(WardAuthenticationError);
+    expect(err).not.toBeInstanceOf(WardUnavailableError);
   });
 });
 

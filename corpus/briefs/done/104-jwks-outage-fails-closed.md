@@ -42,3 +42,21 @@ and introspection already does exactly that. The JWKS path is the gap.
   answers 401.
 - All of `ward.client.test.ts` passes with no `it.fails` left. `npm test`,
   `npm run lint`, `npm run build` and corpus lint are clean.
+
+## Outcome — 2026-10-03
+
+`verify` now classifies a `jwtVerify` failure with `isKeySetUnavailable`. These
+become `WardUnavailableError`, which the guard answers with 503:
+- jose's `ERR_JWKS_TIMEOUT` and `ERR_JWKS_INVALID`;
+- the generic `ERR_JOSE_GENERIC` errors jose throws for a non-200 or
+  unparseable JSON Web Key Set;
+- any error that never became a jose error (a network failure).
+
+Every token problem keeps its specific jose code and stays
+`WardAuthenticationError` (401). That includes an unknown `kid` against a
+healthy set (`ERR_JWKS_NO_MATCHING_KEY`).
+
+Tests: the `it.fails` from brief 89 is now a plain passing `it` (JWKS 500 →
+unavailable). Three more cases: a JWKS network failure and an unparseable JWKS
+are unavailable, and an unknown `kid` is still unauthenticated and not
+unavailable. `npm test` 691/691, lint and build clean.
