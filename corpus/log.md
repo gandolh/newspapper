@@ -1600,3 +1600,7 @@ The real Ward client is tested: signature and claim checks, introspection's fail
 ## [2026-10-03] done | Brief 104 — a JWKS outage fails closed with 503
 
 A Ward key-set outage now fails closed with 503 instead of telling the person they are signed out (401); token problems, unknown kid included, stay 401.
+
+## [2026-10-03] done | Brief 90 — the render route, /api/me, api() and the router base path are tested
+
+The render route (pixels from a real upload), `/api/me`'s narrowing, the UI's `api()` wrapper and the router's base-path call sites are tested, each against the mutation it guards.

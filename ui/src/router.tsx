@@ -53,7 +53,9 @@ function subscribe(listener: () => void): () => void {
   };
 }
 
-function pathnameSnapshot(): string {
+/** The app path for the current URL, base stripped. Exported for tests only:
+ * `usePathname` is this behind `useSyncExternalStore`. */
+export function pathnameSnapshot(): string {
   return stripBase(window.location.pathname);
 }
 

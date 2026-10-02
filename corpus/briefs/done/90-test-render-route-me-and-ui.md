@@ -75,3 +75,40 @@ devDependency, and rely on brief 81 having widened the vitest glob to `.tsx`.
 
 - Brief 81 (vitest `.tsx` glob) for the UI tests to be collected.
 - Coordinates with brief 78 (shares the router base-path test seam).
+
+## Outcome — 2026-10-03
+
+All four areas now have tests, each mutation-checked locally and reverted:
+
+- **Render route** (`api/src/routes/render.test.ts`, real Chromium behind the
+  brief-91 guard): a post whose only slide is an `<Image>` of a red upload
+  streams `progress` then `done`, and the written JPEG has more than 10,000
+  clearly red pixels. Error cases: a missing post, an unknown theme ("Theme
+  not found") and an uncompilable post each stream a single `error`. The test
+  deletes the `output/` directories it creates. **Mutation:** with `db: db()`
+  dropped from the route, the red-pixel test fails.
+- **`/api/me`:** a session holding grants for `newspapper` *and* `prm` answers
+  exactly `{ user: { subject, username } }`, with no `grants` and no `prm` in
+  the body, and `cache-control: no-store`. **Mutation:** spreading the whole
+  Ward session into `user` fails it.
+- **`ui/src/lib/api.ts`** (`api.test.ts`, with stubbed `fetch` and `window`):
+  - a 401 calls `location.assign('/ward/login?next=<path+search>')` and throws
+    `ApiError(401)`;
+  - `skipAuthRedirect` suppresses the redirect;
+  - an error body's message is thrown, and a non-401 doesn't redirect;
+  - a 204 resolves `undefined`, and `json` is sent as JSON;
+  - under `/newspapper/`, requests carry the base but `wardLoginUrl()` does
+    not.
+
+  **Mutation:** routing `wardLoginUrl` through `withBase` fails it.
+- **Router** (`router.test.tsx`): under `/newspapper/`, the current path is
+  read stripped (`/newspapper/posts` → `/posts`, and the bare base → `/`),
+  `navigate` writes the base back for both push and replace, and `Link`
+  renders `href="/newspapper/posts"`; at root everything passes through.
+  **Mutation:** removing `stripBase` from the snapshot fails two tests.
+
+**Seam:** `pathnameSnapshot` in `router.tsx` is now exported, for the test
+only; behaviour is unchanged. No DOM dependency was added: the stubbed `window`
+plus `renderToStaticMarkup` was enough.
+
+`npm test` 707/707, `tsc -p ui`, `npm run lint` and `npm run build` are clean.
