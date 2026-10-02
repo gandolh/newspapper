@@ -1628,3 +1628,7 @@ RSS sources are searched four at a time instead of one after another: six 300 ms
 ## [2026-10-03] done | Brief 97 — the post grid loads a small thumbnail
 
 The post grid loads a 220 px thumbnail made once at render time (about 21 KB) instead of each post's full 1080 px slide (150-950 KB); older runs fall back to the slide, and the export leaves the thumbnail out.
+
+## [2026-10-03] done | Brief 98 — the parser caps nesting; the editor has an error boundary
+
+A document nested thousands deep no longer crashes the parser (one diagnostic past 200 levels), and the editor sits in an error boundary, so one bad post can't blank the app or lock itself out.

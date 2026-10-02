@@ -60,3 +60,30 @@ surgery.
 ## Note
 
 Depends on brief 81 if the boundary test is a `.test.tsx`.
+
+## Outcome — 2026-10-03
+
+**Parser.** `MAX_DEPTH = 200` (exported). When an element would open past it,
+`parseElement` reports one `syntax-error` ("nests elements more than 200 deep
+… flatten the nesting") and stops reading the document. It sets `tooDeep`,
+which suppresses the "never closed" error each still-open ancestor would
+otherwise add. `parse` never throws, as it promises.
+
+Tested depths (`parse-depth.test.ts`): 10, 150 and 197 parse with no
+syntax error at all. 1,000 and 6,000 report exactly one depth error, no
+"never closed" noise, and no throw. The old parser threw a `RangeError` at
+both. All 248 existing wizard tests (parse, format, round-trip) pass
+unchanged, so the cap does not touch real documents.
+
+**UI.** New `ui/src/components/ErrorBoundary.tsx` shows the existing
+`EmptyState` ("This page hit an error", the message, "Your saved posts are
+untouched", and a base-aware "Back to your posts" link) and logs the component
+stack. `EditorIsland` wraps `Editor` in it, inside the `ToastProvider`, so the
+`<App>` structure is untouched.
+
+`ErrorBoundary.test.tsx` **really mounts** it (`react-dom/client` +
+`act`) in `happy-dom`, which is now a pinned UI dev dependency and opted into
+per file only. A throwing child renders the error state with the `/posts` link,
+and a healthy child renders untouched. `dependencies.md` notes the addition.
+
+`npm test` 735/735, `tsc`, lint and build clean.

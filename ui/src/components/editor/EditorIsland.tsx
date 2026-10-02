@@ -58,6 +58,7 @@ import { starterDocument } from './starter.js';
 import styles from './EditorIsland.module.css';
 import { withBase } from '@/lib/base';
 import { createSaveQueue, type SaveQueue } from './saveQueue';
+import ErrorBoundary from '../ErrorBoundary';
 
 /**
  * Compile options for the live preview canvas. Its `<Image>` backgrounds are
@@ -703,7 +704,9 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
 export default function EditorIsland(props: EditorIslandProps) {
   return (
     <ToastProvider>
-      <Editor {...props} />
+      <ErrorBoundary>
+        <Editor {...props} />
+      </ErrorBoundary>
     </ToastProvider>
   );
 }

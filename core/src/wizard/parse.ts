@@ -64,6 +64,10 @@ interface ClosingTag {
   loc: WzdLoc;
 }
 
+/** Deepest element nesting the parser follows. A real post is a handful of
+ * levels deep; 200 is far past any of them and far short of the stack. */
+export const MAX_DEPTH = 200;
+
 class Parser {
   private readonly src: string;
   private readonly lineStarts: number[];
@@ -94,6 +98,14 @@ class Parser {
   private loc(start: number, end: number): WzdLoc {
     return { start: this.positionAt(start), end: this.positionAt(end) };
   }
+
+  /**
+   * Set once nesting passes `MAX_DEPTH`. Parsing stops there (see
+   * `parseElement`), and the "never closed" errors every still-open ancestor
+   * would report are suppressed: they are consequences, and they would bury the
+   * one diagnostic that explains them.
+   */
+  private tooDeep = false;
 
   private error(message: string, loc: WzdLoc): void {
     this.errors.push({ code: 'syntax-error', severity: 'error', message, loc });
@@ -295,10 +307,25 @@ class Parser {
       };
     }
 
+    // One JS frame per nesting level: a document nested a few thousand deep
+    // (a pasted chunk, or an editor move/duplicate bug) overflowed the stack,
+    // and `parse` threw instead of reporting, which blanked the editor and left
+    // the post unopenable (brief 98). Past MAX_DEPTH, say so once and stop.
+    if (this.openStack.length >= MAX_DEPTH) {
+      this.error(
+        `This document nests elements more than ${MAX_DEPTH} deep, which no real post needs. ` +
+          `\`<${name}>\` and everything after it were not read — flatten the nesting.`,
+        openTagLoc,
+      );
+      this.tooDeep = true;
+      this.i = this.src.length;
+      return null;
+    }
+
     this.openStack.push(name);
     const result = this.parseNodes(name);
     this.openStack.pop();
-    if (!result.closed && !unterminated) {
+    if (!result.closed && !unterminated && !this.tooDeep) {
       this.error(`\`<${name}>\` is never closed — add \`</${name}>\`.`, openTagLoc);
     }
     return {
