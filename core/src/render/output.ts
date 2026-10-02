@@ -43,6 +43,35 @@ export function nextOutputDir(date: string, outputRoot?: string): string {
   return resolve(join(root, `${date}-${runNumber}`));
 }
 
+/**
+ * Pick the next `YYYY-MM-DD-N` directory **and create it**, so no other render
+ * can pick the same one.
+ *
+ * `nextOutputDir` only computes a name; creating it used to wait for
+ * `writeRun`, after a multi-second render loop. Two renders started together
+ * (a double-clicked Render, or two posts at once) both picked the same `N`, and
+ * both wrote their slides into one directory: last write won per file, and a
+ * post's export could show another post's images. A non-recursive `mkdir` is
+ * the reservation: it fails with `EEXIST` if anyone, in this process or
+ * another, got there first, and then the next number is tried.
+ */
+export function reserveOutputDir(date: string, outputRoot?: string): string {
+  const root = outputRoot ?? defaultOutputRoot();
+  mkdirSync(root, { recursive: true });
+  let dir = nextOutputDir(date, root);
+  for (let attempt = 0; attempt < 100; attempt += 1) {
+    try {
+      mkdirSync(dir);
+      return dir;
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code !== 'EEXIST') throw err;
+      const n = Number(dir.slice(dir.lastIndexOf('-') + 1));
+      dir = resolve(join(root, `${date}-${n + 1}`));
+    }
+  }
+  throw new Error(`Could not reserve an output directory for ${date}`);
+}
+
 export interface OutputFile {
   name: string;
   data: Buffer | string;

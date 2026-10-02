@@ -1612,3 +1612,7 @@ The render browser can't be orphaned by concurrent launches (one shared in-fligh
 ## [2026-10-03] done | Brief 93 — a stuck slide times out instead of hanging the render
 
 A slide that never settles (content or fonts) now fails within 20 s / 10 s with a clear error, closing its page and context, instead of hanging the render and its SSE stream forever.
+
+## [2026-10-03] done | Brief 94 — renders reserve their output directory when they pick it
+
+Two renders started together can no longer write into the same output directory: the directory is reserved (created) when it is picked, and a failed render removes its reservation.

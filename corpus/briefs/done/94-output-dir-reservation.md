@@ -50,3 +50,25 @@ renders:
 
 - the slide filename convention (other code parses `slide-NN.jpg`)
 - `corpus/log.md`, `corpus/wiki/status.md`
+
+## Outcome — 2026-10-03
+
+Took the preferred route. New `reserveOutputDir(date, root)` in `output.ts`
+computes the next `YYYY-MM-DD-N` and **creates** it with a non-recursive
+`mkdirSync`. On `EEXIST` it tries `N+1`, giving up after 100. That makes it
+safe within one process and across processes. `renderSlides` reserves before
+its render loop, and if a slide fails it removes the reserved (empty)
+directory and rethrows. `nextOutputDir` stays the non-creating peek its tests
+describe. `writeRun`'s `mkdir -p` is harmless on an existing directory, and the
+slide filename convention is untouched. `reserveOutputDir` is exported beside
+the others.
+
+Tests (`render.test.ts`):
+- two reservations with nothing written between them get `-1` and `-2`, both
+  on disk;
+- a directory created by someone else after the scan is skipped;
+- two concurrent `renderSlides` (2 slides and 1 slide) into one root land in
+  different directories with 2 and 1 JPEGs.
+
+**Mutation:** with `renderSlides` back on `nextOutputDir`, the concurrent test
+fails. `npm test` 718/718, lint and build clean.

@@ -14,7 +14,7 @@ import { tmpdir } from 'node:os';
 import { unzipSync } from 'fflate';
 
 import { htmlToJpeg } from './screenshot.js';
-import { nextOutputDir, writeRun } from './output.js';
+import { nextOutputDir, reserveOutputDir, writeRun } from './output.js';
 import { renderSlides, zipRun } from './index.js';
 import { probeChromium } from './test-support/chromium.js';
 
@@ -103,6 +103,60 @@ describe('htmlToJpeg', () => {
 // ---------------------------------------------------------------------------
 // nextOutputDir
 // ---------------------------------------------------------------------------
+
+describe('reserveOutputDir (brief 94)', () => {
+  it('two reservations with nothing written between them get distinct, existing dirs', async () => {
+    const tmpRoot = await mkdtemp(join(tmpdir(), 'rod-'));
+    try {
+      const a = reserveOutputDir('2024-01-15', tmpRoot);
+      const b = reserveOutputDir('2024-01-15', tmpRoot);
+      expect(a).toMatch(/2024-01-15-1$/);
+      expect(b).toMatch(/2024-01-15-2$/);
+      expect((await readdir(tmpRoot)).sort()).toEqual(['2024-01-15-1', '2024-01-15-2']);
+    } finally {
+      await rm(tmpRoot, { recursive: true, force: true });
+    }
+  });
+
+  it('skips a number another writer took after the scan', async () => {
+    const tmpRoot = await mkdtemp(join(tmpdir(), 'rod-race-'));
+    try {
+      // `nextOutputDir` would say -1; someone creates it first.
+      expect(nextOutputDir('2024-01-15', tmpRoot)).toMatch(/-1$/);
+      const { mkdirSync } = await import('node:fs');
+      mkdirSync(join(tmpRoot, '2024-01-15-1'));
+      expect(reserveOutputDir('2024-01-15', tmpRoot)).toMatch(/2024-01-15-2$/);
+    } finally {
+      await rm(tmpRoot, { recursive: true, force: true });
+    }
+  });
+
+  it('two concurrent renders never share a directory', async (ctx) => {
+    if (!chromium.orSkip((note) => ctx.skip(note))) return;
+    const tmpRoot = await mkdtemp(join(tmpdir(), 'rod-render-'));
+    try {
+      const page = (text: string) =>
+        `<html><body style="margin:0;width:1080px;height:1080px">${text}</body></html>`;
+      const [a, b] = await Promise.all([
+        renderSlides([page('A'), page('A2')], {
+          date: '2024-01-15',
+          slidesJson: { who: 'A' },
+          outputRoot: tmpRoot,
+        }),
+        renderSlides([page('B')], {
+          date: '2024-01-15',
+          slidesJson: { who: 'B' },
+          outputRoot: tmpRoot,
+        }),
+      ]);
+      expect(a.dir).not.toBe(b.dir);
+      expect((await readdir(a.dir)).filter((f) => f.endsWith('.jpg'))).toHaveLength(2);
+      expect((await readdir(b.dir)).filter((f) => f.endsWith('.jpg'))).toHaveLength(1);
+    } finally {
+      await rm(tmpRoot, { recursive: true, force: true });
+    }
+  });
+});
 
 describe('nextOutputDir', () => {
   it('returns -1 for an empty root', async () => {

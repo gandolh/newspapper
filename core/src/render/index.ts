@@ -11,7 +11,8 @@ import { join } from 'node:path';
 import { zipSync } from 'fflate';
 import { DEFAULT_JPEG_QUALITY, htmlToJpeg } from './screenshot.js';
 import type { DB } from '../storage/db.js';
-import { nextOutputDir, writeRun } from './output.js';
+import { reserveOutputDir, writeRun } from './output.js';
+import { rmSync } from 'node:fs';
 
 // ---- Public types ----
 
@@ -67,14 +68,21 @@ export async function renderSlides(
   html: string[],
   opts: RenderSlidesOptions,
 ): Promise<RenderedRun> {
-  const dir = nextOutputDir(opts.date, opts.outputRoot);
+  // Reserved (created) now, not at write time: see `reserveOutputDir`.
+  const dir = reserveOutputDir(opts.date, opts.outputRoot);
   const quality = opts.quality ?? DEFAULT_JPEG_QUALITY;
 
   const jpegBuffers: Buffer[] = [];
-  for (let i = 0; i < html.length; i++) {
-    const buf = await htmlToJpeg(html[i], { quality, ...(opts.db ? { db: opts.db } : {}) });
-    jpegBuffers.push(buf);
-    opts.onProgress?.(i + 1, html.length);
+  try {
+    for (let i = 0; i < html.length; i++) {
+      const buf = await htmlToJpeg(html[i], { quality, ...(opts.db ? { db: opts.db } : {}) });
+      jpegBuffers.push(buf);
+      opts.onProgress?.(i + 1, html.length);
+    }
+  } catch (err) {
+    // A failed render must not leave its reserved, empty directory behind.
+    rmSync(dir, { recursive: true, force: true });
+    throw err;
   }
 
   const outputFiles: { name: string; data: Buffer | string }[] = [
@@ -114,6 +122,6 @@ export { getBrowser, closeBrowser } from './browser.js';
 export { htmlToPng, htmlToJpeg, DEFAULT_JPEG_QUALITY } from './screenshot.js';
 export { installUploadsRoute, localUploadFile, UPLOADS_ROUTE_GLOB } from './uploads-route.js';
 export type { HtmlToPngOptions, HtmlToJpegOptions } from './screenshot.js';
-export { nextOutputDir, writeRun } from './output.js';
+export { nextOutputDir, reserveOutputDir, writeRun } from './output.js';
 export type { OutputFile } from './output.js';
 export { resolveImageUrls } from './resolve-images.js';
