@@ -12,6 +12,13 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button, EmptyState, Modal, Skeleton } from '../ui';
 import { api, ApiError } from '@/lib/api';
 import styles from './ImagePicker.module.css';
+import { withBase } from '@/lib/base';
+
+/** An upload's thumbnail URL. `upload.url` is the server's origin-relative
+ * `/uploads/<ref>`; the browser resolves it, so it needs the base. */
+export function uploadThumbSrc(url: string): string {
+  return withBase(url);
+}
 
 export interface UploadSummary {
   id: number;
@@ -119,7 +126,7 @@ export default function ImagePicker({ open, onClose, onChoose }: ImagePickerProp
                 }}
               >
                 <img
-                  src={upload.url}
+                  src={uploadThumbSrc(upload.url)}
                   alt={upload.filename}
                   width={upload.width ?? undefined}
                   height={upload.height ?? undefined}

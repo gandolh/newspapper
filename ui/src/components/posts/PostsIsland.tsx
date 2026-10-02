@@ -22,6 +22,16 @@ import { withBase } from '@/lib/base';
 import type { Post, PostStatus } from '@/lib/types';
 import styles from './PostsIsland.module.css';
 
+/**
+ * The editor URL for a post. A plain `<a>`, not the router's `<Link>`: the
+ * editor reads `?post=` when it mounts, so this is a full page load. It still
+ * has to carry the base, or under `/newspapper/` it leaves the app for the
+ * origin root. Thumbnails (`/output/…`) need the base for the same reason.
+ */
+export function postHref(id: number): string {
+  return withBase(`/?post=${id}`);
+}
+
 /** The latest render of one post, as `GET /api/renders` reports it. */
 interface RenderSummary {
   id: number;
@@ -252,12 +262,12 @@ function PostsPage() {
                   {post.status !== 'published' && <TissueCorner />}
                   <a
                     className={styles.thumbLink}
-                    href={`/?post=${post.id}`}
+                    href={postHref(post.id)}
                     aria-hidden="true"
                     tabIndex={-1}
                   >
                     {thumb ? (
-                      <img className={styles.thumb} src={thumb} alt="" loading="lazy" />
+                      <img className={styles.thumb} src={withBase(thumb)} alt="" loading="lazy" />
                     ) : (
                       <span className={styles.thumbEmpty}>Not set</span>
                     )}
@@ -266,7 +276,7 @@ function PostsPage() {
 
                   <div className={styles.meta}>
                     <div className={styles.titleLine}>
-                      <a className={styles.title} href={`/?post=${post.id}`}>
+                      <a className={styles.title} href={postHref(post.id)}>
                         {post.title}
                       </a>
                       {post.status === 'published' ? <Stamp>Published</Stamp> : <Mark>Draft</Mark>}
@@ -314,7 +324,7 @@ function PostsPage() {
                     <Button
                       size="sm"
                       variant="secondary"
-                      onClick={() => window.location.assign(withBase(`/?post=${post.id}`))}
+                      onClick={() => window.location.assign(postHref(post.id))}
                     >
                       Open
                     </Button>

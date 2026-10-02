@@ -56,6 +56,17 @@ import {
 } from './paths.js';
 import { starterDocument } from './starter.js';
 import styles from './EditorIsland.module.css';
+import { withBase } from '@/lib/base';
+
+/**
+ * Compile options for the live preview canvas. Its `<Image>` backgrounds are
+ * resolved by the *browser*, so `/uploads/<ref>` needs the base, or every image
+ * 404s under `/newspapper/`. (The server-side render keeps the origin-relative
+ * default: Fastify never sees the prefix.)
+ */
+export function previewCompileOptions(): { uploadBaseUrl: string } {
+  return { uploadBaseUrl: withBase('/uploads') };
+}
 
 const PREVIEW_DEBOUNCE_MS = 200;
 const AUTOSAVE_DEBOUNCE_MS = 900;
@@ -166,7 +177,7 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
     [themes, themeName],
   );
   const compiled = useMemo(
-    () => (theme ? compileTraced(previewDoc, theme) : null),
+    () => (theme ? compileTraced(previewDoc, theme, previewCompileOptions()) : null),
     [previewDoc, theme],
   );
 

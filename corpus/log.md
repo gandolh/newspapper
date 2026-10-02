@@ -1552,3 +1552,7 @@ never requested. A DNS-rebinding residual is documented in `safe-url.ts`.
 ## [2026-10-02] done | Brief 81 — vitest collects .test.tsx too
 
 The vitest `include` globs match `.test.tsx` as well, before the first component test lands. A throwaway `.tsx` test was collected under the new glob and not under the old.
+
+## [2026-10-02] done | Brief 78 — under /newspapper/, links stay in-app and images load
+
+Post links, post and picker thumbnails, and the preview canvas's images carry the base path, so under `/newspapper/` they stop leaving the app or 404ing. Vitest gained the UI's `@/` alias so components are importable in tests.

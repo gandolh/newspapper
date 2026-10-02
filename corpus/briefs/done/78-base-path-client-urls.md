@@ -81,3 +81,37 @@ header warns about.
   are deliberately origin-relative; the fix is on the browser side
 - `core/**` beyond passing an option into `compileTraced`
 - `corpus/log.md`, `corpus/wiki/status.md`
+
+## Outcome — 2026-10-02
+
+Every browser-resolved URL in the three components now goes through `withBase`:
+- **PostsIsland:** both post anchors and the "open" button use an exported
+  `postHref(id)`. They stay plain `<a>` full loads rather than the router's
+  `<Link>`, because the editor reads `?post=` on mount. Thumbnails are
+  `withBase(thumb)`.
+- **ImagePicker:** thumbnails use an exported `uploadThumbSrc(url)`.
+- **EditorIsland:** the live preview compiles with an exported
+  `previewCompileOptions()` = `{ uploadBaseUrl: withBase('/uploads') }`. The
+  server-side render keeps the origin-relative default.
+
+**Sweep** of `ui/src` for leading-`/` `href`/`src`/`url('/`/`location`:
+- `Sidebar.tsx`'s `<Link href="/">` is safe (the router's `Link` applies the
+  base).
+- `EditorIsland`'s `new URL(window.location.href)` is safe (keeps the current
+  path).
+- The export-zip and New-post `location.assign` calls already used `withBase`.
+- No other hits.
+
+**Seam:** the root `vitest.config.ts` gains the UI's `@/` alias, so a test can
+import a component. `ui/src/components/base-urls.test.ts` stubs `BASE_URL` to
+`/newspapper/`, re-imports the modules and asserts:
+- `/newspapper/?post=123` for the post link,
+- `/newspapper/uploads/abc123` for an upload thumbnail,
+- a compiled preview `<Image>` contains `/newspapper/uploads/abc123.jpg` and no
+  bare `/uploads/`,
+- and, at `/`, dev is unchanged.
+
+**Build check:** with `NEWSPAPPER_BASE=/newspapper/` the bundle bakes
+`"/newspapper/"` as `BASE_URL` and `index.html` loads
+`/newspapper/_bundle/...`. A root build has no such string. `npm test` 656/656,
+`npm run lint` 0, `tsc -p ui` clean, `npm run build` clean.
