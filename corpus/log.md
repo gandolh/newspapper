@@ -1620,3 +1620,7 @@ Two renders started together can no longer write into the same output directory:
 ## [2026-10-03] done | Brief 95 — list routes: no N+1, no unused markup or bodies
 
 The post, render and article lists stop doing N+1 queries and stop shipping data the UI never shows: `/api/posts` 101 → 2 statements and 583 → 21 KB, `/api/renders` 301 → 1 statement, `/api/articles` 417 → 48 KB.
+
+## [2026-10-03] done | Brief 96 — RSS sources are searched four at a time
+
+RSS sources are searched four at a time instead of one after another: six 300 ms sources went from 1815 ms to about 600 ms, with identical results and error isolation.

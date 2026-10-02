@@ -49,3 +49,27 @@ dead feed adds up to 30 s in front of every source queued behind it.
 
 - keyword matching/ranking semantics (locked)
 - `corpus/log.md`, `corpus/wiki/status.md`
+
+## Outcome — 2026-10-03
+
+`searchArticles` now runs each source's work (`searchSource`: feed, then its
+bodies in parallel as before) through `mapWithConcurrency` with
+`SOURCE_CONCURRENCY = 4`. The cap is polite to hosts and bounds memory, since
+each source already fetches up to `maxPerSource` bodies at once. Results are
+kept per source and flattened **in source order** before the unchanged sort, so
+the output equals the sequential search's. A failing feed still records only
+its own `errors[]` entry and progress event.
+
+Tests (`scrape.test.ts`, mocked feeds and bodies):
+- 6 sources at 200 ms feed + 100 ms body each. The old code took **1815 ms**,
+  as sequential predicts (6 × 300 ms). The new code is asserted under 1200 ms:
+  two rounds of 4, about 600 ms.
+- one failing feed (`s3`) yields exactly its error, every source emits
+  `fetching`, and the tie order equals the sequential search's even when `s0`
+  finishes last.
+
+Finding: the existing comparator returns `-1` for equal `publishedAt`, so ties
+come out reversed relative to insertion. That is locked ranking behaviour, so
+it is preserved and documented in the test, not changed.
+
+`npm test` 726/726, lint and build clean.

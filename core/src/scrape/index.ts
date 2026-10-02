@@ -57,6 +57,29 @@ function countOccurrences(text: string, keyword: string): number {
   return count;
 }
 
+/** Sources searched at once. Polite to the hosts, and it bounds memory: each
+ * source fetches up to `maxPerSource` bodies in parallel. */
+const SOURCE_CONCURRENCY = 4;
+
+/** `Promise.all(items.map(fn))` with at most `limit` running at a time; results
+ * keep the input order. */
+async function mapWithConcurrency<T, R>(
+  items: readonly T[],
+  limit: number,
+  fn: (item: T) => Promise<R>,
+): Promise<R[]> {
+  const results: R[] = new Array<R>(items.length);
+  let next = 0;
+  const worker = async (): Promise<void> => {
+    while (next < items.length) {
+      const index = next++;
+      results[index] = await fn(items[index]!);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  return results;
+}
+
 /** Sum of keyword occurrences across title + body — the OR ranking score. */
 function matchScore(title: string, body: string, keywords: string[]): number {
   const haystack = `${title}\n${body}`;
@@ -87,9 +110,10 @@ export async function searchArticles(
 
   const enabled = sources.filter((s) => s.enabled);
   const errors: Array<{ sourceId: string; error: string }> = [];
-  const matches: ScrapedArticle[] = [];
 
-  for (const source of enabled) {
+  // One source's search: its feed, then its candidates' bodies in parallel.
+  // Returns that source's matches; a failed feed records itself and returns [].
+  async function searchSource(source: SourceConfig): Promise<ScrapedArticle[]> {
     onProgress?.({ sourceId: source.id, status: 'fetching' });
 
     let items;
@@ -99,7 +123,7 @@ export async function searchArticles(
       const error = (err as Error).message;
       errors.push({ sourceId: source.id, error });
       onProgress?.({ sourceId: source.id, status: 'error', error });
-      continue;
+      return [];
     }
 
     const candidates = items.slice(0, maxPerSource);
@@ -110,11 +134,11 @@ export async function searchArticles(
       }),
     );
 
-    let sourceMatches = 0;
+    const sourceMatches: ScrapedArticle[] = [];
     for (const { item, body } of rows) {
       const score = matchScore(item.title, body, cleanKeywords);
       if (score === 0) continue;
-      matches.push({
+      sourceMatches.push({
         sourceId: source.id,
         sourceName: source.name,
         guid: item.url,
@@ -124,11 +148,20 @@ export async function searchArticles(
         publishedAt: item.publishedAt,
         matchCount: score,
       });
-      sourceMatches += 1;
     }
 
-    onProgress?.({ sourceId: source.id, status: 'done', count: sourceMatches });
+    onProgress?.({ sourceId: source.id, status: 'done', count: sourceMatches.length });
+    return sourceMatches;
   }
+
+  // Sources are independent hosts, so they are searched concurrently: a search
+  // takes about as long as its slowest source, not the sum of all of them (one
+  // dead feed's 30 s timeout used to stall every source behind it). Capped at
+  // SOURCE_CONCURRENCY so a long source list doesn't open dozens of feeds and
+  // hundreds of body fetches at once. Results are kept per source and joined in
+  // source order, so ties sort exactly as they did when this was sequential.
+  const perSource = await mapWithConcurrency(enabled, SOURCE_CONCURRENCY, searchSource);
+  const matches = perSource.flat();
 
   matches.sort((a, b) => b.matchCount - a.matchCount || (a.publishedAt < b.publishedAt ? 1 : -1));
   return { articles: matches, errors };

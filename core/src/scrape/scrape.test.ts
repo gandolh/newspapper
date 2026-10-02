@@ -208,3 +208,57 @@ describe('pingSource', () => {
     expect(result.latencyMs).toBeGreaterThanOrEqual(0);
   });
 });
+
+describe('searchArticles runs sources concurrently (brief 96)', () => {
+  const six: SourceConfig[] = Array.from({ length: 6 }, (_, i) => ({
+    id: `s${i}`,
+    name: `Source ${i}`,
+    rss: `https://s${i}.example/rss`,
+    enabled: true,
+  }));
+  const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+  it('takes about the slowest batch, not the sum of every source', async () => {
+    const { fetchFeed } = await import('./rss.js');
+    const { fetchBody } = await import('./body.js');
+    vi.mocked(fetchFeed).mockImplementation(async (url: string) => {
+      await delay(200);
+      return [makeItem(`climate in ${url}`, `${url}/a`)];
+    });
+    vi.mocked(fetchBody).mockImplementation(async () => {
+      await delay(100);
+      return 'climate';
+    });
+    const started = Date.now();
+    const result = await searchArticles(six, { keywords: ['climate'] });
+    const elapsed = Date.now() - started;
+    expect(result.articles).toHaveLength(6);
+    // Sequential was 6 × 300 ms = 1800 ms; 4 at a time is two rounds, ~600 ms.
+    expect(elapsed).toBeLessThan(1200);
+  });
+
+  it('a failing feed errors only itself; every source reports progress; ties keep the sequential order', async () => {
+    const { fetchFeed } = await import('./rss.js');
+    const { fetchBody } = await import('./body.js');
+    vi.mocked(fetchBody).mockResolvedValue('');
+    vi.mocked(fetchFeed).mockImplementation(async (url: string) => {
+      // Later sources answer first, to shake the completion order.
+      await delay(url.includes('s0') ? 60 : 10);
+      if (url.includes('s3')) throw new Error('feed down');
+      return [makeItem(`climate story`, `${url}/a`)];
+    });
+    const progress: string[] = [];
+    const result = await searchArticles(six, {
+      keywords: ['climate'],
+      onProgress: (e) => progress.push(`${e.sourceId}:${e.status}`),
+    });
+    expect(result.errors).toEqual([{ sourceId: 's3', error: 'feed down' }]);
+    // Exactly what the sequential search produced for these ties, even though
+    // s0 now finishes last: results are joined in source order before the
+    // (unchanged) sort. That comparator returns -1 for equal dates, so ties come
+    // out reversed; it is locked ranking behaviour, and not this brief's to change.
+    expect(result.articles.map((a) => a.sourceId)).toEqual(['s5', 's4', 's2', 's1', 's0']);
+    for (const s of six) expect(progress).toContain(`${s.id}:fetching`);
+    expect(progress).toContain('s3:error');
+  });
+});
