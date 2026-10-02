@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { api, sse, ApiError } from '@/lib/api';
-import type { Article, ScrapedArticle, SourceConfig } from '@/lib/types';
+import type { Article, ArticleSummary, ScrapedArticle, SourceConfig } from '@/lib/types';
 import {
   Button,
   Card,
@@ -235,12 +235,12 @@ function SearchPanel() {
 
 function LibraryPanel() {
   const { addToast } = useToast();
-  const [articles, setArticles] = useState<Article[]>([]);
+  const [articles, setArticles] = useState<ArticleSummary[]>([]);
   const [sources, setSources] = useState<SourceConfig[]>([]);
   const [sourceFilter, setSourceFilter] = useState('');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
-  const [deleteTarget, setDeleteTarget] = useState<Article | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<ArticleSummary | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   const load = useCallback(async () => {
@@ -249,7 +249,7 @@ function LibraryPanel() {
       const params = new URLSearchParams();
       if (sourceFilter) params.set('sourceId', sourceFilter);
       if (search.trim()) params.set('search', search.trim());
-      const data = await api<Article[]>(`/api/articles?${params.toString()}`);
+      const data = await api<ArticleSummary[]>(`/api/articles?${params.toString()}`);
       setArticles(data);
     } catch {
       addToast('Failed to load the library', 'error');
@@ -335,7 +335,9 @@ function LibraryPanel() {
                 )}
               </div>
               <div className={styles.resultTitle}>{article.title}</div>
-              {article.body && <p className={styles.resultExcerpt}>{excerpt(article.body)}</p>}
+              {article.excerpt && (
+                <p className={styles.resultExcerpt}>{excerpt(article.excerpt)}</p>
+              )}
               <div className={styles.resultActions}>
                 <Button size="sm" variant="danger" onClick={() => setDeleteTarget(article)}>
                   Delete

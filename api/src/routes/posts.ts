@@ -4,7 +4,7 @@ import {
   findPost,
   listThemes,
   parse,
-  queryPosts,
+  queryPostSummaries,
   removePost,
   setPostStatus,
   updatePost,
@@ -76,8 +76,10 @@ const postsRoutes: FastifyPluginAsync = async (fastify) => {
       query.status === 'draft' || query.status === 'published'
         ? (query.status as PostStatus)
         : undefined;
+    // Summaries, without each post's markup: the grid never reads it, and it
+    // was most of the payload. `GET /api/posts/:id` still returns the full post.
     return reply.send(
-      queryPosts(db(), {
+      queryPostSummaries(db(), {
         status,
         keyword: query.keyword,
         search: query.search,

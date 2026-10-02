@@ -19,7 +19,7 @@ import {
 } from '../ui';
 import { api, sse } from '@/lib/api';
 import { withBase } from '@/lib/base';
-import type { Post, PostStatus } from '@/lib/types';
+import type { PostStatus, PostSummary } from '@/lib/types';
 import styles from './PostsIsland.module.css';
 
 /**
@@ -66,7 +66,7 @@ function formatDate(iso: string): string {
 function PostsPage() {
   const { addToast } = useToast();
 
-  const [posts, setPosts] = useState<Post[]>([]);
+  const [posts, setPosts] = useState<PostSummary[]>([]);
   const [renders, setRenders] = useState<Map<number, RenderSummary>>(new Map());
   const [loading, setLoading] = useState(true);
 
@@ -81,8 +81,8 @@ function PostsPage() {
   } | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
 
-  const [confirmDelete, setConfirmDelete] = useState<Post | null>(null);
-  const [confirmPublish, setConfirmPublish] = useState<Post | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<PostSummary | null>(null);
+  const [confirmPublish, setConfirmPublish] = useState<PostSummary | null>(null);
 
   const abortRef = useRef<AbortController | null>(null);
 
@@ -95,7 +95,7 @@ function PostsPage() {
       const qs = params.toString();
 
       const [postList, renderList] = await Promise.all([
-        api<Post[]>(`/api/posts${qs ? `?${qs}` : ''}`),
+        api<PostSummary[]>(`/api/posts${qs ? `?${qs}` : ''}`),
         api<RenderSummary[]>('/api/renders').catch(() => [] as RenderSummary[]),
       ]);
       setPosts(postList);
@@ -120,7 +120,7 @@ function PostsPage() {
     return [...seen].sort();
   }, [posts]);
 
-  async function handleRender(post: Post) {
+  async function handleRender(post: PostSummary) {
     if (renderingId !== null) return;
     setRenderingId(post.id);
     setRenderProgress(null);
@@ -148,7 +148,7 @@ function PostsPage() {
     }
   }
 
-  async function handlePublish(post: Post) {
+  async function handlePublish(post: PostSummary) {
     setBusyId(post.id);
     try {
       await api(`/api/posts/${post.id}/publish`, { method: 'POST' });
@@ -162,7 +162,7 @@ function PostsPage() {
     }
   }
 
-  async function handleUnpublish(post: Post) {
+  async function handleUnpublish(post: PostSummary) {
     setBusyId(post.id);
     try {
       await api(`/api/posts/${post.id}/status`, {
@@ -178,7 +178,7 @@ function PostsPage() {
     }
   }
 
-  async function handleDelete(post: Post) {
+  async function handleDelete(post: PostSummary) {
     setBusyId(post.id);
     try {
       await api(`/api/posts/${post.id}`, { method: 'DELETE' });

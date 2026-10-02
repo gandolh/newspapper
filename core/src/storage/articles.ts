@@ -1,5 +1,5 @@
 import type { DB } from './db.js';
-import type { Article } from '../types.js';
+import type { Article, ArticleSummary } from '../types.js';
 
 interface ArticleDbRow {
   id: number;
@@ -145,6 +145,21 @@ export function listArticles(db: DB, filter: ArticleFilter = {}): Article[] {
     )
     .all(params) as ArticleDbRow[];
   return rows.map(rowToArticle);
+}
+
+/** Characters of body the library list carries; the UI shows ~220. */
+const EXCERPT_CHARS = 300;
+
+/**
+ * `listArticles` for the library list: each article's body cut to an excerpt,
+ * since the list shows only that. The full bodies (~4 KB each) made up most of
+ * the payload (brief 95).
+ */
+export function listArticleSummaries(db: DB, filter: ArticleFilter = {}): ArticleSummary[] {
+  return listArticles(db, filter).map(({ body, ...rest }) => ({
+    ...rest,
+    excerpt: body.length > EXCERPT_CHARS ? `${body.slice(0, EXCERPT_CHARS).trimEnd()}…` : body,
+  }));
 }
 
 export function findArticle(db: DB, id: number): Article | undefined {

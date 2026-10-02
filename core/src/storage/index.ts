@@ -7,6 +7,7 @@ export {
   saveArticle,
   saveArticles,
   listArticles,
+  listArticleSummaries,
   findArticle,
   getArticlesByIds,
   removeArticle,
@@ -18,6 +19,7 @@ export {
   createPost,
   findPost,
   queryPosts,
+  queryPostSummaries,
   updatePost,
   setPostStatus,
   removePost,
@@ -34,6 +36,7 @@ export type { PostInput, PostFilter } from './posts.js';
 export {
   setPostKeywords,
   keywordsForPost,
+  keywordsForPosts,
   listKeywords,
   pruneKeywords,
   normalizeKeywords,
@@ -42,6 +45,7 @@ export {
 export {
   recordRender,
   latestRender,
+  latestRenders,
   listRenders,
   findRender,
   markRenderOptimized,

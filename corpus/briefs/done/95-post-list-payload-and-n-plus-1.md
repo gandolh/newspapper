@@ -59,3 +59,42 @@ in lockstep.
 
 - keyword *matching* semantics (locked) — only how rows are loaded
 - `corpus/log.md`, `corpus/wiki/status.md`
+
+## Outcome — 2026-10-03
+
+Measured with the sweep's approach (prepared-statement counting through the
+real app via `app.inject`, 150 posts with ~5.6 KB of markup and one render
+each, plus 100 articles with 4 KB bodies):
+
+| Route | Before | After |
+|---|---|---|
+| `GET /api/posts` | 101 statements, 583 KB | **2 statements, 21 KB** |
+| `GET /api/renders` | 301 statements | **1 statement** |
+| `GET /api/articles` | 1 statement, 417 KB | 1 statement, **48 KB** |
+
+Changes:
+- `keywordsForPosts(db, ids)` loads keywords for many posts in one query
+  (`IN (SELECT value FROM json_each(?))`). Both `queryPosts` (full posts,
+  markup kept) and the new `queryPostSummaries` use it.
+- `PostSummary = Omit<Post, 'markup'>`, returned by `GET /api/posts`.
+  `GET /api/posts/:id` still returns the full post.
+- `latestRenders(db)` is one correlated `MAX(id)` query. `GET /api/renders`
+  uses it. It lives in `storage/renders.ts`, beside `latestRender`.
+- `ArticleSummary = Omit<Article, 'body'> & { excerpt }` (≤300 characters;
+  the UI shows 220), returned by `GET /api/articles`.
+- Both new types are in core and the UI mirror, which passes the parity test.
+  `PostsIsland` and `ArticlesIsland` are retyped, and the compiler found
+  exactly the places that read `body`. The library now shows `excerpt`.
+  Neither list read `markup`.
+
+Keyword matching semantics are unchanged. Tests (`list-queries.test.ts`):
+- summaries carry no markup, keep correct keywords, and take 2 statements for
+  30 posts;
+- full posts are 2 statements too and keep their markup;
+- summaries equal the full posts minus markup;
+- the batch keyword loader handles no-keyword posts and an empty id list;
+- `latestRenders` returns each post's newest render in 1 statement;
+- article excerpts are cut, with no body.
+
+`api.md` documents the new shapes. `npm test` 724/724, `tsc` for all three,
+lint, build and corpus lint are clean.

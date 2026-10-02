@@ -1,6 +1,6 @@
 import type { DB } from './db.js';
-import type { Post, PostPayload, PostRow, PostStatus } from '../types.js';
-import { keywordsForPost, setPostKeywords } from './keywords.js';
+import type { Post, PostPayload, PostRow, PostStatus, PostSummary } from '../types.js';
+import { keywordsForPost, keywordsForPosts, setPostKeywords } from './keywords.js';
 
 interface PostDbRow {
   id: number;
@@ -36,15 +36,18 @@ export interface PostFilter {
 
 const DEFAULT_THEME = 'warm-industrial-1';
 
-function rowToPost(db: DB, r: PostDbRow): Post {
+function rowToPost(db: DB, r: PostDbRow, keywords?: string[]): Post {
+  return { ...rowToSummary(r, keywords ?? keywordsForPost(db, r.id)), markup: r.markup };
+}
+
+function rowToSummary(r: Omit<PostDbRow, 'markup'>, keywords: string[]): PostSummary {
   return {
     id: r.id,
     title: r.title,
     description: r.description,
-    markup: r.markup,
     theme: r.theme,
     status: r.status as PostStatus,
-    keywords: keywordsForPost(db, r.id),
+    keywords,
     createdAt: r.created_at,
     updatedAt: r.updated_at,
     publishedAt: r.published_at,
@@ -83,6 +86,33 @@ export function findPost(db: DB, id: number): Post | undefined {
 
 /** Posts newest-updated first, optionally narrowed by status, keyword, or text. */
 export function queryPosts(db: DB, filter: PostFilter = {}): Post[] {
+  const rows = selectPostRows(db, filter, 'p.*') as PostDbRow[];
+  const keywords = keywordsForPosts(
+    db,
+    rows.map((r) => r.id),
+  );
+  return rows.map((r) => rowToPost(db, r, keywords.get(r.id) ?? []));
+}
+
+/**
+ * The post list without each post's markup, which only the editor needs: two
+ * queries for any number of posts. `GET /api/posts` used to send ~5.6 KB of
+ * markup per post the grid never reads, and fetch keywords one post at a time.
+ */
+export function queryPostSummaries(db: DB, filter: PostFilter = {}): PostSummary[] {
+  const rows = selectPostRows(
+    db,
+    filter,
+    'p.id, p.title, p.description, p.theme, p.status, p.created_at, p.updated_at, p.published_at',
+  ) as Omit<PostDbRow, 'markup'>[];
+  const keywords = keywordsForPosts(
+    db,
+    rows.map((r) => r.id),
+  );
+  return rows.map((r) => rowToSummary(r, keywords.get(r.id) ?? []));
+}
+
+function selectPostRows(db: DB, filter: PostFilter, columns: string): unknown[] {
   const where: string[] = [];
   const params: Record<string, unknown> = {};
 
@@ -106,15 +136,14 @@ export function queryPosts(db: DB, filter: PostFilter = {}): Post[] {
   params['limit'] = filter.limit ?? 100;
   params['offset'] = filter.offset ?? 0;
 
-  const rows = db
+  return db
     .prepare(
-      `SELECT p.* FROM posts p
+      `SELECT ${columns} FROM posts p
        ${where.length ? `WHERE ${where.join(' AND ')}` : ''}
        ORDER BY p.updated_at DESC, p.id DESC
        LIMIT @limit OFFSET @offset`,
     )
-    .all(params) as PostDbRow[];
-  return rows.map((r) => rowToPost(db, r));
+    .all(params);
 }
 
 /** Replace a post's markup and re-derive its index columns and keywords. */

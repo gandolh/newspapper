@@ -2,7 +2,7 @@ import type { FastifyPluginAsync } from 'fastify';
 import { basename, resolve, sep } from 'node:path';
 import { existsSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { latestRender, queryPosts, type RenderRecord } from '@newspapper/core';
+import { latestRender, latestRenders, type RenderRecord } from '@newspapper/core';
 import { db } from '../lib/db.js';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
@@ -67,12 +67,9 @@ const rendersRoutes: FastifyPluginAsync = async (fastify) => {
       return reply.send(render ? [toSummary(render)] : []);
     }
 
-    const summaries: RenderSummary[] = [];
-    for (const post of queryPosts(db(), { limit: 500 })) {
-      const render = latestRender(db(), post.id);
-      if (render) summaries.push(toSummary(render));
-    }
-    return reply.send(summaries);
+    // One query for every post's newest render (brief 95). This used to list
+    // up to 500 posts only to call latestRender once per post.
+    return reply.send(latestRenders(db()).map(toSummary));
   });
 };
 

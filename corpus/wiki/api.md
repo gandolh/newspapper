@@ -1,6 +1,6 @@
 ---
 summary: Every HTTP route the Fastify API exposes — method, path, body, response shape, and which ones stream SSE.
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 # HTTP API
@@ -67,7 +67,7 @@ never written until the user explicitly saves one.
 
 | Method | Path | Query / Body | Response |
 |--------|------|---------------|----------|
-| GET | `/api/articles` | query `sourceId?`, `search?` (title/body substring), `limit?`, `offset?` | `Article[]`, most recently saved first |
+| GET | `/api/articles` | query `sourceId?`, `search?` (title/body substring), `limit?`, `offset?` | `ArticleSummary[]` (an `Article` with `body` replaced by a ≤300-char `excerpt`), most recently saved first |
 | POST | `/api/articles` | body `NewArticle` (`title` required; `sourceId`, `sourceName`, `guid`, `url`, `body`, `publishedAt` optional) | 201 `Article` — idempotent on `(source_id, guid)`; a repeat save returns the existing row. `sourceName` defaults to `'Manual'` when no `sourceId` is given. |
 | DELETE | `/api/articles/:id` | — | `{ ok: true }` · 404 |
 
@@ -96,7 +96,7 @@ tells the author their title is missing.
 
 | Method | Path | Query / Body | Response |
 |--------|------|---------------|----------|
-| GET | `/api/posts` | query `status?` (`draft`\|`published`), `keyword?`, `search?`, `limit?`, `offset?` | `PostRow[]` |
+| GET | `/api/posts` | query `status?` (`draft`\|`published`), `keyword?`, `search?`, `limit?`, `offset?` | `PostSummary[]`: every post field except `markup` (two queries for any N). `GET /api/posts/:id` has the markup. |
 | POST | `/api/posts` | `{ markup, theme? }` | 201 `PostRow` · 400 missing markup or unknown theme |
 | GET | `/api/posts/:id` | — | `PostRow` · 404 |
 | PUT | `/api/posts/:id` | `{ markup, theme? }` | `PostRow` · 400 · 404. An omitted theme keeps the post's current one. |
@@ -110,7 +110,7 @@ otherwise reach `loadTheme` and throw two steps later.
 
 | Method | Path | Query | Response |
 |--------|------|-------|----------|
-| GET | `/api/renders` | `postId?` | `RenderSummary[]` — the **latest** render of every post that has one (or just that post's, with `postId`) · 400 non-integer `postId` |
+| GET | `/api/renders` | `postId?` | `RenderSummary[]` — the **latest** render of every post that has one, in one query (or just that post's, with `postId`) · 400 non-integer `postId` |
 
 `RenderSummary` is `{ id, postId, slideCount, optimized, createdAt, files }`,
 where `files` lists each slide **still on disk**. The run directory is read

@@ -54,6 +54,27 @@ export function setPostKeywords(db: DB, postId: number, names: string[]): string
 }
 
 /** The keyword names attached to a post, alphabetical. */
+/**
+ * Keywords for many posts in one query, keyed by post id. A list used to issue
+ * one `keywordsForPost` per row: `GET /api/posts` was 101 statements for 100
+ * posts (brief 95). Posts with none map to `[]`.
+ */
+export function keywordsForPosts(db: DB, postIds: readonly number[]): Map<number, string[]> {
+  const byPost = new Map<number, string[]>(postIds.map((id) => [id, []]));
+  if (postIds.length === 0) return byPost;
+  const rows = db
+    .prepare(
+      `SELECT pk.post_id AS postId, k.name AS name
+       FROM post_keywords pk
+       JOIN keywords k ON k.id = pk.keyword_id
+       WHERE pk.post_id IN (SELECT value FROM json_each(?))
+       ORDER BY k.name COLLATE NOCASE`,
+    )
+    .all(JSON.stringify(postIds)) as Array<{ postId: number; name: string }>;
+  for (const row of rows) byPost.get(row.postId)?.push(row.name);
+  return byPost;
+}
+
 export function keywordsForPost(db: DB, postId: number): string[] {
   const rows = db
     .prepare(

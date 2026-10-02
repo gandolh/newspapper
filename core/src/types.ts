@@ -168,3 +168,11 @@ export interface SourceConfig {
 export interface Settings {
   defaultTheme: string; // default warm-industrial-1
 }
+
+/** A post as a list shows it: everything but the markup, which only the editor
+ * needs. `GET /api/posts` returns these (brief 95). */
+export type PostSummary = Omit<Post, 'markup'>;
+
+/** A saved article as the library lists it: the body is cut to an excerpt,
+ * which is all the list shows. */
+export type ArticleSummary = Omit<Article, 'body'> & { excerpt: string };

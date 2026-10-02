@@ -1,5 +1,5 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { saveArticle, listArticles, removeArticle } from '@newspapper/core';
+import { saveArticle, listArticleSummaries, removeArticle } from '@newspapper/core';
 import type { NewArticle } from '@newspapper/core';
 import { db } from '../lib/db.js';
 
@@ -15,7 +15,8 @@ const articlesRoutes: FastifyPluginAsync = async (fastify) => {
       limit?: string;
       offset?: string;
     };
-    const articles = listArticles(db(), {
+    // Excerpts, not full bodies: the library list shows only the excerpt.
+    const articles = listArticleSummaries(db(), {
       sourceId: query.sourceId || undefined,
       search: query.search || undefined,
       limit: query.limit ? Number(query.limit) : undefined,
