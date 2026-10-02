@@ -231,6 +231,44 @@ describe('migrate — v3 → v4 (the warm-industrial rename)', () => {
     db.close();
   }
 
+  /**
+   * Brief 86. A crash between `DROP TABLE posts` and the `RENAME` used to leave
+   * no `posts` table and `user_version` still 3, so every later boot died on
+   * the missing table. A view over `posts` makes the real rebuild fail exactly
+   * there: SQLite re-checks views on RENAME, and this one names a table the
+   * DROP just removed. Inside the step's transaction that must roll back.
+   */
+  it('an interrupted rebuild rolls back to an intact, re-migratable v3', () => {
+    const dbPath = join(tmpDir, 'v3.db');
+    buildV3Db(dbPath);
+    const raw = new Database(dbPath);
+    raw.exec('CREATE VIEW post_titles AS SELECT title FROM posts');
+    raw.close();
+
+    expect(() => getDb(dbPath)).toThrow(/post_titles/);
+
+    const after = new Database(dbPath);
+    const tables = (
+      after.prepare("SELECT name FROM sqlite_master WHERE type='table'").all() as Array<{
+        name: string;
+      }>
+    ).map((r) => r.name);
+    const titles = after.prepare('SELECT title FROM posts ORDER BY id').all();
+    const version = after.pragma('user_version', { simple: true });
+    expect(tables).toContain('posts');
+    expect(tables).not.toContain('posts_migrating');
+    expect(titles).toEqual([{ title: 'Legacy' }, { title: 'Already moved' }]);
+    expect(version).toBe(3);
+    // Fix the cause and it migrates, rows and child rows intact.
+    after.exec('DROP VIEW post_titles');
+    after.close();
+    const db = getDb(dbPath);
+    expect(db.pragma('user_version', { simple: true })).toBe(5);
+    expect(db.prepare('SELECT COUNT(*) AS n FROM posts').get()).toEqual({ n: 2 });
+    expect(db.prepare('SELECT COUNT(*) AS n FROM renders').get()).toEqual({ n: 1 });
+    db.close();
+  });
+
   it('rewrites stored rows and leaves the other family members alone', () => {
     const dbPath = join(tmpDir, 'v3.db');
     buildV3Db(dbPath);

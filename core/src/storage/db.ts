@@ -265,10 +265,10 @@ function migrateV3ToV4(db: DB): void {
     .get() as { sql: string } | undefined;
   if (!schema?.sql.includes(`DEFAULT '${LEGACY_THEME}'`)) return;
 
-  const foreignKeys = db.pragma('foreign_keys', { simple: true }) === 1;
-  if (foreignKeys) db.pragma('foreign_keys = OFF');
-  try {
-    db.exec(`
+  // Runs with foreign keys off (set by `migrate`, outside the transaction, where
+  // SQLite honours it): DROP TABLE posts would otherwise cascade into
+  // post_keywords and renders.
+  db.exec(`
       CREATE TABLE posts_migrating (
         id           INTEGER PRIMARY KEY AUTOINCREMENT,
         title        TEXT NOT NULL,
@@ -291,9 +291,6 @@ function migrateV3ToV4(db: DB): void {
 
       CREATE INDEX IF NOT EXISTS idx_posts_status_updated_at ON posts(status, updated_at);
     `);
-  } finally {
-    if (foreignKeys) db.pragma('foreign_keys = ON');
-  }
 }
 
 /**
@@ -314,37 +311,56 @@ function migrateV4ToV5(db: DB): void {
   db.exec(`DROP TABLE IF EXISTS users`);
 }
 
+/**
+ * Run one migration step as a unit: its schema work and the `user_version` bump
+ * commit together or not at all.
+ *
+ * `db.exec` with several statements is not atomic, each statement
+ * auto-commits, and the v3 → v4 rebuild is `CREATE … INSERT … DROP posts …
+ * RENAME`. A crash between the DROP and the RENAME (an OOM kill or `kill -9`
+ * during a container boot) left a file with no `posts` table and
+ * `user_version` still 3, so every later boot re-entered the step, failed on
+ * the missing table, and the app could not start without hand-written SQL.
+ * Inside a transaction a crash rolls back to the intact old schema, and the
+ * step simply runs again on the next boot.
+ *
+ * `foreign_keys` cannot change inside a transaction (SQLite ignores the
+ * pragma there), so a step that rebuilds a referenced table asks for it to be
+ * switched off around the transaction.
+ */
+export function runMigrationStep(
+  db: DB,
+  toVersion: number,
+  work: (db: DB) => void,
+  options: { foreignKeysOff?: boolean } = {},
+): void {
+  const restoreForeignKeys =
+    options.foreignKeysOff === true && db.pragma('foreign_keys', { simple: true }) === 1;
+  if (restoreForeignKeys) db.pragma('foreign_keys = OFF');
+  try {
+    db.transaction(() => {
+      work(db);
+      db.pragma(`user_version = ${toVersion}`);
+    })();
+  } finally {
+    if (restoreForeignKeys) db.pragma('foreign_keys = ON');
+  }
+}
+
 export function migrate(db: DB): void {
-  let version = (db.pragma('user_version', { simple: true }) as number) ?? 0;
+  const version = (db.pragma('user_version', { simple: true }) as number) ?? 0;
   if (version >= CURRENT_SCHEMA_VERSION) return;
 
   if (version === 0) {
-    db.exec(SCHEMA_CURRENT);
-    db.pragma(`user_version = ${CURRENT_SCHEMA_VERSION}`);
+    runMigrationStep(db, CURRENT_SCHEMA_VERSION, (d) => d.exec(SCHEMA_CURRENT));
     seedSourcesFromJson(db);
     return;
   }
 
-  if (version === 1) {
-    migrateV1ToV2(db);
-    version = 2;
-  }
+  if (version <= 1) runMigrationStep(db, 2, migrateV1ToV2);
+  if (version <= 2) runMigrationStep(db, 3, migrateV2ToV3);
+  if (version <= 3) runMigrationStep(db, 4, migrateV3ToV4, { foreignKeysOff: true });
+  if (version <= 4) runMigrationStep(db, 5, migrateV4ToV5);
 
-  if (version === 2) {
-    migrateV2ToV3(db);
-    version = 3;
-  }
-
-  if (version === 3) {
-    migrateV3ToV4(db);
-    version = 4;
-  }
-
-  if (version === 4) {
-    migrateV4ToV5(db);
-    version = 5;
-  }
-
-  db.pragma(`user_version = ${CURRENT_SCHEMA_VERSION}`);
   seedSourcesFromJson(db);
 }

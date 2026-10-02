@@ -43,6 +43,7 @@ times a tool here reported success while reaching nothing.
 | [glossary.md](wiki/glossary.md) | The project's vocabulary — one canonical definition per term Newspapper uses in a particular way, and the synonyms each one displaces. |
 | [green-because-nothing-ran.md](wiki/green-because-nothing-ran.md) | The nine times a check in this repo reported success while reaching nothing — what each one was, how it was caught, and the cheap check that would have caught it sooner. Read before trusting a green command here. |
 | [markup.md](wiki/markup.md) | Newspapper Wizard (.wzd) — the JSX-like markup a post is written in: document shape, the component catalogue, the props model, and how it compiles to images. |
+| [migrations.md](wiki/migrations.md) | The schema's version history (v1 CLI era through the current version) and how migrate() walks it, one transaction per step so a crash rolls back instead of bricking the database. |
 | [modules.md](wiki/modules.md) | The public API of @newspapper/core — what each module actually exports and from which entry point. |
 | [open-questions.md](wiki/open-questions.md) | Nothing is open. Both remaining questions were settled on 2026-09-01 — kept as a page so the next open question has somewhere to land. |
 | [overview.md](wiki/overview.md) | What Newspapper is — write a post in .wzd markup, compile it to 1080² JPEGs — plus the v1→v3 lineage and the Wizard pivot that explain its shape, the three workspaces, and what lives where at the top level. |

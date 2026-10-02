@@ -63,3 +63,26 @@ guards); v3→v4 is the one that rebuilds a table, so it is the dangerous one.
 
 - other storage modules' query logic
 - `corpus/log.md`, `corpus/wiki/status.md`
+
+## Outcome — 2026-10-02
+
+`migrate()` now runs every step through `runMigrationStep(db, toVersion, work,
+{ foreignKeysOff? })`. The step's work and its `user_version` bump go in one
+`db.transaction`, so a version and its schema can't disagree. The v3 → v4
+rebuild asks for `foreignKeysOff`, which is toggled *outside* the transaction
+because SQLite ignores the pragma inside one, and its own inner pragma handling
+is removed. The fresh-install path is transactional too. Steps V1→V2 and
+V2→V3 are unchanged and stay resumable.
+
+Tests: the existing 24 migration tests pass unchanged, plus one new
+interruption test. A `CREATE VIEW post_titles AS SELECT title FROM posts`
+makes the **real** rebuild fail between `DROP TABLE posts` and the `RENAME`,
+because SQLite re-checks views on rename. That reproduces the brick in a raw
+`db.exec` (no `posts`, `posts_migrating` left behind). With the fix, `getDb`
+throws naming the view, and the file still has `posts` with both rows, no
+`posts_migrating`, and `user_version` 3. Dropping the view then migrates to 5
+with posts and child renders intact. The test fails on the old code.
+
+`npm test`, `npm run lint`, `npm run build` and corpus lint are clean.
+`wiki/data.md` notes the per-step transaction. Its stale "version 4" is brief
+83's.

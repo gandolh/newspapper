@@ -1556,3 +1556,7 @@ The vitest `include` globs match `.test.tsx` as well, before the first component
 ## [2026-10-02] done | Brief 78 — under /newspapper/, links stay in-app and images load
 
 Post links, post and picker thumbnails, and the preview canvas's images carry the base path, so under `/newspapper/` they stop leaving the app or 404ing. Vitest gained the UI's `@/` alias so components are importable in tests.
+
+## [2026-10-02] done | Brief 86 — migrations are transactional per step
+
+Every schema migration step now commits with its `user_version` bump in one transaction, so a crash mid-rebuild rolls back to an openable, re-migratable database instead of one with no `posts` table. A test makes the real v3 → v4 rebuild fail between DROP and RENAME to prove it.

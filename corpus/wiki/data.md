@@ -1,6 +1,6 @@
 ---
 summary: On-disk and in-DB shapes — the v4 SQLite schema for authored posts, the TNode compile target, and the output/YYYY-MM-DD-N convention. Nothing here is a file format the user edits; the .wzd document is in markup.md.
-updated: 2026-08-31
+updated: 2026-10-02
 ---
 
 # Data
@@ -137,23 +137,8 @@ table with exactly one key, `defaultTheme`.
 
 ## Migration history
 
-| Version | Shape |
-|---|---|
-| 1 | CLI era: `posts(date, run_number, payload, output_dir)`, `articles(scraped_at)` |
-| 2 | Web app: `posts.payload` + `status draft\|rendered` + `output_dir`, `settings` |
-| 3 | Authored posts: `posts.markup`, `keywords`, `post_keywords`, `renders`, `users`, `uploads`, `sources` in the DB |
-| 4 | The theme family: `warm-industrial` → `warm-industrial-1` in `posts.theme`, the column default, and the `defaultTheme` setting |
-
-A fresh database is created at version 4 directly; an existing one walks every
-step in one boot. `migrate()` (`core/src/storage/db.ts`) keys on
-`PRAGMA user_version` and uses `IF NOT EXISTS` throughout, so re-running is a
-no-op.
-
-**v2 → v3 destroys rows on purpose.** A v2 post held a composed slide payload
-with no markup to derive it from, and v2 articles were transient scrape output.
-Both tables are dropped and recreated, so **every v2 post row and every v2
-article row is deleted**. `settings` survives untouched. A v1 database walks
-v1 → v2 → v3 in one boot and loses its posts the same way.
+How the schema got here, and how a migration step stays crash-safe:
+[migrations.md](migrations.md).
 
 ## TNode — the `.wzd` compile target
 
