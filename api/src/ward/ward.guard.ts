@@ -79,6 +79,28 @@ export function isGuardedPath(url: string): boolean {
   return GUARDED_PREFIXES.some((prefix) => path.startsWith(prefix));
 }
 
+/**
+ * Whether a request must carry a session, from **what Fastify matched** as well
+ * as the raw URL.
+ *
+ * Deciding from the raw URL alone was the bug (brief 77): find-my-way
+ * percent-decodes the path before matching, so `/%61pi/posts` never started
+ * with `/api/` here yet routed to the real `/api/posts` handler, and the whole
+ * API was readable and writable without a session. `routeOptions.url` is the
+ * matched route *pattern* (`/api/posts`, `/api/posts/:id`, and `/output/*` for
+ * the static plugins), already decoded by the router, so it is the authoritative
+ * input. Nothing here decodes a path by hand.
+ *
+ * The raw check stays as a second reason to guard, never a reason to skip: a
+ * request is public only if neither spelling is guarded. `/api/health` stays
+ * public because its matched pattern is exactly `/api/health`.
+ */
+export function requiresSession(rawUrl: string, matchedRoute: string | undefined): boolean {
+  if (matchedRoute !== undefined && isGuardedPath(matchedRoute)) return true;
+  if (matchedRoute !== undefined && PUBLIC_PATHS.has(matchedRoute)) return false;
+  return isGuardedPath(rawUrl);
+}
+
 export const UNAUTHENTICATED_BODY = { error: 'Authentication required' } as const;
 export const FORBIDDEN_BODY = { error: 'This account has no access to newspapper' } as const;
 export const UNAVAILABLE_BODY = { error: 'Sign-in is temporarily unavailable' } as const;
@@ -94,7 +116,7 @@ export function registerAuthGuard(fastify: FastifyInstance, options: WardGuardOp
   fastify.decorateRequest('ward', null);
 
   fastify.addHook('onRequest', async (req, reply) => {
-    if (!isGuardedPath(req.url)) return;
+    if (!requiresSession(req.url, req.routeOptions?.url)) return;
     if (req.routeOptions?.config?.public === true) return;
 
     let session: WardCaller;

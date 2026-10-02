@@ -96,3 +96,37 @@ matched pattern is in hand.
   mixed case). The matched-route pattern is the authoritative source and is
   already computed. If you must normalize a raw path anywhere, justify why the
   matched route was not usable.
+
+## Outcome — 2026-10-02
+
+The `onRequest` hook now calls `requiresSession(req.url, req.routeOptions?.url)`.
+A request is guarded if the **matched route pattern** is guarded, or if the raw
+URL is. The pattern is the router's own decoded match, so nothing decodes a
+path by hand. It is public only when neither spelling is guarded, or when the
+matched pattern is exactly a public path (`/api/health`). `PUBLIC_PATHS`,
+`GUARDED_PREFIXES` and `config.public` are unchanged.
+
+**Does a `@fastify/static` request carry `req.routeOptions.url`? Yes:** the
+plugin declares a real wildcard route, so `/output/*` is matched. The proof is
+`/%6Futput/x/slide-01.jpg`: its raw URL doesn't start with `/output/`, yet it
+now gets 401, which can only come from the matched pattern. Uploads are a
+declared route (`/uploads/:ref`), so they are covered the same way. A request
+that matches nothing has no pattern and falls back to the raw check. The router
+then 404s it and no guarded handler runs.
+
+Tests (`ward.guard.test.ts`, 9 new): with no session, 401 for `GET /%61pi/posts`,
+`GET /a%70i/settings`, `POST /%61pi/posts`, `PUT /%61pi/settings`,
+`/%6Futput/x/slide-01.jpg`, `/%75ploads/<ref>` and `/%75ploads/<ref>/original`.
+Double-encoded `/%2561pi/posts` decodes once to a literal that matches no
+route, and never reaches the posts handler: it gets a 404, or the public SPA
+shell when `ui/dist` exists. The decoded spellings still 401. A granted session
+gets through at both spellings, and `/api/health` stays public at both. Without
+the fix, 7 of these fail.
+
+`npm test` 619/619, `npm run build` clean, `bash corpus/lint.sh` clean. `npm
+run lint` still reports its one pre-existing error (an unused `db` in
+`api/src/server.ts`), which is brief 80's.
+
+Noticed, out of scope: the prod not-found handler decides "API or SPA" from the
+raw URL too, so `/%61pi/<unknown>` gets the SPA shell instead of a JSON 404.
+That's cosmetic, with no data exposed.

@@ -113,3 +113,68 @@ describe('/uploads is no longer public', () => {
     expect(res.statusCode).toBe(401);
   });
 });
+
+/**
+ * Brief 77. The guard used to decide from the **raw** URL while Fastify routes
+ * the **percent-decoded** one, so `/%61pi/posts` (`%61` = `a`) skipped
+ * authentication and reached the real `/api/posts` handler: anonymous read and
+ * write of the whole API. Every spelling below must be refused before any
+ * handler runs. A handler that ran would answer 200, 201 or 404, never 401.
+ */
+describe('percent-encoded paths are guarded like the decoded ones', () => {
+  const encoded: Array<[string, string]> = [
+    ['GET', '/%61pi/posts'],
+    ['GET', '/a%70i/settings'],
+    ['POST', '/%61pi/posts'],
+    ['PUT', '/%61pi/settings'],
+    ['GET', '/%6Futput/x/slide-01.jpg'],
+    ['GET', '/%75ploads/some-ref'],
+    ['GET', '/%75ploads/some-ref/original'],
+    ['GET', '/%2561pi/posts'],
+  ];
+
+  for (const [method, url] of encoded) {
+    it(`401s ${method} ${url} with no session`, async () => {
+      const res = await app.inject({
+        method: method as 'GET',
+        url,
+        ...(method === 'GET' ? {} : { payload: { markup: '' } }),
+      });
+      if (url.startsWith('/%2561')) {
+        // Double-encoded, it decodes once, to the literal `/%61pi/posts`, which
+        // matches no route. It must not reach the posts handler: the answer is a
+        // 404, or (when `ui/dist` is built) the public SPA shell from the
+        // not-found handler. Either way, no API data.
+        expect(res.statusCode).not.toBe(201);
+        if (res.statusCode === 200) expect(res.headers['content-type']).toMatch(/text\/html/);
+        else expect([401, 404]).toContain(res.statusCode);
+      } else {
+        expect(res.statusCode).toBe(401);
+      }
+    });
+  }
+
+  it('the decoded spellings still 401 without a session', async () => {
+    for (const url of ['/api/posts', '/output/x/slide-01.jpg', '/uploads/some-ref']) {
+      const res = await app.inject({ method: 'GET', url });
+      expect(res.statusCode, url).toBe(401);
+    }
+  });
+
+  it('a granted session still gets through, at either spelling', async () => {
+    ward.signIn(TOKEN, 'subject_editor', { newspapper: ['editor'] });
+    expect((await withSession('/api/posts')).statusCode).toBe(200);
+    expect((await withSession('/%61pi/posts')).statusCode).toBe(200);
+    // Static and upload routes get past the guard to their handlers, which
+    // can't find the file. (A missing static file falls through to the
+    // not-found handler, which serves the SPA shell when `ui/dist` is built.)
+    for (const url of ['/%6Futput/x/slide-01.jpg', '/%75ploads/some-ref']) {
+      expect([200, 404], url).toContain((await withSession(url)).statusCode);
+    }
+  });
+
+  it('/api/health stays public at either spelling', async () => {
+    expect((await app.inject({ method: 'GET', url: '/api/health' })).statusCode).toBe(200);
+    expect((await app.inject({ method: 'GET', url: '/%61pi/health' })).statusCode).toBe(200);
+  });
+});

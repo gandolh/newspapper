@@ -1520,3 +1520,12 @@ in `api/src/server.ts:19`, not touched here.
 `corpus/lint.sh` no longer lists `docs/` as abandoned: the Starlight docs-site
 workspace re-created it on 2026-09-07. The other four retired roots were
 re-checked and stay. Lint is clean again with the full backlog in `todo/`.
+
+## [2026-10-02] done | Brief 77 — the guard decides from the matched route, closing anonymous API access
+
+The critical one. The Ward guard decided from the raw URL while Fastify routes
+the percent-decoded one, so `/%61pi/posts` reached the real handler with no
+session: anonymous read and write of the whole API on the public origin. It now
+guards on the matched route pattern as well (`requiresSession`), and nine new
+tests cover every encoded spelling the sweep reproduced. Static-plugin requests
+do carry a matched pattern (`/output/*`), which the encoded output test proves.
