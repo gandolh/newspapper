@@ -70,3 +70,29 @@ silently passes, when a browser is expected but missing.
 Depends on the Chromium skip helper from brief 91 (or inline the same guard). If
 91 hasn't landed, use `render.test.ts`'s current `browserAvailable` pattern and
 note the dependency.
+
+## Outcome — 2026-10-02
+
+New `core/src/render/uploads-route.test.ts`. It saves a solid-red PNG through
+the real upload store (temp `UPLOADS_DIR`, temp DB), then renders 1080² HTML
+whose background is an absolute `…/uploads/<ref>` URL on a port nothing listens
+on (`127.0.0.1:9`). That is the shape a compiled `<Image>` produces. Then it
+reads the centre pixel with sharp:
+- **with `db`**, red: the interceptor served the bytes from disk;
+- **without `db`**, white: the documented blank-image contract is pinned;
+- an unknown ref, an encoded traversal (`..%2fsecret.png`) and a literal
+  `../secret.png`, with a real red file sitting just outside the store, all
+  stay white;
+- `localUploadFile` returns null for unknown, malformed, traversal and
+  `/original` URLs, and resolves a real ref.
+
+**Mutations, tried and reverted:** with `UPLOADS_ROUTE_GLOB` set to
+`'/uploads/*'`, the with-db case fails. With `installUploadsRoute` removed from
+`screenshot.ts`, it fails too. The Chromium guard follows `render.test.ts`'s
+pattern, and it throws under `CI`. Brief 91 will unify it.
+
+Note: a base-prefixed `/newspapper/uploads/<ref>` URL is *not* served (the
+validator wants `/uploads/<ref>`). That is correct: the renderer's URLs come
+from `uploadsBaseUrl()` at the server root, never the browser base.
+
+`npm test` 666/666, lint clean.

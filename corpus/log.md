@@ -1584,3 +1584,7 @@ Documentation pass for the Ward, VPS and base-path moves: README, CLAUDE.md and 
 ## [2026-10-02] done | Brief 103 — Settings points at Ward instead of a dead password form
 
 Settings no longer shows a password form for a route that no longer exists; it points at Ward's account page instead.
+
+## [2026-10-02] done | Brief 88 — the render-time upload interception is tested end to end
+
+The render-time uploads interception is now tested end to end: a real upload renders red with the db and blank without it, traversals are not served, and the suite fails if the route glob or the interception is broken.
