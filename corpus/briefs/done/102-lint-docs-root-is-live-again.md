@@ -59,3 +59,19 @@ corpus/briefs/todo/83-reconcile-docs-with-ward.md — references abandoned path 
 
 Trivial and safe to do first — until it lands, `bash corpus/lint.sh` reports three
 false positives, which will mask a real corpus-lint finding if one appears.
+
+## Outcome — 2026-10-02
+
+Removed the `"docs/"` entry from `ABANDONED_ROOTS`, with a comment saying why it
+was there and why it went. The check itself is unchanged.
+
+The other four roots, checked with `ls` and `git ls-files`:
+- `plans/`, `infra/` and `corpus/CLAUDE.md` don't exist.
+- `.claude/skills/` does exist on this machine, but only as an untracked,
+  gitignored leftover (`.gitignore:32`, one `newspapper-voice` directory dated
+  2026-08-27, the day it was retired). The repo really did abandon it, so the
+  entry stays.
+
+`bash corpus/lint.sh` now exits clean with briefs 83 and 100 in `todo/`. This
+brief's own mentions of the retired roots are exempt once it is in `done/`. The
+stray `:memory:` file the sweep mentioned is no longer in the repo root.

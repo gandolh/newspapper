@@ -14,8 +14,9 @@ MAX_BODY_LINES=200
 
 # Path roots the repo has abandoned. A corpus page still pointing at one of
 # these is stale by definition. Add a root here when you retire a directory.
+# `docs/` was on this list (→ corpus/, 2026-08-27) until 2026-10-02: the
+# Starlight docs-site workspace re-created it on 2026-09-07.
 ABANDONED_ROOTS=(
-  "docs/"          # → corpus/ (2026-08-27)
   ".claude/skills" # project-local skill copies removed 2026-08-27
   "plans/"         # v2/v3 build plans + reference, deleted 2026-08-31
   "infra/"         # Ollama-only compose file, deleted 2026-08-31

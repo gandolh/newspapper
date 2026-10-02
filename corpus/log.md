@@ -1514,3 +1514,9 @@ Node's `--env-file-if-exists=../.env`.
 Browser-verified against the local Ward on a scratch database and upload store.
 608 tests pass; build clean. `npm run lint` fails on a pre-existing unused `db`
 in `api/src/server.ts:19`, not touched here.
+
+## [2026-10-02] done | Brief 102 — the corpus linter stops calling docs/ abandoned
+
+`corpus/lint.sh` no longer lists `docs/` as abandoned: the Starlight docs-site
+workspace re-created it on 2026-09-07. The other four retired roots were
+re-checked and stay. Lint is clean again with the full backlog in `todo/`.
