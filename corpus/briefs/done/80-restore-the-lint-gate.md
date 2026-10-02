@@ -37,3 +37,7 @@ gets quietly undone.
 - `eslint.config.js`, the `lint` script — the config is right; the code is wrong
 - everything else
 - `corpus/log.md`, `corpus/wiki/status.md`
+
+## Outcome — 2026-10-02
+
+Removed the unused `import { db } from './lib/db.js'` from `api/src/server.ts`. Nothing in the file used it. `npm run lint` now exits 0 across all three workspaces, `npm run build` (with `fmt:check`) passes, `npm test` passes 652/652, and corpus lint is clean.

@@ -16,7 +16,6 @@ import themesRoutes from './routes/themes.js';
 import sourcesRoutes from './routes/sources.js';
 import settingsRoutes from './routes/settings.js';
 import uploadsRoutes from './routes/uploads.js';
-import { db } from './lib/db.js';
 import { registerAuthGuard } from './ward/ward.guard.js';
 import type { WardClient } from './ward/ward.client.js';
 

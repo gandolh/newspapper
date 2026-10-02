@@ -1544,3 +1544,7 @@ never requested. A DNS-rebinding residual is documented in `safe-url.ts`.
 5xx responses carry a generic body; the exception text stays in the server log.
 4xx messages are unchanged. Also folded briefs 77, 85 and 79 into
 `wiki/decisions-security.md` as three new entries.
+
+## [2026-10-02] done | Brief 80 — npm run lint is green again
+
+`npm run lint` is green again: one unused import left by the Ward move.
