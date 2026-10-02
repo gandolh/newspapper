@@ -1,11 +1,11 @@
 ---
-summary: Dated snapshot (2026-10-02) — the Wizard rebuild is done, identity is Ward's, it runs on the VPS under /newspapper/, and the 2026-09-27 improvements sweep is partly worked through; plus the known strays and open questions.
-updated: 2026-10-02
+summary: Dated snapshot (2026-10-03) — the Wizard rebuild is done, identity is Ward's, it runs on the VPS under /newspapper/, and the 2026-09-27 improvements sweep (77-104) is fully worked through; plus the known strays and open questions.
+updated: 2026-10-03
 ---
 
 # Status
 
-_Snapshot: 2026-10-02. Branch `local-ward-dev`, not merged, nothing pushed._
+_Snapshot: 2026-10-03. Branch `local-ward-dev`, not merged, nothing pushed._
 
 ## Where things stand
 
@@ -23,14 +23,25 @@ how it runs:
 - **Local dev signs in through a local Ward** (brief 84,
   [configuration.md](./configuration.md#local-sign-in)).
 
-The 2026-09-27 improvements sweep (briefs 77-102) is being worked through. The
-security findings are fixed: an encoded-path auth bypass (77), SSRF in the RSS
-fetch (85), leaked 5xx messages (79), a publish path leak (101), and advisory
-dependencies (100). So are the base-path breakage (78), transactional migrations
-(86), single-flight editor saves (87), the lint gate (80, 81, 102), the dead
-user types (82) and this documentation pass (83). The rest are in
-[`../briefs/todo/`](../briefs/todo/). Gates: `npm run build`, `npm run lint`,
-`npm test` (661 tests, 47 files) and `bash corpus/lint.sh`, all green.
+**The 2026-09-27 improvements sweep (briefs 77-102) is done**, along with
+103 and 104, which were found while doing it. In short:
+- the guard decides from the matched route, closing an encoded-path auth
+  bypass;
+- RSS fetches are SSRF-guarded and capped, 5xx bodies are generic, and a JWKS
+  outage fails closed;
+- the base path is right in every browser URL;
+- migrations are transactional, editor saves single-flight, and render output
+  directories reserved;
+- the render browser can't leak or hang;
+- the list routes are O(1) queries and the grid uses small thumbnails;
+- the parser caps nesting, and the editor has an error boundary;
+- one module owns the repo root.
+
+Coverage now reaches the real Ward client, the render route, the upload
+interception and the UI's base path, and every Chromium suite fails under
+`CI`. Gates: `npm run build`, `npm run lint`, `npm test` (740 tests) and
+`bash corpus/lint.sh`, all green. A CI workflow exists but has not run
+(nothing pushed).
 
 ## The thread worth reading first
 
@@ -90,9 +101,9 @@ thirteen v3 ones. Each brief is self-contained: open only the one directing
 your work.
 
 **Open since 2026-09-26:** the improvements sweep filed briefs 77–102 into
-[`../briefs/todo/`](../briefs/todo/). Done so far: 77–87 and 100–103 (84 on
-2026-09-27, the rest on 2026-10-02; 103, the dead Settings password form, was
-found and filed during 83).
+[`../briefs/todo/`](../briefs/todo/). All are done (84 on 2026-09-27, the rest on
+2026-10-02/03), plus 103 (the dead Settings password form, found during 83) and
+104 (a JWKS outage answering 401, found by 89's tests). Nothing is open.
 
 Waves below are the **executed** order, which differs from the originally filed
 one: file-ownership collisions the dependency graph alone did not show forced

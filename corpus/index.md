@@ -48,7 +48,7 @@ times a tool here reported success while reaching nothing.
 | [open-questions.md](wiki/open-questions.md) | Nothing is open. Both remaining questions were settled on 2026-09-01 — kept as a page so the next open question has somewhere to land. |
 | [overview.md](wiki/overview.md) | What Newspapper is — write a post in .wzd markup, compile it to 1080² JPEGs — plus the v1→v3 lineage and the Wizard pivot that explain its shape, the three workspaces, and what lives where at the top level. |
 | [product.md](wiki/product.md) | Who Newspapper is for, what it is for, the brand personality (The Mechanical), the anti-references it is defined against, and the six design principles. The register, not the implementation. |
-| [status.md](wiki/status.md) | Dated snapshot (2026-10-02) — the Wizard rebuild is done, identity is Ward's, it runs on the VPS under /newspapper/, and the 2026-09-27 improvements sweep is partly worked through; plus the known strays and open questions. |
+| [status.md](wiki/status.md) | Dated snapshot (2026-10-03) — the Wizard rebuild is done, identity is Ward's, it runs on the VPS under /newspapper/, and the 2026-09-27 improvements sweep (77-104) is fully worked through; plus the known strays and open questions. |
 
 <!-- catalog:end -->
 
