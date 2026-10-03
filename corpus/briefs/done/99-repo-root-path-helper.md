@@ -102,3 +102,10 @@ relative, blank, and `NEWSPAPPER_DB_PATH`).
 the Docker build. Docker Desktop's WSL integration was off this session. The
 helper sits at the same depth inside the image (`/app/core/src/util`), so the
 resolved paths are unchanged.
+
+**Docker build verified (2026-10-03, later):** with Docker back,
+`docker compose -f infrastructure/docker-compose.yml build` succeeds
+(`newspapper:3.0`, 1.44 GB). Inside the image the helper resolves
+`repoRoot` `/app`, `outputRoot` `/app/output` (the Dockerfile's `VOLUME`),
+`uploadsRoot` `/data/uploads`, `dbPath` `/data/newspapper.db`, and the seed,
+fonts and design-systems paths under `/app`, all of which exist.

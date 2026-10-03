@@ -1636,3 +1636,7 @@ A document nested thousands deep no longer crashes the parser (one diagnostic pa
 ## [2026-10-03] done | Brief 99 — one module knows the repo root; OUTPUT_DIR override
 
 One module (`core/src/util/paths.ts`) now knows where the repo root is, and every root derives from it, with a new `OUTPUT_DIR` override. It is deliberately not `NEWSPAPPER_OUTPUT_DIR`, which compose already uses for the host mount.
+
+## [2026-10-03] check | Brief 99's Docker build, now that Docker is available
+
+The image builds (1.44 GB), and inside it `core/src/util/paths.ts` resolves the repo root to `/app`, output to the `/app/output` volume and the database and uploads under `/data`. Brief 99's one unverified item is closed.
