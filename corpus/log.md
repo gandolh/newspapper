@@ -1640,3 +1640,5 @@ One module (`core/src/util/paths.ts`) now knows where the repo root is, and ever
 ## [2026-10-03] check | Brief 99's Docker build, now that Docker is available
 
 The image builds (1.44 GB), and inside it `core/src/util/paths.ts` resolves the repo root to `/app`, output to the `/app/output` volume and the database and uploads under `/data`. Brief 99's one unverified item is closed.
+
+## [2026-10-04] change | Removed the GitHub workflow brief 91 added (`.github/workflows/ci.yml`): the owner wants no GitHub runners or GitHub-specific automation in any repo. The same gate is now `npm run gate` (build, test, lint, corpus lint with `CI=1`, so a missing Chromium fails it), run by hand or by the deploy.
