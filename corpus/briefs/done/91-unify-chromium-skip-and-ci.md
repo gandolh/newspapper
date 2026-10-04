@@ -92,9 +92,3 @@ owner, as the brief says.
 
 `CLAUDE.md`'s Tests paragraph now names the five files, the guard and the
 workflow.
-
-**Addendum (2026-10-04): the workflow is gone.** The owner does not want GitHub
-runners or GitHub-specific automation in any repo, so `.github/workflows/ci.yml`
-was removed. The same gate is `npm run gate`: build, test, lint and corpus lint,
-with `CI=1` so the Chromium suites fail rather than skip. Nothing runs it
-automatically; run it before a deploy (or have `vps-deploy` run it).
