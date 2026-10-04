@@ -86,3 +86,11 @@ exact installed version when adding a dependency.
 Rejected: caret ranges. The reason is **reproducible installs** — the same
 checkout resolves to the same tree on any machine and at any later date, without
 a lockfile being the only thing standing between you and a silent upgrade.
+
+## No GitHub-hosted CI: the gate is an npm script
+_2026-10-04_ (owner) — No GitHub runners, workflows or other GitHub-specific
+automation in the repo. The full gate is `npm run gate` (build, test, lint,
+corpus lint, with `CI=1` so a missing Chromium fails instead of skipping), run
+by hand or by the deploy. Rejected: `.github/workflows/ci.yml`, which brief 91
+added and this removed. The estate deploys through its own `vps-deploy`, and
+the owner wants no GitHub machinery in the repos.
