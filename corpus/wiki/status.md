@@ -1,11 +1,11 @@
 ---
-summary: Dated snapshot (2026-10-03) — the Wizard rebuild is done, identity is Ward's, it runs on the VPS under /newspapper/, and the 2026-09-27 improvements sweep (77-104) is fully worked through; plus the known strays and open questions.
-updated: 2026-10-03
+summary: Dated snapshot (2026-10-07) — the Wizard rebuild is done, identity is Ward's, it runs on the VPS under /newspapper/, the 2026-09-27 improvements sweep (77-104) is fully worked through, and brief 105 (the Reader) is open; plus the known strays and open questions.
+updated: 2026-10-07
 ---
 
 # Status
 
-_Snapshot: 2026-10-03. Branch `local-ward-dev`, not merged, nothing pushed._
+_Snapshot: 2026-10-03, plus brief 105 filed on 2026-10-07. Branch `main`, in step with `origin/main`._
 
 ## Where things stand
 
@@ -40,8 +40,8 @@ how it runs:
 Coverage now reaches the real Ward client, the render route, the upload
 interception and the UI's base path, and every Chromium suite fails under
 `CI`. Gates: `npm run build`, `npm run lint`, `npm test` (740 tests) and
-`bash corpus/lint.sh`, all green. A CI workflow exists but has not run
-(nothing pushed).
+`bash corpus/lint.sh`, all green. `npm run gate` runs all four with `CI=1`;
+there is no GitHub CI, by the owner's choice (2026-10-04).
 
 ## The thread worth reading first
 
@@ -103,7 +103,12 @@ your work.
 **Open since 2026-09-26:** the improvements sweep filed briefs 77–102 into
 [`../briefs/todo/`](../briefs/todo/). All are done (84 on 2026-09-27, the rest on
 2026-10-02/03), plus 103 (the dead Settings password form, found during 83) and
-104 (a JWKS outage answering 401, found by 89's tests). Nothing is open.
+104 (a JWKS outage answering 401, found by 89's tests).
+
+**Open since 2026-10-07:** [105](../briefs/todo/105-the-reader.md), the
+Reader, a FreshRSS-style zone for following feeds, reading and clipping. It
+replaces `/articles`. Three owner decisions sit at its top and must be
+confirmed before dispatch.
 
 Waves below are the **executed** order, which differs from the originally filed
 one: file-ownership collisions the dependency graph alone did not show forced
@@ -153,6 +158,6 @@ historical, and written against a product that no longer exists.
 
 ## What is not done
 
-- The branch is not merged and nothing has been pushed.
-- Two things remain open: [open-questions.md](./open-questions.md).
+- [Brief 105](../briefs/todo/105-the-reader.md), the Reader, waiting on its
+  three owner decisions. [open-questions.md](./open-questions.md) is empty.
 - The strays above.

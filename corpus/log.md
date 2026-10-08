@@ -1642,3 +1642,30 @@ One module (`core/src/util/paths.ts`) now knows where the repo root is, and ever
 The image builds (1.44 GB), and inside it `core/src/util/paths.ts` resolves the repo root to `/app`, output to the `/app/output` volume and the database and uploads under `/data`. Brief 99's one unverified item is closed.
 
 ## [2026-10-04] change | Removed the GitHub workflow brief 91 added (`.github/workflows/ci.yml`): the owner wants no GitHub runners or GitHub-specific automation in any repo. The same gate is now `npm run gate` (build, test, lint, corpus lint with `CI=1`, so a missing Chromium fails it), run by hand or by the deploy.
+
+## [2026-10-07] todo | brief 105 filed — the Reader, a FreshRSS-style zone for following, reading and clipping
+
+The owner pointed at [FreshRSS](https://freshrss.org/) and asked for a place in
+the app to see their feeds, read articles and find ideas for posts. Today RSS is
+only a keyword search that keeps nothing, so there is nowhere to just read.
+
+Brief 105 stores feed items (schema v6), refreshes them in the background, and
+adds a three-pane reader at `/reader` that absorbs `/articles`. Of FreshRSS it
+takes categories, unread counts, read state, mark-all-read and keyboard
+navigation. Favourites become "save to library", with a new note field.
+
+Three owner decisions are open at the top of the brief: whether the Reader
+replaces `/articles`, whether articles render as sanitized HTML (one new pinned
+UI dependency, DOMPurify), and that "inspire" means clip and copy. The last one
+is fixed by `decisions.md` (a saved article is a reference, not a pipeline
+input), so the brief rules out a "start a post from this" button rather than
+re-proposing it.
+
+Found while scoping, and written into the brief so the build doesn't learn them
+the hard way:
+- `fetchFeed` drops undated items and prefers plain text over HTML.
+- Search writes the item URL as `articles.guid`, so the reader must dedupe on
+  the URL too.
+- SQLite `LIKE` folds ASCII only, which breaks the locked keyword rule for `ș`.
+- DOMPurify passes input through untouched where it is unsupported, so the
+  sanitizer test must assert support first.
