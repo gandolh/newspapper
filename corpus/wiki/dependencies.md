@@ -1,6 +1,6 @@
 ---
 summary: What each workspace depends on and why that package was chosen over the alternatives.
-updated: 2026-10-03
+updated: 2026-10-09
 ---
 
 # Dependencies
@@ -11,7 +11,7 @@ Per-workspace. Versions are locked in `package-lock.json`.
 
 | Package | Why |
 |---------|-----|
-| `better-sqlite3` | Synchronous SQLite for articles, posts, settings. |
+| `better-sqlite3` | Synchronous SQLite for posts, sources, articles, feed items, settings. |
 | `dotenv` | Loads `.env` at startup. |
 | `fflate` | Pure-JS zip for `zipRun()` (no native binary needed). |
 | `playwright` | Headless Chromium for 1080×1080 slide screenshots. |
@@ -38,7 +38,8 @@ Per-workspace. Versions are locked in `package-lock.json`.
 | `@newspapper/core` | Types, plus the browser-safe `./wizard` subpath — the editor parses, lints and compiles with the same code the renderer uses. No Node APIs. |
 | `@use-gesture/react` | Pointer gestures in the editor: the split-screen divider drag and slide reordering. Replaced a half-built HTML5 drag-and-drop; pointer events give one code path for mouse, touch and pen, and drag-and-drop cannot express a resize handle at all. |
 | `animejs` | **4.5.0, installed by brief 64.** Drives the two authored motion moments — the compile and the tissue hinge — and nothing else; the canvas never animates. MIT, no dependencies, framework-agnostic. Chosen over motion-primitives and smoothui, which require Tailwind CSS; [why](./decisions-engineering.md#animejs-is-the-motion-engine-tailwind-bound-kits-are-references-only). |
-| `happy-dom` (dev) | A DOM for the few UI tests that must really mount: an error boundary only works in a live render (`ErrorBoundary.test.tsx`, brief 98). Opted into per file with `// @vitest-environment happy-dom`; every other test runs in node. |
+| `dompurify` | **3.4.16, added by brief 105.** Sanitizes a Reader item's feed HTML in the browser, at render, against an allowlist (`ui/src/components/reader/sanitize.ts`); the app sets no CSP, so it is the only line of defence. **Not sanitize-html on the server:** DOMPurify parses with the browser's own parser, the one that then renders the result, so nothing can parse one way when cleaned and another when shown (sanitize-html uses htmlparser2); the stored HTML stays as the feed sent it, so the allowlist can change without rewriting rows; and the API stays free of an HTML dependency. When `DOMPurify.isSupported` is false it hands its input back untouched, so the Reader then shows `content_text` instead. Its test runs in **real Chromium**, not happy-dom: see the next row. |
+| `happy-dom` (dev) | A DOM for the few UI tests that must really mount: an error boundary only works in a live render (`ErrorBoundary.test.tsx`, brief 98), and the Reader's keys, routes and item body (brief 105). Opted into per file with `// @vitest-environment happy-dom`; every other test runs in node. **DOMPurify does not work under it** although `isSupported` is `true` ([why](./green-because-nothing-ran.md)), so a test that renders an item stubs the sanitizer. |
 
 ## Root dev deps
 

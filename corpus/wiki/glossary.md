@@ -1,6 +1,6 @@
 ---
 summary: The project's vocabulary — one canonical definition per term Newspapper uses in a particular way, and the synonyms each one displaces.
-updated: 2026-09-01
+updated: 2026-10-09
 ---
 
 # Glossary
@@ -18,11 +18,23 @@ the UI ever needs that pattern, call it something else; this word is taken.
 _Avoid_: setup wizard, step flow, the wizard (for any UI), WZD (as a word)
 
 **Article**:
-A saved item from an RSS search — source material you write **from**, held in
-the `articles` table. A *reference*, never an input: nothing derives a post from
-one, by [decision](./decisions.md#a-saved-article-is-a-reference-not-a-pipeline-input).
+Source material you write **from**, saved to the library (the `articles` table)
+from a Search result or a Reader **Item**, with an optional note. A *reference*,
+never an input: nothing derives a post from one, by
+[decision](./decisions.md#a-saved-article-is-a-reference-not-a-pipeline-input).
 Distinct from a **Post**, which is the thing this app produces.
-_Avoid_: source (means a feed), draft, input, the post's article
+_Avoid_: source (means a feed), draft, input, the post's article, clipping (for the row)
+
+**Item**:
+One feed entry the Reader has stored (a row in `feed_items`), read or unread.
+It becomes an **Article** only when saved; until then it is purged with age.
+_Avoid_: article (until saved), entry, story, post
+
+**Reader**:
+The `/reader` page, where stored Items are followed and read in place, and
+whose Search, Library and Sources views replaced `/articles`. **Search** is its
+live keyword scan, which stores nothing.
+_Avoid_: feed reader (for the page), articles page, inbox
 
 **Post**:
 One day's output as a single unit — an ordered set of slides plus a caption and

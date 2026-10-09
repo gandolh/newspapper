@@ -1,6 +1,6 @@
 ---
 summary: The Mechanical, §5–§9 — the component vocabulary (board, the two-course tray, the galley and its wax ink, stage, tissue, marks), the two authored animations, browser surfaces, the do/don't list, and what the shipped chrome does not yet carry. §1–§4 and the tokens are in design.md.
-updated: 2026-09-01
+updated: 2026-10-09
 ---
 
 # Design System: Newspapper — components, motion, rules
@@ -155,8 +155,8 @@ pending.
   `emphasis` — the only three scales in the catalogue — pick themselves in a
   row of equal chips; content props (`Image.src`, `Quote.by`, `Stat.label`)
   keep their field. The row is also the keyword filter on `/posts` and the
-  panel switch on `/articles`, both of which open-coded the same CSS before and
-  now import it. **It is a row, and that is the constraint**: `size` at five
+  Unread / All switch on `/reader`, which import it rather than open-coding the
+  CSS as `/posts` and `/articles` once did. **It is a row, and that is the constraint**: `size` at five
   steps is the longest scale the 282px tissue holds, and a scale past about six
   belongs back in a `Select`.
 - **The flat file is a grid of boards** (§5). `/posts` lays its boards out

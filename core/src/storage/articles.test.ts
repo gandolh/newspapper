@@ -11,6 +11,8 @@ import {
   findArticle,
   removeArticle,
   countArticles,
+  listArticleSummaries,
+  updateArticleNote,
 } from './articles.js';
 
 let tmpDir: string;
@@ -99,5 +101,21 @@ describe('articles — the saved library', () => {
     expect(removeArticle(db, a.id)!.id).toBe(a.id);
     expect(findArticle(db, a.id)).toBeUndefined();
     expect(removeArticle(db, a.id)).toBeUndefined();
+  });
+
+  it('keeps a note given on save (schema v6), and defaults it to empty', () => {
+    const noted = saveArticle(db, { sourceId: 'bbc', guid: 'n', title: 'N', note: ' a lead ' });
+    const bare = saveArticle(db, { sourceId: 'bbc', guid: 'm', title: 'M' });
+    expect(findArticle(db, noted.id)?.note).toBe('a lead');
+    expect(bare.note).toBe('');
+    expect(listArticleSummaries(db).find((a) => a.id === noted.id)?.note).toBe('a lead');
+  });
+
+  it('updateArticleNote replaces the note and leaves the rest alone', () => {
+    const a = saveArticle(db, { sourceId: 'bbc', guid: 'n', title: 'N', note: 'first' });
+    const updated = updateArticleNote(db, a.id, 'second');
+    expect(updated).toEqual({ ...a, note: 'second' });
+    expect(updateArticleNote(db, a.id, '')?.note).toBe('');
+    expect(updateArticleNote(db, 999999, 'x')).toBeUndefined();
   });
 });

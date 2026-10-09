@@ -1,13 +1,13 @@
 ---
-summary: On-disk and in-DB shapes — the v5 SQLite schema for authored posts, the TNode compile target, and the output/YYYY-MM-DD-N convention. Nothing here is a file format the user edits; the .wzd document is in markup.md.
-updated: 2026-10-03
+summary: On-disk and in-DB shapes — the v6 SQLite schema for authored posts (posts, keywords, renders, uploads, settings), the TNode compile target, and the output/YYYY-MM-DD-N convention. Sources, saved articles and the Reader's feed_items are in data-reader.md; the .wzd document is in markup.md.
+updated: 2026-10-09
 ---
 
 # Data
 
 ## SQLite — `data/newspapper.db`
 
-Schema version: **5**. Auto-created and migrated on boot. The path is resolved
+Schema version: **6**. Auto-created and migrated on boot. The path is resolved
 from `core/src/storage/db.ts` via `import.meta.url`, never from the CWD.
 Foreign keys are enforced (`PRAGMA foreign_keys = ON`).
 
@@ -79,40 +79,11 @@ No `users` table since v5 (2026-09-06): identity is Ward's, so newspapper holds
 no account and no password hash. The v4 → v5 migration drops the table; see
 [migrations.md](./migrations.md).
 
-### `sources`
+### `sources`, `articles`, `feed_items`
 
-| Column | Type | Notes |
-|--------|------|-------|
-| `id` | TEXT PK | slug, e.g. `bbc` |
-| `name` | TEXT NOT NULL | |
-| `rss_url` | TEXT NOT NULL UNIQUE | |
-| `enabled` | INTEGER NOT NULL DEFAULT 1 | |
-| `created_at` | TEXT ISO-8601 | |
-
-Sources moved out of `data/sources.json` and into the DB in v3. The migration
-seeds this table from that file once, for the default installation DB only;
-nothing reads the JSON afterwards.
-
-### `articles`
-
-Holds only **saved** articles. Scrape results are transient — the API returns
-them and never persists them unless the user saves one.
-
-| Column | Type | Notes |
-|--------|------|-------|
-| `id` | INTEGER PK | |
-| `source_id` | TEXT → `sources(id)` ON DELETE SET NULL | NULL for manual or orphaned |
-| `source_name` | TEXT NOT NULL DEFAULT `''` | denormalized snapshot — survives the source being deleted |
-| `guid` | TEXT NOT NULL | feed guid, or the URL |
-| `title` | TEXT NOT NULL | |
-| `url` | TEXT | |
-| `body` | TEXT NOT NULL DEFAULT `''` | |
-| `published_at` | TEXT ISO-8601 | |
-| `saved_at` | TEXT ISO-8601 | |
-| | | UNIQUE `(source_id, guid)` |
-
-Index: `idx_articles_saved_at` on `(saved_at)`. SQLite treats NULLs as distinct,
-so the repository dedupes source-less articles on `guid` explicitly.
+The reading side's three tables (the Reader's columns on `sources`, the saved
+library with its `note`, and the Reader's stored items) are in
+[data-reader.md](./data-reader.md).
 
 ### `uploads`
 

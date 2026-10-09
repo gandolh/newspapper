@@ -1,0 +1,187 @@
+/* =============================================================
+   The Reader's list pane.
+   ============================================================= */
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-half);
+  min-height: 100%;
+}
+
+.head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--sp-half);
+  padding-bottom: var(--sp-hair);
+  border-bottom: 1.5px solid var(--graphite);
+}
+
+.heading {
+  min-width: 0;
+  font-family: var(--font-chrome);
+  font-size: var(--fs-label);
+  font-weight: 800;
+  font-variation-settings: 'wdth' var(--wdth-brand);
+  letter-spacing: var(--ls-brand);
+  text-transform: uppercase;
+  line-height: var(--sp-unit);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tools {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-hair);
+}
+
+.tools > :first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.skeletons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-hair);
+}
+
+.error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-hair);
+  padding: var(--sp-half) 0;
+}
+
+.errorText {
+  font-family: var(--font-galley);
+  font-size: 10px;
+  color: var(--rubylith-ink);
+}
+
+/* ---- Rows ---- */
+.rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-hair);
+  width: 100%;
+  padding: var(--sp-hair) var(--sp-hair) 7px;
+  border: 0;
+  border-bottom: 1px solid var(--hairline);
+  background: transparent;
+  color: var(--graphite);
+  text-align: left;
+  cursor: pointer;
+}
+
+.row:hover {
+  background: rgba(43, 43, 43, 0.04);
+}
+
+/* The open row is pulled forward: paper, waxed down — the same mark the
+   tray's current compartment and a selected node take. */
+.selected,
+.selected:hover {
+  position: relative;
+  z-index: 1;
+  background: var(--paper);
+  box-shadow: var(--shadow-waxed);
+  border-bottom-color: transparent;
+}
+
+/* The unread mark: a solid square in the margin. Read rows keep the space,
+   so titles never shift when an item is opened. */
+.dot {
+  flex: 0 0 7px;
+  width: 7px;
+  height: 7px;
+  margin-top: 6px;
+}
+
+.unread .dot {
+  background: var(--graphite);
+}
+
+.rowBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-family: var(--font-chrome);
+  font-size: var(--fs-label);
+  letter-spacing: var(--ls-label);
+  line-height: var(--lh-label);
+}
+
+.unread .title {
+  font-weight: 800;
+}
+
+.read .title {
+  font-weight: 500;
+  color: var(--graphite-soft);
+}
+
+.selected .title {
+  color: var(--graphite);
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-hair);
+  min-width: 0;
+  font-family: var(--font-galley);
+  font-size: var(--fs-field);
+  font-weight: 500;
+  letter-spacing: var(--ls-field);
+  line-height: var(--lh-field);
+  text-transform: uppercase;
+  color: var(--graphite-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.source {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.saved {
+  margin-left: auto;
+}
+
+.more {
+  display: flex;
+  justify-content: center;
+  padding: var(--sp-half) 0;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

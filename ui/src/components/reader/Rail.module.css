@@ -1,0 +1,207 @@
+/* =============================================================
+   The Reader's rail. Printed on the board — no paper, no shadow — like the
+   tray: the current entry is the one pulled forward onto paper.
+   ============================================================= */
+
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-half);
+  padding-bottom: var(--sp-unit);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-hair);
+  padding-bottom: var(--sp-hair);
+  border-bottom: 1.5px solid var(--graphite);
+}
+
+.title {
+  font-family: var(--font-chrome);
+  font-size: var(--fs-board-title);
+  font-weight: 800;
+  font-variation-settings: 'wdth' var(--wdth-title);
+  letter-spacing: var(--ls-board-title);
+  line-height: var(--sp-unit);
+}
+
+.progress {
+  padding: 0 2px;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+}
+
+/* One entry: a label, any marks, and a count on the right edge. */
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-hair);
+  width: 100%;
+  min-height: var(--sp-unit);
+  padding: 0 var(--sp-hair);
+  border: 0;
+  background: transparent;
+  color: var(--graphite);
+  font-family: var(--font-chrome);
+  font-size: var(--fs-label);
+  font-weight: 600;
+  letter-spacing: var(--ls-label);
+  text-align: left;
+  cursor: pointer;
+}
+
+.item:hover {
+  background: rgba(43, 43, 43, 0.05);
+}
+
+.item[aria-current='true'] {
+  position: relative;
+  z-index: 1;
+  background: var(--paper);
+  box-shadow: var(--shadow-waxed);
+  font-weight: 800;
+}
+
+.label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.count {
+  font-family: var(--font-galley);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--graphite);
+  font-variant-numeric: tabular-nums;
+}
+
+/* A category heading, set as a field label, still a button: it narrows the
+   list to every source under it. */
+.category {
+  margin-top: var(--sp-hair);
+  font-family: var(--font-galley);
+  font-size: var(--fs-field);
+  font-weight: 700;
+  letter-spacing: var(--ls-mark);
+  text-transform: uppercase;
+  color: var(--graphite-soft);
+  border-bottom: 1px solid var(--rule);
+}
+
+.category[aria-current='true'] {
+  color: var(--graphite);
+}
+
+.source {
+  padding-left: var(--sp-half);
+  font-weight: 500;
+}
+
+/* Disabled: the hatch carries it, the ink stays full (DESIGN.md §5). */
+.disabled .label {
+  font-style: italic;
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-hair);
+}
+
+.failed {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-hair);
+}
+
+.views {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: var(--sp-half);
+  border-top: 1px solid var(--rule);
+}
+
+.caption {
+  padding: 0 var(--sp-hair);
+  font-family: var(--font-galley);
+  font-size: var(--fs-field);
+  font-weight: 500;
+  letter-spacing: var(--ls-field);
+  text-transform: uppercase;
+  color: var(--graphite-soft);
+}
+
+.note {
+  font-family: var(--font-galley);
+  font-size: var(--fs-field);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--graphite-soft);
+  white-space: nowrap;
+}
+
+.legend {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-hair);
+  align-self: flex-start;
+  margin-top: var(--sp-hair);
+  padding: 0 var(--sp-hair);
+  height: var(--sp-unit);
+  border: 1px solid transparent;
+  background: none;
+  color: var(--graphite-soft);
+  font-family: var(--font-galley);
+  font-size: var(--fs-field);
+  font-weight: 500;
+  letter-spacing: var(--ls-field);
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.legend:hover {
+  color: var(--graphite);
+  border-color: var(--tick);
+}
+
+.kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border: 1px solid var(--tick);
+  background: var(--paper);
+  color: var(--graphite);
+  font-family: var(--font-galley);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

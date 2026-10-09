@@ -1,14 +1,16 @@
 /**
- * The Sources tab of /articles.
+ * The Reader's Sources view.
  *
  * There is no /sources route — brief 60 folded feed management into the
- * articles sheet — so this is a panel of that sheet and not an island of its
- * own: it renders inside `ArticlesIsland`'s `ToastProvider` and carries no
- * provider of its own. Brief 69 moved it here and gave it a module; nothing
- * about how it looks changed.
+ * articles sheet, and brief 105 turned that sheet into the Reader — so this is
+ * a view of the Reader and not an island of its own: it renders inside
+ * `ReaderIsland`'s `ToastProvider` and carries no provider of its own. Brief
+ * 69 gave it a module; brief 105 moved it, unchanged in how it looks, and gave
+ * a feed a **category** (the Reader's rail groups by it) and a health cell that
+ * reports the Reader's last refresh when no ping has been taken.
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Button,
   Card,
@@ -21,9 +23,10 @@ import {
   PageHeader,
   useToast,
   ConfirmDialog,
-} from '../ui';
+} from '../../ui';
 import { api, ApiError } from '@/lib/api';
-import type { SourceConfig } from '@/lib/types';
+import type { Source } from '@/lib/types';
+import { formatDate } from '../format';
 import styles from './SourcesPanel.module.css';
 
 // ---------------------------------------------------------------------------
@@ -94,6 +97,26 @@ function PingMark({ state }: { state: PingState }) {
 }
 
 // ---------------------------------------------------------------------------
+// RefreshMark — the Reader's last refresh of the feed, when no ping has been
+// taken. The same marks as a ping: a failure is the rubylith word, its reason
+// on hover; a success says when.
+// ---------------------------------------------------------------------------
+
+function RefreshMark({ source }: { source: Source }) {
+  if (source.lastError) {
+    return (
+      <span title={source.lastError}>
+        <Mark tone="rubylith">failing</Mark>
+      </span>
+    );
+  }
+  if (source.lastFetchedAt) {
+    return <Mark>fetched {formatDate(source.lastFetchedAt)}</Mark>;
+  }
+  return <span className={styles.unpinged}>—</span>;
+}
+
+// ---------------------------------------------------------------------------
 // CopyableUrl
 // ---------------------------------------------------------------------------
 
@@ -123,9 +146,11 @@ function CopyableUrl({ url }: { url: string }) {
 
 interface SourceFormModalProps {
   open: boolean;
-  source: SourceConfig | null; // null = add mode
+  source: Source | null; // null = add mode
+  /** Every category already in use, offered as suggestions. */
+  categories: string[];
   onClose: () => void;
-  onSaved: (sources: SourceConfig[]) => void;
+  onSaved: (sources: Source[]) => void;
 }
 
 /**
@@ -136,7 +161,7 @@ interface SourceFormModalProps {
  * The key is bumped on open only, never on close, so the dialog still animates
  * out of an intact tree.
  */
-function SourceFormModal({ open, source, onClose, onSaved }: SourceFormModalProps) {
+function SourceFormModal({ open, source, categories, onClose, onSaved }: SourceFormModalProps) {
   const isEdit = source !== null;
   const { addToast } = useToast();
 
@@ -144,6 +169,7 @@ function SourceFormModal({ open, source, onClose, onSaved }: SourceFormModalProp
   const [rss, setRss] = useState(source?.rss ?? '');
   const [id, setId] = useState(source?.id ?? '');
   const [enabled, setEnabled] = useState(source?.enabled ?? true);
+  const [category, setCategory] = useState(source?.category ?? '');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -177,17 +203,23 @@ function SourceFormModal({ open, source, onClose, onSaved }: SourceFormModalProp
 
     setLoading(true);
     try {
-      let result: SourceConfig[];
+      let result: Source[];
       if (isEdit) {
-        result = await api<SourceConfig[]>(`/api/sources/${source!.id}`, {
+        result = await api<Source[]>(`/api/sources/${source!.id}`, {
           method: 'PUT',
-          json: { name: name.trim(), rss: rss.trim(), enabled },
+          json: { name: name.trim(), rss: rss.trim(), enabled, category: category.trim() || null },
         });
         addToast(`"${name}" updated`, 'success');
       } else {
-        result = await api<SourceConfig[]>('/api/sources', {
+        result = await api<Source[]>('/api/sources', {
           method: 'POST',
-          json: { id: id.trim(), name: name.trim(), rss: rss.trim(), enabled },
+          json: {
+            id: id.trim(),
+            name: name.trim(),
+            rss: rss.trim(),
+            enabled,
+            category: category.trim() || null,
+          },
         });
         addToast(`"${name}" added`, 'success');
       }
@@ -237,11 +269,24 @@ function SourceFormModal({ open, source, onClose, onSaved }: SourceFormModalProp
                 : 'Auto-generated from name; must be unique'
             }
           />
+          <Input
+            label="Category"
+            placeholder="News"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            list="source-categories"
+            hint="Groups the feed in the Reader. Leave blank for Uncategorized."
+          />
+          <datalist id="source-categories">
+            {categories.map((c) => (
+              <option key={c} value={c} />
+            ))}
+          </datalist>
           <Toggle
             label="Enabled"
             checked={enabled}
             onCheckedChange={(c) => setEnabled(c)}
-            hint="Disabled feeds are skipped during scraping"
+            hint="Disabled feeds are skipped by Refresh and by Search"
           />
         </div>
         <div className={styles.formActions}>
@@ -263,6 +308,7 @@ function SourceFormModal({ open, source, onClose, onSaved }: SourceFormModalProp
 
 const COLUMNS: Array<{ label: string; center: boolean }> = [
   { label: 'Feed', center: false },
+  { label: 'Category', center: false },
   { label: 'RSS URL', center: false },
   { label: 'Enabled', center: true },
   { label: 'Health', center: false },
@@ -271,7 +317,7 @@ const COLUMNS: Array<{ label: string; center: boolean }> = [
 
 export default function SourcesPanel() {
   const { addToast } = useToast();
-  const [sources, setSources] = useState<SourceConfig[]>([]);
+  const [sources, setSources] = useState<Source[]>([]);
   const [loading, setLoading] = useState(true);
   const [pings, setPings] = useState<PingMap>({});
   const [pingAllLoading, setPingAllLoading] = useState(false);
@@ -279,17 +325,17 @@ export default function SourcesPanel() {
   // Modal state. `formKey` remounts the form on each open so it seeds itself
   // from `editTarget` instead of being repopulated by an effect.
   const [modalOpen, setModalOpen] = useState(false);
-  const [editTarget, setEditTarget] = useState<SourceConfig | null>(null);
+  const [editTarget, setEditTarget] = useState<Source | null>(null);
   const [formKey, setFormKey] = useState(0);
 
   // Confirm delete state
-  const [deleteTarget, setDeleteTarget] = useState<SourceConfig | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Source | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   // Load sources
   const loadSources = useCallback(async () => {
     try {
-      const data = await api<SourceConfig[]>('/api/sources');
+      const data = await api<Source[]>('/api/sources');
       setSources(data);
     } catch {
       addToast('Failed to load sources', 'error');
@@ -302,8 +348,14 @@ export default function SourcesPanel() {
     void loadSources();
   }, [loadSources]);
 
+  const categories = useMemo(
+    () =>
+      [...new Set(sources.map((s) => s.category?.trim()).filter((c): c is string => !!c))].sort(),
+    [sources],
+  );
+
   // Toggle enabled
-  async function handleToggle(source: SourceConfig, enabled: boolean) {
+  async function handleToggle(source: Source, enabled: boolean) {
     setSources((prev) => prev.map((s) => (s.id === source.id ? { ...s, enabled } : s)));
     try {
       await api(`/api/sources/${source.id}`, {
@@ -317,7 +369,7 @@ export default function SourcesPanel() {
   }
 
   // Ping single
-  async function handlePing(source: SourceConfig) {
+  async function handlePing(source: Source) {
     setPings((p) => ({ ...p, [source.id]: { loading: true } }));
     try {
       const result = await api<PingResult>(`/api/sources/${source.id}/ping`, {
@@ -350,7 +402,7 @@ export default function SourcesPanel() {
   }
 
   // Open edit modal
-  function handleEdit(source: SourceConfig) {
+  function handleEdit(source: Source) {
     setEditTarget(source);
     setFormKey((k) => k + 1);
     setModalOpen(true);
@@ -361,7 +413,7 @@ export default function SourcesPanel() {
     if (!deleteTarget) return;
     setDeleteLoading(true);
     try {
-      const result = await api<SourceConfig[]>(`/api/sources/${deleteTarget.id}`, {
+      const result = await api<Source[]>(`/api/sources/${deleteTarget.id}`, {
         method: 'DELETE',
       });
       setSources(result);
@@ -388,7 +440,7 @@ export default function SourcesPanel() {
       {/* Header */}
       <PageHeader
         title="Sources"
-        subtitle="RSS feeds scraped daily during each run."
+        subtitle="The feeds the Reader follows and Search scans."
         actions={
           <>
             {sources.length > 0 && (
@@ -413,7 +465,7 @@ export default function SourcesPanel() {
         <EmptyState
           icon="⊕"
           title="No sources yet"
-          hint="Add your first RSS feed to get started. Sources are scraped daily when you run the pipeline."
+          hint="Add your first RSS feed. The Reader stores what it publishes; Search reads it live."
           action={<Button onClick={handleAdd}>Add first feed</Button>}
         />
       ) : (
@@ -440,6 +492,13 @@ export default function SourcesPanel() {
                       <div className={styles.feedId}>{source.id}</div>
                     </td>
                     <td className={styles.td}>
+                      {source.category ? (
+                        <span className={styles.category}>{source.category}</span>
+                      ) : (
+                        <span className={styles.unpinged}>—</span>
+                      )}
+                    </td>
+                    <td className={styles.td}>
                       <CopyableUrl url={source.rss} />
                     </td>
                     <td className={`${styles.td} ${styles.tdCenter}`}>
@@ -453,7 +512,7 @@ export default function SourcesPanel() {
                       {pings[source.id] ? (
                         <PingMark state={pings[source.id]} />
                       ) : (
-                        <span className={styles.unpinged}>—</span>
+                        <RefreshMark source={source} />
                       )}
                     </td>
                     <td className={styles.td}>
@@ -488,6 +547,7 @@ export default function SourcesPanel() {
         key={formKey}
         open={modalOpen}
         source={editTarget}
+        categories={categories}
         onClose={() => setModalOpen(false)}
         onSaved={(updated) => setSources(updated)}
       />

@@ -14,8 +14,8 @@ export * from './storage/index.js';
 
 // Scrape
 export { fetchBody, stripHtml } from './scrape/body.js';
-export { fetchFeed } from './scrape/rss.js';
-export type { RssItem } from './scrape/rss.js';
+export { fetchFeed, fetchFeedConditional } from './scrape/rss.js';
+export type { RssItem, FeedFetchOptions, FeedFetchResult } from './scrape/rss.js';
 export { searchArticles, pingSource } from './scrape/index.js';
 export type {
   SearchOptions,
@@ -24,6 +24,9 @@ export type {
   ScrapeProgressEvent,
   PingResult,
 } from './scrape/index.js';
+
+// The Reader: background refresh of stored feed items (brief 105)
+export * from './reader/index.js';
 
 // Util
 export { log } from './util/logger.js';

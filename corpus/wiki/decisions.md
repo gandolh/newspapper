@@ -1,6 +1,6 @@
 ---
-summary: The locked product calls — no LLM, human-centred editing, the Wizard markup and its semantic component model, images, and where it runs.
-updated: 2026-10-02
+summary: The locked product calls — no LLM, human-centred editing, the Wizard markup and its semantic component model, saved articles and Reader items as references only, images, and where it runs.
+updated: 2026-10-09
 ---
 
 # Decisions — product
@@ -106,6 +106,23 @@ the shape is the same, and shapes are what come back.
 If retyping a title ever genuinely hurts, the smaller answer is to make the
 article's title and URL easy to *copy* from the library, not to have the app
 compose a document.
+
+## The Reader stores items; a saved article is still a reference
+
+_2026-10-09, brief 105_ — The Reader keeps what the feeds publish in
+`feed_items`, so following a feed no longer means re-running a search. Storing
+items does not make them inputs. An **Item** becomes an **Article** only when
+the writer saves it, and the Reader's only way out is the clipboard: Copy title
++ link and Copy quote. The decision above holds for Items as it does for
+Articles.
+
+Rejected: FreshRSS-style favourites as their own flag (a favourite *is* a save
+to the existing library, with a note, keyed on the same `(source_id, guid)` so
+the list shows it as saved); fetching each item's page for a full body, which
+is what makes Search slow (the Reader fetches feed XML only); plain-text items
+from `stripHtml` (the owner chose sanitized HTML with images at dispatch); and
+a "start a post from this" action, refused for the reason in the entry above.
+Storage, keys and purge: [data-reader.md](./data-reader.md#feed_items).
 
 ## Sharp is allowed, for images only
 _2026-08-27_ — `sharp` may be added. It normalizes uploads (resize, strip EXIF)

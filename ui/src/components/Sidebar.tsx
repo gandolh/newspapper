@@ -24,7 +24,9 @@ import styles from './Sidebar.module.css';
 const navLinks = [
   { href: '/', caption: 'Editor', showing: 'board' },
   { href: '/posts', caption: 'Posts', showing: 'stack' },
-  { href: '/articles', caption: 'Articles', showing: 'clipping' },
+  // The Articles compartment until brief 105. The showing stayed: the Reader
+  // is still where clippings come from.
+  { href: '/reader', caption: 'Reader', showing: 'clipping' },
   { href: '/settings', caption: 'Settings', showing: 'chips' },
 ];
 

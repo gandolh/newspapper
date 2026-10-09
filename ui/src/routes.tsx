@@ -1,7 +1,8 @@
 /**
- * The page map: `/` · `/posts` · `/articles` · `/settings`, plus
+ * The page map: `/` · `/posts` · `/reader` · `/settings`, plus
  * `/kitchen-sink` in dev only. (`/login` is gone — it is Ward's now, on a
- * different app entirely; the stale path is forwarded there.)
+ * different app entirely; the stale path is forwarded there. `/articles`
+ * became the Reader in brief 105 and redirects to it.)
  *
  * Every route renders inside one `<App>` element at one position
  * in the tree, and that is load-bearing rather than tidy: React keeps an
@@ -18,11 +19,11 @@
  * call a page makes — unchanged by this file.
  */
 import type { ComponentType } from 'react';
-import ProofSheet from 'virtual:proof-sheet';
+import ProofSheet from './proofSheet';
 import App from './layouts/App';
-import ArticlesIsland from './components/articles/ArticlesIsland';
 import EditorIsland from './components/editor/EditorIsland';
 import PostsIsland from './components/posts/PostsIsland';
+import ReaderIsland from './components/reader/ReaderIsland';
 import SettingsIsland from './components/settings/SettingsIsland';
 import { Redirect, usePathname } from './router';
 import { wardLoginUrl } from './lib/api';
@@ -32,7 +33,8 @@ type Sheet = { title: string; width?: 'default' | 'fluid'; Island: ComponentType
 const sheets: Record<string, Sheet> = {
   '/': { title: 'Editor', width: 'fluid', Island: EditorIsland },
   '/posts': { title: 'Posts', Island: PostsIsland },
-  '/articles': { title: 'Articles', Island: ArticlesIsland },
+  // Fluid like the editor: three panes want the board's whole width.
+  '/reader': { title: 'Reader', width: 'fluid', Island: ReaderIsland },
   '/settings': { title: 'Settings', Island: SettingsIsland },
   // null in every production build — see the proofSheet plugin in vite.config.ts.
   ...(ProofSheet ? { '/kitchen-sink': { title: 'Kitchen Sink', Island: ProofSheet } } : {}),
@@ -57,6 +59,9 @@ export default function Routes() {
     // /history became /posts in brief 62. Kept so a bookmark lands somewhere
     // useful instead of 404ing; was an `astro.config.mjs` redirect entry.
     if (path === '/history') return <Redirect to="/posts" />;
+    // /articles became the Reader in brief 105: its Search, Library and
+    // Sources panels are the Reader's views now. Same reason as above.
+    if (path === '/articles') return <Redirect to="/reader" />;
     // The static build had no 404 page either — the API's index.html fallback
     // served the editor for any unknown path. Say so in the URL bar.
     return <Redirect to="/" />;

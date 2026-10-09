@@ -10,7 +10,7 @@ A local web app for writing an Instagram-style slide post by hand and compiling 
 .wzd document  →  compile  →  HTML  →  Chromium  →  1080² JPEGs  →  publish / ZIP
 ```
 
-A post is authored in [Newspapper Wizard](corpus/wiki/markup.md) markup in a split-screen editor (source · live canvas · inspector · palette). **No model is involved anywhere.** RSS survives only as a searchable library of source material to write *from*.
+A post is authored in [Newspapper Wizard](corpus/wiki/markup.md) markup in a split-screen editor (source · live canvas · inspector · palette). **No model is involved anywhere.** RSS is source material to write *from*: the Reader stores and shows what the feeds publish, Search scans them by keyword, and the library keeps what you save.
 
 UI at `http://localhost:4321/newspapper/`, API at `http://localhost:3001`. No CLI. Sign-in is Ward's; locally, the container in `../wzd_auth/infrastructure/local`.
 
@@ -36,9 +36,9 @@ Every one of those coverages was, at some point, silently doing nothing — see 
 
 Three npm workspaces, dependency direction `ui → api → core`:
 
-- **`core/`** (`@newspapper/core`) — the library: the `.wzd` parser/formatter/linter/compiler (browser-safe), the `TNode` interpreter, Playwright rendering, the publish-time JPEG pass, RSS search, Sharp image uploads, SQLite storage, theme loading. Four entry points: `.`, `./templates`, `./publish`, `./wizard`.
-- **`api/`** (`@newspapper/api`) — Fastify on 3001: all `/api/*` routes behind a session guard, SSE for the two long ops (search, render), serves `/assets/fonts/`, `/output/`, `/uploads/<ref>` and `ui/dist/` in prod.
-- **`ui/`** (`@newspapper/ui`) — a Vite + React SPA with a hand-rolled router: editor (`/`), `/posts`, `/articles`, `/settings`, `/login`. Astro was removed in brief 70.
+- **`core/`** (`@newspapper/core`) — the library: the `.wzd` parser/formatter/linter/compiler (browser-safe), the `TNode` interpreter, Playwright rendering, the publish-time JPEG pass, RSS search and the Reader's refresh, Sharp image uploads, SQLite storage, theme loading. Four entry points: `.`, `./templates`, `./publish`, `./wizard`.
+- **`api/`** (`@newspapper/api`) — Fastify on 3001: all `/api/*` routes behind a session guard, SSE for the three long ops (search, render, the Reader's refresh), serves `/assets/fonts/`, `/output/`, `/uploads/<ref>` and `ui/dist/` in prod. It also runs the Reader's background refresh loop, which assumes one API process.
+- **`ui/`** (`@newspapper/ui`) — a Vite + React SPA with a hand-rolled router: editor (`/`), `/posts`, `/reader` (`/articles` redirects there), `/settings`, `/login`. Astro was removed in brief 70.
 
 One structural rule that is load-bearing: every route but `/login` renders inside **one `<App>` element at one position** in `ui/src/routes.tsx`. That is what keeps the sidebar tray mounted across navigation. A route that renders its own `<App>` silently breaks it.
 
@@ -48,7 +48,7 @@ See [corpus/wiki/architecture.md](corpus/wiki/architecture.md) for the full flow
 
 | Path | Contents |
 |------|----------|
-| `data/newspapper.db` | SQLite (schema v5): `posts`, `keywords`, `post_keywords`, `renders`, `sources`, `articles`, `uploads`, `settings`. No `users`: identity is Ward's. |
+| `data/newspapper.db` | SQLite (schema v6): `posts`, `keywords`, `post_keywords`, `renders`, `sources`, `articles`, `feed_items`, `uploads`, `settings`. No `users`: identity is Ward's. |
 | `data/sources.json` | v2 residue — a one-time seed for the `sources` table. Nothing reads it afterwards. |
 | `assets/design-systems/` | The three slide themes as JSON tokens |
 | `assets/fonts/` | Inter TTFs, read off disk by the render browser |
@@ -58,7 +58,7 @@ See [corpus/wiki/architecture.md](corpus/wiki/architecture.md) for the full flow
 
 `data/`, `uploads/` and `output/` are gitignored. The DB is auto-created and migrated on boot.
 
-`posts.markup` is the source of truth; title, description and keywords are derived from the document's `<head>` on every write. Full schemas: [corpus/wiki/data.md](corpus/wiki/data.md).
+`posts.markup` is the source of truth; title, description and keywords are derived from the document's `<head>` on every write. Full schemas: [corpus/wiki/data.md](corpus/wiki/data.md), and [data-reader.md](corpus/wiki/data-reader.md) for sources, articles and feed items.
 
 ## Theme
 
@@ -80,9 +80,9 @@ The `digital-broadsheet` theme was removed in v2; Satori/resvg rendering in v3; 
 
 ## Tests
 
-Co-located `*.test.ts` under `core/src/`, `api/src/` and `ui/src/`, run with `vitest`. Prefer unit tests on parsing and filtering over snapshots of rendered images. Five files (`render`, `fonts`, `font-fallback`, `uploads-route` in core, `uploads` in api) launch real Chromium and assert on real pixels. All go through one guard, `core/src/render/test-support/chromium.ts`: without `npx playwright install chromium` they skip with a loud banner locally and **fail under `CI`**. `npm run gate` runs the full gate (build, test, lint, corpus lint) with `CI=1`, so a missing Chromium fails it; run it before a deploy. No GitHub workflows: the owner does not want GitHub-specific CI in the repo.
+Co-located `*.test.ts` under `core/src/`, `api/src/` and `ui/src/`, run with `vitest`. Prefer unit tests on parsing and filtering over snapshots of rendered images. Some tests launch real Chromium: the render, font and upload tests in core and api assert on real pixels, and `sanitize` in ui runs the Reader's sanitizer in a real page, because happy-dom only pretends to support it. All of them go through one guard, `core/src/render/test-support/chromium.ts`: without `npx playwright install chromium` they skip with a loud banner locally and **fail under `CI`**. `npm run gate` runs the full gate (build, test, lint, corpus lint) with `CI=1`, so a missing Chromium fails it; run it before a deploy. No GitHub workflows: the owner does not want GitHub-specific CI in the repo.
 
-**Read [`corpus/wiki/green-because-nothing-ran.md`](corpus/wiki/green-because-nothing-ran.md) before you trust a green command.** That pattern — a tool reporting success while reaching nothing — has been hit nine times in this repo: a DB path the tests set but nothing read, a `.gitignore` rule that would have hidden a module, a vitest `include` that omitted `ui/`, a workspace bundled but never typechecked, a formatter with no config, a test control that collapsed into its subject, an ESLint config with zero rules enabled, a test whose import resolved only through a hoisted optional dependency, and an overflow check pointed at the document instead of the element it was about. When a check passes, ask what it actually reached. (The page collects them; [`corpus/log.md`](corpus/log.md) has each in full.)
+**Read [`corpus/wiki/green-because-nothing-ran.md`](corpus/wiki/green-because-nothing-ran.md) before you trust a green command.** That pattern — a tool reporting success while reaching nothing — has been hit ten times in this repo: a DB path the tests set but nothing read, a `.gitignore` rule that would have hidden a module, a vitest `include` that omitted `ui/`, a workspace bundled but never typechecked, a formatter with no config, a test control that collapsed into its subject, an ESLint config with zero rules enabled, a test whose import resolved only through a hoisted optional dependency, an overflow check pointed at the document instead of the element it was about, and a sanitizer test under happy-dom where DOMPurify reported support and sanitized nothing. When a check passes, ask what it actually reached. (The page collects them; [`corpus/log.md`](corpus/log.md) has each in full.)
 
 ## Corpus (the project wiki)
 

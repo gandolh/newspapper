@@ -1,6 +1,6 @@
 ---
 summary: The schema's version history (v1 CLI era through the current version) and how migrate() walks it, one transaction per step so a crash rolls back instead of bricking the database.
-updated: 2026-10-02
+updated: 2026-10-09
 ---
 
 # Migrations
@@ -17,8 +17,9 @@ note pushed that page past the cap.
 | 3 | Authored posts: `posts.markup`, `keywords`, `post_keywords`, `renders`, `users`, `uploads`, `sources` in the DB |
 | 4 | The theme family: `warm-industrial` → `warm-industrial-1` in `posts.theme`, the column default, and the `defaultTheme` setting |
 | 5 | Identity moves to Ward: the `users` table is dropped. Nothing referenced it, so nothing else changes. |
+| 6 | The Reader (brief 105): `feed_items`; `sources` gains `category`, `etag`, `last_modified`, `last_fetched_at`, `last_error`; `articles` gains `note`. Every row survives. |
 
-A fresh database is created at version 5 directly; an existing one walks every
+A fresh database is created at version 6 directly; an existing one walks every
 step in one boot. `migrate()` (`core/src/storage/db.ts`) keys on
 `PRAGMA user_version` and uses `IF NOT EXISTS` throughout, so re-running is a
 no-op. **Each step is one transaction** together with its `user_version` bump
@@ -32,3 +33,12 @@ with no markup to derive it from, and v2 articles were transient scrape output.
 Both tables are dropped and recreated, so **every v2 post row and every v2
 article row is deleted**. `settings` survives untouched. A v1 database walks
 v1 → v2 → v3 in one boot and loses its posts the same way.
+
+**v5 → v6 guards each `ADD COLUMN`.** A v1 or v2 database reaches it through
+v2 → v3, which builds its tables from the current schema and so already has
+the new columns; adding one twice would throw and roll the step back on every
+boot. The new columns also come last in the current schema, so a migrated
+table and a fresh one have the same column order. The step's test builds a v5
+database from the schema as it shipped, with a source and a saved article. The
+one real database on hand (2026-10-09, a local v4 with six sources, two posts
+and no saved articles) walked v4 → v6 on a copy with every row intact.

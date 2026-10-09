@@ -1,0 +1,124 @@
+/* =============================================================
+   An item's content in the reading pane.
+
+   Whatever survived the sanitizer, set at a comfortable measure (~70ch):
+   paragraphs, headings, lists, quotes, code and figures. Every rule is
+   scoped under `.prose`, so the feed's markup can only ever pick up these
+   styles — it carries no class or style of its own (sanitize.ts).
+   ============================================================= */
+
+.prose {
+  max-width: 70ch;
+  font-family: var(--font-chrome);
+  font-size: var(--fs-body);
+  font-weight: 450;
+  line-height: 1.65;
+  color: var(--graphite);
+  overflow-wrap: break-word;
+  font-variant-numeric: normal;
+}
+
+.prose > * + * {
+  margin-top: var(--sp-half);
+}
+
+.prose :where(h1, h2, h3, h4, h5, h6) {
+  margin-top: var(--sp-unit);
+  font-weight: 800;
+  letter-spacing: var(--ls-label);
+  line-height: 1.25;
+}
+
+.prose :where(h1, h2) {
+  font-size: 18px;
+}
+
+.prose h3 {
+  font-size: 16px;
+}
+
+.prose :where(h4, h5, h6) {
+  font-size: var(--fs-body);
+}
+
+/* The global reset strips list markers; prose needs them back. */
+.prose ul {
+  list-style: square;
+  padding-left: var(--sp-unit);
+}
+
+.prose ol {
+  list-style: decimal;
+  padding-left: var(--sp-unit);
+}
+
+.prose li + li {
+  margin-top: 4px;
+}
+
+.prose dt {
+  font-weight: 700;
+}
+
+.prose dd {
+  padding-left: var(--sp-half);
+}
+
+/* A quotation is ruled off, not tinted. */
+.prose blockquote {
+  padding-left: var(--sp-half);
+  border-left: 2px solid var(--graphite);
+  color: var(--graphite);
+  font-style: italic;
+}
+
+.prose :where(code, kbd, samp) {
+  font-family: var(--font-galley);
+  font-size: 0.9em;
+}
+
+.prose pre {
+  padding: var(--sp-hair) var(--sp-half);
+  background: var(--board);
+  box-shadow: 0 0 0 1px var(--hairline);
+  font-size: var(--fs-galley);
+  line-height: var(--lh-galley);
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.prose pre code {
+  font-size: inherit;
+}
+
+.prose hr {
+  border: 0;
+  border-top: 1px solid var(--rule);
+}
+
+.prose figure {
+  margin-inline: 0;
+}
+
+/* Hotlinked from the publisher: never wider than the measure. */
+.prose img {
+  max-width: 100%;
+  height: auto;
+}
+
+.prose figcaption {
+  margin-top: var(--sp-hair);
+  font-family: var(--font-galley);
+  font-size: 10px;
+  line-height: 1.45;
+  color: var(--graphite-soft);
+}
+
+.prose a {
+  overflow-wrap: anywhere;
+}
+
+.prose :where(mark) {
+  background: var(--wax);
+  color: var(--wax-ink);
+}

@@ -1,6 +1,6 @@
 ---
 summary: Every env var and the code that reads it, how .env reaches process.env at all, the auth variables and their strict-mode behaviour, settings precedence, and one-time setup including Playwright Chromium.
-updated: 2026-10-03
+updated: 2026-10-09
 ---
 
 # Configuration
@@ -23,6 +23,8 @@ them, development included.
 | `UPLOADS_BASE_URL` | `http://127.0.0.1:$PORT` | Origin compiled slides resolve `/uploads/<ref>` against. Since the Ward cutover the render browser does not fetch it — `core/src/render/uploads-route.ts` intercepts and serves from disk — but the URL still has to be well-formed. |
 | `THEME` | `warm-industrial-1` | Default slide theme, as an env-level fallback under the DB setting. |
 | `NEWSPAPPER_BASE` | `/` | The path the UI is served under. A **build arg** in the deploy (`/newspapper/`), and in `npm run dev` read from `.env` so local dev is laid out the same way (see [Local sign-in](#local-sign-in)). The API never reads it. |
+| `READER_REFRESH_MINUTES` | `30` | Minutes between the Reader's background refreshes, counted from the end of the last run. `0` turns the loop off; a manual Refresh still works. The loop assumes **one API process**: two would each refresh the same file ([architecture.md](./architecture.md#the-reader)). |
+| `READER_RETENTION_DAYS` | `30` | Days a Reader item is kept after it was fetched. Each source's newest 50 stay regardless, and saved articles are never purged. For either variable, a blank, negative or unparseable value falls back to the default rather than stopping the boot. |
 
 **`NEWSPAPPER_DB_PATH` is not optional for tests.** It exists because
 `defaultDbPath()` once ignored it and every `npm test` run migrated the
@@ -41,6 +43,7 @@ developer's real database — the first entry in
 | `UPLOADS_BASE_URL` | `core/src/uploads/index.ts` |
 | `THEME` | `core/src/storage/settings.ts` |
 | `NEWSPAPPER_BASE` | `ui/vite.config.ts` (config time only) |
+| `READER_REFRESH_MINUTES` / `READER_RETENTION_DAYS` | `core/src/reader/config.ts` (via `api/src/server.ts` and `core/src/reader/refresh.ts`) |
 
 ### How `.env` reaches `process.env`
 

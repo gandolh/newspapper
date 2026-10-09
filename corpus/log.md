@@ -1669,3 +1669,33 @@ the hard way:
 - SQLite `LIKE` folds ASCII only, which breaks the locked keyword rule for `ș`.
 - DOMPurify passes input through untouched where it is unsupported, so the
   sanitizer test must assert support first.
+
+## [2026-10-09] done | brief 105 — the Reader replaces `/articles`
+
+The owner took the recommended answer to all three decisions. Feed items are
+stored in `feed_items` (schema v6), refreshed in the background every
+`READER_REFRESH_MINUTES` with conditional GET and purged past
+`READER_RETENTION_DAYS`. `/reader` reads them in three panes, with keys, and
+saves to the library with a note. The brief's outcome note lists the choices it
+left open.
+
+Checked in a real browser against the six real feeds, which found two bugs the
+tests had not:
+- Copy quote could never be used: React 19 rewrote the item's `innerHTML` on
+  the re-render that selecting text causes, which collapsed the selection. The
+  `{ __html }` object is memoized now.
+- The loading skeletons named themselves with `aria-label` on role-less
+  `div`s, which nothing announces.
+
+Testing the sanitizer found the tenth entry for
+[green-because-nothing-ran.md](wiki/green-because-nothing-ran.md): under
+happy-dom, `DOMPurify.isSupported` is `true` and nothing is sanitized, so the
+suite runs in real Chromium.
+
+Three wiki pages were at the cap, so each split along the same seam: the
+reading side went to `api-reader.md`, `data-reader.md` and
+`modules-reader.md`. The brief's "one API process, under pm2" was wrong about
+pm2: production is a single container process. The assumption itself holds.
+
+Not deployed. Production's database has not been through the v6 migration;
+back it up before the deploy.

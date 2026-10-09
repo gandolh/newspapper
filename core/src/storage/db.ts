@@ -21,7 +21,7 @@ function defaultSourcesPath(): string {
   return sourcesSeedPath();
 }
 
-const CURRENT_SCHEMA_VERSION = 5;
+const CURRENT_SCHEMA_VERSION = 6;
 
 export function getDb(dbPath?: string): DB {
   const p = resolve(dbPath ?? defaultDbPath());
@@ -37,6 +37,35 @@ export function getDb(dbPath?: string): DB {
 export function open(path: string): DB {
   return getDb(path);
 }
+
+/*
+ * Schema v6: the Reader's stored feed entries (brief 105). An item becomes an
+ * `articles` row only when saved; `guid` is the item's link, the same key
+ * Search writes into `articles.guid`, so "is this item saved?" is a lookup on
+ * `(source_id, guid)`. `id` is AUTOINCREMENT on purpose: mark-read takes an
+ * `upToId`, which only means "everything the list had loaded" if a purged id
+ * is never handed out again.
+ */
+const FEED_ITEMS_SCHEMA = `
+  CREATE TABLE IF NOT EXISTS feed_items (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    source_id    TEXT NOT NULL REFERENCES sources(id) ON DELETE CASCADE,
+    guid         TEXT NOT NULL,
+    title        TEXT NOT NULL DEFAULT '',
+    url          TEXT NOT NULL,
+    author       TEXT,
+    content_html TEXT NOT NULL DEFAULT '',
+    content_text TEXT NOT NULL DEFAULT '',
+    published_at TEXT,
+    fetched_at   TEXT NOT NULL,
+    sort_at      TEXT NOT NULL,
+    read_at      TEXT,
+    UNIQUE (source_id, guid)
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_feed_items_sort ON feed_items(sort_at DESC, id DESC);
+  CREATE INDEX IF NOT EXISTS idx_feed_items_source_read ON feed_items(source_id, read_at);
+`;
 
 /*
  * There is no `users` table. Identity is Ward's (2026-09-06): newspapper holds
@@ -89,11 +118,16 @@ const SCHEMA_CURRENT = `
   CREATE INDEX IF NOT EXISTS idx_renders_post_id ON renders(post_id);
 
   CREATE TABLE IF NOT EXISTS sources (
-    id         TEXT PRIMARY KEY,
-    name       TEXT NOT NULL,
-    rss_url    TEXT NOT NULL UNIQUE,
-    enabled    INTEGER NOT NULL DEFAULT 1,
-    created_at TEXT NOT NULL
+    id              TEXT PRIMARY KEY,
+    name            TEXT NOT NULL,
+    rss_url         TEXT NOT NULL UNIQUE,
+    enabled         INTEGER NOT NULL DEFAULT 1,
+    created_at      TEXT NOT NULL,
+    category        TEXT,
+    etag            TEXT,
+    last_modified   TEXT,
+    last_fetched_at TEXT,
+    last_error      TEXT
   );
 
   CREATE TABLE IF NOT EXISTS articles (
@@ -106,11 +140,12 @@ const SCHEMA_CURRENT = `
     body         TEXT NOT NULL DEFAULT '',
     published_at TEXT NOT NULL,
     saved_at     TEXT NOT NULL,
+    note         TEXT NOT NULL DEFAULT '',
     UNIQUE (source_id, guid)
   );
 
   CREATE INDEX IF NOT EXISTS idx_articles_saved_at ON articles(saved_at);
-
+${FEED_ITEMS_SCHEMA}
   CREATE TABLE IF NOT EXISTS uploads (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     filename        TEXT NOT NULL,
@@ -307,6 +342,39 @@ function migrateV4ToV5(db: DB): void {
 }
 
 /**
+ * v5 → v6: the Reader (brief 105). Adds `feed_items`, the Reader's columns on
+ * `sources` (category, the conditional-GET validators, the last refresh's
+ * outcome) and `articles.note`. Every existing row survives; the new columns
+ * are NULL (or `''` for `note`).
+ *
+ * Each ADD COLUMN is guarded because a v1/v2 database reaches this step through
+ * `migrateV2ToV3`, which builds its tables from `SCHEMA_CURRENT` and so already
+ * has them. The new columns come last in `SCHEMA_CURRENT` too, so a migrated
+ * table and a fresh one have the same column order. Then `SCHEMA_CURRENT`
+ * (all `IF NOT EXISTS`) creates whatever is still missing: `feed_items` and
+ * its indexes always, and any table a hand-built older DB never had.
+ */
+const V6_SOURCE_COLUMNS = ['category', 'etag', 'last_modified', 'last_fetched_at', 'last_error'];
+
+function columnNames(db: DB, table: string): string[] {
+  return (db.pragma(`table_info(${table})`) as Array<{ name: string }>).map((c) => c.name);
+}
+
+function migrateV5ToV6(db: DB): void {
+  const sourceCols = columnNames(db, 'sources');
+  if (sourceCols.length > 0) {
+    for (const col of V6_SOURCE_COLUMNS) {
+      if (!sourceCols.includes(col)) db.exec(`ALTER TABLE sources ADD COLUMN ${col} TEXT`);
+    }
+  }
+  const articleCols = columnNames(db, 'articles');
+  if (articleCols.length > 0 && !articleCols.includes('note')) {
+    db.exec(`ALTER TABLE articles ADD COLUMN note TEXT NOT NULL DEFAULT ''`);
+  }
+  db.exec(SCHEMA_CURRENT);
+}
+
+/**
  * Run one migration step as a unit: its schema work and the `user_version` bump
  * commit together or not at all.
  *
@@ -356,6 +424,7 @@ export function migrate(db: DB): void {
   if (version <= 2) runMigrationStep(db, 3, migrateV2ToV3);
   if (version <= 3) runMigrationStep(db, 4, migrateV3ToV4, { foreignKeysOff: true });
   if (version <= 4) runMigrationStep(db, 5, migrateV4ToV5);
+  if (version <= 5) runMigrationStep(db, 6, migrateV5ToV6);
 
   seedSourcesFromJson(db);
 }

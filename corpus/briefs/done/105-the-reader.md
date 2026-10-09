@@ -264,3 +264,71 @@ Each is a follow-up worth its own brief once the Reader is in use:
   just later.
 - Any model-written summary or "post idea". The product has no LLM, by
   [decision](../../wiki/decisions.md#no-llm-in-the-product).
+
+## Outcome — 2026-10-09
+
+The owner took the recommended answer to all three decisions: the Reader
+replaces `/articles`, items render as sanitized HTML with images, and "inspire"
+stays clip and copy. Built in three seams (core, api, ui), then checked in a
+real browser against the real feeds.
+
+**What shipped.** Schema v6 (`feed_items`; `sources.category`, the validators
+and the last refresh's outcome; `articles.note`). `refreshSources` with
+conditional GET, four feeds at a time, single-flight per connection, then a
+purge; `startReaderSchedule` 15 s after boot, then every
+`READER_REFRESH_MINUTES` from the end of the last run. Seven `/api/reader/*`
+routes (refresh over SSE) and `PATCH /api/articles/:id` for the note. `/reader`
+with rail, list and reading pane, the Search, Library and Sources views moved
+in from `components/articles/`, the keys, and `/articles` redirecting. DOMPurify
+3.4.16, pinned.
+
+**Choices the brief left open:**
+- The body is read from `content:encoded`, then `content`, then `summary`.
+- Item ids are `AUTOINCREMENT`, so an `upToId` never covers a reused id.
+- The filter calls a JS lower-casing function registered on the connection
+  (`instr(np_lower(…))`), so `ș` matches `Ș`.
+- `category: null` and `''` both mean uncategorized.
+- `last_fetched_at` is set only on a 200 or a 304.
+- An unparseable `pubDate` is stored as null, which Search then drops.
+- Mark all read with a filter PATCHes the loaded unread rows one by one;
+  without one it posts the bulk route with the highest loaded id.
+- The narrow breakpoint is 1100px.
+
+**Seen in a real browser** (Chromium, `newspapper-tester` on the local Ward, a
+scratch DB, about 180 real items from the six seeded feeds):
+- the whole key set, including `Shift+A` and `?`;
+- every designed state of step 8: no sources, all caught up, skeletons, a
+  failing source (an `127.0.0.1` feed, refused by the SSRF guard), refresh in
+  progress, and an item with no content;
+- the tray at 320px, each compartment hit-tested with `elementFromPoint`, and
+  rail → list → article with back controls;
+- `/articles` and `/articles?q=x` landing on `/reader`;
+- save with a note (`guid` = the URL, the row marked saved, the note in
+  Library);
+- a sanitized item with images (`loading=lazy`, `no-referrer`, links forced to
+  a new tab).
+
+**Two bugs the browser found, both fixed:**
+- *Copy quote could never be used.* `ItemBody` passed a new `{ __html }` object
+  on every render, and React 19 rewrites `innerHTML` when the object is new.
+  Selecting text sets the passage, which re-renders, which replaced every text
+  node and collapsed the selection. The object is memoized now, and
+  `ItemBody.test.tsx` holds a text node across a re-render.
+- The three loading skeletons carried `aria-label` on a role-less `div`, which
+  nothing announces. They are `role="status"` with hidden text now.
+
+**Found while testing:** under happy-dom, `DOMPurify.isSupported` is `true` and
+the sanitizer still does not work. It is entry 10 in
+[green-because-nothing-ran.md](../../wiki/green-because-nothing-ran.md), and the
+sanitizer test runs in real Chromium.
+
+**Not as the brief said:**
+- The one real database on hand was a local v4, not a v5. A copy walked
+  v4 → v6 with every row intact. The v5 case with saved articles is the test's,
+  built from the shipped schema; production's database is untried.
+- "One API process, under pm2" is wrong about pm2: production is one container
+  running a single `npm run start`. The assumption itself holds.
+- `api.md`, `data.md` and `modules.md` were at the page cap, so the reading side
+  of each moved to `api-reader.md`, `data-reader.md` and `modules-reader.md`.
+
+`npm run gate` clean: 896 tests in 71 files.

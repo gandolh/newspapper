@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+  xmlns:content="http://purl.org/rss/1.0/modules/content/"
+  xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Știri Example</title>
+    <link>https://news.example/</link>
+    <description>An RSS 2.0 fixture for the Reader</description>
+    <item>
+      <title>Encoded wins</title>
+      <link>https://news.example/encoded</link>
+      <guid isPermaLink="false">tag:news.example,2026:1</guid>
+      <pubDate>Thu, 01 Oct 2026 10:00:00 GMT</pubDate>
+      <dc:creator>Ana Popescu</dc:creator>
+      <description>Short &lt;b&gt;teaser&lt;/b&gt; only.</description>
+      <content:encoded><![CDATA[<p>The <em>full</em> story, with an <img src="https://img.example/a.jpg" alt="A"> image.</p>]]></content:encoded>
+    </item>
+    <item>
+      <title>Description only</title>
+      <link>https://news.example/description</link>
+      <pubDate>Wed, 30 Sep 2026 08:00:00 GMT</pubDate>
+      <author>editor@news.example (Ion Ionescu)</author>
+      <description>&lt;p&gt;Just the &lt;a href="https://news.example/x"&gt;description&lt;/a&gt;.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>No date at all</title>
+      <link>https://news.example/undated</link>
+      <description>An item with no pubDate.</description>
+    </item>
+    <item>
+      <title>From the future</title>
+      <link>https://news.example/future</link>
+      <pubDate>Fri, 01 Jan 2100 00:00:00 GMT</pubDate>
+      <description>Dated far ahead of any fetch.</description>
+    </item>
+    <item>
+      <title>Hostile link</title>
+      <link>javascript:alert(1)</link>
+      <pubDate>Thu, 01 Oct 2026 09:00:00 GMT</pubDate>
+      <description>Its link is not http(s).</description>
+    </item>
+    <item>
+      <link>https://news.example/untitled</link>
+      <pubDate>Thu, 01 Oct 2026 07:00:00 GMT</pubDate>
+      <description>No title, so it is skipped, as it always was.</description>
+    </item>
+  </channel>
+</rss>

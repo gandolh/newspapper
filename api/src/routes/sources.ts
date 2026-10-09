@@ -3,21 +3,32 @@ import { listSources, addSource, updateSource, removeSource, pingSource } from '
 import type { SourceConfig } from '@newspapper/core';
 import { db } from '../lib/db.js';
 
+/** A source's category, when given: a string (blank = uncategorized) or null. */
+function isCategory(value: unknown): boolean {
+  return value === undefined || value === null || typeof value === 'string';
+}
+
 const sourcesRoutes: FastifyPluginAsync = async (fastify) => {
   /**
    * GET /api/sources
+   * Each source carries its `category` and the Reader's last refresh outcome
+   * (`lastFetchedAt`, `lastError`).
    */
   fastify.get('/api/sources', async (_req, reply) => {
     return reply.send(listSources(db()));
   });
 
   /**
-   * POST /api/sources  { id, name, rss, enabled? }
+   * POST /api/sources  { id, name, rss, enabled?, category? }
+   * A blank or absent category is stored as uncategorized (NULL).
    */
   fastify.post('/api/sources', async (req, reply) => {
     const body = req.body as Partial<SourceConfig>;
     if (!body?.id || !body?.name || !body?.rss) {
       return reply.status(400).send({ error: 'id, name, and rss are required' });
+    }
+    if (!isCategory(body.category)) {
+      return reply.status(400).send({ error: 'category must be a string' });
     }
     try {
       const all = addSource(
@@ -26,6 +37,7 @@ const sourcesRoutes: FastifyPluginAsync = async (fastify) => {
           name: body.name,
           rss: body.rss,
           enabled: body.enabled ?? true,
+          category: body.category ?? null,
         },
         db(),
       );
@@ -39,11 +51,14 @@ const sourcesRoutes: FastifyPluginAsync = async (fastify) => {
   });
 
   /**
-   * PUT /api/sources/:id  (partial patch)
+   * PUT /api/sources/:id  (partial patch: name, rss, enabled, category)
    */
   fastify.put('/api/sources/:id', async (req, reply) => {
     const { id } = req.params as { id: string };
     const body = req.body as Partial<Omit<SourceConfig, 'id'>>;
+    if (!isCategory(body?.category)) {
+      return reply.status(400).send({ error: 'category must be a string' });
+    }
     try {
       const all = updateSource(id, body, db());
       return reply.send(all);

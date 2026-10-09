@@ -1,17 +1,21 @@
 /* =============================================================
-   Articles — search, library, and sources on one sheet
+   Clippings — the Reader's Search and Library views.
+
+   Moved from `articles/ArticlesIsland.module.css` by brief 105, when the
+   /articles sheet became the Reader's views. The tab row that switched the
+   three panels is gone (the Reader's rail switches them now); every rule
+   below it is as it was, plus the Library's note.
    ============================================================= */
 
-/* The panel switch is a `ChipRow` (DESIGN.md §5) — the chips themselves live
-   in `ui/ChipRow.module.css`; this only spaces the row off the panel. */
-.tabBar {
-  margin-bottom: var(--sp-unit);
-}
-
-.tabPanel {
+.panel {
   display: flex;
   flex-direction: column;
   gap: var(--sp-unit);
+}
+
+/* PageHeader brings its own bottom margin; the panel's gap replaces it. */
+.panel > :first-child {
+  margin-bottom: 0;
 }
 
 /* ---- Search form ---- */
@@ -111,4 +115,35 @@
   display: flex;
   flex-direction: column;
   gap: var(--sp-half);
+}
+
+/* ---- The note (library) ----
+   Why the article was kept. Set as running text under a field label, so it
+   reads as the writer's own words and not as the article's excerpt. */
+.note {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding-left: var(--sp-hair);
+  border-left: 2px solid var(--graphite);
+  font-size: var(--fs-label);
+  line-height: 1.45;
+  color: var(--graphite);
+  white-space: pre-wrap;
+}
+
+.noteLabel {
+  font-family: var(--font-galley);
+  font-size: var(--fs-field);
+  font-weight: 500;
+  letter-spacing: var(--ls-field);
+  text-transform: uppercase;
+  color: var(--graphite-soft);
+}
+
+.noteForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-hair);
 }

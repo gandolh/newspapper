@@ -12,6 +12,7 @@ export {
   getArticlesByIds,
   removeArticle,
   countArticles,
+  updateArticleNote,
 } from './articles.js';
 export type { NewArticle, ArticleFilter } from './articles.js';
 
@@ -78,4 +79,31 @@ export {
   addSource,
   updateSource,
   removeSource,
+  normalizeCategory,
 } from './sources.js';
+
+export {
+  insertFeedItems,
+  listFeedItems,
+  getFeedItem,
+  setFeedItemRead,
+  markFeedItemsRead,
+  getReaderCounts,
+  purgeFeedItems,
+  saveFeedItemToLibrary,
+  filterTerms,
+  capUtf8,
+  InvalidCursorError,
+  MAX_CONTENT_HTML_BYTES,
+  EXCERPT_MAX_CHARS,
+  KEEP_NEWEST_PER_SOURCE,
+  DEFAULT_PAGE_SIZE,
+  MAX_PAGE_SIZE,
+} from './feed-items.js';
+export type {
+  NewFeedItem,
+  FeedItemScope,
+  FeedItemQuery,
+  MarkReadScope,
+  PurgeOptions,
+} from './feed-items.js';

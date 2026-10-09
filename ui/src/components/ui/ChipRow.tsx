@@ -39,7 +39,7 @@ export interface ChipRowProps {
  *
  * The control for a value that comes from a short, named scale: the
  * inspector's `size`, `align` and `emphasis`, the keyword filter on `/posts`,
- * the panel switch on `/articles`. It is a *row*, and that is the constraint —
+ * the Unread / All switch on `/reader`. It is a *row*, and that is the constraint —
  * past roughly six chips it stops reading as a scale and the value wants
  * `Select` instead.
  *

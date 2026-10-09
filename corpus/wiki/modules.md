@@ -1,31 +1,16 @@
 ---
-summary: The public API of @newspapper/core — what each module actually exports and from which entry point.
-updated: 2026-10-02
+summary: The public API of @newspapper/core — what the wizard, render, templates, posts storage, themes, util and uploads modules export and from which entry point. Scrape, the Reader and the storage for sources, articles and feed items are in modules-reader.md.
+updated: 2026-10-09
 ---
 
 # Modules
 
 All modules are in `@newspapper/core` (`core/src/`). Exported from `core/src/index.ts` (main entry) or `core/src/templates/index.ts` (browser-safe subpath).
 
-## Scrape
+## Scrape, the Reader, and the reading side's storage
 
-```ts
-// core/src/scrape/index.ts
-export async function searchArticles(sources: SourceConfig[], opts: SearchOptions): Promise<SearchResult>
-export async function pingSource(source: SourceConfig): Promise<PingResult>
-```
-
-`searchArticles()` fetches each enabled source (trimmed to `maxPerSource` feed
-items), fetches bodies, and keeps items matching any of `opts.keywords`
-(case-insensitive substring, title + body), ranked by total match count. It
-**persists nothing** — `SearchResult.articles` are `ScrapedArticle[]`, not DB
-rows; saving one is a separate call to `saveArticle`/`saveArticles`.
-
-```ts
-export async function fetchFeed(url: string): Promise<RssItem[]>   // scrape/rss.ts
-export async function fetchBody(url: string, opts?): Promise<string>  // scrape/body.ts
-export function stripHtml(html: string): string
-```
+`scrape/`, `reader/`, `util/concurrency.ts` and the `storage/` modules for
+sources, saved articles and feed items: [modules-reader.md](./modules-reader.md).
 
 ## Wizard
 
@@ -85,17 +70,6 @@ export function migrate(db: DB): void
 ```
 
 ```ts
-// core/src/storage/articles.ts — the saved library; a search's results are not rows until saved
-export function saveArticle(db: DB, input: NewArticle): Article        // idempotent on (source_id, guid)
-export function saveArticles(db: DB, rows: NewArticle[]): number       // returns newly inserted count
-export function listArticles(db: DB, filter?: ArticleFilter): Article[]  // { search?; sourceId?; limit?; offset? }
-export function findArticle(db: DB, id: number): Article | undefined
-export function getArticlesByIds(db: DB, ids: number[]): Article[]
-export function removeArticle(db: DB, id: number): Article | undefined
-export function countArticles(db: DB): number
-```
-
-```ts
 // core/src/storage/posts.ts
 export function createDraft(db: DB, payload: PostPayload): PostRow
 export function getPost(db: DB, id: number): PostRow | null
@@ -111,18 +85,7 @@ export function getSettings(dbPath?: string): Settings
 export function saveSettings(patch: Partial<Settings>, dbPath?: string): void
 ```
 
-```ts
-// core/src/storage/sources.ts — DB-backed as of schema v3 (was data/sources.json)
-export function listSources(db?: DB): SourceConfig[]
-export function getSource(id: string, db?: DB): SourceConfig | undefined
-export function addSource(src: SourceConfig, db?: DB): SourceConfig[]
-export function updateSource(id: string, patch: Partial<Omit<SourceConfig, 'id'>>, db?: DB): SourceConfig[]
-export function removeSource(id: string, db?: DB): SourceConfig[]
-export function saveSources(all: SourceConfig[], db?: DB): void
-```
-
-`db` is trailing and optional everywhere — a caller with no open handle gets one
-opened and closed for the call, the same pattern as `getSettings`.
+`sources.ts`, `articles.ts` and `feed-items.ts`: [modules-reader.md](./modules-reader.md#storage).
 
 ## Themes
 

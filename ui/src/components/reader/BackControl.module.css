@@ -1,0 +1,30 @@
+/* The Reader's narrow breakpoint is 1099px: below 1100 the rail (9 units),
+   the list (13 units) and a readable pane no longer fit side by side. The
+   same number is in ReaderIsland.module.css. */
+.back {
+  display: none;
+  align-self: flex-start;
+  align-items: center;
+  gap: var(--sp-hair);
+  height: var(--sp-unit);
+  padding: 0 var(--sp-hair);
+  border: 1px solid var(--tick);
+  background: var(--paper);
+  color: var(--graphite);
+  font-family: var(--font-galley);
+  font-size: var(--fs-field);
+  font-weight: 700;
+  letter-spacing: var(--ls-mark);
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.back:hover {
+  border-color: var(--graphite);
+}
+
+@media (max-width: 1099px) {
+  .back {
+    display: inline-flex;
+  }
+}

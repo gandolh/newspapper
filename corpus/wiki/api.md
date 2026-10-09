@@ -1,6 +1,6 @@
 ---
-summary: Every HTTP route the Fastify API exposes — method, path, body, response shape, and which ones stream SSE.
-updated: 2026-10-03
+summary: The HTTP API's ground rules (the /api prefix, the Ward session guard and its 401/403/503, SSE framing) and the writing side's routes — posts, renders, publish, export, themes, settings, uploads. Sources, articles, Search and the Reader are in api-reader.md.
+updated: 2026-10-09
 ---
 
 # HTTP API
@@ -42,48 +42,11 @@ along with the `newspapper_session` cookie and the login lockout.
 `/api/me` answers narrowly: Ward's grant map for the person never leaves the
 server.
 
-## Sources
+## Sources, articles, Search and the Reader
 
-Sources live in the DB as of schema v3 (`sources` table), not `data/sources.json`.
-Managed from the **Sources** tab of the `/articles` page — there is no separate
-`/sources` page any more.
-
-| Method | Path | Body | Response |
-|--------|------|------|----------|
-| GET | `/api/sources` | — | `SourceConfig[]` |
-| POST | `/api/sources` | `SourceConfig` | `SourceConfig[]` (full list) · 409 if the id exists |
-| PUT | `/api/sources/:id` | `Partial<SourceConfig>` | `SourceConfig[]` · 404 |
-| DELETE | `/api/sources/:id` | — | `SourceConfig[]` · 404 |
-| POST | `/api/sources/:id/ping` | — | `{ ok, itemCount?, latencyMs?, error? }` — also the UI's "test feed" action |
-
-Deleting a source only clears the FK on its articles (`source_id` → `NULL`);
-`source_name` is a snapshot taken at save time, so already-saved articles stay
-readable under their original source's name.
-
-## Articles
-
-The `articles` table holds only **saved** articles — a search's results are
-never written until the user explicitly saves one.
-
-| Method | Path | Query / Body | Response |
-|--------|------|---------------|----------|
-| GET | `/api/articles` | query `sourceId?`, `search?` (title/body substring), `limit?`, `offset?` | `ArticleSummary[]` (an `Article` with `body` replaced by a ≤300-char `excerpt`), most recently saved first |
-| POST | `/api/articles` | body `NewArticle` (`title` required; `sourceId`, `sourceName`, `guid`, `url`, `body`, `publishedAt` optional) | 201 `Article` — idempotent on `(source_id, guid)`; a repeat save returns the existing row. `sourceName` defaults to `'Manual'` when no `sourceId` is given. |
-| DELETE | `/api/articles/:id` | — | `{ ok: true }` · 404 |
-
-## Scrape (SSE)
-
-A search, not a persist: fetches the enabled sources and returns items
-matching any of the given keywords (case-insensitive substring, across title +
-body), ranked by total match count. Nothing is written to `articles` — saving
-a result is a separate `POST /api/articles` call.
-
-| Method | Path | Body | SSE events |
-|--------|------|------|------------|
-| POST | `/api/scrape` | `{ keywords: string[], maxPerSource?: number }` | `progress: { sourceId, status: 'fetching'\|'done'\|'error', count?, error? }` (count is matches found once `status: 'done'`) · `done: { articles: ScrapedArticle[], errors: Array<{ sourceId, error }> }` · `error: { message }` (e.g. no keywords given) |
-
-`ScrapedArticle` is `{ sourceId, sourceName, guid, title, url, body, publishedAt, matchCount }` —
-distinct from the saved `Article` shape (no `id`, no `savedAt`) since it isn't a row yet.
+The reading side — `/api/sources`, `/api/articles`, the keyword Search
+(`POST /api/scrape`, SSE) and the Reader's `/api/reader/*` routes — is in
+[api-reader.md](./api-reader.md).
 
 ## Posts
 

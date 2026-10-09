@@ -11,6 +11,7 @@ import {
   updateSource,
   removeSource,
 } from './sources.js';
+import { insertFeedItems } from './feed-items.js';
 import type { SourceConfig } from '../types.js';
 
 let tmpDir: string;
@@ -34,6 +35,9 @@ const src1: SourceConfig = {
 };
 const src2: SourceConfig = { id: 'cnn', name: 'CNN', rss: 'https://cnn.com/rss', enabled: false };
 
+/** What listSources adds to a config that has never been refreshed. */
+const neverRefreshed = { category: null, lastFetchedAt: null, lastError: null };
+
 describe('sources — DB-backed CRUD', () => {
   it('listSources returns an empty array on a fresh DB', () => {
     expect(listSources(db)).toEqual([]);
@@ -43,8 +47,8 @@ describe('sources — DB-backed CRUD', () => {
     saveSources([src1, src2], db);
     const all = listSources(db);
     expect(all).toHaveLength(2);
-    expect(all.find((s) => s.id === 'bbc')).toEqual(src1);
-    expect(all.find((s) => s.id === 'cnn')).toEqual(src2);
+    expect(all.find((s) => s.id === 'bbc')).toEqual({ ...src1, ...neverRefreshed });
+    expect(all.find((s) => s.id === 'cnn')).toEqual({ ...src2, ...neverRefreshed });
   });
 
   it('addSource appends and returns all sources', () => {
@@ -110,5 +114,61 @@ describe('sources — DB-backed CRUD', () => {
     };
     expect(row.source_id).toBeNull();
     expect(row.source_name).toBe('BBC News');
+  });
+
+  it('deleting a source deletes its stored Reader items', () => {
+    saveSources([src1], db);
+    insertFeedItems(db, 'bbc', [{ title: 'A', url: 'https://bbc.co.uk/a' }], now());
+    removeSource('bbc', db);
+    expect(db.prepare('SELECT COUNT(*) AS n FROM feed_items').get()).toEqual({ n: 0 });
+  });
+});
+
+function now(): string {
+  return new Date().toISOString();
+}
+
+describe('sources — the Reader category (schema v6)', () => {
+  it('stores a category trimmed, and a blank one as uncategorized', () => {
+    addSource({ ...src1, category: '  Romania ' }, db);
+    addSource({ ...src2, category: '   ' }, db);
+    expect(getSource('bbc', db)?.category).toBe('Romania');
+    expect(getSource('cnn', db)?.category).toBeNull();
+  });
+
+  it('saveSources keeps categories', () => {
+    saveSources([{ ...src1, category: 'World' }, src2], db);
+    expect(getSource('bbc', db)?.category).toBe('World');
+    expect(getSource('cnn', db)?.category).toBeNull();
+  });
+
+  it('updateSource sets and clears a category, and leaves it alone when not patched', () => {
+    saveSources([{ ...src1, category: 'World' }], db);
+    updateSource('bbc', { name: 'BBC World' }, db);
+    expect(getSource('bbc', db)?.category).toBe('World');
+    updateSource('bbc', { category: 'Tech' }, db);
+    expect(getSource('bbc', db)?.category).toBe('Tech');
+    updateSource('bbc', { category: null }, db);
+    expect(getSource('bbc', db)?.category).toBeNull();
+  });
+
+  it('updateSource never touches the refresh bookkeeping, but a new URL drops the validators', () => {
+    saveSources([src1], db);
+    db.prepare(
+      `UPDATE sources SET etag = 'e1', last_modified = 'lm1',
+         last_fetched_at = '2026-10-01T00:00:00.000Z', last_error = 'boom' WHERE id = 'bbc'`,
+    ).run();
+    const validators = () =>
+      db.prepare(`SELECT etag, last_modified FROM sources WHERE id = 'bbc'`).get();
+
+    updateSource('bbc', { name: 'Renamed', enabled: false }, db);
+    expect(validators()).toEqual({ etag: 'e1', last_modified: 'lm1' });
+    expect(getSource('bbc', db)).toMatchObject({
+      lastFetchedAt: '2026-10-01T00:00:00.000Z',
+      lastError: 'boom',
+    });
+
+    updateSource('bbc', { rss: 'https://bbc.co.uk/world/rss' }, db);
+    expect(validators()).toEqual({ etag: null, last_modified: null });
   });
 });

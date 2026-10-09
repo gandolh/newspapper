@@ -1,11 +1,11 @@
 ---
-summary: Dated snapshot (2026-10-07) — the Wizard rebuild is done, identity is Ward's, it runs on the VPS under /newspapper/, the 2026-09-27 improvements sweep (77-104) is fully worked through, and brief 105 (the Reader) is open; plus the known strays and open questions.
-updated: 2026-10-07
+summary: Dated snapshot (2026-10-09) — the Wizard rebuild is done, identity is Ward's, it runs on the VPS under /newspapper/, the 2026-09-27 improvements sweep (77-104) is fully worked through, and brief 105 built the Reader (schema v6), which is not deployed yet; plus the known strays and open questions.
+updated: 2026-10-09
 ---
 
 # Status
 
-_Snapshot: 2026-10-03, plus brief 105 filed on 2026-10-07. Branch `main`, in step with `origin/main`._
+_Snapshot: 2026-10-09. Branch `main`, ahead of `origin/main` until the owner pushes._
 
 ## Where things stand
 
@@ -22,6 +22,12 @@ how it runs:
   (`ui/src/lib/base.ts`).
 - **Local dev signs in through a local Ward** (brief 84,
   [configuration.md](./configuration.md#local-sign-in)).
+- **The Reader replaced `/articles`** (brief 105, 2026-10-09): feed items are
+  stored (schema v6) and refreshed in the background, and `/reader` reads them
+  in three panes, with Search, Library and Sources as its views. Built and
+  checked locally; **not deployed**, and production's database has not been
+  through the v6 migration yet ([data-reader.md](./data-reader.md),
+  [api-reader.md](./api-reader.md)).
 
 **The 2026-09-27 improvements sweep (briefs 77-102) is done**, along with
 103 and 104, which were found while doing it. In short:
@@ -39,7 +45,7 @@ how it runs:
 
 Coverage now reaches the real Ward client, the render route, the upload
 interception and the UI's base path, and every Chromium suite fails under
-`CI`. Gates: `npm run build`, `npm run lint`, `npm test` (740 tests) and
+`CI`. Gates: `npm run build`, `npm run lint`, `npm test` (896 tests) and
 `bash corpus/lint.sh`, all green. `npm run gate` runs all four with `CI=1`;
 there is no GitHub CI, by the owner's choice (2026-10-04).
 
@@ -105,10 +111,11 @@ your work.
 2026-10-02/03), plus 103 (the dead Settings password form, found during 83) and
 104 (a JWKS outage answering 401, found by 89's tests).
 
-**Open since 2026-10-07:** [105](../briefs/todo/105-the-reader.md), the
-Reader, a FreshRSS-style zone for following feeds, reading and clipping. It
-replaces `/articles`. Three owner decisions sit at its top and must be
-confirmed before dispatch.
+**Done 2026-10-09:** [105](../briefs/done/105-the-reader.md), the Reader, a
+FreshRSS-style zone for following feeds, reading and clipping, which replaced
+`/articles`. Filed 2026-10-07; the owner took the recommended answer to its
+three decisions. Its outcome note lists the choices the brief left open and two
+bugs found only in the browser.
 
 Waves below are the **executed** order, which differs from the originally filed
 one: file-ownership collisions the dependency graph alone did not show forced
@@ -158,6 +165,8 @@ historical, and written against a product that no longer exists.
 
 ## What is not done
 
-- [Brief 105](../briefs/todo/105-the-reader.md), the Reader, waiting on its
-  three owner decisions. [open-questions.md](./open-questions.md) is empty.
+- Brief 105's deploy, an owner step. The v6 migration runs on boot, and
+  production's database has not been through it; back it up first. Then the
+  background refresh starts 15 s after boot and fetches every enabled feed
+  every 30 minutes. [open-questions.md](./open-questions.md) is empty.
 - The strays above.

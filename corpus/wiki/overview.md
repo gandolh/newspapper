@@ -1,6 +1,6 @@
 ---
 summary: What Newspapper is — write a post in .wzd markup, compile it to 1080² JPEGs — plus the v1→v3 lineage and the Wizard pivot that explain its shape, the three workspaces, and what lives where at the top level.
-updated: 2026-10-02
+updated: 2026-10-09
 ---
 
 # Overview
@@ -15,8 +15,9 @@ screenshots each slide in headless Chromium.
 .wzd document  →  compile  →  HTML  →  Chromium  →  1080² JPEGs  →  publish / ZIP
 ```
 
-RSS is still here, but only as a **library of source material** to write from —
-search feeds by keyword, save what is useful, quote it in a post. It is not a
+RSS is still here, but only as **source material** to write from: the Reader
+follows the feeds and keeps what they publish, Search scans them by keyword,
+and you save what is useful, with a note, to quote in a post. It is not a
 pipeline that produces one.
 
 **No model is involved anywhere.** The person writes the words. See
@@ -56,9 +57,9 @@ describe a product that no longer exists; briefs 51–72 describe this one.
 
 | Workspace | Package | Job |
 |---|---|---|
-| `core/` | `@newspapper/core` | The library — the `.wzd` parser/formatter/linter/compiler, the TNode interpreter, Chromium rendering, RSS search, image uploads, SQLite storage, theme loading. No HTTP, no UI. |
-| `api/` | `@newspapper/api` | Fastify on 3001. Every `/api/*` route, the Ward session guard, SSE for search and render, static serving in prod. |
-| `ui/` | `@newspapper/ui` | A Vite + React SPA on 4321: editor (`/`), `/posts`, `/articles`, `/settings`. (`/login` only redirects to Ward.) |
+| `core/` | `@newspapper/core` | The library — the `.wzd` parser/formatter/linter/compiler, the TNode interpreter, Chromium rendering, RSS search and the Reader's refresh, image uploads, SQLite storage, theme loading. No HTTP, no UI. |
+| `api/` | `@newspapper/api` | Fastify on 3001. Every `/api/*` route, the Ward session guard, SSE for search, render and the Reader's refresh, the Reader's background loop, static serving in prod. |
+| `ui/` | `@newspapper/ui` | A Vite + React SPA on 4321: editor (`/`), `/posts`, `/reader`, `/settings`. (`/articles` redirects to `/reader`; `/login` only redirects to Ward.) |
 
 Full structure and dependency direction: [architecture.md](./architecture.md).
 

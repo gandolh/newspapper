@@ -1,6 +1,6 @@
 ---
-summary: The nine times a check in this repo reported success while reaching nothing — what each one was, how it was caught, and the cheap check that would have caught it sooner. Read before trusting a green command here.
-updated: 2026-09-01
+summary: The ten times a check in this repo reported success while reaching nothing — what each one was, how it was caught, and the cheap check that would have caught it sooner. Read before trusting a green command here.
+updated: 2026-10-09
 ---
 
 # Green because nothing ran
@@ -8,7 +8,7 @@ updated: 2026-09-01
 **Most of this project's real defects were not in the code. They were in the
 things that were supposed to be checking it.**
 
-Eight separate times, a command in this repo exited 0 while touching nothing it
+Ten separate times, a check in this repo passed while touching nothing it
 was believed to touch. Not one was found by the tool that should have found it;
 every one was found by somebody asking, out loud, *what did that actually
 reach?*
@@ -17,7 +17,7 @@ They are collected here because an append-only [log](../log.md) buries a
 pattern, and this one is the most useful thing the project knows about itself.
 Each entry links back to its log entry for the full account.
 
-## The nine
+## The ten
 
 | # | The tool | What it reached | Found by |
 |---|---|---|---|
@@ -30,6 +30,7 @@ Each entry links back to its log entry for the full account.
 | 7 | `npm run lint` | `eslint.config.js` registered the parser and plugin, switched off the three rules it named, and imported no recommended config. **Zero rules were enabled**, for the project's entire history. Verified rather than assumed: a file with a plain unused variable drew exit 0 and no output. | Brief 68, filed about something else |
 | 8 | `api/src/routes/uploads.test.ts` | It imported `sharp` that `api/package.json` never declared, resolving against **the hoisted copy Astro pulled in as an optional dependency**. So it had been testing image handling against sharp 0.34.5 while production ran 0.35.4 — and the moment Astro was removed it contributed **zero** tests instead of fourteen. | An import error inside a two-agent wave, resolved by reading `git show HEAD:package-lock.json` rather than by argument |
 | 9 | `document.scrollWidth - clientWidth === 0`, checking the tray for overflow | It measured **the document**, not the tray's own scroll container. `ul.cells` *was* an `overflow-x` container — scrollWidth 312 against clientWidth 12 at 320px — so the check returned "no overflow" about an element it never looked at. Three routes were off-screen behind a 12px scroll window nobody could see or find. | Brief 75 hit-testing `elementFromPoint` after `scrollIntoView`, instead of inferring |
+| 10 | `DOMPurify.isSupported` under happy-dom 20.14.5 | **A sanitizer that did not sanitize.** `isSupported` was `true`, yet happy-dom's `NodeIterator` does not adjust when the node it stands on is removed, so DOMPurify's walk stopped at the first removal: `<p>a</p><script>…</script><p onclick>` came back with the script and the handler intact. It mangles clean markup too (`<p>a</p><p>b</p>` → `a<p>b</p>`). A suite of one-bad-node inputs would have passed, since the bad node is the one removed first. The brief's own guard ("assert `isSupported` first") would have passed too. | Brief 105 writing multi-node cases, then moving the test into real Chromium |
 
 ## What generalises
 
@@ -58,8 +59,12 @@ Each entry links back to its log entry for the full account.
 - **A dependency that resolves only by hoisting is a test that passes by
   coincidence.** Removing an unrelated package breaks it, and the version it
   silently binds to is whatever the accident supplied. (8)
+- **A library's own capability check is a claim, not a result.** A simulated
+  DOM can satisfy the probe and still not behave like a browser. Test a
+  sanitizer where it will run, and with inputs where the dangerous node is not
+  the first one touched. (10)
 
-Six of the eight were tools pointed at the wrong place. Number 7 was configured
+Six of the first eight were tools pointed at the wrong place. Number 7 was configured
 to do nothing, which no amount of correct pointing would have fixed. Number 6
 was a test whose control was correct in principle and load-bearing on an
 accident.
@@ -81,14 +86,18 @@ measure over one you can reason to:
    `elementFromPoint`, a real viewport, an actual click — rather than inferring
    from a container's own numbers. A scroll that exists is not a scroll anyone
    can find. (9)
+7. For anything that leans on a browser API, run it in the browser it will
+   run in. A test DOM that says "supported" has only answered the question it
+   was asked. (10)
 
-Eight of the nine were tooling. The ninth was a measurement, and it is the one
-worth re-reading: the check was correct, the reasoning from it was correct, and
-it was pointed at the wrong object. No amount of rigour downstream of a
-mis-aimed check recovers it.
+Eight of the first nine were tooling. The ninth was a measurement, and it is
+the one worth re-reading: the check was correct, the reasoning from it was
+correct, and it was pointed at the wrong object. No amount of rigour downstream
+of a mis-aimed check recovers it. The tenth was a library vouching for itself
+inside a simulation of the place it would really run.
 
 The gates the project runs today — `npm run build` (which runs `fmt:check`
 first, then typechecks all three workspaces), `npm test`, `npm run lint` across
-all three, and `bash corpus/lint.sh` — are the shape they are because of these
-eight. See [decisions-tooling.md](./decisions-tooling.md) for what each one is
+all three, and `bash corpus/lint.sh` — are the shape they are because of these.
+ See [decisions-tooling.md](./decisions-tooling.md) for what each one is
 now required to cover, and [commands.md](./commands.md) for how to run them.

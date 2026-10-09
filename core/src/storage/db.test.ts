@@ -32,11 +32,11 @@ function indexNames(db: ReturnType<typeof getDb>): string[] {
 }
 
 describe('getDb — fresh install', () => {
-  it('sets user_version to 5', () => {
+  it('sets user_version to 6', () => {
     const db = getDb(join(tmpDir, 'fresh.db'));
     const ver = db.pragma('user_version', { simple: true }) as number;
     db.close();
-    expect(ver).toBe(5);
+    expect(ver).toBe(6);
   });
 
   it('defaults posts.theme to the renamed theme', () => {
@@ -105,7 +105,44 @@ describe('getDb — fresh install', () => {
       'body',
       'published_at',
       'saved_at',
+      'note',
     ]);
+  });
+
+  it('creates feed_items, the Reader columns on sources, and their indexes (v6)', () => {
+    const db = getDb(join(tmpDir, 'fresh.db'));
+    const items = columns(db, 'feed_items');
+    const sources = columns(db, 'sources');
+    const idx = indexNames(db);
+    db.close();
+    expect(items).toEqual([
+      'id',
+      'source_id',
+      'guid',
+      'title',
+      'url',
+      'author',
+      'content_html',
+      'content_text',
+      'published_at',
+      'fetched_at',
+      'sort_at',
+      'read_at',
+    ]);
+    expect(sources).toEqual([
+      'id',
+      'name',
+      'rss_url',
+      'enabled',
+      'created_at',
+      'category',
+      'etag',
+      'last_modified',
+      'last_fetched_at',
+      'last_error',
+    ]);
+    expect(idx).toContain('idx_feed_items_sort');
+    expect(idx).toContain('idx_feed_items_source_read');
   });
 
   it('creates the listing indexes named in the schema', () => {
@@ -169,7 +206,7 @@ describe('migrate — idempotence', () => {
     const ver = db.pragma('user_version', { simple: true }) as number;
     const rows = db.prepare('SELECT title FROM posts').all() as Array<{ title: string }>;
     db.close();
-    expect(ver).toBe(5);
+    expect(ver).toBe(6);
     expect(rows).toHaveLength(1);
     expect(rows[0].title).toBe('Kept');
   });
@@ -263,7 +300,7 @@ describe('migrate — v3 → v4 (the warm-industrial rename)', () => {
     after.exec('DROP VIEW post_titles');
     after.close();
     const db = getDb(dbPath);
-    expect(db.pragma('user_version', { simple: true })).toBe(5);
+    expect(db.pragma('user_version', { simple: true })).toBe(6);
     expect(db.prepare('SELECT COUNT(*) AS n FROM posts').get()).toEqual({ n: 2 });
     expect(db.prepare('SELECT COUNT(*) AS n FROM renders').get()).toEqual({ n: 1 });
     db.close();
@@ -279,7 +316,7 @@ describe('migrate — v3 → v4 (the warm-industrial rename)', () => {
     }>;
     const ver = db.pragma('user_version', { simple: true }) as number;
     db.close();
-    expect(ver).toBe(5);
+    expect(ver).toBe(6);
     expect(rows).toEqual([
       { title: 'Legacy', theme: 'warm-industrial-1' },
       { title: 'Already moved', theme: 'warm-industrial-2' },
@@ -364,7 +401,7 @@ describe('migrate — v3 → v4 (the warm-industrial rename)', () => {
     migrate(fresh);
     const ver = fresh.pragma('user_version', { simple: true }) as number;
     fresh.close();
-    expect(ver).toBe(5);
+    expect(ver).toBe(6);
   });
 });
 
@@ -436,7 +473,7 @@ describe('migrate — v2 schema (payload posts) with existing rows', () => {
     const db = getDb(dbPath);
     const ver = db.pragma('user_version', { simple: true }) as number;
     db.close();
-    expect(ver).toBe(5);
+    expect(ver).toBe(6);
   });
 
   it('drops every payload post — they carry no markup to derive from', () => {
@@ -489,7 +526,7 @@ describe('migrate — v2 schema (payload posts) with existing rows', () => {
     const ver = db.pragma('user_version', { simple: true }) as number;
     const tables = tableNames(db);
     db.close();
-    expect(ver).toBe(5);
+    expect(ver).toBe(6);
     expect(tables).toContain('post_keywords');
   });
 });
@@ -539,9 +576,213 @@ describe('migrate — v1 schema (old CLI era)', () => {
     const cols = columns(db, 'posts');
     const rows = db.prepare('SELECT COUNT(*) AS n FROM posts').get() as { n: number };
     db.close();
-    expect(ver).toBe(5);
+    expect(ver).toBe(6);
     expect(cols).toContain('markup');
     expect(rows.n).toBe(0);
+  });
+});
+
+describe('migrate — v5 → v6 (the Reader)', () => {
+  /** A v5 DB, built from the schema as it shipped, with a source and a saved article. */
+  function buildV5Db(dbPath: string) {
+    const db = new Database(dbPath);
+    db.exec(`
+      CREATE TABLE posts (
+        id           INTEGER PRIMARY KEY AUTOINCREMENT,
+        title        TEXT NOT NULL,
+        description  TEXT NOT NULL DEFAULT '',
+        markup       TEXT NOT NULL,
+        theme        TEXT NOT NULL DEFAULT 'warm-industrial-1',
+        status       TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'published')),
+        created_at   TEXT NOT NULL,
+        updated_at   TEXT NOT NULL,
+        published_at TEXT
+      );
+      CREATE INDEX idx_posts_status_updated_at ON posts(status, updated_at);
+      CREATE TABLE keywords (
+        id   INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL UNIQUE COLLATE NOCASE
+      );
+      CREATE TABLE post_keywords (
+        post_id    INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+        keyword_id INTEGER NOT NULL REFERENCES keywords(id) ON DELETE CASCADE,
+        PRIMARY KEY (post_id, keyword_id)
+      );
+      CREATE INDEX idx_post_keywords_keyword_id ON post_keywords(keyword_id);
+      CREATE TABLE renders (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        post_id     INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+        output_dir  TEXT NOT NULL,
+        slide_count INTEGER NOT NULL DEFAULT 0,
+        optimized   INTEGER NOT NULL DEFAULT 0,
+        created_at  TEXT NOT NULL
+      );
+      CREATE INDEX idx_renders_post_id ON renders(post_id);
+      CREATE TABLE sources (
+        id         TEXT PRIMARY KEY,
+        name       TEXT NOT NULL,
+        rss_url    TEXT NOT NULL UNIQUE,
+        enabled    INTEGER NOT NULL DEFAULT 1,
+        created_at TEXT NOT NULL
+      );
+      CREATE TABLE articles (
+        id           INTEGER PRIMARY KEY AUTOINCREMENT,
+        source_id    TEXT REFERENCES sources(id) ON DELETE SET NULL,
+        source_name  TEXT NOT NULL DEFAULT '',
+        guid         TEXT NOT NULL,
+        title        TEXT NOT NULL,
+        url          TEXT,
+        body         TEXT NOT NULL DEFAULT '',
+        published_at TEXT NOT NULL,
+        saved_at     TEXT NOT NULL,
+        UNIQUE (source_id, guid)
+      );
+      CREATE INDEX idx_articles_saved_at ON articles(saved_at);
+      CREATE TABLE uploads (
+        id              INTEGER PRIMARY KEY AUTOINCREMENT,
+        filename        TEXT NOT NULL,
+        stored_path     TEXT NOT NULL,
+        normalized_path TEXT,
+        mime            TEXT NOT NULL,
+        width           INTEGER,
+        height          INTEGER,
+        bytes           INTEGER NOT NULL DEFAULT 0,
+        created_at      TEXT NOT NULL
+      );
+      CREATE TABLE settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+    `);
+    const now = '2026-10-01T00:00:00.000Z';
+    db.prepare(
+      `INSERT INTO sources (id, name, rss_url, enabled, created_at) VALUES (?, ?, ?, ?, ?)`,
+    ).run('bbc', 'BBC News', 'https://bbc.co.uk/rss', 1, now);
+    db.prepare(
+      `INSERT INTO sources (id, name, rss_url, enabled, created_at) VALUES (?, ?, ?, ?, ?)`,
+    ).run('hn', 'Hacker News', 'https://news.ycombinator.com/rss', 0, now);
+    db.prepare(
+      `INSERT INTO articles (source_id, source_name, guid, title, url, body, published_at, saved_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    ).run(
+      'bbc',
+      'BBC News',
+      'https://bbc.co.uk/1',
+      'Budget day',
+      'https://bbc.co.uk/1',
+      'about tax',
+      now,
+      now,
+    );
+    db.prepare(`INSERT INTO posts (title, markup, created_at, updated_at) VALUES (?, ?, ?, ?)`).run(
+      'Kept post',
+      '<head></head><body></body>',
+      now,
+      now,
+    );
+    db.pragma('user_version = 5');
+    db.close();
+  }
+
+  it('migrates to v6 with sources, articles and posts intact', () => {
+    const dbPath = join(tmpDir, 'v5.db');
+    buildV5Db(dbPath);
+    const db = getDb(dbPath);
+    const ver = db.pragma('user_version', { simple: true });
+    const sources = db.prepare('SELECT * FROM sources ORDER BY id').all();
+    const articles = db.prepare('SELECT * FROM articles').all();
+    const posts = db.prepare('SELECT title FROM posts').all();
+    const items = db.prepare('SELECT COUNT(*) AS n FROM feed_items').get();
+    const violations = db.pragma('foreign_key_check');
+    db.close();
+
+    expect(ver).toBe(6);
+    expect(sources).toEqual([
+      {
+        id: 'bbc',
+        name: 'BBC News',
+        rss_url: 'https://bbc.co.uk/rss',
+        enabled: 1,
+        created_at: '2026-10-01T00:00:00.000Z',
+        category: null,
+        etag: null,
+        last_modified: null,
+        last_fetched_at: null,
+        last_error: null,
+      },
+      {
+        id: 'hn',
+        name: 'Hacker News',
+        rss_url: 'https://news.ycombinator.com/rss',
+        enabled: 0,
+        created_at: '2026-10-01T00:00:00.000Z',
+        category: null,
+        etag: null,
+        last_modified: null,
+        last_fetched_at: null,
+        last_error: null,
+      },
+    ]);
+    expect(articles).toEqual([
+      {
+        id: 1,
+        source_id: 'bbc',
+        source_name: 'BBC News',
+        guid: 'https://bbc.co.uk/1',
+        title: 'Budget day',
+        url: 'https://bbc.co.uk/1',
+        body: 'about tax',
+        published_at: '2026-10-01T00:00:00.000Z',
+        saved_at: '2026-10-01T00:00:00.000Z',
+        note: '',
+      },
+    ]);
+    expect(posts).toEqual([{ title: 'Kept post' }]);
+    expect(items).toEqual({ n: 0 });
+    expect(violations).toEqual([]);
+  });
+
+  it('leaves the migrated tables shaped exactly like a fresh v6 DB', () => {
+    const dbPath = join(tmpDir, 'v5.db');
+    buildV5Db(dbPath);
+    const migrated = getDb(dbPath);
+    const fresh = getDb(join(tmpDir, 'fresh.db'));
+    for (const table of ['sources', 'articles', 'feed_items']) {
+      expect(migrated.pragma(`table_info(${table})`)).toEqual(fresh.pragma(`table_info(${table})`));
+    }
+    expect(indexNames(migrated).sort()).toEqual(indexNames(fresh).sort());
+    migrated.close();
+    fresh.close();
+  });
+
+  it('a failing step rolls back to an intact, re-migratable v5', () => {
+    const dbPath = join(tmpDir, 'v5.db');
+    buildV5Db(dbPath);
+    // A stray feed_items without sort_at: CREATE TABLE IF NOT EXISTS skips it,
+    // and the sort index then fails, after the step's ALTERs have run.
+    const raw = new Database(dbPath);
+    raw.exec('CREATE TABLE feed_items (id INTEGER PRIMARY KEY, source_id TEXT)');
+    raw.close();
+
+    expect(() => getDb(dbPath)).toThrow(/sort_at/);
+
+    const after = new Database(dbPath);
+    expect(after.pragma('user_version', { simple: true })).toBe(5);
+    const sourceCols = (after.pragma('table_info(sources)') as Array<{ name: string }>).map(
+      (c) => c.name,
+    );
+    const articleCols = (after.pragma('table_info(articles)') as Array<{ name: string }>).map(
+      (c) => c.name,
+    );
+    expect(sourceCols).not.toContain('category');
+    expect(articleCols).not.toContain('note');
+    expect(after.prepare('SELECT COUNT(*) AS n FROM articles').get()).toEqual({ n: 1 });
+
+    // Fix the cause and it migrates.
+    after.exec('DROP TABLE feed_items');
+    after.close();
+    const db = getDb(dbPath);
+    expect(db.pragma('user_version', { simple: true })).toBe(6);
+    expect(columns(db, 'sources')).toContain('category');
+    expect(db.prepare('SELECT note FROM articles').get()).toEqual({ note: '' });
+    db.close();
   });
 });
 

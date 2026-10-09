@@ -1,5 +1,6 @@
 import type { SourceConfig } from '../types.js';
-import { fetchFeed } from './rss.js';
+import { mapWithConcurrency } from '../util/concurrency.js';
+import { fetchFeed, type RssItem } from './rss.js';
 import { fetchBody } from './body.js';
 
 const DEFAULT_USER_AGENT = 'Newspapper/3.0';
@@ -61,23 +62,10 @@ function countOccurrences(text: string, keyword: string): number {
  * source fetches up to `maxPerSource` bodies in parallel. */
 const SOURCE_CONCURRENCY = 4;
 
-/** `Promise.all(items.map(fn))` with at most `limit` running at a time; results
- * keep the input order. */
-async function mapWithConcurrency<T, R>(
-  items: readonly T[],
-  limit: number,
-  fn: (item: T) => Promise<R>,
-): Promise<R[]> {
-  const results: R[] = new Array<R>(items.length);
-  let next = 0;
-  const worker = async (): Promise<void> => {
-    while (next < items.length) {
-      const index = next++;
-      results[index] = await fn(items[index]!);
-    }
-  };
-  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
-  return results;
+type DatedRssItem = RssItem & { publishedAt: string };
+
+function isDated(item: RssItem): item is DatedRssItem {
+  return Boolean(item.publishedAt);
 }
 
 /** Sum of keyword occurrences across title + body — the OR ranking score. */
@@ -116,9 +104,12 @@ export async function searchArticles(
   async function searchSource(source: SourceConfig): Promise<ScrapedArticle[]> {
     onProgress?.({ sourceId: source.id, status: 'fetching' });
 
-    let items;
+    let items: DatedRssItem[];
     try {
-      items = await fetchFeed(source.rss, userAgent, requestTimeoutMs);
+      // `fetchFeed` keeps undated items now, because the Reader stores them.
+      // Search never showed them, and drops them here, before `maxPerSource`
+      // is applied, exactly where `fetchFeed` used to.
+      items = (await fetchFeed(source.rss, userAgent, requestTimeoutMs)).filter(isDated);
     } catch (err) {
       const error = (err as Error).message;
       errors.push({ sourceId: source.id, error });

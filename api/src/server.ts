@@ -1,7 +1,14 @@
 import { join } from 'node:path';
 import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { fontsDir, outputRoot, uiDistDir } from '@newspapper/core';
+import {
+  fontsDir,
+  outputRoot,
+  uiDistDir,
+  readerRefreshMinutes,
+  startReaderSchedule,
+} from '@newspapper/core';
+import type { ReaderSchedule, RefreshOptions } from '@newspapper/core';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import staticPlugin from '@fastify/static';
@@ -17,6 +24,8 @@ import themesRoutes from './routes/themes.js';
 import sourcesRoutes from './routes/sources.js';
 import settingsRoutes from './routes/settings.js';
 import uploadsRoutes from './routes/uploads.js';
+import readerRoutes from './routes/reader.js';
+import { db } from './lib/db.js';
 import { registerAuthGuard } from './ward/ward.guard.js';
 import type { WardClient } from './ward/ward.client.js';
 
@@ -29,6 +38,30 @@ export interface BuildAppOptions {
    * builds one from the environment.
    */
   ward?: WardClient;
+  /**
+   * Minutes between the Reader's background refreshes. **Omitted means off**,
+   * so every test that builds an app gets no loop and no timer by
+   * construction; `start()` passes `READER_REFRESH_MINUTES` (default 30) via
+   * `bootOptions()`. `0` is off too.
+   */
+  readerRefreshMinutes?: number;
+  /**
+   * Passed to every refresh the API starts, the SSE route's and the loop's.
+   * Tests inject fetch and DNS here so a refresh never reaches the network.
+   */
+  readerRefresh?: Pick<RefreshOptions, 'deps' | 'now'>;
+}
+
+declare module 'fastify' {
+  interface FastifyInstance {
+    /** The Reader's background loop. Stopped in `onClose`. */
+    readerSchedule: ReaderSchedule;
+  }
+}
+
+/** What `start()` boots with: the production settings, read from `env`. */
+export function bootOptions(env: NodeJS.ProcessEnv = process.env): BuildAppOptions {
+  return { readerRefreshMinutes: readerRefreshMinutes(env) };
 }
 
 export async function buildApp(options: BuildAppOptions = {}) {
@@ -76,6 +109,7 @@ export async function buildApp(options: BuildAppOptions = {}) {
   await fastify.register(sourcesRoutes);
   await fastify.register(settingsRoutes);
   await fastify.register(uploadsRoutes);
+  await fastify.register(readerRoutes, { refresh: options.readerRefresh });
 
   // Global error handler
   // A 4xx carries a message a route chose to show the caller. A 5xx is a fault,
@@ -122,13 +156,32 @@ export async function buildApp(options: BuildAppOptions = {}) {
     });
   }
 
+  /*
+   * The Reader's background refresh (brief 105): the first run 15 s after
+   * boot, then every `readerRefreshMinutes`. One loop per process, which
+   * assumes one API process (the container runs one). `db` is a getter, so nothing
+   * opens the DB until a run. The loop is stopped, and any run of its own
+   * aborted and settled, before the server finishes closing; every timer is
+   * unref'd besides, so none can hold a process or vitest open.
+   */
+  const schedule = startReaderSchedule(() => db(), {
+    intervalMinutes: options.readerRefreshMinutes ?? 0,
+    refresh: options.readerRefresh,
+    onResult: ({ newCount, errors, purged }) =>
+      fastify.log.info({ newCount, failedSources: errors.length, purged }, 'reader refresh'),
+  });
+  fastify.decorate('readerSchedule', schedule);
+  fastify.addHook('onClose', async () => {
+    await schedule.stop();
+  });
+
   return fastify;
 }
 
 const start = async () => {
   let fastify: Awaited<ReturnType<typeof buildApp>>;
   try {
-    fastify = await buildApp();
+    fastify = await buildApp(bootOptions());
   } catch (err) {
     console.error(`Startup failed: ${err instanceof Error ? err.message : String(err)}`);
     process.exit(1);

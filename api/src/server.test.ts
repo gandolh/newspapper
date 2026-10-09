@@ -27,7 +27,7 @@ const SESSION_COOKIE = 'ward_session';
 const TOKEN = 'server-test-session';
 const SUBJECT = 'subject_tester';
 
-type Method = 'GET' | 'POST' | 'PUT' | 'DELETE';
+type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 interface InjectOpts {
   method: Method;
   url: string;
@@ -149,11 +149,68 @@ describe('API server', () => {
       expect(article.sourceName).toBe('Manual');
     });
 
+    it('stores a note, and 400 when the note is not text', async () => {
+      const res = await inject({
+        method: 'POST',
+        url: '/api/articles',
+        payload: { title: 'Noted', guid: 'noted-1', note: '  why I kept it  ' },
+      });
+      expect(res.statusCode).toBe(201);
+      expect(res.json().note).toBe('why I kept it');
+
+      const bad = await inject({
+        method: 'POST',
+        url: '/api/articles',
+        payload: { title: 'Bad note', note: 7 },
+      });
+      expect(bad.statusCode).toBe(400);
+    });
+
     it('is idempotent on (source_id, guid) — saving twice leaves one row', async () => {
       const payload = { title: 'Dup test', sourceId: 'bbc', guid: 'dup-1' };
       const first = await inject({ method: 'POST', url: '/api/articles', payload });
       const second = await inject({ method: 'POST', url: '/api/articles', payload });
       expect(first.json().id).toBe(second.json().id);
+    });
+  });
+
+  describe('PATCH /api/articles/:id', () => {
+    it('replaces the note, and the library list returns it', async () => {
+      const created = await inject({
+        method: 'POST',
+        url: '/api/articles',
+        payload: { title: 'Note me', guid: 'note-me' },
+      });
+      const { id, note } = created.json();
+      expect(note).toBe('');
+
+      const res = await inject({
+        method: 'PATCH',
+        url: `/api/articles/${id}`,
+        payload: { note: 'a quote for the intro slide' },
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.json()).toMatchObject({ id, note: 'a quote for the intro slide' });
+
+      const listed = await inject({ method: 'GET', url: '/api/articles?search=Note me' });
+      expect(listed.json()[0].note).toBe('a quote for the intro slide');
+    });
+
+    it('404 for an unknown article, 400 without a string note', async () => {
+      const missing = await inject({
+        method: 'PATCH',
+        url: '/api/articles/999999',
+        payload: { note: 'x' },
+      });
+      expect(missing.statusCode).toBe(404);
+      const bad = await inject({ method: 'PATCH', url: '/api/articles/1', payload: {} });
+      expect(bad.statusCode).toBe(400);
+      const malformed = await inject({
+        method: 'PATCH',
+        url: '/api/articles/abc',
+        payload: { note: 'x' },
+      });
+      expect(malformed.statusCode).toBe(400);
     });
   });
 
@@ -513,6 +570,73 @@ describe('API server', () => {
         payload: { id: 'test-src', name: 'Test' },
       });
       expect(res.statusCode).toBe(400);
+    });
+
+    it('400 when category is not text', async () => {
+      const res = await inject({
+        method: 'POST',
+        url: '/api/sources',
+        payload: { id: 'bad-cat', name: 'Bad', rss: 'https://example.com/feed', category: 3 },
+      });
+      expect(res.statusCode).toBe(400);
+    });
+  });
+
+  describe('source categories', () => {
+    it('accepts and returns a category on create and update; blank means none', async () => {
+      const created = await inject({
+        method: 'POST',
+        url: '/api/sources',
+        payload: {
+          id: 'cat-src',
+          name: 'Categorised',
+          rss: 'https://example.com/cat.xml',
+          category: ' Economie ',
+        },
+      });
+      expect(created.statusCode).toBe(201);
+      const find = (all: Array<{ id: string }>) => all.find((s) => s.id === 'cat-src');
+      expect(find(created.json())).toMatchObject({
+        category: 'Economie',
+        lastFetchedAt: null,
+        lastError: null,
+      });
+
+      const renamed = await inject({
+        method: 'PUT',
+        url: '/api/sources/cat-src',
+        payload: { category: 'Politică' },
+      });
+      expect(find(renamed.json())).toMatchObject({ category: 'Politică', name: 'Categorised' });
+
+      const cleared = await inject({
+        method: 'PUT',
+        url: '/api/sources/cat-src',
+        payload: { category: '' },
+      });
+      expect(find(cleared.json())).toMatchObject({ category: null });
+
+      const listed = await inject({ method: 'GET', url: '/api/sources' });
+      expect(find(listed.json())).toMatchObject({ category: null });
+
+      const bad = await inject({
+        method: 'PUT',
+        url: '/api/sources/cat-src',
+        payload: { category: ['x'] },
+      });
+      expect(bad.statusCode).toBe(400);
+
+      await inject({ method: 'DELETE', url: '/api/sources/cat-src' });
+    });
+
+    it('a source created without a category is uncategorized', async () => {
+      const created = await inject({
+        method: 'POST',
+        url: '/api/sources',
+        payload: { id: 'plain-src', name: 'Plain', rss: 'https://example.com/plain.xml' },
+      });
+      expect(created.json().find((s: { id: string }) => s.id === 'plain-src').category).toBeNull();
+      await inject({ method: 'DELETE', url: '/api/sources/plain-src' });
     });
   });
 

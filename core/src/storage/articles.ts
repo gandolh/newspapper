@@ -11,6 +11,7 @@ interface ArticleDbRow {
   body: string;
   published_at: string;
   saved_at: string;
+  note: string;
 }
 
 function rowToArticle(r: ArticleDbRow): Article {
@@ -24,6 +25,7 @@ function rowToArticle(r: ArticleDbRow): Article {
     body: r.body,
     publishedAt: r.published_at,
     savedAt: r.saved_at,
+    note: r.note,
   };
 }
 
@@ -35,6 +37,13 @@ export interface NewArticle {
   url?: string | null;
   body?: string;
   publishedAt?: string;
+  /** Why this is kept. Stored only when the article is first saved; change it
+   * afterwards with `updateArticleNote`. */
+  note?: string;
+}
+
+function cleanNote(note: string | undefined): string {
+  return (note ?? '').trim();
 }
 
 /**
@@ -53,7 +62,8 @@ function resolveSourceId(db: DB, sourceId: string | null | undefined): string | 
 /**
  * Save an article to the library. Idempotent on (source_id, guid) — and on
  * guid alone for source-less articles, where the UNIQUE constraint cannot
- * apply because SQLite treats NULLs as distinct.
+ * apply because SQLite treats NULLs as distinct. Saving again returns the
+ * existing row unchanged, note included.
  */
 export function saveArticle(db: DB, input: NewArticle): Article {
   return saveOne(db, input).article;
@@ -73,6 +83,7 @@ function saveOne(db: DB, input: NewArticle): { article: Article; inserted: boole
     body: input.body ?? '',
     published_at: input.publishedAt ?? now,
     saved_at: now,
+    note: cleanNote(input.note),
   };
 
   const existing = db
@@ -86,9 +97,9 @@ function saveOne(db: DB, input: NewArticle): { article: Article; inserted: boole
   const r = db
     .prepare(
       `INSERT INTO articles
-         (source_id, source_name, guid, title, url, body, published_at, saved_at)
+         (source_id, source_name, guid, title, url, body, published_at, saved_at, note)
        VALUES
-         (@source_id, @source_name, @guid, @title, @url, @body, @published_at, @saved_at)`,
+         (@source_id, @source_name, @guid, @title, @url, @body, @published_at, @saved_at, @note)`,
     )
     .run(row);
 
@@ -174,6 +185,13 @@ export function getArticlesByIds(db: DB, ids: number[]): Article[] {
     .prepare(`SELECT * FROM articles WHERE id IN (${placeholders}) ORDER BY published_at DESC`)
     .all(...ids) as ArticleDbRow[];
   return rows.map(rowToArticle);
+}
+
+/** Replace an article's note. Returns the updated article, or `undefined` if
+ * there is no such id. */
+export function updateArticleNote(db: DB, id: number, note: string): Article | undefined {
+  const r = db.prepare('UPDATE articles SET note = ? WHERE id = ?').run(cleanNote(note), id);
+  return r.changes === 0 ? undefined : findArticle(db, id);
 }
 
 export function removeArticle(db: DB, id: number): Article | undefined {

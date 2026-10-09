@@ -1,6 +1,6 @@
 ---
-summary: How the three npm workspaces fit together, the SPA's routing and its load-bearing single-App rule, and how a post flows write → compile → render → publish/ZIP.
-updated: 2026-10-02
+summary: How the three npm workspaces fit together, the SPA's routing and its load-bearing single-App rule, how a post flows write → compile → render → publish/ZIP, and how the Reader's background refresh runs (single-flight, one API process).
+updated: 2026-10-09
 ---
 
 # Architecture
@@ -40,9 +40,11 @@ No HTTP, no side effects at import time. Four entry points — `.`, `./templates
   `zipRun`, `installFontRoute`, `resolveImageUrls`).
 - **publish** — the JPEG re-encode pass run once, on publish.
 - **scrape** — RSS fetch + body fetch + keyword match (`searchArticles`,
-  `pingSource`). Persists nothing.
-- **storage** — SQLite CRUD for `posts`, `keywords`, `renders`, `users`,
-  `sources`, `articles`, `uploads`, `settings`.
+  `pingSource`, and `fetchFeed`, which the Reader shares). Persists nothing.
+- **reader** — the Reader's refresh (`refreshSources`) and its background loop
+  (`startReaderSchedule`); see [The Reader](#the-reader).
+- **storage** — SQLite CRUD for `posts`, `keywords`, `renders`, `sources`,
+  `articles`, `feed_items`, `uploads`, `settings`.
 - **themes** — JSON design-system loader (`loadTheme`, `listThemes`).
 - **uploads** — image store paths, refs, Sharp normalization.
 
@@ -52,9 +54,10 @@ Exact signatures: [modules.md](./modules.md).
 
 A thin HTTP layer over `@newspapper/core`, with one route plugin per feature
 area. Every route is behind the Ward session guard except `/api/health`. SSE is
-used for the two long operations, **search and render**. It serves:
+used for the three long operations, **search, render and the Reader's
+refresh**. It serves:
 
-- `/api/*` — all endpoints ([api.md](./api.md))
+- `/api/*` — all endpoints ([api.md](./api.md), [api-reader.md](./api-reader.md))
 - `/assets/fonts/*` — Inter TTFs (public)
 - `/output/*` — rendered slide images (guarded)
 - `/uploads/<ref>` — uploaded images (guarded). The render browser carries no
@@ -84,10 +87,11 @@ The page map is in `src/routes.tsx`:
 |---|---|
 | `/` | the editor (fluid width) |
 | `/posts` | post list — render, publish, export, delete |
-| `/articles` | article search / saved library / sources |
+| `/reader` | the Reader: rail · list · reading pane, plus the Search, Library and Sources views |
 | `/settings` | default theme, and a pointer to Ward's account page for the password |
 | `/login` | no page any more: redirects to Ward's login, so an old bookmark still signs you in |
 | `/history` | redirect to `/posts` (kept from brief 62) |
+| `/articles` | redirect to `/reader` (brief 105) |
 | `/kitchen-sink` | the proof sheet — **dev only**, see below |
 
 Every route but `/login` renders inside **one `<App>` element at one position**
@@ -140,11 +144,16 @@ The source material path is separate and does not feed the render:
 POST /api/scrape (SSE)   → searchArticles() over the enabled feeds, keyword-matched
                          → returns matches; persists nothing
 POST /api/articles       → saves the one you picked into the library
+
+POST /api/reader/refresh (SSE), or the background loop
+                         → fetch each enabled feed (conditional GET), store new
+                           items in feed_items, purge past the retention window
+POST /api/reader/items/:id/save → the item becomes an article, guid = its URL
 ```
 
 ## SSE protocol
 
-The two long-running POST endpoints stream Server-Sent Events:
+The three long-running POST endpoints stream Server-Sent Events:
 
 ```
 event: progress
@@ -160,6 +169,22 @@ data: {"message": "…"}
 The UI reads these with `fetch()` (not `EventSource`) and parses lines manually —
 `EventSource` cannot POST. Once the stream has begun, failures arrive as an
 `error` event rather than a status code.
+
+## The Reader
+
+`core/src/reader/`. `refreshSources` fetches the enabled feeds four at a time
+with the stored ETag and Last-Modified, stores the new items, then purges
+([data-reader.md](./data-reader.md#feed_items)). It is **single-flight per
+connection**: a call during a running refresh joins it and gets its remaining
+progress, so a manual refresh during a background one starts nothing new. A
+failing source is recorded on its row and never stops the others.
+
+`startReaderSchedule` runs it 15 s after boot, then every
+`READER_REFRESH_MINUTES` measured from the end of the last run, so runs never
+overlap; `0` turns it off. Its timers are `unref`'d and the server's `onClose`
+stops it. **It assumes one API process**, which is true today: the container
+runs a single `npm run start`. Two would each run a loop against the same file. Settings:
+[configuration.md](./configuration.md).
 
 ## Key constraints
 

@@ -1,5 +1,6 @@
 /* =============================================================
-   Sources — the third tab of /articles.
+   Sources — the Reader's Sources view (the third tab of /articles until
+   brief 105 moved it).
 
    Relocated out of `components/sources/SourcesIsland.tsx` by brief 69: there
    is no /sources route, so this is a panel of the articles sheet, not an
@@ -115,4 +116,14 @@
   justify-content: flex-end;
   gap: 8px;
   margin-top: 24px;
+}
+
+/* ---- The category cell (brief 105) ---- */
+.category {
+  font-family: var(--font-galley);
+  font-size: var(--fs-field);
+  font-weight: 500;
+  letter-spacing: var(--ls-field);
+  text-transform: uppercase;
+  color: var(--graphite);
 }

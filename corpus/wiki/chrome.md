@@ -1,6 +1,6 @@
 ---
 summary: The Mechanical — the app chrome as shipped: tokens, the mark set, the tray and its two-course narrow layout, the health probe's two states, the two authored animations, why it shares nothing with the slide themes, and the states a once-per-element contrast sweep cannot see.
-updated: 2026-10-02
+updated: 2026-10-09
 ---
 
 # The app chrome — The Mechanical
@@ -43,7 +43,7 @@ text; §9 records what the chrome does not yet carry.
   `ui/src/lib/motion.test.ts`.
 - **The tray** is `ui/src/components/Sidebar.tsx`: a full-width 78px strip of *showings* —
   each compartment renders what its route produces, not a label — pointing at
-  `/`, `/posts`, `/articles` and `/settings`, plus `SessionMenu`, which links
+  `/`, `/posts`, `/reader` and `/settings`, plus `SessionMenu`, which links
   off-app to Ward: its login page with no session, its account page (where
   signing out happens) with one.
   It is 78px at every width. Below 640px, where one course stops fitting, it

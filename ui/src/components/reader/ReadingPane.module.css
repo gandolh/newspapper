@@ -1,0 +1,108 @@
+/* =============================================================
+   The reading pane — the item, waxed onto the board as a sheet of paper.
+   The article is the thing being read, so it is the one surface here that
+   takes the waxed shadow at rest.
+   ============================================================= */
+
+.pane {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-half);
+  min-height: 100%;
+}
+
+.sheet {
+  flex: 1;
+  padding: var(--sp-unit);
+  background: var(--paper);
+  box-shadow: var(--shadow-waxed);
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-hair);
+  max-width: 70ch;
+}
+
+.title {
+  font-family: var(--font-chrome);
+  font-size: var(--fs-board-title);
+  font-weight: 800;
+  font-variation-settings: 'wdth' var(--wdth-title);
+  letter-spacing: var(--ls-board-title);
+  line-height: 1.15;
+  color: var(--graphite);
+  overflow-wrap: break-word;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-hair) var(--sp-half);
+  font-family: var(--font-galley);
+  font-size: var(--fs-field);
+  font-weight: 500;
+  letter-spacing: var(--ls-field);
+  line-height: var(--lh-field);
+  text-transform: uppercase;
+  color: var(--graphite-soft);
+}
+
+.metaMark {
+  margin-left: var(--sp-hair);
+}
+
+/* The actions sit on one rule-closed course under the title block. */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-hair);
+  margin-top: var(--sp-half);
+  padding-bottom: var(--sp-half);
+  border-bottom: 1.5px solid var(--graphite);
+}
+
+.noteForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-hair);
+  max-width: 70ch;
+  margin-top: var(--sp-half);
+}
+
+.noteActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sp-hair);
+}
+
+.body {
+  margin-top: var(--sp-unit);
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-half);
+  max-width: 70ch;
+}
+
+@media (max-width: 1099px) {
+  .sheet {
+    padding: var(--sp-half);
+  }
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
