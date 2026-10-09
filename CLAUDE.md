@@ -179,3 +179,8 @@ recommend an action based on an unverified wiki claim about specific code.
 - In-progress task state — use TodoWrite. `corpus/` is for what outlives the session.
 - One-session debugging notes — put them in the PR description.
 - A code graph's output as fact. The corpus is the *why*; structural questions go to `grep`.
+
+## brief-board
+
+Brief progress goes on brief-board. Run `brief-board guide` before you
+start or resume a brief, and follow it.
