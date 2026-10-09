@@ -1699,3 +1699,15 @@ pm2: production is a single container process. The assumption itself holds.
 
 Not deployed. Production's database has not been through the v6 migration;
 back it up before the deploy.
+
+## [2026-10-09] todo | briefs 106 and 107 filed — the source pane's wax highlight clips letters; the docs-site sync omits four wiki pages
+
+Both found during the README refresh. 106 is unconfirmed in a browser: the
+likely cause is paint order, each wax token's 0.35em left bleed covering the
+last glyph of the token before it (`Marks.module.css:141-147`,
+`SourcePane.tsx:128-148`). 107 is confirmed: `PAGES` in
+`docs/scripts/sync-corpus.mjs:27-52` is a hand-kept allowlist that lacks
+`api-reader`, `data-reader`, `modules-reader` and `migrations`, and the
+sidebar in `docs/astro.config.mjs` is hand-listed too. Nothing fixed.
+Also checked `overview.md` and the docs-site home for the old LLM/news pitch:
+both are already current.

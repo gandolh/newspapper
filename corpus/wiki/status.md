@@ -117,6 +117,12 @@ FreshRSS-style zone for following feeds, reading and clipping, which replaced
 three decisions. Its outcome note lists the choices the brief left open and two
 bugs found only in the browser.
 
+**Open (filed 2026-10-09):** [106](../briefs/todo/106-selected-line-highlight-clips-letters.md),
+the selected-line wax highlight in the source pane clips letters (cause
+unconfirmed); [107](../briefs/todo/107-docs-site-sync-omits-four-wiki-pages.md),
+the docs-site sync leaves out `api-reader`, `data-reader`, `modules-reader` and
+`migrations`.
+
 Waves below are the **executed** order, which differs from the originally filed
 one: file-ownership collisions the dependency graph alone did not show forced
 several briefs apart. `core/src/types.ts` was claimed by both 51 and 52,
