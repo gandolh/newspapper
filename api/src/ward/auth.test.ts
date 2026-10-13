@@ -5,7 +5,12 @@ import { mkdtempSync, rmSync } from 'node:fs';
 
 import { buildApp } from '../server.js';
 import { db, resetDb } from '../lib/db.js';
-import { createWardIdentities, LOCKOUT_MAX_FAILURES } from '../../vendor/ward/ward-auth.js';
+import {
+  createWardIdentities,
+  hashSessionToken,
+  LOCKOUT_MAX_FAILURES,
+  type WardAuthStore,
+} from '../../vendor/ward/ward-auth.js';
 import { SESSION_COOKIE } from './config.js';
 import { createAppAccounts, seedFromEnv } from './auth.js';
 import { createFakeWard, signInCookie, TEST_ISSUER, type FakeWard } from './test-support.js';
@@ -276,7 +281,23 @@ describe('Ward routes', () => {
       expect(early.statusCode).toBeGreaterThanOrEqual(400);
       expect(early.json()).toEqual({ error: 'no_local_password' });
 
-      // A fresh Ward sign-in may set a first one.
+      // A Ward session alone is not enough for a first password: it could be a
+      // silent sign-in on a shared machine. Settings must reauthenticate first.
+      const unstamped = await app.inject({
+        method: 'POST',
+        url: '/api/auth/ward/set-password',
+        cookies,
+        payload: { newPassword: 'a brand new password' },
+      });
+      expect(unstamped.statusCode).toBe(403);
+      expect(unstamped.json()).toMatchObject({ error: 'reauthentication_required' });
+
+      // What a successful reauthentication with Ward leaves on the session.
+      const store = app.accounts.store as WardAuthStore;
+      await store.setSessionReauthenticatedAt(
+        hashSessionToken(cookies[SESSION_COOKIE]),
+        Date.now(),
+      );
       const set = await app.inject({
         method: 'POST',
         url: '/api/auth/ward/set-password',
