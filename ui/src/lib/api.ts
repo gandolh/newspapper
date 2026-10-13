@@ -7,7 +7,7 @@
  * prefix is applied, which is why every call site can go on writing the plain
  * `/api/...` path it always did.
  */
-import { BASE, withBase } from './base';
+import { stripBase, withBase } from './base';
 
 // ---------------------------------------------------------------------------
 // Error type
@@ -28,47 +28,44 @@ export class ApiError extends Error {
 // ---------------------------------------------------------------------------
 
 /**
- * Newspapper's root on the shared origin. Where Ward sends people back to.
+ * The app's own login page, returning to `next`.
  *
- * Derived from the base rather than written out, so the fallback destination
- * and the app's actual location cannot disagree — the failure that spelling it
- * as a literal invites is a login that succeeds and returns to a 404.
+ * `next` is an ORIGIN path with its query (`/newspapper/posts?q=1`), which is
+ * what `window.location` holds and what Ward's `returnTo` wants. The login page
+ * turns it back into an app path (`safeNext` in `lib/base.ts`) and refuses
+ * anything that is not inside this app.
+ *
+ * `reason` is the session check's code when it refused a session that existed
+ * (`ward_session_ended`, `ward_unavailable`), so the login page can say why the
+ * person is back there instead of looking like a silent sign-out.
  */
-const NEWSPAPPER_ROOT = BASE;
-
-/**
- * Ward's login page, returning to `next`.
- *
- * NOT base-relative, and that is the point: Ward is a different app on the same
- * origin, so `withBase` here would send someone signing in to
- * `/newspapper/ward/login`, which nothing serves.
- *
- * `next` is a **path**, never an absolute URL: Ward validates it against the
- * estate's own path roots and refuses anything absolute — including the
- * estate's own origin spelled out in full, because accepting one absolute host
- * is how a later edit accepts two.
- */
-export function wardLoginUrl(next?: string): string {
-  const target = next ?? NEWSPAPPER_ROOT;
-  return `/ward/login?next=${encodeURIComponent(target)}`;
+export function loginUrl(next?: string, reason?: string): string {
+  const params = new URLSearchParams();
+  if (next) params.set('next', next);
+  if (reason) params.set('reason', reason);
+  const query = params.toString();
+  return `${withBase('/login')}${query ? `?${query}` : ''}`;
 }
 
-/** Ward's account page — where signing out lives. Newspapper has no logout.
- *  Origin-absolute for the same reason as `wardLoginUrl` above. */
-export const WARD_ACCOUNT_PATH = '/ward/account';
-
 /**
- * Send the browser to Ward's login page.
+ * Send the browser to the login page, remembering where it was.
  *
- * There is no local `/login` any more, and no `NO_REDIRECT` set: it existed
- * because `/api/login` answered 401 as a normal "wrong password" outcome, and
- * neither that route nor that outcome exists here now. Every 401 from this app
- * means one thing — Ward's session is gone — and has one response.
+ * Every 401 from `/api/*` means one thing — no live session — and has one
+ * response. A browser already on the login page stays put, so a stray 401 there
+ * cannot reload the page it is on in a loop.
  */
-function redirectToLogin(_path: string): void {
+function redirectToLogin(reason?: string): void {
   if (typeof window === 'undefined') return;
+  if (stripBase(window.location.pathname) === '/login') return;
   const next = window.location.pathname + window.location.search;
-  window.location.assign(wardLoginUrl(next));
+  window.location.assign(loginUrl(next, reason));
+}
+
+/** The session check's code from a 401 body, if it is one: lowercase words only. */
+function reasonOf(payload: { reason?: unknown }): string | undefined {
+  return typeof payload.reason === 'string' && /^[a-z_]{1,40}$/.test(payload.reason)
+    ? payload.reason
+    : undefined;
 }
 
 export async function api<T = unknown>(
@@ -90,13 +87,15 @@ export async function api<T = unknown>(
 
   if (!res.ok) {
     let message = `HTTP ${res.status}`;
+    let reason: string | undefined;
     try {
-      const payload = (await res.json()) as { error?: string };
+      const payload = (await res.json()) as { error?: string; reason?: unknown };
       if (payload.error) message = payload.error;
+      reason = reasonOf(payload);
     } catch {
       // ignore parse failure
     }
-    if (res.status === 401 && !skipAuthRedirect) redirectToLogin(url);
+    if (res.status === 401 && !skipAuthRedirect) redirectToLogin(reason);
     throw new ApiError(res.status, message);
   }
 
@@ -134,13 +133,15 @@ export async function sse(path: string, body: unknown, handlers: SseHandlers): P
 
   if (!res.ok) {
     let message = `HTTP ${res.status}`;
+    let reason: string | undefined;
     try {
-      const payload = (await res.json()) as { error?: string };
+      const payload = (await res.json()) as { error?: string; reason?: unknown };
       if (payload.error) message = payload.error;
+      reason = reasonOf(payload);
     } catch {
       // ignore
     }
-    if (res.status === 401) redirectToLogin(url);
+    if (res.status === 401) redirectToLogin(reason);
     throw new ApiError(res.status, message);
   }
 

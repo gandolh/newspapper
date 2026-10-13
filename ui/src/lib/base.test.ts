@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { joinBase, normalizeBase, stripPrefix } from './base';
+import { joinBase, normalizeBase, safeNext, stripPrefix } from './base';
 
 /*
  * The pure two-argument forms are what is tested. `withBase`/`stripBase` are
@@ -75,5 +75,33 @@ describe('stripPrefix', () => {
     for (const path of ['/', '/posts', '/articles', '/settings']) {
       expect(stripPrefix('/newspapper/', joinBase('/newspapper/', path))).toBe(path);
     }
+  });
+});
+
+describe('safeNext', () => {
+  it('turns an origin path into an app path, query included', () => {
+    expect(safeNext('/newspapper/', '/newspapper/posts?q=1')).toBe('/posts?q=1');
+    expect(safeNext('/newspapper/', '/newspapper/')).toBe('/');
+    expect(safeNext('/', '/reader')).toBe('/reader');
+  });
+
+  it('sends anything that is not a path inside the app to the root', () => {
+    for (const raw of [
+      null,
+      '',
+      'posts',
+      'https://example.org/newspapper/posts',
+      '//example.org/newspapper/posts',
+      '/\\example.org',
+      '/ward/account',
+      '/newspapper?x=1',
+    ]) {
+      expect(safeNext('/newspapper/', raw), String(raw)).toBe('/');
+    }
+  });
+
+  it('never returns the login page, which would bounce a signed-in person', () => {
+    expect(safeNext('/newspapper/', '/newspapper/login?next=/x')).toBe('/');
+    expect(safeNext('/', '/login')).toBe('/');
   });
 });

@@ -1,6 +1,6 @@
 ---
 summary: The schema's version history (v1 CLI era through the current version) and how migrate() walks it, one transaction per step so a crash rolls back instead of bricking the database.
-updated: 2026-10-09
+updated: 2026-10-13
 ---
 
 # Migrations
@@ -18,6 +18,10 @@ note pushed that page past the cap.
 | 4 | The theme family: `warm-industrial` → `warm-industrial-1` in `posts.theme`, the column default, and the `defaultTheme` setting |
 | 5 | Identity moves to Ward: the `users` table is dropped. Nothing referenced it, so nothing else changes. |
 | 6 | The Reader (brief 105): `feed_items`; `sources` gains `category`, `etag`, `last_modified`, `last_fetched_at`, `last_error`; `articles` gains `note`. Every row survives. |
+
+The library's `auth_*` tables are not versioned here: it keeps its own
+`auth_migrations` table and applies it on boot (2026-10-13), leaving
+`user_version` alone.
 
 A fresh database is created at version 6 directly; an existing one walks every
 step in one boot. `migrate()` (`core/src/storage/db.ts`) keys on

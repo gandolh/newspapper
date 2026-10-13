@@ -1,5 +1,5 @@
 /**
- * Brief 90. `api()` and Ward's login URL, without a DOM: `fetch` and the bits
+ * Brief 90. `api()` and the login URL, without a DOM: `fetch` and the bits
  * of `window` the module touches are stubbed. `BASE` is read from
  * `import.meta.env.BASE_URL` at module load, so each test stubs it and
  * re-imports.
@@ -8,10 +8,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 const assign = vi.fn();
 
-async function load(base = '/') {
+async function load(base = '/', path = 'posts') {
   vi.stubEnv('BASE_URL', base);
   vi.stubGlobal('window', {
-    location: { pathname: `${base}posts`, search: '?q=1', assign },
+    location: { pathname: `${base}${path}`, search: '?q=1', assign },
   });
   vi.resetModules();
   return import('./api');
@@ -38,21 +38,39 @@ afterEach(() => {
 });
 
 describe('api()', () => {
-  it('a 401 sends the browser to Ward with the current page as next, and throws ApiError(401)', async () => {
+  it('a 401 sends the browser to the login page with the current page as next, and throws ApiError(401)', async () => {
     const { api, ApiError } = await load();
-    respond(401, { error: 'Authentication required' });
+    respond(401, { error: 'unauthorized' });
     const err = await api('/api/posts').catch((e: unknown) => e);
     expect(err).toBeInstanceOf(ApiError);
     expect((err as InstanceType<typeof ApiError>).status).toBe(401);
-    expect(assign).toHaveBeenCalledWith(`/ward/login?next=${encodeURIComponent('/posts?q=1')}`);
+    expect(assign).toHaveBeenCalledWith(`/login?next=${encodeURIComponent('/posts?q=1')}`);
+  });
+
+  it("carries the session check's reason to the login page, and drops one that is not a code", async () => {
+    const { api } = await load();
+    respond(401, { error: 'unauthorized', reason: 'ward_session_ended' });
+    await api('/api/posts').catch(() => undefined);
+    expect(assign).toHaveBeenLastCalledWith(
+      `/login?next=${encodeURIComponent('/posts?q=1')}&reason=ward_session_ended`,
+    );
+
+    respond(401, { error: 'unauthorized', reason: '<script>' });
+    await api('/api/posts').catch(() => undefined);
+    expect(assign).toHaveBeenLastCalledWith(`/login?next=${encodeURIComponent('/posts?q=1')}`);
+  });
+
+  it('a 401 on the login page itself does not redirect again', async () => {
+    const { api } = await load('/', 'login');
+    respond(401, { error: 'unauthorized' });
+    await api('/api/anything').catch(() => undefined);
+    expect(assign).not.toHaveBeenCalled();
   });
 
   it('skipAuthRedirect suppresses the redirect but still throws', async () => {
     const { api } = await load();
-    respond(401, { error: 'Authentication required' });
-    await expect(api('/api/me', { skipAuthRedirect: true })).rejects.toThrow(
-      'Authentication required',
-    );
+    respond(401, { error: 'unauthorized' });
+    await expect(api('/api/posts', { skipAuthRedirect: true })).rejects.toThrow('unauthorized');
     expect(assign).not.toHaveBeenCalled();
   });
 
@@ -85,10 +103,11 @@ describe('under /newspapper/', () => {
     expect(fetch.mock.calls[0]![0]).toBe('/newspapper/api/posts');
   });
 
-  it("Ward's login URL is origin-absolute, never under the base", async () => {
-    const { wardLoginUrl, WARD_ACCOUNT_PATH } = await load('/newspapper/');
-    // /newspapper/ward/login is nothing; Ward is a different app on the origin.
-    expect(wardLoginUrl()).toBe(`/ward/login?next=${encodeURIComponent('/newspapper/')}`);
-    expect(WARD_ACCOUNT_PATH).toBe('/ward/account');
+  it('the login URL carries the base, and next stays an origin path', async () => {
+    const { loginUrl } = await load('/newspapper/');
+    expect(loginUrl()).toBe('/newspapper/login');
+    expect(loginUrl('/newspapper/posts?q=1')).toBe(
+      `/newspapper/login?next=${encodeURIComponent('/newspapper/posts?q=1')}`,
+    );
   });
 });

@@ -11,12 +11,13 @@ import { createPost, recordRender } from '@newspapper/core';
 
 import { buildApp } from '../server.js';
 import { db, resetDb } from '../lib/db.js';
-import { createFakeWard } from '../ward/fake-ward.js';
+import { signInCookie } from '../ward/test-support.js';
 
 const outputRoot = resolve(fileURLToPath(new URL('.', import.meta.url)), '../../../output');
 const dirs = ['1999-01-01-1', '1999-01-01-2'].map((d) => join(outputRoot, d));
 let tmp: string;
 let app: Awaited<ReturnType<typeof buildApp>>;
+let session: Record<string, string>;
 
 beforeAll(() => {
   tmp = mkdtempSync(join(tmpdir(), 'np-renders-'));
@@ -36,10 +37,9 @@ afterAll(() => {
 });
 
 beforeEach(async () => {
-  const ward = createFakeWard();
-  ward.signIn('t', 's', { newspapper: ['editor'] });
-  app = await buildApp({ ward });
+  app = await buildApp({ wardClient: null });
   await app.ready();
+  session = (await signInCookie(app)).cookies;
 });
 
 afterEach(async () => {
@@ -57,7 +57,7 @@ describe('GET /api/renders thumbnails', () => {
     const res = await app.inject({
       method: 'GET',
       url: '/api/renders',
-      cookies: { ward_session: 't' },
+      cookies: session,
     });
     const byPost = new Map(
       (res.json() as Array<{ postId: number; thumb: string | null; files: string[] }>).map((r) => [

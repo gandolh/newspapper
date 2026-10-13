@@ -59,6 +59,7 @@
 .formActions {
   display: flex;
   justify-content: flex-end;
+  gap: var(--sp-half);
   margin-top: var(--sp-half);
 }
 
@@ -66,4 +67,40 @@
   display: flex;
   flex-direction: column;
   gap: var(--sp-half);
+}
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-half);
+  max-width: calc(var(--sp-unit) * 14);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-half);
+  margin-top: var(--sp-half);
+}
+
+/* A finding, in grease, on a leader rule. */
+.problem {
+  margin: 0 0 var(--sp-half);
+  padding-left: var(--sp-half);
+  border-left: 2px solid var(--grease);
+  font-family: var(--font-galley);
+  font-size: 10px;
+  line-height: 1.45;
+  color: var(--grease);
+}
+
+/* A notice, not a fault. */
+.note {
+  margin: 0 0 var(--sp-half);
+  padding-left: var(--sp-half);
+  border-left: 2px solid var(--graphite-soft);
+  font-family: var(--font-galley);
+  font-size: 10px;
+  line-height: 1.45;
+  color: var(--graphite-soft);
 }

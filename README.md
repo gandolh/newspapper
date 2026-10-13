@@ -6,7 +6,7 @@ A web app for writing Instagram-style news posts by hand. You write the post in 
   <img src="docs/images/editor.webp" width="100%" alt="The Newspapper editor: .wzd markup for a made-up post about Sample City's night trams on the left, its first slide set on a 1080×1080 canvas in the middle, and the component palette and post fields on the right">
 </p>
 
-**Status:** Personal project with one user. It runs at `/newspapper/`, behind a Ward sign-in that needs a `newspapper` grant. The Reader, which stores RSS items for you to read (brief 105), is built and tested locally but not deployed yet.
+**Status:** Personal project with one user. It runs at `/newspapper/`, behind its own sign-in, with "Sign in with Ward" as a second way in. The Reader, which stores RSS items for you to read (brief 105), is built and tested locally but not deployed yet.
 
 ## What it does
 
@@ -49,23 +49,24 @@ More on the docs site: [architecture](corpus/wiki/architecture.md) and [the `.wz
 
 ## Run it locally
 
-Requires Node 24 and a local Ward for sign-in. `package.json` declares no `engines` field, but the repo is developed and checked on Node 24. Ward runs from the container in `../wzd_auth/infrastructure/local`.
+Requires Node 24. `package.json` declares no `engines` field, but the repo is developed and checked on Node 24. The "Sign in with Ward" button is optional and needs Ward's container in `../wzd_auth/infrastructure/local`.
 
 ```bash
 npm install
 npx playwright install chromium   # the renderer's browser; npm install does not fetch it
-cp .env.example .env              # then run Ward's seed.mjs, which writes the Ward keys into it
+cp .env.example .env              # Ward's seed.mjs fills in the optional Ward keys
+SEED_USERNAME=you SEED_PASSWORD=... npm run seed --workspace=api   # your local account
 npm run dev                       # API on :3001, UI on :4321
 ```
 
-Open <http://localhost:4321/newspapper/> and sign in through Ward. If Ward is not running, the API still starts but every guarded route answers 503. The [configuration](corpus/wiki/configuration.md) page lists every env var, and [commands](corpus/wiki/commands.md) lists every npm script with what it does not check.
+Open <http://localhost:4321/newspapper/> and sign in with the account you seeded, or with the Ward button when Ward is configured. A Ward that is down never stops the API or a local sign-in. The [configuration](corpus/wiki/configuration.md) page lists every env var, and [commands](corpus/wiki/commands.md) lists every npm script with what it does not check.
 
 ## Project layout
 
 | Path | What lives there |
 |---|---|
 | `core/` | `@newspapper/core`: the `.wzd` language, the renderer, RSS and the Reader, SQLite storage, uploads |
-| `api/` | `@newspapper/api`: the Fastify server, the Ward guard, static serving in production |
+| `api/` | `@newspapper/api`: the Fastify server, accounts and the session guard, static serving in production |
 | `ui/` | `@newspapper/ui`: the Vite + React app (editor, posts, Reader, settings) |
 | `assets/` | The three slide themes as JSON tokens, and the Inter fonts the renderer loads |
 | `docs/` | The Starlight docs site, plus the images and guides this README links to |

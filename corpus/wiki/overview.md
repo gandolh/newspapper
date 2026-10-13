@@ -1,6 +1,6 @@
 ---
 summary: What Newspapper is — write a post in .wzd markup, compile it to 1080² JPEGs — plus the v1→v3 lineage and the Wizard pivot that explain its shape, the three workspaces, and what lives where at the top level.
-updated: 2026-10-09
+updated: 2026-10-13
 ---
 
 # Overview
@@ -23,9 +23,9 @@ pipeline that produces one.
 **No model is involved anywhere.** The person writes the words. See
 [the decision](./decisions.md#no-llm-in-the-product).
 
-Deployed on the shared VPS at `/newspapper/`; sign-in is
-Ward's, the estate's identity service, and a `newspapper` grant is what opens
-the app. Locally: UI at `http://localhost:4321/newspapper/`, API at
+Deployed on the shared VPS at `/newspapper/`. It has its own accounts (a login
+page, no register page), and "Sign in with Ward", the estate's identity service,
+is a second way in when Ward is configured. Locally: UI at `http://localhost:4321/newspapper/`, API at
 `http://localhost:3001`. No CLI.
 
 ## Lineage (why it looks the way it does)
@@ -58,8 +58,8 @@ describe a product that no longer exists; briefs 51–72 describe this one.
 | Workspace | Package | Job |
 |---|---|---|
 | `core/` | `@newspapper/core` | The library — the `.wzd` parser/formatter/linter/compiler, the TNode interpreter, Chromium rendering, RSS search and the Reader's refresh, image uploads, SQLite storage, theme loading. No HTTP, no UI. |
-| `api/` | `@newspapper/api` | Fastify on 3001. Every `/api/*` route, the Ward session guard, SSE for search, render and the Reader's refresh, the Reader's background loop, static serving in prod. |
-| `ui/` | `@newspapper/ui` | A Vite + React SPA on 4321: editor (`/`), `/posts`, `/reader`, `/settings`. (`/articles` redirects to `/reader`; `/login` only redirects to Ward.) |
+| `api/` | `@newspapper/api` | Fastify on 3001. Every `/api/*` route, the session guard and `/api/auth/*`, SSE for search, render and the Reader's refresh, the Reader's background loop, static serving in prod. |
+| `ui/` | `@newspapper/ui` | A Vite + React SPA on 4321: editor (`/`), `/posts`, `/reader`, `/settings`. (`/articles` redirects to `/reader`; `/login` is the one page outside the board.) |
 
 Full structure and dependency direction: [architecture.md](./architecture.md).
 

@@ -1,6 +1,6 @@
 ---
 summary: On-disk and in-DB shapes — the v6 SQLite schema for authored posts (posts, keywords, renders, uploads, settings), the TNode compile target, and the output/YYYY-MM-DD-N convention. Sources, saved articles and the Reader's feed_items are in data-reader.md; the .wzd document is in markup.md.
-updated: 2026-10-09
+updated: 2026-10-13
 ---
 
 # Data
@@ -75,9 +75,15 @@ rows in one transaction.
 
 One row per render run; a post's export and thumbnail read the newest.
 
-No `users` table since v5 (2026-09-06): identity is Ward's, so newspapper holds
-no account and no password hash. The v4 → v5 migration drops the table; see
-[migrations.md](./migrations.md).
+No app-owned `users` table since v5 (2026-09-06). Accounts came back on
+2026-10-13 as the **shared library's** tables, in this same file but outside
+`user_version`: `auth_users` (id, username, scrypt hash, role), `auth_sessions`
+(hashed token, origin `local` or `ward`, the Ward session family),
+`auth_ward_links` (user ↔ Ward subject) and `auth_migrations`. The library
+creates and migrates them itself when the API boots (`createSqliteStore`), and no
+app table references them: **no row of the app's is keyed by a user**, so there
+was nothing to migrate when accounts arrived. See
+[decisions-accounts.md](./decisions-accounts.md).
 
 ### `sources`, `articles`, `feed_items`
 

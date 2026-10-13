@@ -1711,3 +1711,31 @@ last glyph of the token before it (`Marks.module.css:141-147`,
 sidebar in `docs/astro.config.mjs` is hand-listed too. Nothing fixed.
 Also checked `overview.md` and the docs-site home for the old LLM/news pitch:
 both are already current.
+
+## [2026-10-13] decision | brief 23: local accounts and "Sign in with Ward", on the shared library
+
+Newspapper has accounts again and Ward is a second way in. The shared library
+(0.2.0) is vendored at `api/vendor/ward/` and `ui/vendor/ward/`; `api/src/ward/`
+now wires it, the old client, its types, the fake Ward and `GET /api/me` are
+gone, along with `jose`, the dev `/ward` proxy and the three old `WARD_*`
+variables. A login page with the Ward button, Settings sections for the password
+and the Ward link, and `npm run seed --workspace=api` are new. The call
+[decisions-accounts.md](wiki/decisions-accounts.md) records: `routePrefix` is
+`/api/auth` because the proxy strips only the base; the cookie's `Path` is the
+base, not `/api`, because `<img>` requests for `/output/*` and `/uploads/*` must
+carry it (no `inject` test can see that); `/uploads/*` stays guarded, against the
+brief's text, because the corpus closed it on 2026-09-06 and the renderer reads
+from disk; and there was nothing to migrate, since no table holds a user key.
+Revision notes on [decisions-security.md](wiki/decisions-security.md) (lockout
+back, password route back, Ward-only identity revised, local-dev proxy gone);
+that page shed its two hardening calls to
+[decisions-hardening.md](wiki/decisions-hardening.md) to stay under the size cap.
+Also updated: `configuration.md`, `api.md`, `data.md`, `migrations.md`,
+`architecture.md`, `chrome.md`, `dependencies.md`, `overview.md`, `status.md`.
+
+Not deployed. Production needs `NEWSPAPPER_BASE` in the container's environment
+(the API now reads it), the `WARD_OIDC_*` set, Ward's client registration for the
+callback `<origin>/newspapper/api/auth/ward/callback`, and the seed run. Not
+exercised in a browser: the Ward round trip past `POST /api/auth/ward/start`.
+`core/src/util/config.ts` still names the old variables in a comment (core was
+out of scope). The docs-site sync allowlist (brief 107) lacks the new pages.

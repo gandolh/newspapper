@@ -5,9 +5,6 @@
  * refactor dropping it compiles and every other test stays green while
  * production renders come out blank. This drives the real route, with real
  * Chromium behind the shared guard, and looks at the pixels it wrote.
- *
- * Also `GET /api/me`, the one place Ward's estate-wide grant map is narrowed to
- * what the browser may see.
  */
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { existsSync, mkdtempSync, rmSync } from 'node:fs';
@@ -19,17 +16,17 @@ import { createPost, saveUpload } from '@newspapper/core';
 
 import { buildApp } from '../server.js';
 import { db, resetDb } from '../lib/db.js';
-import { createFakeWard } from '../ward/fake-ward.js';
+import { signInCookie } from '../ward/test-support.js';
 import {
   probeChromium,
   type ChromiumGuard,
 } from '../../../core/src/render/test-support/chromium.js';
 
-const TOKEN = 'render-test-session';
 const repoRoot = resolve(fileURLToPath(new URL('.', import.meta.url)), '../../..');
 
 let tmp: string;
 let app: Awaited<ReturnType<typeof buildApp>>;
+let session: Record<string, string>;
 let chromium: ChromiumGuard;
 const createdOutputDirs: string[] = [];
 
@@ -53,17 +50,16 @@ afterAll(async () => {
 });
 
 beforeEach(async () => {
-  const ward = createFakeWard();
-  ward.signIn(TOKEN, 'subject_render', { newspapper: ['editor'], prm: ['admin'] });
-  app = await buildApp({ ward });
+  app = await buildApp({ wardClient: null });
   await app.ready();
+  session = (await signInCookie(app)).cookies;
 });
 
 afterEach(async () => {
   await app.close();
 });
 
-const post = (url: string) => app.inject({ method: 'POST', url, cookies: { ward_session: TOKEN } });
+const post = (url: string) => app.inject({ method: 'POST', url, cookies: session });
 
 /** The SSE frames of a finished stream, in order. */
 function events(body: string): { event: string; data: unknown }[] {
@@ -139,23 +135,5 @@ describe('POST /api/posts/:id/render', () => {
     db().prepare('UPDATE posts SET markup = ? WHERE id = ?').run('<body><Slide>', created.id);
     const stream = events((await post(`/api/posts/${created.id}/render`)).body);
     expect(stream.map((e) => e.event)).toEqual(['error']);
-  });
-});
-
-describe('GET /api/me', () => {
-  it('answers exactly { user: { subject, username } }, never the grant map, uncached', async () => {
-    const res = await app.inject({
-      method: 'GET',
-      url: '/api/me',
-      cookies: { ward_session: TOKEN },
-    });
-    expect(res.statusCode).toBe(200);
-    const body = res.json() as { user: Record<string, unknown> };
-    expect(Object.keys(body)).toEqual(['user']);
-    expect(Object.keys(body.user).sort()).toEqual(['subject', 'username']);
-    expect(body.user['subject']).toBe('subject_render');
-    expect(res.body).not.toContain('grants');
-    expect(res.body).not.toContain('prm');
-    expect(res.headers['cache-control']).toBe('no-store');
   });
 });

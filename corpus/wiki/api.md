@@ -1,5 +1,5 @@
 ---
-summary: The HTTP API's ground rules (the /api prefix, the Ward session guard and its 401/403/503, SSE framing) and the writing side's routes — posts, renders, publish, export, themes, settings, uploads. Sources, articles, Search and the Reader are in api-reader.md.
+summary: The HTTP API's ground rules (the /api prefix, the session guard and its 401, the /api/auth routes, SSE framing) and the writing side's routes — posts, renders, publish, export, themes, settings, uploads. Sources, articles, Search and the Reader are in api-reader.md.
 updated: 2026-10-09
 ---
 
@@ -9,18 +9,21 @@ All endpoints are prefixed with `/api/`. The server runs on port 3001 by default
 
 SSE endpoints stream `event: <type>\ndata: <json>\n\n` frames. Long-running endpoints emit `progress` events during work and end with `done` or `error`.
 
-Every route is behind the [Ward session guard](./configuration.md#authentication)
-except `/api/health`. Without a session: **401 `{ error: "Authentication required" }`**,
-never a redirect, so the UI decides where to send the user (to Ward). A live
-session with no `newspapper` grant: **403**. Ward unreachable: **503**, failing
-closed. `/output/*` and `/uploads/*` are guarded too; `/assets/fonts/` is not.
-Guardedness is decided from the route the router *matched*, so a percent-encoded
-spelling of a guarded path is guarded too
-([decision](./decisions-security.md#the-guard-decides-from-the-matched-route-not-the-raw-url)).
+Every route is behind the [session guard](./configuration.md#authentication)
+except `/api/health`, the plugin's own `/api/auth/*` sign-in routes and what is
+not API at all (the UI bundle, `/assets/fonts/`). Without a live session:
+**401 `{ error: "unauthorized", reason? }`**, never a redirect, so the UI decides
+where to send the user (to its own `/login`). `reason` is set when a session
+existed and a check refused it: `ward_session_ended`, `ward_unavailable`.
+`/output/*` and `/uploads/*` are guarded too. Guardedness is decided from the
+route the router *matched*, so a percent-encoded spelling of a guarded path is
+guarded too
+([decision](./decisions-security.md#the-guard-decides-from-the-matched-route-not-the-raw-url)),
+and an unmatched `/api/...` URL is a 401, not a 404 that says which paths exist.
 A 5xx answers `{ error: "Internal Server Error" }`; the real error is only logged.
 
-A route opts out by declaring `config: { public: true }` in its Fastify route
-options.
+Who needs a session is `api/src/ward/ward.guard.ts`'s `requiresSession`, handed to the
+auth plugin as its `isPublic`. There is no per-route opt-out.
 
 ## Health
 
@@ -28,19 +31,26 @@ options.
 |--------|------|----------|
 | GET | `/api/health` | `{ ok: true }` |
 
-## Who is signed in
+## Accounts and sign-in
 
-| Method | Path | Response |
-|--------|------|----------|
-| GET | `/api/me` | `{ user: { subject, username } }` (`User`), `Cache-Control: no-store` |
+The routes are the shared library's, mounted at `/api/auth` by `api/src/ward/auth.ts`
+([decision](./decisions-accounts.md)). As the browser sees them they sit under
+the base, e.g. `/newspapper/api/auth/login`. Every `POST` refuses a browser
+request from another origin (`403 cross_site`).
 
-That is the whole auth surface. Signing in and out are **Ward's**, at one login
-page for the estate: the browser carries Ward's `ward_session` cookie, and
-newspapper verifies it and asks Ward whether it is still live. `/api/login`,
-`/api/logout` and `/api/password` were removed in the Ward move (2026-09-06),
-along with the `newspapper_session` cookie and the login lockout.
-`/api/me` answers narrowly: Ward's grant map for the person never leaves the
-server.
+| Method | Path | Guard | Body → answer |
+|--------|------|-------|---------------|
+| POST | `/api/auth/login` | public | `{ username, password }` → `{ user, session, ward }` · 401 `invalid_credentials` · 429 `too_many_attempts` |
+| POST | `/api/auth/logout` | public | 204 |
+| GET | `/api/auth/session` | public | `{ user, session, ward, reason? }`; `user: null` when signed out |
+| POST | `/api/auth/password` | session | `{ currentPassword, newPassword }` → 204 |
+| POST | `/api/auth/ward/start` | public | `{ returnTo? }` → `{ url }` at Ward. Absent when Ward is not configured. |
+| GET | `/api/auth/ward/callback` | public | a 303 to the app's login page (`?ward_error=<code>`), Settings or `returnTo` |
+| POST | `/api/auth/ward/link`, `/reauthenticate`, `/unlink`, `/set-password`, `/logout` | session | see the library's guide |
+
+There is no register route and no `/api/me`: the session probe answers who is
+signed in, with `role` and `hasPassword`, and Ward's grant map never reaches the
+browser.
 
 ## Sources, articles, Search and the Reader
 
@@ -157,8 +167,8 @@ the filename.
 |------|--------|
 | `/assets/fonts/<name>.ttf` | Inter font files |
 | `/output/<dir>/slide-NN.jpg` | Rendered slide images |
-| `/uploads/<ref>` | An upload's normalized copy — **public**, because headless Chromium fetches it at render time with no session cookie. Declares `config: { public: true }`. |
-| `/uploads/<ref>/original` | The untouched upload. Public for the same reason. |
+| `/uploads/<ref>` | An upload's normalized copy. **Guarded**: the render browser gets its bytes from disk (`core/src/render/uploads-route.ts`), not from here. The browser's `<img>` requests carry the session cookie because its `Path` is the app base. |
+| `/uploads/<ref>/original` | The untouched upload. Guarded the same way. |
 | `/` (all non-API paths) | `ui/dist/` (production mode only) |
 
 `/uploads/*` is served by the uploads route plugin, not `@fastify/static`: the

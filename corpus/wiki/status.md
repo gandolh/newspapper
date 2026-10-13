@@ -1,6 +1,6 @@
 ---
-summary: Dated snapshot (2026-10-09) — the Wizard rebuild is done, identity is Ward's, it runs on the VPS under /newspapper/, the 2026-09-27 improvements sweep (77-104) is fully worked through, and brief 105 built the Reader (schema v6), which is not deployed yet; plus the known strays and open questions.
-updated: 2026-10-09
+summary: Dated snapshot (2026-10-13) — the Wizard rebuild is done, accounts are local with Ward as a second way in (brief 23, not deployed), it runs on the VPS under /newspapper/, the 2026-09-27 improvements sweep (77-104) is fully worked through, and brief 105 built the Reader (schema v6), which is not deployed yet; plus the known strays and open questions.
+updated: 2026-10-13
 ---
 
 # Status
@@ -14,13 +14,17 @@ The Wizard rebuild (briefs 51-76) is done: a post is authored as a
 to JPEG slides, with no model anywhere. Since then three moves changed where and
 how it runs:
 
-- **Identity is Ward's** (2026-09-06): no account, password or login page here;
-  a `newspapper` grant on a Ward account opens the app
-  ([decisions-security.md](./decisions-security.md)).
+- **Local accounts, with Ward as a second way in** (brief 23, 2026-10-13):
+  a login page, a seed script and the shared library's sessions and lockout;
+  "Sign in with Ward" when configured. Identity was Ward's alone from
+  2026-09-06 until then ([decisions-accounts.md](./decisions-accounts.md)).
+  **Not deployed**: production needs the new env variables, the seed run and
+  Ward's client registration.
 - **It runs on the shared VPS** at `/newspapper/`, behind
   Caddy, which strips the prefix. The UI builds every browser URL with the base
   (`ui/src/lib/base.ts`).
-- **Local dev signs in through a local Ward** (brief 84,
+- **Local dev** signs in with a seeded local account, or through a local Ward
+  (brief 84, reworked by brief 23;
   [configuration.md](./configuration.md#local-sign-in)).
 - **The Reader replaced `/articles`** (brief 105, 2026-10-09): feed items are
   stored (schema v6) and refreshed in the background, and `/reader` reads them

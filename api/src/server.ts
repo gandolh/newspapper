@@ -13,7 +13,6 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import staticPlugin from '@fastify/static';
 import health from './routes/health.js';
-import meRoutes from './routes/me.js';
 import scrapeRoutes from './routes/scrape.js';
 import articlesRoutes from './routes/articles.js';
 import postsRoutes from './routes/posts.js';
@@ -26,18 +25,20 @@ import settingsRoutes from './routes/settings.js';
 import uploadsRoutes from './routes/uploads.js';
 import readerRoutes from './routes/reader.js';
 import { db } from './lib/db.js';
-import { registerAuthGuard } from './ward/ward.guard.js';
-import type { WardClient } from './ward/ward.client.js';
+import { createAppAccounts, registerAuth, wardClientFromEnv } from './ward/auth.js';
+import type { Accounts, WardClient } from '../vendor/ward/ward-auth.js';
 
 export const PORT = Number(process.env.PORT ?? 3001);
 
 export interface BuildAppOptions {
   /**
-   * Inject a Ward client, so a test can decide who is signed in without a real
-   * Ward, a signing key, or a network. Production passes nothing and the guard
-   * builds one from the environment.
+   * The Ward client behind "Sign in with Ward". Left out, it is built from the
+   * `WARD_OIDC_*` environment, or absent (local accounts only) when
+   * `WARD_OIDC_ISSUER` is unset. A test passes `createWardClient({ ..., fetch })`
+   * with a fake `fetch`, or `null` to switch the button off whatever the
+   * environment says. Nothing contacts Ward at boot.
    */
-  ward?: WardClient;
+  wardClient?: WardClient | null;
   /**
    * Minutes between the Reader's background refreshes. **Omitted means off**,
    * so every test that builds an app gets no loop and no timer by
@@ -54,6 +55,8 @@ export interface BuildAppOptions {
 
 declare module 'fastify' {
   interface FastifyInstance {
+    /** The local accounts and sessions. A test mints a session with `startSession`. */
+    accounts: Accounts;
     /** The Reader's background loop. Stopped in `onClose`. */
     readerSchedule: ReaderSchedule;
   }
@@ -73,14 +76,19 @@ export async function buildApp(options: BuildAppOptions = {}) {
   });
 
   /*
-   * Identity is Ward's. There is no secret to check and no account to seed:
-   * newspapper holds no credential, and its single admin account is now an
-   * ordinary Ward account holding a `newspapper` grant.
-   *
-   * `wardConfig()` is read inside this call, so a missing `WARD_APP_KEY` stops
-   * the boot here — before `listen`, and with a message naming the variable.
+   * Identity is local, with Ward as a second way in. Accounts and sessions live
+   * in the app's own database (`auth_*` tables); a Ward sign-in creates or finds
+   * the linked local user, and a Ward-originated session is re-checked against
+   * Ward every 30 seconds. Registered before every other route: the guard is an
+   * `onRequest` hook, and only routes registered after it are covered.
    */
-  registerAuthGuard(fastify, options.ward ? { client: options.ward } : {});
+  const accounts = createAppAccounts(db());
+  fastify.decorate('accounts', accounts);
+  const wardClient =
+    options.wardClient === undefined
+      ? await wardClientFromEnv()
+      : (options.wardClient ?? undefined);
+  await registerAuth(fastify, { accounts, wardClient });
 
   // Serve font assets at /assets/fonts/
   await fastify.register(staticPlugin, {
@@ -98,7 +106,6 @@ export async function buildApp(options: BuildAppOptions = {}) {
 
   // Register all API routes
   await fastify.register(health);
-  await fastify.register(meRoutes);
   await fastify.register(scrapeRoutes);
   await fastify.register(articlesRoutes);
   await fastify.register(postsRoutes);

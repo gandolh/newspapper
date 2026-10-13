@@ -13,9 +13,7 @@ import type { FeedItem, FeedItemPage, ReaderCounts, Article } from '@newspapper/
 
 import { buildApp, bootOptions } from '../server.js';
 import { db, resetDb } from '../lib/db.js';
-import { createFakeWard } from '../ward/fake-ward.js';
-
-const TOKEN = 'reader-test-session';
+import { signInCookie } from '../ward/test-support.js';
 
 const ALPHA_FEED = 'https://feeds.example/alpha';
 const BETA_FEED = 'https://feeds.example/beta';
@@ -50,6 +48,7 @@ const deps = {
 
 let tmp: string;
 let app: Awaited<ReturnType<typeof buildApp>>;
+let session: Record<string, string>;
 
 beforeAll(() => {
   tmp = mkdtempSync(join(tmpdir(), 'np-reader-route-'));
@@ -67,10 +66,9 @@ beforeEach(async () => {
   db().exec('DELETE FROM articles');
   saveSources(SOURCES, db());
   fetchSpy.mockClear();
-  const ward = createFakeWard();
-  ward.signIn(TOKEN, 'subject_reader', { newspapper: ['editor'] });
-  app = await buildApp({ ward, readerRefresh: { deps } });
+  app = await buildApp({ wardClient: null, readerRefresh: { deps } });
   await app.ready();
+  session = (await signInCookie(app)).cookies;
 });
 
 afterEach(async () => {
@@ -79,7 +77,7 @@ afterEach(async () => {
 
 type Method = 'GET' | 'POST' | 'PATCH';
 const call = (method: Method, url: string, payload?: unknown) =>
-  app.inject({ method, url, payload: payload as object, cookies: { ward_session: TOKEN } });
+  app.inject({ method, url, payload: payload as object, cookies: session });
 
 interface Seed {
   slug: string;
@@ -458,7 +456,7 @@ describe('the background loop', () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
     try {
       const looped = await buildApp({
-        ward: createFakeWard(),
+        wardClient: null,
         ...bootOptions({}),
         readerRefresh: { deps },
       });

@@ -19,6 +19,7 @@ HTTP API.
 | `npm run lint` | ESLint over `core/src`, `api/src`, `ui/src` and `ui/vite.config.ts` |
 | `npm run fmt` | Prettier `--write` over the same three workspaces plus `ui/index.html` |
 | `npm run fmt:check` | The same set, read-only. `npm run build` runs this first and stops on it. |
+| `npm run seed --workspace=api` | Create the local account named by `SEED_USERNAME` / `SEED_PASSWORD` (and `SEED_ROLE`, default `editor`) if it does not exist. Never resets one that does. Set them in the shell, not a file. |
 
 Single test file: `npx vitest run core/src/path/to/file.test.ts`.
 
@@ -56,8 +57,7 @@ Two processes:
 
 - **API** — `tsx watch api/src/server.ts` on `http://localhost:3001`
 - **UI** — the Vite dev server on `http://localhost:4321`, serving the app under
-  `/newspapper/` and proxying the API's paths to 3001 (and `/ward`, `/ward-api`
-  to Ward)
+  `/newspapper/` and proxying the API's paths to 3001
 
 Open `http://localhost:4321/newspapper/`. Signing in goes through Ward, the
 estate's identity service; locally its container in

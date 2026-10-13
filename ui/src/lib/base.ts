@@ -87,3 +87,28 @@ export function withBase(path: string): string {
 export function stripBase(pathname: string): string {
   return stripPrefix(BASE, pathname);
 }
+
+/**
+ * Where to go after signing in, from the login URL's `?next=`.
+ *
+ * `raw` is what `lib/api.ts` wrote: an ORIGIN path with its query, such as
+ * `/newspapper/posts?q=1`. The answer is an APP path, `/posts?q=1`, because
+ * that is what `navigate` and `<Redirect>` speak.
+ *
+ * Anything that is not a path inside this app comes back as `/`: an absolute
+ * URL, a protocol-relative `//host`, a backslash (some browsers read `/\host`
+ * as a host), a path outside the base, or the login page itself, which would
+ * bounce a signed-in person back to the form they just left.
+ */
+export function safeNext(base: string, raw: string | null | undefined): string {
+  if (!raw || !raw.startsWith('/') || raw.startsWith('//') || raw.includes('\\')) return '/';
+  const path = stripPrefix(base, raw);
+  if (normalizeBase(base) !== '/' && path === raw) return '/';
+  if (path === '/login' || path.startsWith('/login?') || path.startsWith('/login/')) return '/';
+  return path;
+}
+
+/** `safeNext` against the base this bundle was built with. */
+export function nextFromSearch(search: string): string {
+  return safeNext(BASE, new URLSearchParams(search).get('next'));
+}

@@ -1,6 +1,6 @@
 ---
 summary: The locked product calls — no LLM, human-centred editing, the Wizard markup and its semantic component model, saved articles and Reader items as references only, images, and where it runs.
-updated: 2026-10-09
+updated: 2026-10-13
 ---
 
 # Decisions — product
@@ -168,6 +168,10 @@ not the same thing as a multi-user one, and this stays single-user.
 > a `newspapper` grant on a Ward account. It is still single-user in practice
 > and still has no roles of its own. The full posture is in
 > [decisions-security.md](./decisions-security.md#identity-is-wards-and-authority-is-a-grant).
+>
+> **Revised 2026-10-13 (brief 23) — local accounts again, Ward as a second way
+> in.** The account and the login page are back, on the shared library; it is
+> still single-user in practice. See [decisions-accounts.md](./decisions-accounts.md).
 
 ## Headless Chromium renders the slides
 _2026-06-10_ — Components compile to HTML, which Playwright Chromium screenshots

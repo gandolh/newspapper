@@ -1,8 +1,7 @@
 /**
- * The page map: `/` · `/posts` · `/reader` · `/settings`, plus
- * `/kitchen-sink` in dev only. (`/login` is gone — it is Ward's now, on a
- * different app entirely; the stale path is forwarded there. `/articles`
- * became the Reader in brief 105 and redirects to it.)
+ * The page map: `/` · `/posts` · `/reader` · `/settings`, plus `/login` outside
+ * the board and `/kitchen-sink` in dev only. (`/articles` became the Reader in
+ * brief 105 and redirects to it.)
  *
  * Every route renders inside one `<App>` element at one position
  * in the tree, and that is load-bearing rather than tidy: React keeps an
@@ -16,7 +15,7 @@
  *
  * Every route but `/login` is also behind the session. That guard is not here
  * but in `lib/api.ts`, which sends a 401 to `/login?next=…` on the first API
- * call a page makes — unchanged by this file.
+ * call a page makes.
  */
 import type { ComponentType } from 'react';
 import ProofSheet from './proofSheet';
@@ -26,7 +25,7 @@ import PostsIsland from './components/posts/PostsIsland';
 import ReaderIsland from './components/reader/ReaderIsland';
 import SettingsIsland from './components/settings/SettingsIsland';
 import { Redirect, usePathname } from './router';
-import { wardLoginUrl } from './lib/api';
+import LoginPage from './pages/Login';
 
 type Sheet = { title: string; width?: 'default' | 'fluid'; Island: ComponentType };
 
@@ -43,16 +42,8 @@ const sheets: Record<string, Sheet> = {
 export default function Routes() {
   const path = usePathname();
 
-  /*
-   * `/login` was the only route outside the board. It is gone: newspapper has
-   * no login page, and signing in is a navigation to Ward's. A bookmark or a
-   * stale link lands here, and sending it to Ward rather than to `/` is what
-   * makes that bookmark still do what the person meant by it.
-   */
-  if (path === '/login') {
-    if (typeof window !== 'undefined') window.location.assign(wardLoginUrl());
-    return null;
-  }
+  // The one route outside the board: no tray, nothing that needs a session.
+  if (path === '/login') return <LoginPage />;
 
   const sheet = sheets[path];
   if (!sheet) {

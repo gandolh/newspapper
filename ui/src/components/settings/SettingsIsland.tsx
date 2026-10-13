@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Button, Card, PageHeader, Select, Skeleton, ToastProvider, useToast } from '../ui';
-import { api, WARD_ACCOUNT_PATH } from '@/lib/api';
+import { api } from '@/lib/api';
+import AccountSection from './AccountSection';
 import type { Settings } from '@/lib/types';
 import styles from './SettingsIsland.module.css';
 
@@ -109,32 +110,12 @@ function ThemeSection() {
   );
 }
 
-/**
- * The account half of Settings. There is no password here to change: identity
- * is Ward's, and so are the password, sign-in and sign-out, on Ward's account
- * page. This used to be a password form posting to the password route the
- * Ward move deleted, so it invited people to type their password into the wrong
- * app and then 404ed. Origin-absolute link, like `SessionMenu`'s: Ward is a
- * different app on the same origin, so it must not carry this app's base.
- */
-function AccountSection() {
-  return (
-    <Card>
-      <h2 className={styles.sectionTitle}>Account</h2>
-      <p className={styles.sectionHint}>
-        Your password and sign-in are managed by Ward, which signs you in to every app on this site.{' '}
-        <a href={WARD_ACCOUNT_PATH}>Open your Ward account</a> to change your password or sign out.
-      </p>
-    </Card>
-  );
-}
-
 function SettingsPage() {
   return (
     <div className={styles.page}>
       <PageHeader
         title="Settings"
-        subtitle="The default a new post starts from, and this account."
+        subtitle="The default a new post starts from, and how you sign in."
       />
       <div className={styles.sections}>
         <ThemeSection />

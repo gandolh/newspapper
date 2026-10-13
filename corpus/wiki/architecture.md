@@ -1,6 +1,6 @@
 ---
 summary: How the three npm workspaces fit together, the SPA's routing and its load-bearing single-App rule, how a post flows write → compile → render → publish/ZIP, and how the Reader's background refresh runs (single-flight, one API process).
-updated: 2026-10-09
+updated: 2026-10-13
 ---
 
 # Architecture
@@ -53,8 +53,9 @@ Exact signatures: [modules.md](./modules.md).
 ### `api/` — Fastify server
 
 A thin HTTP layer over `@newspapper/core`, with one route plugin per feature
-area. Every route is behind the Ward session guard except `/api/health`. SSE is
-used for the three long operations, **search, render and the Reader's
+area. Every route is behind the session guard except `/api/health` and `/api/auth/*`
+(the vendored auth library, wired in `api/src/ward/`;
+[decisions-accounts.md](./decisions-accounts.md)). SSE is used for the three long operations, **search, render and the Reader's
 refresh**. It serves:
 
 - `/api/*` — all endpoints ([api.md](./api.md), [api-reader.md](./api-reader.md))
@@ -88,8 +89,8 @@ The page map is in `src/routes.tsx`:
 | `/` | the editor (fluid width) |
 | `/posts` | post list — render, publish, export, delete |
 | `/reader` | the Reader: rail · list · reading pane, plus the Search, Library and Sources views |
-| `/settings` | default theme, and a pointer to Ward's account page for the password |
-| `/login` | no page any more: redirects to Ward's login, so an old bookmark still signs you in |
+| `/settings` | default theme, and the account: password, the Ward link, signing out |
+| `/login` | the app's own sign-in form and "Sign in with Ward" button — the one route outside the board |
 | `/history` | redirect to `/posts` (kept from brief 62) |
 | `/articles` | redirect to `/reader` (brief 105) |
 | `/kitchen-sink` | the proof sheet — **dev only**, see below |
@@ -197,6 +198,6 @@ runs a single `npm run start`. Two would each run a loop against the same file. 
 - **ESM throughout.** All workspaces are `"type": "module"`. Paths resolve from
   `import.meta.url`, never `process.cwd()`.
 - **Deployed on the shared VPS** at `/newspapper/`, behind
-  Caddy's `handle_path`, which strips the prefix before Fastify. Identity is
-  Ward's; the only other outside services are the RSS feeds. The browser-side
-  URLs carry the base (`ui/src/lib/base.ts`); the server never sees it.
+  Caddy's `handle_path`, which strips the prefix before Fastify. Accounts are
+  local, with Ward an optional second way in; the only other outside
+  services are the RSS feeds. The browser-side URLs carry the base (`ui/src/lib/base.ts`); the server never sees it.

@@ -13,19 +13,13 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { buildApp } from './server.js';
 import { db as appDb, resetDb } from './lib/db.js';
 import { recordRender } from '@newspapper/core';
-import { createFakeWard } from './ward/fake-ward.js';
+import { signInCookie } from './ward/test-support.js';
 
 /*
- * Every /api/* route is behind the Ward guard, so these tests hand `buildApp` a
- * fake Ward client and replay one cookie. The **real** guard still runs and
- * still checks the `newspapper` grant — the fake only decides which session a
- * cookie names, which is exactly what a real Ward would be deciding.
- *
- * There is no sign-in step any more: newspapper cannot sign anybody in.
+ * Every /api/* route is behind the session guard, so each test mints a real
+ * local session on the app's own accounts and replays its cookie. The **real**
+ * guard still runs; nothing about it is stubbed.
  */
-const SESSION_COOKIE = 'ward_session';
-const TOKEN = 'server-test-session';
-const SUBJECT = 'subject_tester';
 
 type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 interface InjectOpts {
@@ -51,16 +45,12 @@ afterAll(() => {
 
 describe('API server', () => {
   let app: Awaited<ReturnType<typeof buildApp>>;
-  const cookie = TOKEN;
+  let session: Record<string, string>;
 
   beforeEach(async () => {
-    const ward = createFakeWard();
-    // A `newspapper` grant is what opens the app — a live Ward session without
-    // one is a 403, which is the estate's actual security boundary.
-    ward.signIn(TOKEN, SUBJECT, { newspapper: ['editor'] });
-
-    app = await buildApp({ ward });
+    app = await buildApp({ wardClient: null });
     await app.ready();
+    session = (await signInCookie(app)).cookies;
   });
 
   afterEach(async () => {
@@ -69,7 +59,7 @@ describe('API server', () => {
 
   async function inject(opts: InjectOpts) {
     const { cookies, ...rest } = opts;
-    return app.inject({ ...rest, cookies: { [SESSION_COOKIE]: cookie, ...cookies } });
+    return app.inject({ ...rest, cookies: { ...session, ...cookies } });
   }
 
   // =========================================================================
@@ -663,7 +653,7 @@ describe('the global error handler', () => {
   let app: Awaited<ReturnType<typeof buildApp>>;
 
   beforeEach(async () => {
-    app = await buildApp({ ward: createFakeWard() });
+    app = await buildApp({ wardClient: null });
     // Routes outside the guarded prefixes, so no session is needed to reach them.
     app.get('/__test/boom', async () => {
       throw new Error('secret internal detail: /srv/newspapper/data/newspapper.db');

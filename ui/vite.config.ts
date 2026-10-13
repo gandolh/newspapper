@@ -69,16 +69,10 @@ const base = process.env.NEWSPAPPER_BASE ?? '/';
 
 /**
  * The dev server stands in for Caddy. The API's paths are proxied under `base`
- * with the prefix stripped, as `handle_path` strips it in the deploy, and
- * `/ward` + `/ward-api` go to WARD_PUBLIC_ORIGIN: the Ward the API trusts,
- * locally the container in wzd_auth/infrastructure/local. One origin is what
- * lets Ward's cookie, its redirect back into the app and signing out work as in
- * the deploy.
- *
- * Ward refuses /refresh and /logout unless the request's Origin is its own. A
- * request from a page on this dev server would be same-origin in the deploy, so
- * its Origin is rewritten to say so. Anything else keeps its Origin and its
- * Sec-Fetch-Site, and Ward still refuses it.
+ * with the prefix stripped, as `handle_path` strips it in the deploy. That is
+ * all: the sign-in routes are the API's own (`<base>/api/auth/...`, including
+ * the Ward callback), so they ride the same proxy, and "Sign in with Ward" sends
+ * the browser to Ward's own origin rather than through here.
  */
 function devProxy(): Record<string, ProxyOptions> {
   const api = `http://localhost:${process.env.PORT ?? 3001}`;
@@ -90,20 +84,6 @@ function devProxy(): Record<string, ProxyOptions> {
       rewrite: (url) => url.slice(prefix.length),
     };
   }
-  if (!process.env.WARD_PUBLIC_ORIGIN) return proxy;
-
-  const ward = new URL(process.env.WARD_PUBLIC_ORIGIN).origin;
-  proxy['^/ward(-api)?(/|$)'] = {
-    target: ward,
-    configure: (server) => {
-      server.on('proxyReq', (proxyReq, req) => {
-        const origin = req.headers.origin;
-        if (origin && URL.canParse(origin) && new URL(origin).host === req.headers.host) {
-          proxyReq.setHeader('origin', ward);
-        }
-      });
-    },
-  };
   return proxy;
 }
 

@@ -1,6 +1,6 @@
 ---
 summary: What each workspace depends on and why that package was chosen over the alternatives.
-updated: 2026-10-09
+updated: 2026-10-13
 ---
 
 # Dependencies
@@ -27,12 +27,14 @@ Per-workspace. Versions are locked in `package-lock.json`.
 | `@fastify/static` | Serves `/assets/fonts/`, `/output/`, and `ui/dist/` in prod. Not used for `/uploads/` — that route resolves refs through the DB and streams the file itself. 10.x since 2026-10-02 (brief 100): 8.3.0 carried a static-plugin guard-bypass advisory class; the 8 → 10 major changed nothing newspapper relies on. |
 | `@fastify/multipart` | Parses the single-file `POST /api/uploads` body, with a streaming 10 MB `fileSize` limit so an oversized upload is cut off rather than buffered. |
 | `@newspapper/core` | All pipeline logic. |
+| `vendor/ward/` (not an npm package) | The shared auth library, version 0.2.0, copied in whole (server bundle, types, README, LICENSE) and never edited; it needs no install and imports only `node:` built-ins. Upgrade by vendoring a newer build over it. It replaced the hand-written Ward client and its `jose` dependency (removed 2026-10-13, which was also the one unpinned version in the repo). |
 
 ## `ui/` — `@newspapper/ui`
 
 | Package | Why |
 |---------|-----|
 | `vite` | Build tool and dev server (dev deps, with `@vitejs/plugin-react`). Replaced Astro in brief 70 — every page was `client:load` behind auth, so nothing Astro offered was in use; [why](./decisions-engineering.md#the-ui-is-a-vite--react-spa-astro-was-removed). |
+| `vendor/ward/` (not an npm package) | The same library's React bundle: the unstyled hooks behind the login page, the tray's session cell and Settings. The copy also holds the server bundle, which the UI never imports; both copies must stay the same version. |
 | `react`, `react-dom` | The whole UI. Routing is ~95 hand-rolled lines in `ui/src/router.tsx` over `useSyncExternalStore`; **no router dependency** — see the decision above. |
 | `@base-ui/react` | Headless, accessible primitives behind the shared `components/ui/` library (Button, Input, Select, Toggle/Switch, Modal/Dialog, Toast). Styling-agnostic — styled with warm-industrial CSS-variable tokens. |
 | `@newspapper/core` | Types, plus the browser-safe `./wizard` subpath — the editor parses, lints and compiles with the same code the renderer uses. No Node APIs. |

@@ -12,7 +12,7 @@ A local web app for writing an Instagram-style slide post by hand and compiling 
 
 A post is authored in [Newspapper Wizard](corpus/wiki/markup.md) markup in a split-screen editor (source · live canvas · inspector · palette). **No model is involved anywhere.** RSS is source material to write *from*: the Reader stores and shows what the feeds publish, Search scans them by keyword, and the library keeps what you save.
 
-UI at `http://localhost:4321/newspapper/`, API at `http://localhost:3001`. No CLI. Sign-in is Ward's; locally, the container in `../wzd_auth/infrastructure/local`.
+UI at `http://localhost:4321/newspapper/`, API at `http://localhost:3001`. No CLI. Sign-in is local accounts (`npm run seed --workspace=api`) plus an optional "Sign in with Ward"; locally, Ward is the container in `../wzd_auth/infrastructure/local`.
 
 ## Commands
 
@@ -48,7 +48,7 @@ See [corpus/wiki/architecture.md](corpus/wiki/architecture.md) for the full flow
 
 | Path | Contents |
 |------|----------|
-| `data/newspapper.db` | SQLite (schema v6): `posts`, `keywords`, `post_keywords`, `renders`, `sources`, `articles`, `feed_items`, `uploads`, `settings`. No `users`: identity is Ward's. |
+| `data/newspapper.db` | SQLite (schema v6): `posts`, `keywords`, `post_keywords`, `renders`, `sources`, `articles`, `feed_items`, `uploads`, `settings`. Plus the auth library's `auth_*` tables (users, sessions, Ward links), outside the schema version. |
 | `data/sources.json` | v2 residue — a one-time seed for the `sources` table. Nothing reads it afterwards. |
 | `assets/design-systems/` | The three slide themes as JSON tokens |
 | `assets/fonts/` | Inter TTFs, read off disk by the render browser |

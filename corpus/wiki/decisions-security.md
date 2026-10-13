@@ -1,6 +1,6 @@
 ---
-summary: The locked security calls — Ward identity and grants, the retired single-account auth and its lockout, which paths are guarded (decided from the matched route) versus public, safe server-side fetches of feed URLs, generic 5xx bodies, and how local development signs in through a local Ward.
-updated: 2026-10-02
+summary: The locked security calls — the Ward-only identity of 2026-09-06 (revised by decisions-accounts.md), the retired single-account auth and its lockout, which paths are guarded (decided from the matched route) versus public, and how local development signed in through a local Ward. The feed-fetch and 5xx-body calls are in decisions-hardening.md.
+updated: 2026-10-13
 ---
 
 # Decisions — security
@@ -36,6 +36,11 @@ app indefinitely. The address is the only key that fails safe here.
 > five stood open. The reasoning above about address-keying remains correct and
 > is why Ward's own lockout is not username-keyed either.
 
+> **Revived 2026-10-13 (brief 23).** There is a credential here again, so there
+> is a lockout again: the library's, five failures per address in 15 minutes,
+> keyed on the address and never the username
+> ([decisions-accounts.md](./decisions-accounts.md)).
+
 ## ~~The password can be rotated from inside the app~~
 _2026-08-27_ — `POST /api/password` (guarded, requires the current password,
 rotates the session cookie on success). No UI yet; the endpoint is ready for one.
@@ -49,6 +54,9 @@ hand-editing SQLite, and the plaintext would live in `.env` forever.
 > concern that motivated this — a compromised password with no rotation path
 > short of editing SQLite — is answered better by Ward, which can also revoke
 > the sessions.
+
+> **Back 2026-10-13 (brief 23)** as the library's `POST /api/auth/password`, with
+> a settings form. A Ward-only user sets a first local password there.
 
 ## ~~`/uploads/*` is public~~; `/api/*` and `/output/*` are guarded
 _2026-08-27_ — The upload asset routes serve without a session, deliberately.
@@ -89,11 +97,22 @@ leaves loopback, this is the first thing to revisit.
 > intended failure mode, and it is loud; a silent fallback to an
 > unauthenticated fetch is the thing that must not happen.
 
+> **Held 2026-10-13 (brief 23).** The brief said to keep `/uploads/*` public; the
+> revision above stands and it stays guarded
+> ([decisions-accounts.md](./decisions-accounts.md#uploads-stays-guarded)).
+
 `/output/*` went the other way. The brief only asked for `/api/*`, but the
 rendered slides are the app's actual content and were being served to anyone who
 asked, so the guard covers them too.
 
 ## Identity is Ward's, and authority is a grant
+> **Revised 2026-10-13 (brief 23): local accounts, with Ward as a second way in.**
+> The cookie, the 403-without-a-grant and the 503 below are gone, and the
+> hand-written client is the vendored library
+> ([decisions-accounts.md](./decisions-accounts.md)). Kept for the reasoning on
+> why a grant is the estate's boundary and why Ward being down must never read as
+> "signed out".
+
 _2026-09-06_ — Newspapper holds **no credential of any kind**. The stateless
 30-day HMAC session cookie, `SESSION_SECRET`, the scrypt password check, the
 `users` table, `POST /api/login`, `POST /api/logout` and the login page are all
@@ -125,6 +144,11 @@ it in one app while the others still honoured it would be a lie the cookie
 contradicts on the next request.
 
 ## Local development signs in through a local Ward
+> **Revised 2026-10-13 (brief 23).** The `/ward` proxy and its `Origin` rewrite
+> are gone. Local development signs in with a seeded local account, or sends the
+> browser to the local Ward's own origin; see
+> [configuration.md](./configuration.md#local-sign-in).
+
 _2026-09-27_ — Brief 84's question, answered by the owner for every Ward app at
 once, and with neither of the brief's options. Local development runs a real Ward
 in Docker (`wzd_auth/infrastructure/local`) and the UI dev server stands in for
@@ -158,25 +182,5 @@ case make a hand decoder easy to get wrong, while the matched pattern is
 already the router's own answer. `@fastify/static` routes carry a pattern too
 (`/output/*`).
 
-## Server-side fetches of feed-chosen URLs go to public addresses only
-
-_2026-10-02 (brief 85)_ — Feed URLs and item links are fetched through
-`core/src/scrape/safe-url.ts`:
-- http(s) only;
-- every resolved address must be public (private, loopback, link-local, CGNAT
-  and IPv4-mapped forms are refused);
-- redirects are followed by hand, with the check repeated per hop;
-- bodies are capped (2 MB for articles, 10 MB for feeds).
-
-Rejected: **trusting the feed host.** Sources are operator-added, but item
-links are third-party. Rejected: `redirect: 'follow'`, since one public 302 is
-all it takes to reach loopback. Accepted residual: the check is at resolve
-time, so DNS rebinding remains possible until a connect-time check is worth
-the machinery.
-
-## A 5xx never shows the caller the exception's text
-
-_2026-10-02 (brief 79)_ — The global error handler answers any `>= 500` with
-`{ "error": "Internal Server Error" }` and logs the real error. A deliberate 4xx
-keeps its message. Rejected: echoing `err.message` for everything, which leaked
-SQL fragments, file paths and null-dereference text.
+Two hardening calls, server-side fetches of feed URLs and generic 5xx bodies, are in
+[decisions-hardening.md](./decisions-hardening.md).

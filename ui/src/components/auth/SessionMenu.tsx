@@ -1,66 +1,48 @@
-import { useEffect, useState } from 'react';
-import { api, ApiError, WARD_ACCOUNT_PATH, wardLoginUrl } from '@/lib/api';
-import type { User } from '@/lib/types';
+import { Link } from '@/router';
+import { useLogout, useSession } from '@/lib/auth';
+import { withBase } from '@/lib/base';
 import styles from './SessionMenu.module.css';
 
 /**
- * Who is signed in, and the way out — the tray's session compartment. The
- * tray is Astro-rendered and static, so the one thing on it that needs the
- * session lives here as its own island.
+ * Who is signed in, and the way out — the tray's session compartment.
  *
- * With no session it shows the way in instead — which is now a link **off this
- * app**, to Ward's login page, because newspapper has no login of its own.
+ * With no session it shows the way in: a link to the app's own login page.
+ * Signing out ends this app's session only. Ending the Ward session as well
+ * ("sign out of Ward too") is in Settings, where the Ward account is managed.
  *
- * Signing out is likewise Ward's, and newspapper must not fake one: the session
- * belongs to the estate, so ending it here while atrium and prm still honoured
- * it would be a lie the cookie contradicts on the next request. The button
- * became a link to Ward's account page, where signing out actually revokes
- * something.
- *
- * `skipAuthRedirect` on the `/api/me` probe: this component renders on every
- * page, and without it a signed-out browser would be redirected by the tray
- * before the page it asked for had a chance to render anything.
+ * `useSession` probes `GET /api/auth/session`, which is public and answers
+ * `user: null` for a signed-out browser, so this component renders on every
+ * page without the 401 redirect firing before the page it asked for has had a
+ * chance to render anything.
  */
 export default function SessionMenu() {
-  const [user, setUser] = useState<User | null>(null);
-  const [checked, setChecked] = useState(false);
+  const session = useSession();
+  const { logout, pending } = useLogout();
 
-  useEffect(() => {
-    void (async () => {
-      try {
-        const me = await api<{ user: User }>('/api/me', {
-          skipAuthRedirect: true,
-        });
-        setUser(me.user);
-      } catch (err) {
-        if (!(err instanceof ApiError)) return;
-      } finally {
-        setChecked(true);
-      }
-    })();
-  }, []);
-
-  if (!user) {
-    if (!checked) return null;
+  if (session.status !== 'signed_in') {
+    // Nothing until the probe answers: no flash of "Sign in" on a signed-in page.
+    if (session.status === 'loading') return null;
     return (
       <span className={styles.session}>
-        <a className={styles.signIn} href={wardLoginUrl()}>
+        <Link className={styles.signIn} href="/login">
           Sign in
-        </a>
+        </Link>
       </span>
     );
   }
 
+  async function signOut() {
+    if (await logout()) window.location.assign(withBase('/login'));
+  }
+
   return (
     <span className={styles.session}>
-      <span className={styles.username} title={user.username}>
-        {user.username}
+      <span className={styles.username} title={session.user.username}>
+        {session.user.username}
       </span>
-      {/* A link, not a button: signing out happens at Ward, which is where the
-          session actually lives. */}
-      <a className={styles.signOut} href={WARD_ACCOUNT_PATH}>
-        Account
-      </a>
+      <button type="button" className={styles.signOut} disabled={pending} onClick={signOut}>
+        Sign out
+      </button>
     </span>
   );
 }
