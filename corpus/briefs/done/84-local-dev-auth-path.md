@@ -8,10 +8,10 @@ developer who follows README and does `cp .env.example .env && npm run dev`:
 - **With WARD_* unset**, `buildApp()` throws in `registerAuthGuard → wardConfig()`
   (`required()` at `api/src/ward/config.ts:17-25`) before `.listen()`; the API
   exits 1. (Verified: `WARD_PUBLIC_ORIGIN is not set…`.)
-- **With the `.env.example` placeholders** (`WARD_PUBLIC_ORIGIN=https://gandolh.ro`,
+- **With the `.env.example` placeholders** (`WARD_PUBLIC_ORIGIN=https://example.com`,
   `WARD_API_BASE_PATH=/ward-api`, `WARD_APP_KEY=wak_replace_me`) the API boots,
   but the UI at `localhost:4321` 401s on its first `/api/me` — there is no
-  `ward_session` cookie on `localhost` (Ward issues it only for `gandolh.ro`).
+  `ward_session` cookie on `localhost` (Ward issues it only for the production domain).
   `redirectToLogin` sends the browser to `/ward/login?next=…` (origin-absolute by
   design, `ui/src/lib/api.ts`), which on localhost hits nothing — the Vite proxy
   forwards only `/api`, `/output`, `/uploads`, `/assets` — so Vite serves
@@ -37,7 +37,7 @@ is in Next, not Now):
   production. **Recommended** — fail-safe if gated on an explicit opt-in that
   defaults off and is asserted off when `NODE_ENV==='production'`.
 - **(B) Point dev at the real Ward** via a documented tunnel / hosts entry so the
-  `gandolh.ro` cookie is present. No app code; heavier setup; only the owner can
+  production-domain cookie is present. No app code; heavier setup; only the owner can
   do it.
 
 Prefer (A) with an explicit, default-off env flag, and a test asserting the

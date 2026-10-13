@@ -3,7 +3,7 @@
 ## Context
 
 Found 2026-10-09 while writing `docs/README.md`. The docs site
-(<https://gandolh.ro/newspapper/docs/>) renders the wiki through
+(`/newspapper/docs/`) renders the wiki through
 `docs/scripts/sync-corpus.mjs`. Four wiki pages never reach it:
 `api-reader.md`, `data-reader.md`, `modules-reader.md` and `migrations.md`.
 Brief 105 added the first three, and `migrations.md` was never listed. The site

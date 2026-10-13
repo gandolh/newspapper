@@ -17,7 +17,7 @@ how it runs:
 - **Identity is Ward's** (2026-09-06): no account, password or login page here;
   a `newspapper` grant on a Ward account opens the app
   ([decisions-security.md](./decisions-security.md)).
-- **It runs on the shared VPS** at `https://gandolh.ro/newspapper/`, behind
+- **It runs on the shared VPS** at `/newspapper/`, behind
   Caddy, which strips the prefix. The UI builds every browser URL with the base
   (`ui/src/lib/base.ts`).
 - **Local dev signs in through a local Ward** (brief 84,

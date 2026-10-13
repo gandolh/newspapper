@@ -23,7 +23,7 @@ pipeline that produces one.
 **No model is involved anywhere.** The person writes the words. See
 [the decision](./decisions.md#no-llm-in-the-product).
 
-Deployed on the shared VPS at `https://gandolh.ro/newspapper/`; sign-in is
+Deployed on the shared VPS at `/newspapper/`; sign-in is
 Ward's, the estate's identity service, and a `newspapper` grant is what opens
 the app. Locally: UI at `http://localhost:4321/newspapper/`, API at
 `http://localhost:3001`. No CLI.

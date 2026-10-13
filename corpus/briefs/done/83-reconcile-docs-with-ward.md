@@ -56,7 +56,7 @@ One documentation-reconciliation pass (like brief 63), correcting each claim
 above against the current code: `api/src/ward/*`, `core/src/storage/db.ts`
 (schema 5, no `users`), `api/src/routes/me.ts`, `core/src/render/index.ts`
 (the `db` param), the deployment reality (Ward, public VPS at
-`https://gandolh.ro/newspapper/`, base path). Where a decision was reversed, add
+`/newspapper/`, base path). Where a decision was reversed, add
 a dated supersession note rather than silently rewriting (match
 `decisions-security.md`'s style). Follow CLAUDE.md's own maintenance rules for
 which page owns which fact.

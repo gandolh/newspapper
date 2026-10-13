@@ -7,7 +7,7 @@ updated: 2026-10-02
 
 The app ran on loopback for one person, and every call below was made against
 that assumption. **That assumption is now retired.** Newspapper moved to the
-shared VPS on 2026-09-06 and is served at `https://gandolh.ro/newspapper/`, so
+shared VPS on 2026-09-06 and is served at `/newspapper/`, so
 the three calls that leaned on an unreachable port have each been revisited —
 see the dated notes in each section, and the new section at the end.
 

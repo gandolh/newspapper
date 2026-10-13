@@ -6,7 +6,7 @@ Found in the 2026-09 sweep and verified by reading. The base-path work
 (`ui/src/lib/base.ts`, HEAD commit) is sound in `lib/api.ts` — `api()` wraps
 paths in `withBase`, and `wardLoginUrl` is deliberately origin-absolute. But
 three client sites that build URLs **outside** `api()` were missed, so served at
-`https://gandolh.ro/newspapper/` (Caddy strips the prefix before Fastify; the
+`/newspapper/` (Caddy strips the prefix before Fastify; the
 browser does not know the prefix and resolves a leading-`/` URL against the
 origin root):
 
@@ -16,14 +16,14 @@ origin root):
    not the router's `<Link>`. The **same file** already does it right three lines
    away: `window.location.assign(withBase(`/?post=${post.id}`))` (:317) and
    `withBase('/')` (:190, :238). Clicking a thumbnail or title requests
-   `https://gandolh.ro/?post=123` — a different app — instead of
+   `/?post=123` — a different app — instead of
    `/newspapper/?post=123`.
 
 2. **Post thumbnails 404.** PostsIsland.tsx:260 renders `<img src={thumb}>` where
    `thumb = render.files[0]`, a server-built `/output/<dir>/slide-01.jpg`
    (`api/src/routes/renders.ts:37`, deliberately origin-relative — "outputDir is
    a server path"). A leading-`/` `src` resolves against the origin root →
-   `https://gandolh.ro/output/...` → 404. Every thumbnail on `/posts` breaks.
+   `/output/...` → 404. Every thumbnail on `/posts` breaks.
 
 3. **Image-picker thumbnails and the live preview 404.**
    `ui/src/components/editor/ImagePicker.tsx:122` uses `<img src={upload.url}>`

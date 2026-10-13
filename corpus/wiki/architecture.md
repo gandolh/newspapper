@@ -196,7 +196,7 @@ runs a single `npm run start`. Two would each run a loop against the same file. 
   font request. [Why](./decisions-engineering.md#the-renderer-serves-its-own-fonts-from-disk-not-over-http).
 - **ESM throughout.** All workspaces are `"type": "module"`. Paths resolve from
   `import.meta.url`, never `process.cwd()`.
-- **Deployed on the shared VPS** at `https://gandolh.ro/newspapper/`, behind
+- **Deployed on the shared VPS** at `/newspapper/`, behind
   Caddy's `handle_path`, which strips the prefix before Fastify. Identity is
   Ward's; the only other outside services are the RSS feeds. The browser-side
   URLs carry the base (`ui/src/lib/base.ts`); the server never sees it.

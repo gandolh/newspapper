@@ -32,7 +32,7 @@ GET  /%6Futput/<dir>/slide-01.jpg → 200 (rendered slide bytes)
 GET  /%75ploads/<ref> → reaches the handler (404), i.e. guard skipped, not 401
 ```
 
-On the public VPS (`https://gandolh.ro/newspapper/`, Caddy `handle_path`
+On the public VPS (`/newspapper/`, Caddy `handle_path`
 forwards the encoded path unchanged) this is anonymous full read **and write** of
 every post, source, setting, upload and rendered slide. It is the single most
 important finding in the sweep.

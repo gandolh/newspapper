@@ -6,7 +6,7 @@ A web app for writing Instagram-style news posts by hand. You write the post in 
   <img src="docs/images/editor.webp" width="100%" alt="The Newspapper editor: .wzd markup for a made-up post about Sample City's night trams on the left, its first slide set on a 1080×1080 canvas in the middle, and the component palette and post fields on the right">
 </p>
 
-**Status:** Personal project with one user. It runs at <https://gandolh.ro/newspapper/>, behind a Ward sign-in that needs a `newspapper` grant. The Reader, which stores RSS items for you to read (brief 105), is built and tested locally but not deployed yet.
+**Status:** Personal project with one user. It runs at `/newspapper/`, behind a Ward sign-in that needs a `newspapper` grant. The Reader, which stores RSS items for you to read (brief 105), is built and tested locally but not deployed yet.
 
 ## What it does
 
@@ -45,7 +45,7 @@ flowchart LR
   jpegs --> out["publish / ZIP"]
 ```
 
-More on the docs site: [architecture](https://gandolh.ro/newspapper/docs/wiki/architecture/) and [the `.wzd` language](https://gandolh.ro/newspapper/docs/wiki/markup/). A walkthrough of writing one post is in [docs/making-a-post.md](docs/making-a-post.md).
+More on the docs site: [architecture](corpus/wiki/architecture.md) and [the `.wzd` language](corpus/wiki/markup.md). A walkthrough of writing one post is in [docs/making-a-post.md](docs/making-a-post.md).
 
 ## Run it locally
 
@@ -58,7 +58,7 @@ cp .env.example .env              # then run Ward's seed.mjs, which writes the W
 npm run dev                       # API on :3001, UI on :4321
 ```
 
-Open <http://localhost:4321/newspapper/> and sign in through Ward. If Ward is not running, the API still starts but every guarded route answers 503. The [configuration](https://gandolh.ro/newspapper/docs/wiki/configuration/) page lists every env var, and [commands](https://gandolh.ro/newspapper/docs/wiki/commands/) lists every npm script with what it does not check.
+Open <http://localhost:4321/newspapper/> and sign in through Ward. If Ward is not running, the API still starts but every guarded route answers 503. The [configuration](corpus/wiki/configuration.md) page lists every env var, and [commands](corpus/wiki/commands.md) lists every npm script with what it does not check.
 
 ## Project layout
 
@@ -75,7 +75,7 @@ Open <http://localhost:4321/newspapper/> and sign in through Ward. If Ward is no
 ## Docs
 
 - [docs/](docs/README.md): the post walkthrough, the images used here, and how the docs site is built
-- Docs site: <https://gandolh.ro/newspapper/docs/>, rendered from `corpus/` on every build
+- Docs site: `/newspapper/docs/`, rendered from `corpus/` on every build
 - Project wiki: [corpus/](corpus/index.md), with [status](corpus/wiki/status.md) and [decisions](corpus/wiki/decisions.md)
 - Before trusting a green command here, read [green-because-nothing-ran.md](corpus/wiki/green-because-nothing-ran.md)
 

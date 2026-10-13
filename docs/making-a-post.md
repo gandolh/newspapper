@@ -1,6 +1,6 @@
 # Making a post
 
-One post from an empty editor to a ZIP of slides. This is the walkthrough that used to sit in the main README. The full language reference is the [`.wzd` markup page](https://gandolh.ro/newspapper/docs/wiki/markup/) ([source](../corpus/wiki/markup.md)).
+One post from an empty editor to a ZIP of slides. This is the walkthrough that used to sit in the main README. The full language reference is the [`.wzd` markup page](../corpus/wiki/markup.md).
 
 ## 1. Write it
 
