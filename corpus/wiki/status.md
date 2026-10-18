@@ -127,6 +127,11 @@ unconfirmed); [107](../briefs/todo/107-docs-site-sync-omits-four-wiki-pages.md),
 the docs-site sync leaves out `api-reader`, `data-reader`, `modules-reader` and
 `migrations`.
 
+**Open (filed 2026-10-18):** [108](../briefs/todo/108-docs-site-on-docusaurus.md),
+the docs site moves from Starlight to Docusaurus. Its sync discovers pages, so
+it also does 107. It asks the owner one question first, about cheerio arriving
+transitively in the docs workspace.
+
 Waves below are the **executed** order, which differs from the originally filed
 one: file-ownership collisions the dependency graph alone did not show forced
 several briefs apart. `core/src/types.ts` was claimed by both 51 and 52,

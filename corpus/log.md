@@ -1739,3 +1739,7 @@ callback `<origin>/newspapper/api/auth/ward/callback`, and the seed run. Not
 exercised in a browser: the Ward round trip past `POST /api/auth/ward/start`.
 `core/src/util/config.ts` still names the old variables in a comment (core was
 out of scope). The docs-site sync allowlist (brief 107) lacks the new pages.
+
+## [2026-10-18] todo | brief 108 filed — the docs site moves from Starlight to Docusaurus
+
+The owner's call (2026-10-18), one brief in every repo with a docs site. [108](briefs/todo/108-docs-site-on-docusaurus.md) keeps the URLs and The Mechanical. Its sync discovers pages, which does 107. Two repo rules meet it: the docs workspace cannot be `"type": "module"` (Docusaurus's build fails), and Docusaurus brings cheerio in transitively, so the brief asks the owner first. Building the corpus found one link into `wzd_auth` and four stale anchors into `decisions.md`. The deploy waits on vps-deploy brief 11.
