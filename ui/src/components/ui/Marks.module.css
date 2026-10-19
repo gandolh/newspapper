@@ -137,7 +137,10 @@
 
 /* ---- Selected (in source): the wax highlight ---------------------------
    Bled past the text on both sides, which is what makes it read as wax
-   rather than as a text background. */
+   rather than as a text background. Put it on ONE box per run, never on each
+   token of a run: inline boxes paint in tree order, so a token's bleed covers
+   the last glyph of the token before it. The galley wraps the run and lays it
+   under the text (SourcePane.module.css, `.waxRun`, brief 106). */
 .wax {
   background: var(--wax);
   color: var(--wax-ink);

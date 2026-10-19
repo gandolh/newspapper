@@ -7,7 +7,7 @@
  * the linter reported, and listed underneath so they can be jumped to.
  */
 
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, type ReactNode } from 'react';
 import type { WzdDiagnostic } from '@newspapper/core/wizard';
 import { Button, Finding, Mark, WAX } from '../ui';
 import { decorate, tokenize, type WzdRangeMark } from './highlight.js';
@@ -106,6 +106,60 @@ export default function SourcePane({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [revealToken]);
 
+  /*
+   * The wax is laid once per contiguous run of selected tokens, on a wrapper
+   * that sits under the text (brief 106). It used to be a class on every token,
+   * each with its own 0.35em box-shadow bleed, and inline boxes paint in tree
+   * order: each token's bleed covered the last glyph of the token before it.
+   * Inside the run the tokens keep their weight and slope and take the wax's
+   * ink; the wrapper alone paints the ground and the bleed.
+   */
+  const galley = useMemo(() => {
+    const out: ReactNode[] = [];
+    let run: ReactNode[] | null = null;
+    let runStart = 0;
+    const closeRun = (): void => {
+      if (!run) return;
+      out.push(
+        <span key={`wax-${runStart}`} className={`${WAX} ${styles.waxRun}`}>
+          {run}
+        </span>,
+      );
+      run = null;
+    };
+    for (const span of spans) {
+      const selected = span.marks.includes(SELECTED_MARK);
+      const lint = span.marks.filter((m) => m !== SELECTED_MARK);
+      const token = (
+        <span
+          key={`${span.start}-${span.end}`}
+          className={[
+            styles[span.kind],
+            selected ? styles.onWax : null,
+            ...lint.map((m) => styles[m]),
+          ]
+            .filter(Boolean)
+            .join(' ')}
+          title={lint.length > 0 ? messageAt(span.start, span.end) : undefined}
+        >
+          {source.slice(span.start, span.end)}
+        </span>
+      );
+      if (selected) {
+        if (!run) {
+          run = [];
+          runStart = span.start;
+        }
+        run.push(token);
+      } else {
+        closeRun();
+        out.push(token);
+      }
+    }
+    closeRun();
+    return out;
+  }, [spans, source, messageAt]);
+
   const errors = diagnostics.filter((d) => d.severity === 'error');
   const warnings = diagnostics.filter((d) => d.severity === 'warning');
 
@@ -126,24 +180,7 @@ export default function SourcePane({
 
       <div className={styles.code}>
         <pre className={styles.highlight} ref={preRef} aria-hidden="true">
-          {spans.map((span) => (
-            <span
-              key={`${span.start}-${span.end}`}
-              className={[
-                styles[span.kind],
-                ...span.marks.map((m) => (m === SELECTED_MARK ? WAX : styles[m])),
-              ]
-                .filter(Boolean)
-                .join(' ')}
-              title={
-                span.marks.some((m) => m !== SELECTED_MARK)
-                  ? messageAt(span.start, span.end)
-                  : undefined
-              }
-            >
-              {source.slice(span.start, span.end)}
-            </span>
-          ))}
+          {galley}
           {'\n '}
         </pre>
         <textarea
