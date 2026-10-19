@@ -1,5 +1,5 @@
 ---
-summary: Dated snapshot (2026-10-13) — the Wizard rebuild is done, accounts are local with Ward as a second way in (brief 23, not deployed), it runs on the VPS under /newspapper/, the 2026-09-27 improvements sweep (77-104) is fully worked through, and brief 105 built the Reader (schema v6), which is not deployed yet, and brief 108 moved the docs site to Docusaurus (also not deployed); plus the known strays and open questions.
+summary: Dated snapshot (2026-10-13) — the Wizard rebuild is done, accounts are local with Ward as a second way in (brief 23, not deployed), it runs on the VPS under /newspapper/, the 2026-09-27 improvements sweep (77-104) is fully worked through, and brief 105 built the Reader (schema v6), which is not deployed yet, brief 108 moved the docs site to Docusaurus (also not deployed), and brief 106 fixed the galley's wax covering letters; plus the known strays and open questions.
 updated: 2026-10-19
 ---
 
@@ -129,9 +129,10 @@ to `superseded/`): six pages the old list left out are published. The owner
 allowed cheerio transitively in the docs workspace only. Not deployed: vps-deploy
 brief 11 changes the docs stack's asset check first.
 
-**Open (filed 2026-10-09):** [106](../briefs/todo/106-selected-line-highlight-clips-letters.md),
-the selected-line wax highlight in the source pane clips letters (cause
-unconfirmed).
+**Done 2026-10-19:** [106](../briefs/done/106-selected-line-highlight-clips-letters.md),
+the galley's wax no longer covers letters. Every token carried its own bleed
+and covered the glyph before it; the run is now one wrapper laid under the
+text, checked glyph by glyph in Chromium.
 
 Waves below are the **executed** order, which differs from the originally filed
 one: file-ownership collisions the dependency graph alone did not show forced

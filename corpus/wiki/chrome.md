@@ -1,6 +1,6 @@
 ---
 summary: The Mechanical — the app chrome as shipped: tokens, the mark set, the tray and its two-course narrow layout, the health probe's two states, the two authored animations, why it shares nothing with the slide themes, and the states a once-per-element contrast sweep cannot see.
-updated: 2026-10-13
+updated: 2026-10-19
 ---
 
 # The app chrome — The Mechanical
@@ -104,6 +104,18 @@ changes a surface or an ink under text that already passed:
 - **error** — the rubylith wash under a lint-flagged run
 - **narrow** — any breakpoint that *removes* content rather than reflowing it;
   what is left has to still say what the removed thing said
+
+**A bleed paints in tree order, so it goes on one box, under the text.** The
+galley's wax bled 0.35em past the text with two `box-shadow`s, and it sat on
+every token of the selected run. Inline boxes paint one after another, each
+box's ground and then its text, so each token's left bleed covered about half
+of the glyph before it: in `<Heading size="xl">` the `<`, the `g`, the `e` of
+`size`, the `=`, the closing quote and the `>` each lost about half their ink.
+Since brief 106 the run is one wrapper carrying `WAX`, laid under the galley's
+text (`z-index: -1` in the `<pre>`'s stacking context), and the tokens inside
+take `--wax-ink` from `.onWax`. Any mark that reaches past its own box has the
+same hazard; a Chromium test (`SourcePane.wax.test.ts`) counts each glyph's
+ink with and without the wax.
 
 **A breakpoint that hides the word leaves hue holding the state.** The health
 probe hid its label under `max-width: 768px`, so from 320 to 768 both states

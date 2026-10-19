@@ -80,3 +80,54 @@ The wax colour, the `--wax-ink` contrast, the syntax-token colours, the lint
 marks (`rubylith`) and the canvas-side selection (`waxed`). The textarea's own
 `::selection` style. No change to `decorate` or `tokenize` in `highlight.ts`
 unless the fix cannot be done in the render.
+
+## Outcome — 2026-10-19
+
+Done. The cause was the paint-order one the brief named, confirmed in the
+browser.
+
+**Reproduced** in the real app (API and Vite dev server on spare ports, a
+throwaway local account on a scratch database), the starter post, the caret in
+`<Heading size="xl">`, at a device scale of 3. The wax covered the right half of
+the `<`, the `g` of `Heading`, the `e` of `size`, the `=`, the closing quote and
+the `>`: every token's last glyph, under the next token's `-0.35em` shadow. The
+glyph before the run is covered the same way (the `>` of `<Slide>` in the test).
+The pane edge plays no part: the `.highlight` padding (13px) is wider than the
+bleed (about 4.4px), and a run starting at column 0 shows its bleed whole.
+
+**The fix** is in the render, not in `highlight.ts`. `SourcePane` wraps each
+contiguous run of selected tokens in one span carrying `WAX` plus `.waxRun`, and
+only that wrapper paints wax. `.waxRun` is `position: relative; z-index: -1`
+inside `.highlight`, which is now `z-index: 0` (a stacking context), so the
+ground and the bleed lie under all the galley's text, the glyphs either side of
+the run included. `box-decoration-break: clone` gives each line of a multi-line
+run its own ends, as the per-token bleed did. The tokens inside take
+`--wax-ink` from `.onWax` (one class, so it beats the `:where()` hues); bold
+components and italic comments stay. No metric changed, so the paint still sits
+under the caret.
+
+**The bleed stays 0.35em.** `design-components.md` said 20px, the comps' figure.
+In a galley 7.5px to the character that is nearly three characters of yellow
+either side, which reads as selecting the neighbouring tokens, so the page now
+says 0.35em and why.
+
+**The test is real Chromium, through the guard:**
+`ui/src/components/editor/SourcePane.wax.test.ts` bundles the shipped
+`SourcePane`, its CSS modules and `global.css` with Vite, mounts it at device
+scale 3 with Spline Sans Mono served from `ui/public/fonts/`, and counts each
+glyph's ink with the wax painted and with every background and shadow in the
+galley switched off. A glyph under 85% of its unwaxed ink is covered. Two cases:
+a mid-line run with a glyph against both ends, and a run from column 0 to the
+end of a line over three lines. **Watched failing on the old code first:** 10
+covered glyphs in the first case and 7 in the second, each at about half its
+ink. Two guards keep it from passing on nothing: the control must find ink in
+every glyph, and the waxed shot must hold wax-yellow pixels the control does
+not. Breaking the stacking context on purpose (wax behind the paper, which
+covers nothing) fails it with "the wax did not paint".
+
+Found on the way: bundling a component under Vitest needs `jsxDev: false`.
+NODE_ENV is `test` there, so Vite emits `jsxDEV` calls that a production React
+cannot serve, and React reports the render error to the page, not to the
+caller; the test now collects page errors and fails on them.
+
+`npm run gate` passes.
