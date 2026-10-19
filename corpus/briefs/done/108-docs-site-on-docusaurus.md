@@ -164,3 +164,62 @@ links to them resolve on the site. That is the cause 107 named.
 
 Deploying. The owner deploys after vps-deploy brief 11 flips the `newspapper`
 docs stack.
+
+## Outcome — 2026-10-19
+
+Done. `docs/` is a Docusaurus 3.10.2 site at the same base, `/newspapper/docs/`,
+light only, in The Mechanical.
+
+**The owner's answers.** Step 1: a transitive cheerio is allowed in the docs
+workspace only, never in `core`, `api` or `ui` (recorded in
+[dependencies.md](../../wiki/dependencies.md)). Step 6: publish all six newly
+discovered pages; `DENY` is empty.
+
+**Acceptance, as run:**
+- `npm run docs --workspace=docs` exits 0 with `onBrokenLinks: 'throw'` and no
+  broken-anchor warning. The sync writes 30 pages and prints no "leaves the
+  repo" warning: the `wzd_auth` link maps to `gandolh/ward-auth`.
+- Route parity: 33 routes, the 26 from before plus `./search/index.html` and
+  `wiki/{api-reader,data-reader,modules-reader,migrations,decisions-accounts,decisions-hardening}/`.
+  `./reference/index.html` is still there.
+- `docs/docs/wiki/` holds the four 107 pages; the generated `api.md` links
+  `./api-reader.md`, and the built page links `/newspapper/docs/wiki/api-reader/`.
+  All six new pages are in the sidebar.
+- `grep -c '/newspapper/docs/assets/' docs/dist/index.html` is 1 (the HTML is
+  one minified line); `grep -rl _astro docs/dist` finds nothing; no `^` or `~`
+  in `docs/package.json`. `npm run typecheck --workspace=docs` is clean.
+- Browser, with `docs/dist` mounted at `/newspapper/docs/` under
+  `python3 -m http.server`: board ground and grid, Archivo Variable and Spline
+  Sans Mono loaded, the process-blue "you are here" cell, no theme toggle
+  (`data-theme` is `light`), the pipeline diagram in its frame, `/reference/`
+  loads (TypeDoc), "sanitizer" returns results from five pages, no horizontal
+  scroll at 390px. No 404s once a favicon was added (the app's own
+  `ui/public/favicon.svg`, copied to `static/img/`).
+- `npm run gate` passes.
+
+**Not as the brief said, or found on the way:**
+- The four stale anchors were not renamed headings in `decisions.md`: the three
+  headings moved, word for word, to `decisions-authoring.md`. Each link now
+  names that file.
+- Docusaurus's default code theme is palenight, a dark block on the light board.
+  The config sets `prismThemes.github` and the CSS lays it on paper.
+- A non-collapsible category is still a `.menu__link`, and Infima marks the
+  current page's group `--active` (blue). The group labels are styled on
+  `.theme-doc-sidebar-item-category > .menu__list-item-collapsible > .menu__link`.
+- **Run the build from `docs/`, through the npm script.** `npx docusaurus build
+  docs` from the repo root built a site in Docusaurus blue and system fonts:
+  browserslist is found from the working directory, so the root run misses
+  `docs/package.json`'s `browserslist` and the migration guide's gotcha 2 comes
+  back. `npm run docs --workspace=docs` runs in `docs/` and is fine.
+- Breadcrumbs are off (`breadcrumbs: false`), as Starlight had none.
+- TypeDoc's own pages still follow the visitor's OS colour scheme, as they did
+  under Starlight; not forced light here.
+- `npm audit` counts 52 findings, up from 18 on the Starlight tree. The rise is
+  Docusaurus's build and dev-server tree (`webpack-dev-server`,
+  `serialize-javascript`, `chokidar`, `http-proxy-middleware` and the
+  `@docusaurus/*` packages that carry them); `concurrently`, `sharp`'s and
+  vitest's were there before. Not addressed: all of it is in the docs build,
+  which nothing the app ships imports.
+
+Not deployed: vps-deploy brief 11 flips the `newspapper` docs stack's asset
+check from `_astro/` to `assets/` first.

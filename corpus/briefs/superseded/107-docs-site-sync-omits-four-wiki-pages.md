@@ -63,3 +63,7 @@ pages to appear.
 
 The page content of the four wiki pages, the corpus layout, TypeDoc, the
 diagram step, and deploying the site (vps-deploy publishes `docs/dist/`).
+
+## Superseded — 2026-10-19
+
+Done inside [108](../done/108-docs-site-on-docusaurus.md): the Docusaurus sync discovers every `corpus/wiki/*.md` instead of reading a list, so the four pages render, links to them resolve on the site, and all four are in the sidebar.

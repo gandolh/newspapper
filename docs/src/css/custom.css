@@ -199,14 +199,20 @@ body {
 }
 
 /* --- The sidebar ----------------------------------------------------------- */
-/* Group labels, set rather than linked. */
-.menu__link--sublist,
-.menu__link--sublist.menu__link--active {
-  color: var(--graphite);
-  font-weight: 700;
+.menu {
+  font-size: 0.9rem;
 }
 
-.menu__link--sublist:hover {
+/* Group labels, set rather than linked. A non-collapsible category is still a
+   .menu__link, and Infima marks the current page's group --active (blue). */
+.theme-doc-sidebar-item-category > .menu__list-item-collapsible > .menu__link,
+.theme-doc-sidebar-item-category > .menu__list-item-collapsible > .menu__link--active {
+  color: var(--graphite);
+  font-weight: 700;
+  cursor: default;
+}
+
+.theme-doc-sidebar-item-category > .menu__list-item-collapsible:hover {
   background: transparent;
 }
 
@@ -287,7 +293,13 @@ body {
   --ifm-table-border-width: 0;
   --ifm-table-stripe-background: transparent;
   --ifm-table-head-background: transparent;
-  width: 100%;
+  /* Infima makes a table a scrolling block. Let the block hug its rows, so the
+     waxed-down paper is exactly as wide as the register on it, and still
+     scroll when the register is wider than the column. */
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow-x: auto;
   border-collapse: collapse;
   font-size: 0.9rem;
 }

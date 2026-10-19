@@ -75,7 +75,7 @@ The `digital-broadsheet` theme was removed in v2; Satori/resvg rendering in v3; 
 - **No LLM, from any provider.** The Wizard pivot removed composing entirely — a post is written by hand in [Newspapper Wizard](corpus/wiki/markup.md), not generated. This supersedes the old "Ollama only" rule; there is no Ollama client left.
 - **Do not add** canvas, cheerio, Handlebars, inquirer, ora, axios, or Satori. Playwright and Sharp are ordinary dependencies of `@newspapper/core` — Chromium rendering and image normalization; see [dependencies.md](corpus/wiki/dependencies.md).
 - **Dependency versions are pinned exactly.** No `^`, no `~`, anywhere.
-- **ESM throughout.** All workspaces are `"type": "module"`. Paths must be resolved from `import.meta.url`, not `process.cwd()`.
+- **ESM throughout.** `core`, `api` and `ui` are `"type": "module"`. The one exception is the `docs` workspace (the Docusaurus site): Docusaurus's build fails with that field, so its package leaves it out, and its scripts are `.mjs` instead ([why](corpus/wiki/decisions-tooling.md#the-docs-workspace-is-the-one-package-without-type-module)). Paths must be resolved from `import.meta.url`, not `process.cwd()`.
 - **`npm run build` runs `fmt:check` first**, and `npm run lint` covers all three workspaces. Both were enforced in brief 68, after the linter was found to have enabled zero rules since the project began. Don't unwire either.
 
 ## Tests

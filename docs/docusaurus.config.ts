@@ -1,5 +1,6 @@
 import type { Config } from '@docusaurus/types'
 import type * as Preset from '@docusaurus/preset-classic'
+import { themes as prismThemes } from 'prism-react-renderer'
 
 /**
  * Newspapper's documentation site.
@@ -35,6 +36,7 @@ const config: Config = {
   // absolute URLs (the sitemap, canonical and og:url tags).
   url: 'https://gandolh.ro',
   baseUrl,
+  favicon: 'img/favicon.svg',
   // Directory-style URLs (/wiki/overview/ → wiki/overview/index.html), the
   // layout the Starlight site published, so every old URL still resolves.
   trailingSlash: true,
@@ -74,6 +76,9 @@ const config: Config = {
     // Light only. The Mechanical is a board-white working surface; there is no
     // dark board, and inventing one would be inventing a second design system.
     colorMode: { defaultMode: 'light', disableSwitch: true, respectPrefersColorScheme: false },
+    // A light code theme; custom.css lays the galley onto paper. Without this,
+    // Docusaurus defaults to palenight, a dark block on a light board.
+    prism: { theme: prismThemes.github },
     navbar: {
       title: 'Newspapper',
       items: [{ href: 'https://github.com/gandolh/newspapper', label: 'GitHub', position: 'right' }],

@@ -69,7 +69,7 @@ Open <http://localhost:4321/newspapper/> and sign in with the account you seeded
 | `api/` | `@newspapper/api`: the Fastify server, accounts and the session guard, static serving in production |
 | `ui/` | `@newspapper/ui`: the Vite + React app (editor, posts, Reader, settings) |
 | `assets/` | The three slide themes as JSON tokens, and the Inter fonts the renderer loads |
-| `docs/` | The Starlight docs site, plus the images and guides this README links to |
+| `docs/` | The Docusaurus docs site, plus the images and guides this README links to |
 | `infrastructure/` | Dockerfile and compose file for the container |
 | `corpus/` | The project wiki, the briefs that built it, and the change log |
 

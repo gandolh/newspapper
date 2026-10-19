@@ -1,6 +1,6 @@
 ---
-summary: Dated snapshot (2026-10-13) — the Wizard rebuild is done, accounts are local with Ward as a second way in (brief 23, not deployed), it runs on the VPS under /newspapper/, the 2026-09-27 improvements sweep (77-104) is fully worked through, and brief 105 built the Reader (schema v6), which is not deployed yet; plus the known strays and open questions.
-updated: 2026-10-13
+summary: Dated snapshot (2026-10-13) — the Wizard rebuild is done, accounts are local with Ward as a second way in (brief 23, not deployed), it runs on the VPS under /newspapper/, the 2026-09-27 improvements sweep (77-104) is fully worked through, and brief 105 built the Reader (schema v6), which is not deployed yet, and brief 108 moved the docs site to Docusaurus (also not deployed); plus the known strays and open questions.
+updated: 2026-10-19
 ---
 
 # Status
@@ -121,16 +121,17 @@ FreshRSS-style zone for following feeds, reading and clipping, which replaced
 three decisions. Its outcome note lists the choices the brief left open and two
 bugs found only in the browser.
 
+**Done 2026-10-19:** [108](../briefs/done/108-docs-site-on-docusaurus.md),
+the docs site moved from Starlight to Docusaurus at the same URLs. Its sync
+discovers every wiki page, so it also did
+[107](../briefs/superseded/107-docs-site-sync-omits-four-wiki-pages.md) (moved
+to `superseded/`): six pages the old list left out are published. The owner
+allowed cheerio transitively in the docs workspace only. Not deployed: vps-deploy
+brief 11 changes the docs stack's asset check first.
+
 **Open (filed 2026-10-09):** [106](../briefs/todo/106-selected-line-highlight-clips-letters.md),
 the selected-line wax highlight in the source pane clips letters (cause
-unconfirmed); [107](../briefs/todo/107-docs-site-sync-omits-four-wiki-pages.md),
-the docs-site sync leaves out `api-reader`, `data-reader`, `modules-reader` and
-`migrations`.
-
-**Open (filed 2026-10-18):** [108](../briefs/todo/108-docs-site-on-docusaurus.md),
-the docs site moves from Starlight to Docusaurus. Its sync discovers pages, so
-it also does 107. It asks the owner one question first, about cheerio arriving
-transitively in the docs workspace.
+unconfirmed).
 
 Waves below are the **executed** order, which differs from the originally filed
 one: file-ownership collisions the dependency graph alone did not show forced

@@ -1,6 +1,6 @@
 ---
-summary: The locked calls about the repo itself — workspaces and ESM, exact dependency pinning, the enforced formatter and the linter that once enabled no rules, and typechecking the UI.
-updated: 2026-08-31
+summary: The locked calls about the repo itself — workspaces and ESM (and why the Docusaurus docs workspace is the one non-ESM package), exact dependency pinning, the enforced formatter and the linter that once enabled no rules, typechecking the UI, and no GitHub-hosted CI.
+updated: 2026-10-19
 ---
 
 # Decisions — tooling
@@ -74,11 +74,23 @@ suppressed at config level pending brief 72; `rules-of-hooks` and
 `exhaustive-deps`, the two that catch correctness bugs, are on and clean.
 
 ## npm workspaces, three packages, ESM throughout
-_2026-06-10_ — `core` / `api` / `ui`, all `"type": "module"`.
+_2026-06-10_ — `core` / `api` / `ui`, all `"type": "module"` (the docs
+workspace, added later, is the exception below).
 Every runtime path must resolve from `import.meta.url`, **never**
 `process.cwd()` — the app is started from several working directories and
 `cwd()`-relative paths broke in wave 5 (see the path-resolution fixes in
 `32af25e`). This is the single most repeated bug in the project's history.
+
+## The docs workspace is the one package without `"type": "module"`
+_2026-10-19_ (brief 108) — `docs/` (`@newspapper/docs-site`) moved from Astro
+Starlight to Docusaurus 3.10 on the owner's call of 2026-10-18, and Docusaurus's
+build fails when the site package is `"type": "module"`
+(`TypeError: require.resolveWeak is not a function` during static generation,
+reproduced 2026-10-18). So that package leaves the field out. Its own scripts
+are `.mjs`, ESM by extension, and still resolve paths from `import.meta.url`;
+`docusaurus.config.ts` and `sidebars.ts` are loaded by Docusaurus itself. `core`,
+`api` and `ui` stay ESM. Rejected: keeping Starlight, which was the owner's
+call, not a technical one.
 
 ## Dependency versions are pinned exactly
 _2026-06-10_ (`5c7ca55`) — No `^` or `~` anywhere in a `package.json`; write the

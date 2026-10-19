@@ -1,6 +1,6 @@
 ---
 summary: What each workspace depends on and why that package was chosen over the alternatives.
-updated: 2026-10-13
+updated: 2026-10-19
 ---
 
 # Dependencies
@@ -55,6 +55,23 @@ Per-workspace. Versions are locked in `package-lock.json`.
 | `@eslint/js` | The recommended JS ruleset. Was a transitive dependency; declared explicitly by brief 68 when the config started importing it. |
 | `eslint-plugin-react-hooks` | Hook correctness in `ui/`. `rules-of-hooks` and `exhaustive-deps` are on and clean; ten React Compiler findings are suppressed pending brief 72. |
 | `@types/node`, `@types/react`, `@types/better-sqlite3`, `@types/react-dom` | Type declarations. |
+
+## `docs/` — `@newspapper/docs-site`
+
+The docs site, built by `npm run docs --workspace=docs` and never imported by
+the app. Docusaurus 3.10 (`@docusaurus/core`, `preset-classic`, `faster`) with
+`@easyops-cn/docusaurus-search-local` for offline search, `typedoc` for the
+`@newspapper/core` reference, and the two `@fontsource` faces for The
+Mechanical. Pinned exactly, like everything else. It replaced Astro Starlight on
+2026-10-19 (brief 108); `astro`, `@astrojs/starlight`, `sharp` and `cookie` left
+with it (`core` and `api` declare their own `sharp`).
+
+**cheerio arrives here transitively**, through `@docusaurus/plugin-content-blog`
+(part of `preset-classic`, even with the blog off) and the search plugin. The
+owner allowed that on 2026-10-19, for the docs workspace only: the forbidden
+list above is the app's rule, and `core`, `api` and `ui` still may not depend on
+cheerio. `npm ls cheerio` shows both paths, and both run through
+`@newspapper/docs-site`.
 
 ## What changed from v2
 
