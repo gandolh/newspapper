@@ -15,7 +15,7 @@ Foreign keys are enforced (`PRAGMA foreign_keys = ON`).
 other column on `posts` — title, description, keywords — is *derived from its
 `<head>` block on save* and exists only so the library can be listed, filtered
 and searched without parsing every post. See
-[the decision](./decisions.md#the-markup-is-the-source-of-truth) and
+[the decision](./decisions-authoring.md#the-markup-is-the-source-of-truth) and
 [markup.md](./markup.md) for the `<head>` shape.
 
 ### `posts`

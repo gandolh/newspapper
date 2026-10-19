@@ -78,7 +78,7 @@ _Avoid_: block, widget, element, box
 **Stack**:
 A component that lays its children out in flow, one after another, with a gap.
 The only way layout happens — Newspapper has no absolute positioning. See
-[decisions.md](./decisions.md#flow-layout-with-stacks--never-absolute-positioning).
+[decisions-authoring.md](./decisions-authoring.md#flow-layout-with-stacks--never-absolute-positioning).
 _Avoid_: container, flex, group, div
 
 **Prop**:

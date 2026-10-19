@@ -58,7 +58,7 @@ library that only reads input is cheap in a way a component kit is not.
 Constraint it does not relax: drops are still **slots between existing
 children**, never free positions. The gesture changes how the drop is captured,
 not the drop model — layout is flow, and
-[absolute positioning is ruled out](./decisions.md#flow-layout-with-stacks--never-absolute-positioning).
+[absolute positioning is ruled out](./decisions-authoring.md#flow-layout-with-stacks--never-absolute-positioning).
 
 ## anime.js is the motion engine; Tailwind-bound kits are references only
 _2026-08-27_ — Animation is `animejs` 4.5.0 (MIT, no dependencies,

@@ -158,7 +158,7 @@ equal to `parse(x)`. Formatting source that does not parse returns it unchanged
 rather than mangling it.
 
 Author formatting is **not** preserved across visual edits; see
-[the decision](./decisions.md#format-and-lint-the-markup-like-jsx) for why
+[the decision](./decisions-authoring.md#format-and-lint-the-markup-like-jsx) for why
 surgical round-tripping was rejected.
 
 ## Images
