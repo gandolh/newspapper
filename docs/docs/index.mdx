@@ -1,10 +1,11 @@
 ---
 title: Newspapper
 description: Write a post in .wzd markup, compile it to 1080² JPEGs. A paste-up board for setting a news carousel.
-tableOfContents: false
+slug: /
+hide_table_of_contents: true
 ---
 
-import Diagram from '../../components/Diagram.astro'
+import Diagram from '@site/src/components/Diagram'
 
 **Newspapper** turns a story into an Instagram-style slide post: a set of
 1080×1080 JPEGs plus a caption, ready to upload.
@@ -17,7 +18,7 @@ app compiles it and screenshots each slide in headless Chromium.
 .wzd document  →  compile  →  HTML  →  Chromium  →  1080² JPEGs  →  publish / ZIP
 ```
 
-<dl class="doc-facts">
+<dl className="doc-facts">
   <dt>Runs at</dt>
   <dd><code>/newspapper</code> on the estate's single origin</dd>
   <dt>Made of</dt>
@@ -42,7 +43,7 @@ app compiles it and screenshots each slide in headless Chromium.
 Newspapper's corpus already carries [`api.md`](/wiki/api/), [`data.md`](/wiki/data/),
 [`architecture.md`](/wiki/architecture/), [`modules.md`](/wiki/modules/),
 [`configuration.md`](/wiki/configuration/), [`commands.md`](/wiki/commands/) and
-[`markup.md`](/wiki/markup/) — twenty-four maintained pages in all, including the
+[`markup.md`](/wiki/markup/) — every maintained wiki page, including the
 reference material a docs site would normally author for itself.
 
 Restating any of it here would create a second copy to keep in step with the

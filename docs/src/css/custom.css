@@ -10,7 +10,7 @@
  * enforceable in a documentation surface:
  *
  *   1. **Zero radius everywhere.** "Nothing on a board has a rounded corner."
- *      Starlight rounds code blocks, asides, cards and the search box by default;
+ *      Infima rounds code blocks, admonitions, cards and the search box by default;
  *      all of it is squared off below.
  *   2. **One 26px non-photo blue grid**, printed under everything, which "never
  *      carries information". It is drawn here at very low opacity on the page
@@ -37,9 +37,20 @@
 @import '@fontsource-variable/archivo';
 @import '@fontsource/spline-sans-mono/400.css';
 
+/*
+ * Ported from the Starlight theme (src/styles/theme.css) in brief 108. The
+ * selector map: .sl-markdown-content → .markdown, .starlight-aside →
+ * .theme-admonition, .expressive-code / pre → .theme-code-block, --sl-* tokens →
+ * --ifm-* tokens. Infima sits in a CSS cascade layer (future.v4), so these
+ * unlayered rules win; that only holds while package.json keeps its
+ * browserslist (see the migration guide's gotcha 2).
+ */
+
 :root,
 :root[data-theme='light'],
 :root[data-theme='dark'] {
+  color-scheme: light only;
+
   --board: #fbfbf9;
   --paper: #ffffff;
   --graphite: #2b2b2b;
@@ -50,8 +61,11 @@
   --tick: #c4c1b8;
   --non-photo: #7fb6e8;
   --process-blue: #1d63a8;
+  --process-blue-low: #e4eef7;
+  --process-blue-high: #14456f;
   --rubylith: #e8452e;
   --rubylith-ink: #c0331f;
+  --rubylith-low: #fbe7e3;
   --grease: #c0331f;
   --wax: #f5d97a;
   --wax-ink: #3d3416;
@@ -66,49 +80,58 @@
   --shadow-waxed: 0 1px 0 rgba(43, 43, 43, 0.16);
   --shadow-hinged: 2px 4px 12px rgba(43, 43, 43, 0.1);
 
-  --sl-color-accent-low: #e4eef7;
-  --sl-color-accent: var(--process-blue);
-  --sl-color-accent-high: #14456f;
+  /* The accent is process blue, the app's one working ink. */
+  --ifm-color-primary: var(--process-blue);
+  --ifm-color-primary-dark: #1a5997;
+  --ifm-color-primary-darker: #19548f;
+  --ifm-color-primary-darkest: var(--process-blue-high);
+  --ifm-color-primary-light: #206db9;
+  --ifm-color-primary-lighter: #2172c1;
+  --ifm-color-primary-lightest: #2681da;
 
-  --sl-color-white: var(--paper);
-  --sl-color-black: var(--graphite);
-  --sl-color-gray-1: #3a3a38;
-  --sl-color-gray-2: var(--graphite-soft);
-  --sl-color-gray-3: var(--graphite-tint);
-  --sl-color-gray-4: var(--tick);
-  --sl-color-gray-5: var(--rule);
-  --sl-color-gray-6: var(--hairline);
-  --sl-color-gray-7: var(--board);
+  /* Ground and ink. */
+  --ifm-background-color: var(--board);
+  --ifm-background-surface-color: var(--board);
+  --ifm-navbar-background-color: var(--board);
+  --ifm-font-color-base: var(--graphite);
+  --ifm-heading-color: var(--graphite);
+  --ifm-color-content: var(--graphite);
+  --ifm-color-content-secondary: var(--graphite-soft);
+  --ifm-toc-border-color: var(--hairline);
+  --ifm-hr-background-color: var(--hairline);
 
-  --sl-color-text: var(--graphite);
-  --sl-color-text-accent: var(--process-blue);
-  --sl-color-bg: var(--board);
-  --sl-color-bg-nav: var(--board);
-  --sl-color-bg-sidebar: var(--board);
-  --sl-color-bg-inline-code: var(--tissue);
-  --sl-color-hairline: var(--hairline);
-  --sl-color-hairline-light: var(--hairline);
-  --sl-color-hairline-shade: var(--rule);
+  /* Infima's greys, onto the board's. */
+  --ifm-color-emphasis-0: var(--paper);
+  --ifm-color-emphasis-100: #f4f4f0;
+  --ifm-color-emphasis-200: var(--hairline);
+  --ifm-color-emphasis-300: var(--rule);
+  --ifm-color-emphasis-400: var(--tick);
+  --ifm-color-emphasis-500: #a9a69d;
+  --ifm-color-emphasis-600: var(--graphite-tint);
+  --ifm-color-emphasis-700: var(--graphite-soft);
+  --ifm-color-emphasis-800: #3a3a38;
+  --ifm-color-emphasis-900: var(--graphite);
+  --ifm-color-emphasis-1000: var(--graphite);
 
-  --sl-font: var(--font-set);
-  --sl-font-mono: var(--font-galley);
+  --ifm-font-family-base: var(--font-set);
+  --ifm-font-family-monospace: var(--font-galley);
+  --ifm-code-font-size: 0.85em;
+  --ifm-code-background: var(--tissue);
 
-  /* State is a mark. The three inks each own one job. */
-  --sl-color-green: var(--process-blue);
-  --sl-color-green-low: #e4eef7;
-  --sl-color-green-high: #14456f;
-  --sl-color-orange: var(--wax-ink);
-  --sl-color-orange-low: var(--wax);
-  --sl-color-orange-high: var(--wax-ink);
-  --sl-color-red: var(--rubylith-ink);
-  --sl-color-red-low: #fbe7e3;
-  --sl-color-red-high: var(--rubylith-ink);
-  --sl-color-blue: var(--graphite-soft);
-  --sl-color-blue-low: var(--tissue);
-  --sl-color-blue-high: var(--graphite);
-  --sl-color-purple: var(--process-blue);
-  --sl-color-purple-low: #e4eef7;
-  --sl-color-purple-high: #14456f;
+  /* Nothing on the board floats: no ambient shadows. */
+  --ifm-global-shadow-lw: none;
+  --ifm-global-shadow-md: none;
+  --ifm-global-shadow-tl: none;
+  --ifm-navbar-shadow: none;
+  --ifm-alert-shadow: none;
+
+  /* The sidebar: "you are here" is a process-blue cell, as Starlight had it. */
+  --ifm-menu-color: var(--graphite-soft);
+  --ifm-menu-color-active: var(--process-blue);
+  --ifm-menu-color-background-active: transparent;
+  --ifm-menu-color-background-hover: var(--hairline);
+
+  --docusaurus-highlighted-code-line-bg: rgba(245, 217, 122, 0.45);
 }
 
 /* --- 1. Zero radius everywhere ------------------------------------------- */
@@ -130,8 +153,25 @@ body {
   background-size: 26px 26px;
 }
 
+/* The chrome sits on the same board; the grid shows through it. */
+.navbar,
+.main-wrapper,
+.theme-doc-sidebar-container,
+.menu {
+  background: transparent;
+}
+
+.navbar {
+  background-color: var(--board);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.theme-doc-sidebar-container {
+  border-right: 1px solid var(--hairline) !important;
+}
+
 /* --- Type ---------------------------------------------------------------- */
-.site-title {
+.navbar__title {
   font-weight: 800;
   letter-spacing: 0.05em;
   font-variation-settings: 'wdth' 115;
@@ -139,71 +179,134 @@ body {
   font-size: 0.95rem;
 }
 
-.sl-markdown-content h1,
-.content-panel h1 {
+.markdown h1 {
   font-weight: 800;
   letter-spacing: -0.02em;
   font-variation-settings: 'wdth' 112;
 }
 
-.sl-markdown-content h2,
-.sl-markdown-content h3 {
+.markdown h2,
+.markdown h3 {
   font-weight: 700;
   letter-spacing: -0.01em;
 }
 
+/* Prose links only: --ifm-link-decoration would underline the sidebar, the TOC
+   and the navbar too. */
+.markdown a {
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+/* --- The sidebar ----------------------------------------------------------- */
+/* Group labels, set rather than linked. */
+.menu__link--sublist,
+.menu__link--sublist.menu__link--active {
+  color: var(--graphite);
+  font-weight: 700;
+}
+
+.menu__link--sublist:hover {
+  background: transparent;
+}
+
+/* "You are here": an inverted cell. Not .menu__link--active, which Infima
+   also puts on the current page's parent category. */
+.menu__link[aria-current='page'],
+.menu__link[aria-current='page']:hover {
+  background: var(--process-blue);
+  color: var(--paper);
+  font-weight: 600;
+}
+
 /* --- Marks, not badges --------------------------------------------------- */
-/* A rule down the edge is a mark on a board; a tinted pill is a badge. */
-.sl-markdown-content .starlight-aside {
-  border-left-width: 3px;
+/* A rule down the edge is a mark on a board; a tinted pill is a badge. The
+   rule's ink is the only thing that tells one admonition from another. */
+.theme-admonition {
+  --ifm-alert-border-width: 0;
+  --ifm-alert-border-left-width: 3px;
+  --ifm-alert-background-color: var(--tissue);
+  --ifm-alert-foreground-color: var(--graphite);
   border-top: none;
   border-right: none;
   border-bottom: none;
-  background: var(--tissue);
+}
+
+.theme-admonition.alert--secondary,
+.theme-admonition.alert--info {
+  --ifm-alert-border-color: var(--graphite-soft);
+}
+
+.theme-admonition.alert--success {
+  --ifm-alert-border-color: var(--process-blue);
+}
+
+.theme-admonition.alert--warning {
+  --ifm-alert-border-color: var(--wax-ink);
+}
+
+.theme-admonition.alert--danger {
+  --ifm-alert-border-color: var(--rubylith-ink);
 }
 
 /* --- Paper is waxed onto board ------------------------------------------- */
 /* Anything waxed down is brighter than the board, which is what makes it read as
    *on* it — and it casts the hard short shadow. Nothing else casts anything. */
-.expressive-code .frame pre,
-.sl-markdown-content pre,
-.sl-markdown-content table {
+.markdown .theme-code-block,
+.markdown table {
   background: var(--paper);
   border: 1px solid var(--rule);
   box-shadow: var(--shadow-waxed);
 }
 
-.sl-markdown-content pre code {
+.markdown .theme-code-block {
+  --prism-background-color: var(--paper);
+}
+
+.markdown .theme-code-block pre {
+  background-color: var(--paper) !important;
+}
+
+.markdown pre code {
   font-family: var(--font-galley);
   font-size: 0.8125rem;
   line-height: 1.86;
 }
 
-.sl-markdown-content :not(pre) > code {
+.markdown :not(pre) > code {
   background: var(--tissue);
   border: 1px solid var(--tissue-edge);
   padding: 0.05em 0.3em;
   font-size: 0.85em;
+  font-variant-ligatures: none;
+  vertical-align: baseline;
 }
 
 /* --- Tables: a register, dense and square -------------------------------- */
-.sl-markdown-content table {
+.markdown table {
+  --ifm-table-border-width: 0;
+  --ifm-table-stripe-background: transparent;
+  --ifm-table-head-background: transparent;
   width: 100%;
   border-collapse: collapse;
   font-size: 0.9rem;
 }
 
-.sl-markdown-content th {
+.markdown table tr {
+  border: none;
+}
+
+.markdown th {
   text-align: left;
   font-weight: 700;
   font-size: 0.8125rem;
   letter-spacing: -0.01em;
-  border-bottom: 1px solid var(--graphite);
+  border-bottom: 1px solid var(--graphite) !important;
   padding: 0.4rem 0.7rem;
 }
 
-.sl-markdown-content td {
-  border-bottom: 1px solid var(--hairline);
+.markdown td {
+  border-bottom: 1px solid var(--hairline) !important;
   padding: 0.4rem 0.7rem;
   vertical-align: top;
 }
@@ -245,6 +348,7 @@ body {
 .doc-facts dt {
   font-family: var(--font-galley);
   font-size: 0.75rem;
+  font-weight: 400;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--tissue-ink);
@@ -254,6 +358,12 @@ body {
 .doc-facts dd {
   margin: 0;
   color: var(--graphite);
+}
+
+@media (max-width: 480px) {
+  .doc-facts {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
