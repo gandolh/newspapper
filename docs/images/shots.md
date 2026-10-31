@@ -20,7 +20,7 @@ The screenshots never use the owner's database or the old runs in `output/`. Tho
    UPLOADS_DIR=/tmp/np-demo/uploads READER_REFRESH_MINUTES=0 npm run dev
    ```
 
-2. Sign in through the local Ward with a tester account, never the owner's. The header shows the account name, so it must be a tester's.
+2. Sign in with a tester account, never the owner's: make one on the scratch database with `NEWSPAPPER_DB_PATH=/tmp/np-demo/newspapper.db SEED_USERNAME=tester SEED_PASSWORD=… npm run seed --workspace=api`. The header shows the account name, so it must be a tester's. (Until 2026-10-13 this step went through the local Ward.)
 3. Post 1 (`warm-industrial-1`): replace the starter document with a four-slide post titled "Sample City's trams will run all night" (a kicker and `xl` heading, a `lg` list of three items, an `xl` `Stat` of 96 with a divider and text, and a `Quote` with a `Source`). Press Render.
 4. Posts 2 and 3: "The central library opens on Sundays" (`warm-industrial-2`, two slides, rendered and published) and "Riverside Park reopens after flood repairs" (`warm-industrial-3`, two slides, rendered, left as a draft). Creating them through `POST /api/posts` from the signed-in page is quickest.
 
