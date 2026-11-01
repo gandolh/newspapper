@@ -49,7 +49,7 @@ More on the docs site: [architecture](corpus/wiki/architecture.md) and [the `.wz
 
 ## Run it locally
 
-Requires Node 24. `package.json` declares no `engines` field, but the repo is developed and checked on Node 24. The "Sign in with Ward" button is optional and needs Ward's container in `../wzd_auth/infrastructure/local`.
+Requires Node 24. `package.json` declares no `engines` field, but the repo is developed and checked on Node 24. The "Sign in with Ward" button is optional and needs Ward's container in `wzd_auth/infrastructure/local`.
 
 ```bash
 npm install

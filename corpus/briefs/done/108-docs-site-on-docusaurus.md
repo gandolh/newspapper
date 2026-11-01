@@ -8,7 +8,7 @@ Starlight to Docusaurus. `docs/` (`@newspapper/docs-site`, served at
 
 The recipe is written and verified. The `corpus-docs-site` skill
 (personal-skills v0.31.0, source in
-`~/projects/my-personal-skills/skills/corpus-docs-site/`) now scaffolds
+`my-personal-skills/skills/corpus-docs-site`) now scaffolds
 Docusaurus 3.10, and `references/migrating-from-starlight.md` beside it holds
 the file, config and content maps plus ten gotchas, each hit during a real
 port. **Read that guide first.** The files this brief tells you to copy are in
@@ -111,7 +111,7 @@ links to them resolve on the site. That is the cause 107 named.
    public/diagrams static/diagrams`, and point `build-diagrams.mjs` at it.
 6. **Sync.** Use the skill's `sync-corpus.mjs`, with `GITHUB_REPO` set to this
    repo's GitHub URL and
-   `OTHER_REPOS = { wzd_auth: 'https://github.com/gandolh/ward-auth' }`.
+   `OTHER_REPOS = { wzd_auth: 'https://github.com/<owner>/ward-auth' }`.
    Discovery publishes six pages the old list left out: brief 107's four, plus
    `decisions-accounts` and `decisions-hardening`. Publish all six unless the
    owner wants one kept back (the script's `DENY` set), and add the two
@@ -178,7 +178,7 @@ discovered pages; `DENY` is empty.
 **Acceptance, as run:**
 - `npm run docs --workspace=docs` exits 0 with `onBrokenLinks: 'throw'` and no
   broken-anchor warning. The sync writes 30 pages and prints no "leaves the
-  repo" warning: the `wzd_auth` link maps to `gandolh/ward-auth`.
+  repo" warning: the `wzd_auth` link maps to `<owner>/ward-auth`.
 - Route parity: 33 routes, the 26 from before plus `./search/index.html` and
   `wiki/{api-reader,data-reader,modules-reader,migrations,decisions-accounts,decisions-hardening}/`.
   `./reference/index.html` is still there.

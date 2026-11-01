@@ -137,7 +137,7 @@ answer 30 seconds.
 
 Newspapper hand-writes its Ward client (`api/src/ward/`) rather than importing a
 shared package; the contract is
-[`wzd_auth/corpus/wiki/integrating.md`](../../../wzd_auth/corpus/wiki/integrating.md),
+`wzd_auth/corpus/wiki/integrating.md`,
 and `wzd_auth/client/` is the tested reference it was adapted from. There is no
 logout here and there must not be: the session belongs to the estate, so ending
 it in one app while the others still honoured it would be a lie the cookie

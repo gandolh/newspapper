@@ -20,7 +20,7 @@ developer who follows README and does `cp .env.example .env && npm run dev`:
 There is **no** coded dev path: no `NODE_ENV` branch in `api/src/ward/*` (grep:
 zero), `fake-ward.ts` is reachable only via `buildApp({ ward })` (tests only), and
 Ward's own integration contract
-([wzd_auth/corpus/wiki/integrating.md](../../../../wzd_auth/corpus/wiki/integrating.md))
+(wzd_auth/corpus/wiki/integrating.md)
 documents one production instance with no local variant for consuming apps. The
 owner cannot run newspapper on a fresh machine, and neither can any future
 contributor or agent.

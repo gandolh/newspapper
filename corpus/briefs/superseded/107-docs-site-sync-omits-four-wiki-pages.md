@@ -18,7 +18,7 @@ is a hand-written `PAGES` array of `{ src, slug }` entries (24 of them, plus
 not listed is not rendered. The same array feeds `KNOWN` (`:55`), which
 `rewriteLinks` (`:89`) uses to decide whether a link becomes `/wiki/<slug>/`.
 For an unlisted page the link falls through to the GitHub fallback at `:93-96`
-(`https://github.com/gandolh/newspapper/blob/main/corpus/...`), so every wiki
+(`https://github.com/<owner>/newspapper/blob/main/corpus/...`), so every wiki
 link to the four pages points off-site.
 
 `corpus/wiki/` has 27 files; the array covers 23 of them (and `log.md`, which

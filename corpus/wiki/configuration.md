@@ -114,7 +114,7 @@ own, so they ride that proxy, callback included. There is **no `/ward` proxy**:
 1. Create a local account: `SEED_USERNAME=... SEED_PASSWORD=... npm run seed
    --workspace=api`. The login page signs it in with Ward stopped.
 2. For the Ward button, run Ward's container
-   (`../wzd_auth/infrastructure/local`); its `seed.mjs` registers newspapper as a
+   (`wzd_auth/infrastructure/local`); its `seed.mjs` registers newspapper as a
    client, grants your account, and writes the five `WARD_OIDC_*` values into
    `.env`. Without them the API boots and the login page simply has no button.
 

@@ -61,7 +61,7 @@ Two processes:
 
 Open `http://localhost:4321/newspapper/`. Signing in goes through Ward, the
 estate's identity service; locally its container in
-`../wzd_auth/infrastructure/local`. See
+`wzd_auth/infrastructure/local`. See
 [configuration.md](./configuration.md#local-sign-in).
 
 ## Production mode
