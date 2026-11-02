@@ -50,8 +50,9 @@ Four passes, each of which left fingerprints:
   three-theme family, and a new app chrome. Astro was then removed too — every
   page was fully hydrated behind auth, so nothing it offered was in use.
 
-The thirteen v3 briefs are archived in [`../briefs/done/`](../briefs/done/) and
-describe a product that no longer exists; briefs 51–72 describe this one.
+The specs of the v3 app and of the Wizard rebuild were folded into this wiki
+and deleted on 2026-11-02 ([`../log.md`](../log.md), "Briefs reset"); the v3
+ones described a product that no longer exists.
 
 ## The cast
 
@@ -73,7 +74,7 @@ Full structure and dependency direction: [architecture.md](./architecture.md).
 | `data/` | `newspapper.db`. Gitignored, auto-created. (`data/sources.json` is tracked, but only as the one-time seed for the `sources` table.) |
 | `uploads/` | `originals/` + `normalized/` image store. Gitignored, path overridable. |
 | `output/` | `YYYY-MM-DD-N/` — rendered JPEGs, `slides.json`, `caption.txt`. Gitignored. |
-| `corpus/` | This wiki, the brief archive, and the change log. |
+| `corpus/` | This wiki, its work specs, and the change log. |
 
 ## Where to read next
 

@@ -1,15 +1,15 @@
 /* =============================================================
    Sources — the Reader's Sources view (the third tab of /articles until
-   brief 105 moved it).
+   2026-10-09).
 
-   Relocated out of `components/sources/SourcesIsland.tsx` by brief 69: there
+   Relocated out of `components/sources/SourcesIsland.tsx` on 2026-08-31: there
    is no /sources route, so this is a panel of the articles sheet, not an
    island of its own.
 
    Every rule below is the inline `style={{}}` object it replaces, declaration
    for declaration. Where a literal already equalled a spacing token it takes
    the token (6 → --sp-hair, 13 → --sp-half); every other literal is kept as
-   written, because this brief relocated the styling and did not restyle it.
+   written, because the move relocated the styling and did not restyle it.
    ============================================================= */
 
 .loadingList {
@@ -118,7 +118,7 @@
   margin-top: 24px;
 }
 
-/* ---- The category cell (brief 105) ---- */
+/* ---- The category cell ---- */
 .category {
   font-family: var(--font-galley);
   font-size: var(--fs-field);

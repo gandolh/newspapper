@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fetchFeed, fetchFeedConditional } from './rss.js';
 
-/** Brief 105: what the Reader takes from a feed, checked on real fixtures. */
+/** What the Reader takes from a feed, checked on real fixtures. */
 
 const fixture = (name: string) =>
   readFileSync(new URL(`./fixtures/${name}`, import.meta.url), 'utf8');

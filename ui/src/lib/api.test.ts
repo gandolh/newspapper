@@ -1,5 +1,5 @@
 /**
- * Brief 90. `api()` and the login URL, without a DOM: `fetch` and the bits
+ * `api()` and the login URL, without a DOM: `fetch` and the bits
  * of `window` the module touches are stubbed. `BASE` is read from
  * `import.meta.env.BASE_URL` at module load, so each test stubs it and
  * re-imports.

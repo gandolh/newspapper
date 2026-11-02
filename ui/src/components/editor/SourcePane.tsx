@@ -108,7 +108,7 @@ export default function SourcePane({
 
   /*
    * The wax is laid once per contiguous run of selected tokens, on a wrapper
-   * that sits under the text (brief 106). It used to be a class on every token,
+   * that sits under the text. It used to be a class on every token,
    * each with its own 0.35em box-shadow bleed, and inline boxes paint in tree
    * order: each token's bleed covered the last glyph of the token before it.
    * Inside the run the tokens keep their weight and slope and take the wax's

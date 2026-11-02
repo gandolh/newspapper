@@ -1,5 +1,5 @@
 /**
- * The one place a feed's HTML becomes markup (brief 105, step 7).
+ * The one place a feed's HTML becomes markup.
  *
  * The app sets no Content-Security-Policy anywhere, so this allowlist is the
  * only line of defence between a publisher's `content:encoded` and the page

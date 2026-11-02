@@ -211,7 +211,8 @@ export function countPosts(db: DB, status?: PostStatus): number {
 // ---- Legacy compatibility ----
 // Schema v3 dropped `posts.payload`; the v2 wizard routes still import these
 // names. They report "no such post" because, after the v3 migration, there are
-// none. Brief 62 rewires the routes and deletes this block.
+// none. The routes stopped calling them on 2026-08-31; only the storage index
+// still exports them.
 
 /** @deprecated Payload posts no longer exist. Use findPost. */
 export function getPost(_db: DB, _id: number): PostRow | undefined {

@@ -6,7 +6,7 @@ updated: 2026-10-19
 # The app chrome — The Mechanical
 
 A paste-up board, chosen by the owner on 2026-08-27 after two direction rounds
-and built in brief 64. It shares no token, colour or typeface with the
+and built in the chrome build (2026-08-31). It shares no token, colour or typeface with the
 [slide themes](./design-systems.md), and that is the point: the 1080² artwork
 appears in exactly one place in the app — on paper, inside crop marks, as the
 thing being made — and everything around it is board, graphite and production
@@ -15,7 +15,7 @@ marks.
 Canonical reference: **[design.md](./design.md)** (§1–§4, plus the token block)
 and **[design-components.md](./design-components.md)** (§5–§9), re-derived from
 the shipped chrome on 2026-08-31 and moved out of the repo-root `DESIGN.md` by
-brief 63. §2 records the five comp values that could not hold 4.5:1 as real
+the docs rewrite (2026-08-31). §2 records the five comp values that could not hold 4.5:1 as real
 text; §9 records what the chrome does not yet carry.
 
 - **Tokens** — `:root` in `ui/src/styles/global.css`. Board `#fbfbf9` under a
@@ -52,7 +52,7 @@ text; §9 records what the chrome does not yet carry.
   rather than a fixed width. See the note below on why the fixed width was
   wrong even though it was a grid multiple.
 - **The health probe** — `ui/src/components/ApiHealthDot.tsx` — ships **two
-  states**, `up` and `down`. A check in flight paints as *up*; brief 76 folded
+  states**, `up` and `down`. A check in flight paints as *up*; the health-mark fix (2026-09-01) folded
   the old `loading` away because it never had a form of its own (it shared the
   `dim` tone with `online`, so only the word ever told them apart). Above
   640px it is a tick and a word in the session cell. Below 640px it renders
@@ -68,8 +68,8 @@ text; §9 records what the chrome does not yet carry.
 
 ## What a once-per-element sweep cannot see
 
-Brief 64 measured the chrome carefully and said what it measured: **one
-viewport, one state per element**. Briefs 75 and 76 fixed three defects that
+The chrome build (2026-08-31) measured the chrome carefully and said what it measured: **one
+viewport, one state per element**. The tray and health-mark fixes of 2026-09-01 fixed three defects that
 sat exactly in that blind spot. All three had shipped since 64; none was a
 regression. All three are worth reading as a method note rather than as bugs.
 
@@ -111,7 +111,7 @@ every token of the selected run. Inline boxes paint one after another, each
 box's ground and then its text, so each token's left bleed covered about half
 of the glyph before it: in `<Heading size="xl">` the `<`, the `g`, the `e` of
 `size`, the `=`, the closing quote and the `>` each lost about half their ink.
-Since brief 106 the run is one wrapper carrying `WAX`, laid under the galley's
+Since the wax-run fix (2026-10-19) the run is one wrapper carrying `WAX`, laid under the galley's
 text (`z-index: -1` in the `<pre>`'s stacking context), and the tokens inside
 take `--wax-ink` from `.onWax`. Any mark that reaches past its own box has the
 same hazard; a Chromium test (`SourcePane.wax.test.ts`) counts each glyph's
@@ -143,6 +143,6 @@ is carrying it for the element the tissue is displaying in full at that moment.
 session cell squeezes the brand cell — which is the flexible column and is set
 to clip — and the wordmark reads `NEWSPAP`. Every route stays reachable and
 document h-scroll stays 0; the wordmark is intact at 320px, the narrowest width
-any real device uses. Recorded rather than fixed: brief 75 measured the tray
+any real device uses. Recorded rather than fixed: the tray fix (2026-09-01) measured the tray
 with the probe 6px wide, so no sweep had seen the brand cell under a *wide*
-session cell until brief 76 gave the probe a word to carry.
+session cell until the health-mark fix (2026-09-01) gave the probe a word to carry.

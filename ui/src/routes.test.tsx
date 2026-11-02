@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 /**
- * Brief 105, step 10: `/articles` became the Reader. The old path redirects to
+ * `/articles` became the Reader. The old path redirects to
  * `/reader` the way `/history` → `/posts` does, the Reader is a sheet inside
  * the one `<App>`, and the tray's clipping compartment is the Reader's and is
  * the current one on `/reader`.

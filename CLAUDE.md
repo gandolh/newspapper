@@ -38,7 +38,7 @@ Three npm workspaces, dependency direction `ui → api → core`:
 
 - **`core/`** (`@newspapper/core`) — the library: the `.wzd` parser/formatter/linter/compiler (browser-safe), the `TNode` interpreter, Playwright rendering, the publish-time JPEG pass, RSS search and the Reader's refresh, Sharp image uploads, SQLite storage, theme loading. Four entry points: `.`, `./templates`, `./publish`, `./wizard`.
 - **`api/`** (`@newspapper/api`) — Fastify on 3001: all `/api/*` routes behind a session guard, SSE for the three long ops (search, render, the Reader's refresh), serves `/assets/fonts/`, `/output/`, `/uploads/<ref>` and `ui/dist/` in prod. It also runs the Reader's background refresh loop, which assumes one API process.
-- **`ui/`** (`@newspapper/ui`) — a Vite + React SPA with a hand-rolled router: editor (`/`), `/posts`, `/reader` (`/articles` redirects there), `/settings`, `/login`. Astro was removed in brief 70.
+- **`ui/`** (`@newspapper/ui`) — a Vite + React SPA with a hand-rolled router: editor (`/`), `/posts`, `/reader` (`/articles` redirects there), `/settings`, `/login`. Astro was removed on 2026-08-31.
 
 One structural rule that is load-bearing: every route but `/login` renders inside **one `<App>` element at one position** in `ui/src/routes.tsx`. That is what keeps the sidebar tray mounted across navigation. A route that renders its own `<App>` silently breaks it.
 
@@ -68,7 +68,7 @@ The **slide themes** paint the 1080² artwork: `warm-industrial-1`, `-2`, `-3` �
 
 The **app chrome** is The Mechanical, a paste-up board. Tokens in `ui/src/styles/global.css`, faces in `ui/public/fonts/`. The canonical spec is [design.md](corpus/wiki/design.md) (§1–§4) + [design-components.md](corpus/wiki/design-components.md) (§5–§9) — a source comment citing "DESIGN.md §5" means the latter. What shipped: [chrome.md](corpus/wiki/chrome.md).
 
-The `digital-broadsheet` theme was removed in v2; Satori/resvg rendering in v3; the JSON template system and `/builder` in brief 58.
+The `digital-broadsheet` theme was removed in v2; Satori/resvg rendering in v3; the JSON template system and `/builder` on 2026-08-27.
 
 ## Constraints / non-goals
 
@@ -76,7 +76,7 @@ The `digital-broadsheet` theme was removed in v2; Satori/resvg rendering in v3; 
 - **Do not add** canvas, cheerio, Handlebars, inquirer, ora, axios, or Satori. Playwright and Sharp are ordinary dependencies of `@newspapper/core` — Chromium rendering and image normalization; see [dependencies.md](corpus/wiki/dependencies.md).
 - **Dependency versions are pinned exactly.** No `^`, no `~`, anywhere.
 - **ESM throughout.** `core`, `api` and `ui` are `"type": "module"`. The one exception is the `docs` workspace (the Docusaurus site): Docusaurus's build fails with that field, so its package leaves it out, and its scripts are `.mjs` instead ([why](corpus/wiki/decisions-tooling.md#the-docs-workspace-is-the-one-package-without-type-module)). Paths must be resolved from `import.meta.url`, not `process.cwd()`.
-- **`npm run build` runs `fmt:check` first**, and `npm run lint` covers all three workspaces. Both were enforced in brief 68, after the linter was found to have enabled zero rules since the project began. Don't unwire either.
+- **`npm run build` runs `fmt:check` first**, and `npm run lint` covers all three workspaces. Both were enforced on 2026-08-31, after the linter was found to have enabled zero rules since the project began. Don't unwire either.
 
 ## Tests
 
@@ -116,8 +116,8 @@ A corpus exists to make an agent **cheaper**, not just better-informed.
    line over opening it.
 2. Needing a fourth is a **signal, not a licence**: a page is straddling topics
    and must split, or its `summary:` is not sharp enough. Fix the cause.
-3. Never read `briefs/` or `todos/` wholesale. `wiki/status.md` holds every
-   brief's state in one line; open a brief only for the spec that directed
+3. Never read `briefs/` or `todos/` wholesale. `wiki/status.md` holds a dated
+   line per area and what is open; open a brief only for the spec that directs
    specific work.
 
 ### Rules
@@ -132,6 +132,13 @@ A corpus exists to make an agent **cheaper**, not just better-informed.
 - **Briefs are immutable.** Numbers are stable — never renumber one when it
   moves. Don't edit a brief in `done/`; if later work undoes it, move it to
   `superseded/` with a one-line note. New work gets a new brief in `todo/`.
+  Briefs run in number order; `wiki/status.md` doesn't list them.
+- **Numbering restarted at 01 on 2026-11-02.** The seventy-one briefs before that
+  were folded into the wiki and deleted; the last commit holding them is
+  `5d71ed4` (`corpus/log.md`, "Briefs reset").
+- **Code comments don't cite brief numbers** ("brief 105", "(brief 95)"), this
+  repo's or Ward's. Say what the code does and why, or give the date; the
+  history belongs in `corpus/log.md`.
 - **The LLM curates `wiki/` freely.** Rewrite a page as understanding improves;
   it is synthesis, not an append-only log. Stale phrasing is a bug, not history.
 - **Standard relative markdown links**, not `[[wikilinks]]`.

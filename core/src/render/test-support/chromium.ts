@@ -1,5 +1,5 @@
 /**
- * The one Chromium guard every browser-driving test file uses (brief 91).
+ * The one Chromium guard every browser-driving test file uses.
  *
  * A pixel test that cannot launch a browser must never read as a pass. So:
  *

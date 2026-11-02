@@ -20,7 +20,7 @@ revisit and a [log.md](../log.md) entry.
 _2026-08-27_ — Five failed logins from one address earn a `429` with
 `Retry-After` for 60 seconds. In-memory, per-process, capped at 1000 keys,
 entries expiring after 15 idle minutes; a success clears the counter.
-Rejected: **an artificial delay**, which the brief suggested. Holding a
+Rejected: **an artificial delay**, which the spec suggested. Holding a
 connection open for N seconds *is* the denial of service the measure exists to
 prevent — it hands an attacker free socket exhaustion. Rejected more firmly:
 **keying on username.** Newspapper has exactly one account, so a username-keyed
@@ -36,7 +36,7 @@ app indefinitely. The address is the only key that fails safe here.
 > five stood open. The reasoning above about address-keying remains correct and
 > is why Ward's own lockout is not username-keyed either.
 
-> **Revived 2026-10-13 (brief 23).** There is a credential here again, so there
+> **Revived 2026-10-13.** There is a credential here again, so there
 > is a lockout again: the library's, five failures per address in 15 minutes,
 > keyed on the address and never the username
 > ([decisions-accounts.md](./decisions-accounts.md)).
@@ -55,7 +55,7 @@ hand-editing SQLite, and the plaintext would live in `.env` forever.
 > short of editing SQLite — is answered better by Ward, which can also revoke
 > the sessions.
 
-> **Back 2026-10-13 (brief 23)** as the library's `POST /api/auth/password`, with
+> **Back 2026-10-13** as the library's `POST /api/auth/password`, with
 > a settings form. A Ward-only user sets a first local password there.
 
 ## ~~`/uploads/*` is public~~; `/api/*` and `/output/*` are guarded
@@ -97,16 +97,16 @@ leaves loopback, this is the first thing to revisit.
 > intended failure mode, and it is loud; a silent fallback to an
 > unauthenticated fetch is the thing that must not happen.
 
-> **Held 2026-10-13 (brief 23).** The brief said to keep `/uploads/*` public; the
+> **Held 2026-10-13.** Ward's spec said to keep `/uploads/*` public; the
 > revision above stands and it stays guarded
 > ([decisions-accounts.md](./decisions-accounts.md#uploads-stays-guarded)).
 
-`/output/*` went the other way. The brief only asked for `/api/*`, but the
+`/output/*` went the other way. The spec only asked for `/api/*`, but the
 rendered slides are the app's actual content and were being served to anyone who
 asked, so the guard covers them too.
 
 ## Identity is Ward's, and authority is a grant
-> **Revised 2026-10-13 (brief 23): local accounts, with Ward as a second way in.**
+> **Revised 2026-10-13: local accounts, with Ward as a second way in.**
 > The cookie, the 403-without-a-grant and the 503 below are gone, and the
 > hand-written client is the vendored library
 > ([decisions-accounts.md](./decisions-accounts.md)). Kept for the reasoning on
@@ -144,13 +144,13 @@ it in one app while the others still honoured it would be a lie the cookie
 contradicts on the next request.
 
 ## Local development signs in through a local Ward
-> **Revised 2026-10-13 (brief 23).** The `/ward` proxy and its `Origin` rewrite
+> **Revised 2026-10-13.** The `/ward` proxy and its `Origin` rewrite
 > are gone. Local development signs in with a seeded local account, or sends the
 > browser to the local Ward's own origin; see
 > [configuration.md](./configuration.md#local-sign-in).
 
-_2026-09-27_ — Brief 84's question, answered by the owner for every Ward app at
-once, and with neither of the brief's options. Local development runs a real Ward
+_2026-09-27_ — How local development signs in, answered by the owner for every Ward app at
+once, and with neither of the spec's options. Local development runs a real Ward
 in Docker (`wzd_auth/infrastructure/local`) and the UI dev server stands in for
 Caddy: it serves the app under `/newspapper/`, proxies the API's paths there with
 the prefix stripped, and proxies `/ward` and `/ward-api` to `WARD_PUBLIC_ORIGIN`.
@@ -162,7 +162,7 @@ refuses `/refresh` and `/logout` from any other Origin. Anything else keeps its
 `Origin` and `Sec-Fetch-Site`, so Ward's same-origin check still refuses a
 cross-site request.
 
-**Rejected:** the brief's recommended A, a dev-only guard bypass behind a flag.
+**Rejected:** the spec's recommended A, a dev-only guard bypass behind a flag.
 It is a switch that turns authentication off, safe only for as long as every
 future edit keeps it provably inert in production, and it would leave the real
 Ward path untested locally. **Rejected:** B, pointing dev at the production Ward
@@ -171,7 +171,7 @@ the owner could ever run it.
 
 ## The guard decides from the matched route, not the raw URL
 
-_2026-10-02 (brief 77)_ — Whether a request needs a session is decided from
+_2026-10-02_ — Whether a request needs a session is decided from
 `req.routeOptions.url`, the route pattern the router matched, as well as from the
 raw URL. A request is public only if neither is guarded. Rejected: **deciding
 from the raw URL alone**, which was the bug. find-my-way percent-decodes before

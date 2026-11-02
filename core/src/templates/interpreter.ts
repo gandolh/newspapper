@@ -92,7 +92,7 @@ function unquoteFamily(name: string): string {
  * the render's typeface guard built its no-Inter control by renaming `'Inter'`
  * in the HTML and quoting the inline family here would have renamed the text
  * along with the `@font-face`, collapsing the control into its subject. The
- * guard's control no longer works that way (brief 71) — it defines no
+ * guard's control no longer works that way — it defines no
  * `@font-face` at all and names Inter nowhere, asserted on the finished
  * document — so quoting families here would be safe, if a reason to appears.
  *

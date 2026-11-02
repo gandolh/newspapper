@@ -2,7 +2,7 @@
  * What the Reader's list is showing, and the request that fetches it.
  *
  * The selection lives in component state, not in the URL: `router.tsx` knows
- * only the pathname, and extending it is not brief 105's.
+ * only the pathname, and extending it was left out of the Reader's first cut.
  */
 import type { ReaderCounts, Source } from '@/lib/types';
 

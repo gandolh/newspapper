@@ -166,14 +166,14 @@ export interface Settings {
 }
 
 /** A post as a list shows it: everything but the markup, which only the editor
- * needs. `GET /api/posts` returns these (brief 95). */
+ * needs. `GET /api/posts` returns these. */
 export type PostSummary = Omit<Post, 'markup'>;
 
 /** A saved article as the library lists it: the body is cut to an excerpt,
  * which is all the list shows. */
 export type ArticleSummary = Omit<Article, 'body'> & { excerpt: string };
 
-// ---- The Reader (schema v6, brief 105) ----
+// ---- The Reader (schema v6) ----
 // An **Item** is a stored feed entry. It becomes an **Article** only when saved
 // to the library, keyed on the same `(sourceId, guid)` with `guid` = its URL.
 

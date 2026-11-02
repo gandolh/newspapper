@@ -1,5 +1,5 @@
 ---
-summary: Two hardening calls from the 2026-10-02 sweep — server-side fetches of feed-chosen URLs go to public addresses only (brief 85), and a 5xx never shows the caller the exception's text (brief 79).
+summary: Two hardening calls from the 2026-10-02 sweep — server-side fetches of feed-chosen URLs go to public addresses only (2026-10-02), and a 5xx never shows the caller the exception's text (2026-10-02).
 updated: 2026-10-13
 ---
 
@@ -10,7 +10,7 @@ keep that page under the size cap. The text is unchanged.
 
 ## Server-side fetches of feed-chosen URLs go to public addresses only
 
-_2026-10-02 (brief 85)_ — Feed URLs and item links are fetched through
+_2026-10-02_ — Feed URLs and item links are fetched through
 `core/src/scrape/safe-url.ts`:
 - http(s) only;
 - every resolved address must be public (private, loopback, link-local, CGNAT
@@ -26,7 +26,7 @@ the machinery.
 
 ## A 5xx never shows the caller the exception's text
 
-_2026-10-02 (brief 79)_ — The global error handler answers any `>= 500` with
+_2026-10-02_ — The global error handler answers any `>= 500` with
 `{ "error": "Internal Server Error" }` and logs the real error. A deliberate 4xx
 keeps its message. Rejected: echoing `err.message` for everything, which leaked
 SQL fragments, file paths and null-dereference text.

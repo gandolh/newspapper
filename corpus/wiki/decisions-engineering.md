@@ -63,7 +63,7 @@ not the drop model — layout is flow, and
 ## anime.js is the motion engine; Tailwind-bound kits are references only
 _2026-08-27_ — Animation is `animejs` 4.5.0 (MIT, no dependencies,
 framework-agnostic ESM). It animates DOM nodes, so at the time one import
-served both an Astro `<script>` and a React island; since brief 70 there are
+served both an Astro `<script>` and a React island; since the move to Vite + React (2026-08-31) there are
 only React components, and it has no opinion about how anything is styled.
 Rejected: **motion-primitives** and **smoothui**. Both are shadcn-style
 copy-paste React kits that require **Tailwind CSS** (v4 for smoothui) plus
@@ -78,7 +78,7 @@ cannot reproduce.
 
 ## The UI is a Vite + React SPA; Astro was removed
 
-_2026-08-31 (brief 70, owner's request)_ — Astro's reasons to exist were all
+_2026-08-31 (the move to Vite + React, owner's request)_ — Astro's reasons to exist were all
 unused here. Every one of the six pages mounted its island with `client:load`,
 so there was no partial hydration to lose; five of six page files were 8-line
 shells; the whole app sits behind auth with no SEO surface. All `.astro` totalled
@@ -147,10 +147,10 @@ that trade.
 
 **Correction, 2026-08-27.** This entry claimed "a guard test keeps it that way
 rather than trust". There is no such test — grep for one and nothing comes back.
-The copy held for 2.5 months on discipline alone, and then brief 52 changed
+The copy held for 2.5 months on discipline alone, and then the schema work of 2026-08-27 changed
 `Article` and added seven interfaces, at which point the mirror silently drifted.
-Brief 58 owns `ui/src/lib/types.ts` and must both re-sync it and add the guard
-test this entry always claimed existed.
+The template retirement (2026-08-27) re-synced `ui/src/lib/types.ts` and added the guard
+test this entry always claimed existed (`ui/src/lib/types.test.ts`).
 
 ## The default database path is overridable, and tests must override it
 _2026-08-27_ — `getDb()` with no argument resolves `NEWSPAPPER_DB_PATH` first,
@@ -159,7 +159,7 @@ Found the expensive way. `api/src/server.test.ts` had set that env var since it
 was written, and `defaultDbPath()` never read it — it resolved from
 `import.meta.url` unconditionally. Every `npm test` run was therefore opening and
 migrating the developer's real database while the test file's own comment
-claimed "the DB is ephemeral". Harmless until brief 52 landed a v2→v3 migration
+claimed "the DB is ephemeral". Harmless until the schema work of 2026-08-27 landed a v2→v3 migration
 that drops `posts` and `articles`, at which point one test run destroyed the dev
 database's contents. A regression test now asserts the override is honoured.
 

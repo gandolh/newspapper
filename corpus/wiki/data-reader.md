@@ -5,7 +5,7 @@ updated: 2026-10-09
 
 # Data — sources, articles and feed items
 
-Split out of [data.md](./data.md) on 2026-10-09, when brief 105 added
+Split out of [data.md](./data.md) on 2026-10-09, when the Reader work (2026-10-09) added
 `feed_items`. Same database, same schema version (6); the routes over these
 tables are in [api-reader.md](./api-reader.md).
 
@@ -51,7 +51,7 @@ so the repository dedupes source-less articles on `guid` explicitly.
 
 ## `feed_items`
 
-The Reader's stored entries (v6, brief 105). An item becomes an `articles` row
+The Reader's stored entries (v6, 2026-10-09). An item becomes an `articles` row
 only when saved, and the two share the key `(source_id, guid)`, so "is this
 item saved?" is a lookup.
 

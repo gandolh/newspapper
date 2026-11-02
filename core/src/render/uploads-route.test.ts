@@ -1,5 +1,5 @@
 /**
- * Brief 88. `uploads-route.ts` is what let `/uploads/*` become a guarded route:
+ * `uploads-route.ts` is what let `/uploads/*` become a guarded route:
  * the render browser carries no session, so it reads `<Image>` bytes from disk
  * through a Playwright route instead of over HTTP. Until this file nothing
  * exercised it, so a glob that stopped matching, or a render call that dropped

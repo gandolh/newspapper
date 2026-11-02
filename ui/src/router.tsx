@@ -17,7 +17,7 @@
  * `replaceState` are both simply the truth.
  *
  * `useSyncExternalStore` rather than `useState` + `useEffect` is deliberate —
- * `react-hooks/set-state-in-effect` is an error in this repo (brief 68) and
+ * `react-hooks/set-state-in-effect` is an error in this repo and
  * the store is the primitive that pattern is a workaround for.
  *
  * ── App paths vs origin paths ───────────────────────────────────────────────

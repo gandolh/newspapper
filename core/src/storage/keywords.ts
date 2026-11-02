@@ -57,7 +57,7 @@ export function setPostKeywords(db: DB, postId: number, names: string[]): string
 /**
  * Keywords for many posts in one query, keyed by post id. A list used to issue
  * one `keywordsForPost` per row: `GET /api/posts` was 101 statements for 100
- * posts (brief 95). Posts with none map to `[]`.
+ * posts. Posts with none map to `[]`.
  */
 export function keywordsForPosts(db: DB, postIds: readonly number[]): Map<number, string[]> {
   const byPost = new Map<number, string[]>(postIds.map((id) => [id, []]));

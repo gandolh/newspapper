@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 /**
- * Brief 105, step 9: the Reader's keys are ignored while focus is in a text
+ * The Reader's keys are ignored while focus is in a text
  * field. Checked twice — on the pure mapping, and on a mounted hook receiving
  * real keydown events from real elements, so the guard is proven where it
  * actually runs (an event's `target`), not only on hand-built objects.

@@ -35,7 +35,7 @@ No HTTP, no side effects at import time. Four entry points — `.`, `./templates
   the same code the renderer uses. See [markup.md](./markup.md).
 - **templates** — the `TNode` interpreter (`renderTemplate`, `resolveStyle`).
   This is the compile *target*, not an authoring surface: `TemplateDoc`, the
-  template JSON files, the registry and `/builder` were removed in brief 58.
+  template JSON files, the registry and `/builder` were removed in the template retirement (2026-08-27).
 - **render** — Playwright Chromium screenshot pipeline (`renderSlides`,
   `zipRun`, `installFontRoute`, `resolveImageUrls`).
 - **publish** — the JPEG re-encode pass run once, on publish.
@@ -69,7 +69,7 @@ refresh**. It serves:
 ### `ui/` — Vite + React SPA
 
 One `index.html`, one bundle, one React root in `src/main.tsx`. Astro was removed
-in brief 70 — every island was `client:load`, so there was no partial hydration
+in the move to Vite + React (2026-08-31) — every island was `client:load`, so there was no partial hydration
 to lose, and the app is entirely behind auth with no SEO surface.
 `vite.config.ts` carries the `@/*` → `ui/src/*` alias and proxies `/api`,
 `/output`, `/uploads` and `/assets` to port 3001 in dev. The bundle is emitted to
@@ -91,8 +91,8 @@ The page map is in `src/routes.tsx`:
 | `/reader` | the Reader: rail · list · reading pane, plus the Search, Library and Sources views |
 | `/settings` | default theme, and the account: password, the Ward link, signing out |
 | `/login` | the app's own sign-in form and "Sign in with Ward" button — the one route outside the board |
-| `/history` | redirect to `/posts` (kept from brief 62) |
-| `/articles` | redirect to `/reader` (brief 105) |
+| `/history` | redirect to `/posts` (kept since the page-map work of 2026-08-31) |
+| `/articles` | redirect to `/reader` (2026-10-09) |
 | `/kitchen-sink` | the proof sheet — **dev only**, see below |
 
 Every route but `/login` renders inside **one `<App>` element at one position**
@@ -109,7 +109,7 @@ serves `virtual:proof-sheet` as a re-export of `src/proof/KitchenSink.tsx` under
 `vite dev` and as `export default null` under `vite build`. It has to be
 structural rather than an `import.meta.env.DEV` branch: the proof island imports
 a stylesheet, so dead-code elimination would drop the component but keep its CSS.
-Brief 69 has the reasoning — it is the one page that renders with no session at
+The UI-hygiene pass (2026-08-31) has the reasoning — it is the one page that renders with no session at
 all.
 
 Interactive UI is built from the `components/ui/` primitive library, which wraps

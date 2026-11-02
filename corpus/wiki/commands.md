@@ -81,7 +81,7 @@ Docker image's production `CMD`: the API runs under `tsx` in production too.
 produces a `dist/` that dies on `ERR_MODULE_NOT_FOUND` reaching into `core`.
 Making `node dist/server.js` work would mean compiling `core` and re-pointing
 its exports, which would break `ui`'s Vite build against the `./wizard` and
-`./templates` source subpaths. Brief 73 measured this and deleted the script.
+`./templates` source subpaths. The dead-config cleanup (2026-08-31) measured this and deleted the script.
 
 Outside development, `SESSION_SECRET`, `ADMIN_USERNAME` and `ADMIN_PASSWORD` are
 required and the server exits non-zero without them.

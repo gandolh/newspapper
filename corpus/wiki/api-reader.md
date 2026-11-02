@@ -65,7 +65,7 @@ undated feed item is left out of Search's results; the Reader keeps it.
 
 ## The Reader
 
-Stored feed items (brief 105). An **Item** is a row in `feed_items`; it becomes
+Stored feed items (2026-10-09). An **Item** is a row in `feed_items`; it becomes
 an **Article** only when saved. Every id is a positive integer, else 400.
 
 | Method | Path | Query / Body | Response |

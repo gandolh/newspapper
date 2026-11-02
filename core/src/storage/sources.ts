@@ -147,7 +147,7 @@ export function saveSources(all: SourceConfig[], db?: DB): void {
   });
 }
 
-// ---- The Reader's per-source bookkeeping (brief 105) ----
+// ---- The Reader's per-source bookkeeping ----
 // Used by `reader/refresh.ts`; not part of the public barrel.
 
 /** An enabled source as a refresh needs it: where to fetch, and the stored

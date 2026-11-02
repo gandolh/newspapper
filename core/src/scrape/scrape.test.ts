@@ -209,7 +209,7 @@ describe('pingSource', () => {
   });
 });
 
-describe('searchArticles runs sources concurrently (brief 96)', () => {
+describe('searchArticles runs sources concurrently', () => {
   const six: SourceConfig[] = Array.from({ length: 6 }, (_, i) => ({
     id: `s${i}`,
     name: `Source ${i}`,
@@ -256,7 +256,7 @@ describe('searchArticles runs sources concurrently (brief 96)', () => {
     // Exactly what the sequential search produced for these ties, even though
     // s0 now finishes last: results are joined in source order before the
     // (unchanged) sort. That comparator returns -1 for equal dates, so ties come
-    // out reversed; it is locked ranking behaviour, and not this brief's to change.
+    // out reversed; it is locked ranking behaviour, and not this test's to change.
     expect(result.articles.map((a) => a.sourceId)).toEqual(['s5', 's4', 's2', 's1', 's0']);
     for (const s of six) expect(progress).toContain(`${s.id}:fetching`);
     expect(progress).toContain('s3:error');

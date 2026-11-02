@@ -2,7 +2,7 @@
  * The Reader's Library view — saved articles: filter by source, search title
  * + body, edit the note, delete.
  *
- * Moved out of the old `/articles` sheet (`ArticlesIsland`) by brief 105. What
+ * Moved out of the old `/articles` sheet (`ArticlesIsland`) on 2026-10-09. What
  * it gained there is the note: a saved article is a reference you write from
  * (decisions.md), and the note is why you kept it. It shows on the card and is
  * edited in place with `PATCH /api/articles/:id`.

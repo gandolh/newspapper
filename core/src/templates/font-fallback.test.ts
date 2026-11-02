@@ -5,7 +5,7 @@
  * `resolveStyle` emits it as an *inline* style on the text node. An inline
  * style outranks the document's `body{font-family:'Inter',sans-serif}` rule, so
  * a bare family means the slide's failure mode is Chromium's default — a
- * **serif**. That is why brief 66's CORS defect presented as Times rather than
+ * **serif**. That is why the CORS defect of 2026-08-31 presented as Times rather than
  * as the intended sans.
  *
  * These tests hold two properties:

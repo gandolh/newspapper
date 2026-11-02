@@ -15,7 +15,7 @@ import { sseHeaders, sseWrite, sseDone, sseError } from '../lib/sse.js';
 import { db } from '../lib/db.js';
 
 /*
- * The Reader (brief 105): stored feed items, read in place. An **Item** lives
+ * The Reader: stored feed items, read in place. An **Item** lives
  * in `feed_items`; it becomes an **Article** only when saved to the library,
  * keyed on the same `(source_id, guid)` with `guid` = the item's URL.
  *
@@ -52,7 +52,7 @@ const readerRoutes: FastifyPluginAsync<ReaderRoutesOptions> = async (fastify, op
    * → { items: FeedItemSummary[], nextCursor: string | null }
    *
    * Newest first, keyset-paginated on (sort_at, id). Summaries only: no item's
-   * HTML is ever in this payload (brief 95's lesson).
+   * HTML is ever in this payload (the list-payload lesson of 2026-10-03).
    *
    * `category` absent means no category filter; `category=` (present, blank)
    * selects uncategorized sources. That distinction is why it is passed

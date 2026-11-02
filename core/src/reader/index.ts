@@ -1,4 +1,4 @@
-// The Reader (brief 105): stored feed items, refreshed in the background.
+// The Reader: stored feed items, refreshed in the background.
 // Storage for items lives in `storage/feed-items.ts`; this is the fetching side.
 
 export { refreshSources, isRefreshing } from './refresh.js';

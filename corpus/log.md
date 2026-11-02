@@ -1742,16 +1742,33 @@ out of scope). The docs-site sync allowlist (brief 107) lacks the new pages.
 
 ## [2026-10-18] todo | brief 108 filed — the docs site moves from Starlight to Docusaurus
 
-The owner's call (2026-10-18), one brief in every repo with a docs site. [108](briefs/done/108-docs-site-on-docusaurus.md) keeps the URLs and The Mechanical. Its sync discovers pages, which does 107. Two repo rules meet it: the docs workspace cannot be `"type": "module"` (Docusaurus's build fails), and Docusaurus brings cheerio in transitively, so the brief asks the owner first. Building the corpus found one link into `wzd_auth` and four stale anchors into `decisions.md`. The deploy waits on vps-deploy brief 11.
+The owner's call (2026-10-18), one brief in every repo with a docs site. 108 keeps the URLs and The Mechanical. Its sync discovers pages, which does 107. Two repo rules meet it: the docs workspace cannot be `"type": "module"` (Docusaurus's build fails), and Docusaurus brings cheerio in transitively, so the brief asks the owner first. Building the corpus found one link into `wzd_auth` and four stale anchors into `decisions.md`. The deploy waits on vps-deploy brief 11.
 
 ## [2026-10-19] done | brief 108 — the docs site is on Docusaurus; 107 superseded by it
 
-[108](briefs/done/108-docs-site-on-docusaurus.md): `docs/` moved from Starlight to Docusaurus 3.10.2 at the same base and URLs, light only, The Mechanical ported onto Infima's tokens. The sync now discovers pages, so the four pages 107 named plus `decisions-accounts` and `decisions-hardening` are published (owner: publish all six, `DENY` empty), and [107](briefs/superseded/107-docs-site-sync-omits-four-wiki-pages.md) moved to `superseded/`. Owner's answer on cheerio: allowed transitively in the docs workspace only (`dependencies.md`). The docs workspace is the one package without `"type": "module"` (`decisions-tooling.md`, `CLAUDE.md`). Four stale anchors pointed at headings that had moved to `decisions-authoring.md`. Found: building from the repo root with `npx docusaurus build docs` loses `docs/package.json`'s browserslist and renders Docusaurus blue; use the workspace script. Not deployed; waits on vps-deploy brief 11.
+108: `docs/` moved from Starlight to Docusaurus 3.10.2 at the same base and URLs, light only, The Mechanical ported onto Infima's tokens. The sync now discovers pages, so the four pages 107 named plus `decisions-accounts` and `decisions-hardening` are published (owner: publish all six, `DENY` empty), and 107 moved to `superseded/`. Owner's answer on cheerio: allowed transitively in the docs workspace only (`dependencies.md`). The docs workspace is the one package without `"type": "module"` (`decisions-tooling.md`, `CLAUDE.md`). Four stale anchors pointed at headings that had moved to `decisions-authoring.md`. Found: building from the repo root with `npx docusaurus build docs` loses `docs/package.json`'s browserslist and renders Docusaurus blue; use the workspace script. Not deployed; waits on vps-deploy brief 11.
 
 ## [2026-10-19] done | brief 106 — the galley's wax no longer covers letters
 
-[106](briefs/done/106-selected-line-highlight-clips-letters.md): confirmed in the browser at a device scale of 3 — every waxed token's 0.35em `box-shadow` bleed covered about half of the previous token's last glyph, because inline boxes paint in tree order. `SourcePane` now wraps each run of selected tokens in one `WAX` span laid under the text (`z-index: -1` in the `<pre>`'s new stacking context), and the tokens take `--wax-ink` from `.onWax`. The bleed stays 0.35em; `design-components.md` dropped the comps' 20px with the reason. `SourcePane.wax.test.ts` counts each glyph's ink in Chromium with and without the wax, and was watched failing on the old code (10 and 7 covered glyphs). `chrome.md` records the hazard for any mark that reaches past its box.
+106: confirmed in the browser at a device scale of 3 — every waxed token's 0.35em `box-shadow` bleed covered about half of the previous token's last glyph, because inline boxes paint in tree order. `SourcePane` now wraps each run of selected tokens in one `WAX` span laid under the text (`z-index: -1` in the `<pre>`'s new stacking context), and the tokens take `--wax-ink` from `.onWax`. The bleed stays 0.35em; `design-components.md` dropped the comps' 20px with the reason. `SourcePane.wax.test.ts` counts each glyph's ink in Chromium with and without the wax, and was watched failing on the old code (10 and 7 covered glyphs). `chrome.md` records the hazard for any mark that reaches past its box.
 
 ## [2026-10-31] maintenance | `.env.example` boots as copied; the README images checked
 
 A README refresh pass with the readme-docs standard. Following the README's own run steps, `npm run dev` failed: `.env.example` set `WARD_OIDC_ISSUER` with an empty client key, and the API stopped with "WARD_OIDC_ISSUER is set but WARD_OIDC_CLIENT_KEY is not". The five `WARD_OIDC_*` lines are now commented out, as [configuration.md](wiki/configuration.md) already describes an unset issuer as the local-accounts-only default; Ward's `seed.mjs` still writes them. With that, `npm install`, `npm run seed --workspace=api` and `npm run dev` work, and the API answers `/api/health` on port 3001. The README itself is current. `docs/images/shots.md` said the demo capture signs in through the local Ward; it now makes a local tester account. `editing.gif` predates brief 106's wax fix, and its demo posts are written by hand, so its retake is [a todo](todos/retake-editing-gif-after-the-wax-fix.md); the other three images are unaffected.
+
+## [2026-11-02] maintenance | Briefs reset
+
+Part of an estate-wide reset. The seventy briefs in `briefs/done/` and the superseded 107 are
+folded into the wiki and deleted; brief numbering restarts at 01. The last commit that held them
+is `5d71ed4`: read one with `git show 5d71ed4:corpus/briefs/done/105-the-reader.md`. Brief
+numbers in the entries above refer to that set; "brief 23" in the 2026-10-13 entry is Ward's.
+`briefs/superseded/templates-warm-industrial/`, the nine retired template documents kept as
+reference, went with them; design-systems.md says where to find them in that commit.
+
+The wiki's decisions pages already held the briefs' calls and now name the work and its date
+instead of a number. status.md drops its brief catalog and wave table for a dated line per area;
+it also said the accounts change was not deployed, which Ward's record of the 2026-10-13 cutover
+contradicts, and it now says so and leaves the Reader's production state for the owner to check.
+overview.md no longer points at a brief archive. Code comments, test titles, the root CLAUDE.md,
+README, PRODUCT.md and DESIGN.md no longer cite brief numbers; the vendored Ward library is
+untouched.

@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 /**
- * Brief 98: a component that throws inside the boundary leaves an error message
+ * A component that throws inside the boundary leaves an error message
  * and a way back, not a blank tree. Really mounted (happy-dom), because error
  * boundaries only work in a live render, not in server rendering.
  */

@@ -310,7 +310,7 @@ class Parser {
     // One JS frame per nesting level: a document nested a few thousand deep
     // (a pasted chunk, or an editor move/duplicate bug) overflowed the stack,
     // and `parse` threw instead of reporting, which blanked the editor and left
-    // the post unopenable (brief 98). Past MAX_DEPTH, say so once and stop.
+    // the post unopenable. Past MAX_DEPTH, say so once and stop.
     if (this.openStack.length >= MAX_DEPTH) {
       this.error(
         `This document nests elements more than ${MAX_DEPTH} deep, which no real post needs. ` +

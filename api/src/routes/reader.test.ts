@@ -1,5 +1,5 @@
 /**
- * Brief 105: the Reader's routes, driven through the real app (guard included)
+ * The Reader's routes, driven through the real app (guard included)
  * against a throwaway DB. Items are seeded with `insertFeedItems`; the one
  * route that fetches, the refresh, is handed an injected fetch and DNS, so no
  * test here reaches the network.

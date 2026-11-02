@@ -1,61 +1,75 @@
 ---
-summary: Dated snapshot (2026-10-13) — the Wizard rebuild is done, accounts are local with Ward as a second way in (brief 23, not deployed), it runs on the VPS under /newspapper/, the 2026-09-27 improvements sweep (77-104) is fully worked through, and brief 105 built the Reader (schema v6), which is not deployed yet, brief 108 moved the docs site to Docusaurus (also not deployed), and brief 106 fixed the galley's wax covering letters; plus the known strays and open questions.
-updated: 2026-10-19
+summary: Dated snapshot (2026-11-02) of Newspapper, per area — the Wizard rebuild (2026-08-27 to 09-01), the 2026-09-27 improvements sweep (fixed 2026-10-02/03), local accounts with Ward as a second way in (2026-10-13), the Reader (2026-10-09, schema v6), the docs site on Docusaurus and the wax fix (2026-10-19); what is deployed (the accounts) and what may not be (the Reader), the owner's next steps, the green-because-nothing-ran thread, and the known strays.
+updated: 2026-11-02
 ---
 
-# Status
+# Status — 2026-11-02
 
-_Snapshot: 2026-10-09. Branch `main`, ahead of `origin/main` until the owner pushes._
+`origin/main` is at `b3c2ac6`; the local commits after it (`5d71ed4` and the
+briefs reset) are not pushed. `npm test` passes 908 tests in 76 files;
+`npm run gate` runs build, tests, lint and the corpus lint with `CI=1`. There is
+no GitHub CI, by the owner's choice (2026-10-04). Brief numbering restarted at
+01 on 2026-11-02 (see [../log.md](../log.md), "Briefs reset"); no brief is open.
 
-## Where things stand
+## By area
 
-The Wizard rebuild (briefs 51-76) is done: a post is authored as a
-[Newspapper Wizard](./markup.md) document in a split-screen editor and compiled
-to JPEG slides, with no model anywhere. Since then three moves changed where and
-how it runs:
+- **The Wizard rebuild** (2026-08-27 to 2026-09-01). A post is a
+  [Newspapper Wizard](./markup.md) document written in a split-screen editor and
+  compiled to 1080² JPEG slides, with no model anywhere. The template system,
+  `/builder` and the AI surface are gone; three slide themes form one family
+  ([design-systems.md](./design-systems.md)).
+- **The chrome** (2026-08-31, finished 2026-09-01). The Mechanical: a paste-up
+  board with a two-course tray under 640px ([chrome.md](./chrome.md)). Since
+  2026-10-19 the galley's wax is one run laid under the text, so it no longer
+  covers letters.
+- **Tooling** (2026-08-31). Vite + React replaced Astro; the formatter and the
+  linter actually run, and `npm run build` runs `fmt:check` first
+  ([decisions-tooling.md](./decisions-tooling.md)).
+- **Hosting.** It runs on the shared VPS at `/newspapper/` behind Caddy, which
+  strips the prefix; the UI builds every browser URL with the base.
+- **The 2026-09-27 sweep** (fixed 2026-10-02 and 2026-10-03). The guard decides
+  from the matched route; RSS fetches go to public addresses only and are
+  capped; 5xx bodies are generic and a JWKS outage fails closed; migrations are
+  transactional, editor saves single-flight and render directories reserved;
+  the render browser can't leak or hang; list routes are O(1) queries and the
+  grid loads small thumbnails; the parser caps nesting and the editor has an
+  error boundary; one module owns the repo root
+  ([decisions-hardening.md](./decisions-hardening.md)).
+- **Accounts** (2026-10-13). Local accounts on the shared ward-auth library
+  (vendored 0.3.1), with "Sign in with Ward" when configured; identity was
+  Ward's alone from 2026-09-06 until then
+  ([decisions-accounts.md](./decisions-accounts.md)). Local dev signs in with a
+  seeded account or through a local Ward
+  ([configuration.md](./configuration.md#local-sign-in)).
+- **The Reader** (2026-10-09). Feed items are stored (schema v6) and refreshed
+  in the background, and `/reader` reads them in three panes with Search,
+  Library and Sources as its views; `/articles` redirects there
+  ([data-reader.md](./data-reader.md), [api-reader.md](./api-reader.md)).
+- **Docs site** (2026-10-19). Docusaurus at `/newspapper/docs` with the same
+  URLs; its sync publishes every wiki page. `vps-deploy` flipped the stack to
+  Docusaurus the same day.
 
-- **Local accounts, with Ward as a second way in** (brief 23, 2026-10-13):
-  a login page, a seed script and the shared library's sessions and lockout;
-  "Sign in with Ward" when configured. Identity was Ward's alone from
-  2026-09-06 until then ([decisions-accounts.md](./decisions-accounts.md)).
-  **Not deployed**: production needs the new env variables, the seed run and
-  Ward's client registration.
-- **It runs on the shared VPS** at `/newspapper/`, behind
-  Caddy, which strips the prefix. The UI builds every browser URL with the base
-  (`ui/src/lib/base.ts`).
-- **Local dev** signs in with a seeded local account, or through a local Ward
-  (brief 84, reworked by brief 23;
-  [configuration.md](./configuration.md#local-sign-in)).
-- **The Reader replaced `/articles`** (brief 105, 2026-10-09): feed items are
-  stored (schema v6) and refreshed in the background, and `/reader` reads them
-  in three panes, with Search, Library and Sources as its views. Built and
-  checked locally; **not deployed**, and production's database has not been
-  through the v6 migration yet ([data-reader.md](./data-reader.md),
-  [api-reader.md](./api-reader.md)).
+## Deployed, and not
 
-**The 2026-09-27 improvements sweep (briefs 77-102) is done**, along with
-103 and 104, which were found while doing it. In short:
-- the guard decides from the matched route, closing an encoded-path auth
-  bypass;
-- RSS fetches are SSRF-guarded and capped, 5xx bodies are generic, and a JWKS
-  outage fails closed;
-- the base path is right in every browser URL;
-- migrations are transactional, editor saves single-flight, and render output
-  directories reserved;
-- the render browser can't leak or hang;
-- the list routes are O(1) queries and the grid uses small thumbnails;
-- the parser caps nesting, and the editor has an error boundary;
-- one module owns the repo root.
+**The accounts change is in production.** Ward's record of the cutover
+(2026-10-13) says production newspapper serves its own `/auth/session` with
+Ward enabled. Whether the Reader, on `main` since 2026-10-09, went out with that
+deploy is not recorded here; the README still calls it undeployed. Check
+production's schema version (`PRAGMA user_version`, 6 with the Reader) before
+assuming either way. The docs site and the wax fix (2026-10-19) came after, and
+are built and checked locally only.
 
-Coverage now reaches the real Ward client, the render route, the upload
-interception and the UI's base path, and every Chromium suite fails under
-`CI`. Gates: `npm run build`, `npm run lint`, `npm test` (896 tests) and
-`bash corpus/lint.sh`, all green. `npm run gate` runs all four with `CI=1`;
-there is no GitHub CI, by the owner's choice (2026-10-04).
+## Next (owner)
+
+- **Confirm the Reader in production**, or deploy it: the v6 migration runs on
+  boot, so back the database up first. The background refresh then starts 15 s
+  after boot and fetches every enabled feed every 30 minutes
+  (`READER_REFRESH_MINUTES`).
+- **Deploy the docs site and the wax fix** from `vps-deploy`.
 
 ## The thread worth reading first
 
-[green-because-nothing-ran.md](./green-because-nothing-ran.md) — nine times a
+[green-because-nothing-ran.md](./green-because-nothing-ran.md) — ten times a
 tool in this repo reported success while reaching nothing. A DB path the tests
 set but nothing read; a `.gitignore` rule that would have hidden a module; a
 vitest `include` omitting `ui/`; a workspace bundled but never typechecked; a
@@ -92,7 +106,7 @@ storage · the npm workspace layout · the shared UI primitives on Base UI.
 Found while writing the docs, and **all but two are now resolved.** Deleted
 2026-08-31: a v2/v3 build-plan tree, an Ollama-only compose file, a root
 `tsconfig.json` extended by nothing and pointing at a root `src/` that held no
-files, and the resolved resume document. Brief 73 then took the code half —
+files, and the resolved resume document. The dead-config cleanup (2026-08-31) then took the code half —
 `loadConfig()` and its seven inert variables, and `api`'s unrunnable `start`
 script.
 
@@ -102,88 +116,3 @@ What is left is genuinely benign:
 |---|---|
 | `api/src/server.ts` | The SPA fallback still tries a per-route `index.html` first and its comment names a build that is gone. Harmless — the root `index.html` fallback is what serves. |
 | `data/sources.json` | v2 residue: a one-time seed for the `sources` table. Nothing reads it afterwards. |
-
-## Briefs
-
-Twenty-six Wizard-rebuild briefs (51–76) are in
-[`../briefs/done/`](../briefs/done/) with an outcome note each, alongside the
-thirteen v3 ones. Each brief is self-contained: open only the one directing
-your work.
-
-**Open since 2026-09-26:** the improvements sweep filed briefs 77–102 into
-[`../briefs/todo/`](../briefs/todo/). All are done (84 on 2026-09-27, the rest on
-2026-10-02/03), plus 103 (the dead Settings password form, found during 83) and
-104 (a JWKS outage answering 401, found by 89's tests).
-
-**Done 2026-10-09:** [105](../briefs/done/105-the-reader.md), the Reader, a
-FreshRSS-style zone for following feeds, reading and clipping, which replaced
-`/articles`. Filed 2026-10-07; the owner took the recommended answer to its
-three decisions. Its outcome note lists the choices the brief left open and two
-bugs found only in the browser.
-
-**Done 2026-10-19:** [108](../briefs/done/108-docs-site-on-docusaurus.md),
-the docs site moved from Starlight to Docusaurus at the same URLs. Its sync
-discovers every wiki page, so it also did
-[107](../briefs/superseded/107-docs-site-sync-omits-four-wiki-pages.md) (moved
-to `superseded/`): six pages the old list left out are published. The owner
-allowed cheerio transitively in the docs workspace only. Not deployed: vps-deploy
-brief 11 changes the docs stack's asset check first.
-
-**Done 2026-10-19:** [106](../briefs/done/106-selected-line-highlight-clips-letters.md),
-the galley's wax no longer covers letters. Every token carried its own bleed
-and covered the glyph before it; the run is now one wrapper laid under the
-text, checked glyph by glyph in Chromium.
-
-Waves below are the **executed** order, which differs from the originally filed
-one: file-ownership collisions the dependency graph alone did not show forced
-several briefs apart. `core/src/types.ts` was claimed by both 51 and 52,
-`core/src/index.ts` by 51, 53 and 58, `.env.example` by 55 and 56, and the
-nav/sidebar by 58, 62 and 64.
-
-```
-51 → 52‖53 → 54‖55‖56‖60 → 57‖58‖61 → 59‖65 → 62 → 64 → 68‖71 → 70‖72 → 63
-```
-
-| Wave | # | Brief | Depends on |
-|---|---|---|---|
-| 1 | 51 | Strip the AI surface | — |
-| 2 | 52 | SQLite schema for authored posts | — |
-| 2 | 53 | Wizard parser, formatter, linter | — |
-| 3 | 54 | Component library + compile to `TNode` | 53 |
-| 3 | 55 | Single-account authentication | 52 |
-| 3 | 56 | Image uploads + Sharp pipeline | 52 |
-| 3 | 60 | Keyword RSS + article library | 52 |
-| 4 | 57 | Render to JPEG + optimize on publish | 56 |
-| 4 | 58 | Retire templates and `/builder` | 54 |
-| 4 | 61 | Themes 2 and 3 | 54 |
-| 5 | 59 | The split-screen editor | 53, 54, 58 |
-| 5 | 65 | Finish the theme family — ramp, rename, guard | 61 |
-| 6 | 62 | API surface and page map | 55, 59, 60 |
-| 7 | 64 | Rebuild the app chrome as The Mechanical | 59, 62 |
-| 7 | 66 | Fix the render typeface | — |
-| 8 | 67 | The slide's font fallback stack | 66 |
-| 8 | 69 | Two loose ends in `ui/` | 64 |
-| 9 | 68 | `fmt` and `lint` cover what they claim | — |
-| 9 | 71 | The typeface guard's control; escaping style values | 67 |
-| 10 | 70 | Replace Astro with Vite + React | 68, 69 |
-| 10 | 72 | The React effect findings 68 suppressed | 68 |
-| 11 | 63 | Documentation pass | everything |
-
-Three ordering constraints, recorded because they would have bitten: **58 could
-not start before 54 landed** (until the component library rendered, the
-templates were the only thing that rendered at all); **64 ran after 59 and 62**,
-because the editor's structure is what the world had to clothe; and **63 ran
-last**, when the code it describes existed — which also meant after **70**,
-since documenting Astro immediately before removing it would have wasted the
-pass.
-
-The 13 v3 briefs are also archived in [`../briefs/done/`](../briefs/done/) —
-historical, and written against a product that no longer exists.
-
-## What is not done
-
-- Brief 105's deploy, an owner step. The v6 migration runs on boot, and
-  production's database has not been through it; back it up first. Then the
-  background refresh starts 15 s after boot and fetches every enabled feed
-  every 30 minutes. [open-questions.md](./open-questions.md) is empty.
-- The strays above.

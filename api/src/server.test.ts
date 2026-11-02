@@ -454,7 +454,7 @@ describe('API server', () => {
       await inject({ method: 'DELETE', url: `/api/posts/${id}` });
     });
 
-    // Brief 101: the render's folder was cleaned up before publishing. This
+    // The render's folder was cleaned up before publishing. This
     // used to be a 409 carrying ENOENT's absolute path.
     it('404 with no path when the render output directory is gone', async () => {
       const created = await inject({
@@ -646,7 +646,7 @@ describe('API server', () => {
 });
 
 // =========================================================================
-// Error bodies (brief 79): a 5xx never echoes the exception's own text
+// Error bodies: a 5xx never echoes the exception's own text
 // =========================================================================
 
 describe('the global error handler', () => {

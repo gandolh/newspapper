@@ -1,5 +1,5 @@
 /**
- * Brief 99: one module knows where the repo root is, and every other root is
+ * One module knows where the repo root is, and every other root is
  * derived from it, with env overrides where an operator needs one.
  */
 import { afterEach, describe, expect, it } from 'vitest';

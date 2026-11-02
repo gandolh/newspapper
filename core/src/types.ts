@@ -81,8 +81,8 @@ export interface Keyword {
 
 /**
  * The signed-in person, as `GET /api/me` reports them: Ward's subject and
- * username, nothing else. Identity is Ward's (brief 55's `users` table was
- * dropped in schema v5), so there is no id, no created-at and no password hash
+ * username, nothing else. Identity is Ward's (the first accounts' `users`
+ * table was dropped in schema v5), so there is no id, no created-at and no password hash
  * here any more.
  */
 export interface User {
@@ -188,19 +188,19 @@ export interface Settings {
 }
 
 /** A post as a list shows it: everything but the markup, which only the editor
- * needs. `GET /api/posts` returns these (brief 95). */
+ * needs. `GET /api/posts` returns these. */
 export type PostSummary = Omit<Post, 'markup'>;
 
 /** A saved article as the library lists it: the body is cut to an excerpt,
  * which is all the list shows. */
 export type ArticleSummary = Omit<Article, 'body'> & { excerpt: string };
 
-// ---- The Reader (schema v6, brief 105) ----
+// ---- The Reader (schema v6) ----
 // An **Item** is a stored feed entry. It becomes an **Article** only when saved
 // to the library, keyed on the same `(sourceId, guid)` with `guid` = its URL.
 
-/** An item as the Reader's list shows it. Never carries the HTML (brief 95's
- * lesson: a list payload holds only what the list shows). */
+/** An item as the Reader's list shows it. Never carries the HTML (the
+ * lesson of 2026-10-03: a list payload holds only what the list shows). */
 export interface FeedItemSummary {
   id: number;
   sourceId: string;

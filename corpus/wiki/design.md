@@ -119,7 +119,7 @@ components:
 
 _Derived 2026-08-27 from the built comps of **The Mechanical**, the direction
 chosen after two rounds. Every value below was measured off a rendered screen,
-not proposed. **Re-derived 2026-08-31 from the shipped chrome** (brief 64):
+not proposed. **Re-derived 2026-08-31 from the shipped chrome** (2026-08-31):
 five values the comps carried could not hold 4.5:1 once they were text on a
 real surface, and they are corrected in place below — each correction says
 what it measured and what replaced it. Nothing else moved._

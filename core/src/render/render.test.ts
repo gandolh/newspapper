@@ -104,7 +104,7 @@ describe('htmlToJpeg', () => {
 // nextOutputDir
 // ---------------------------------------------------------------------------
 
-describe('reserveOutputDir (brief 94)', () => {
+describe('reserveOutputDir', () => {
   it('two reservations with nothing written between them get distinct, existing dirs', async () => {
     const tmpRoot = await mkdtemp(join(tmpdir(), 'rod-'));
     try {
@@ -341,7 +341,7 @@ describe('zipRun', () => {
   });
 });
 
-describe('the grid thumbnail (brief 97)', () => {
+describe('the grid thumbnail', () => {
   it('a render writes a 220 px thumb.jpg, far smaller than the slide, and the export leaves it out', async (ctx) => {
     if (!chromium.orSkip((note) => ctx.skip(note))) return;
     const tmpRoot = await mkdtemp(join(tmpdir(), 'thumb-'));

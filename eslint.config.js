@@ -6,7 +6,7 @@ import reactHooks from 'eslint-plugin-react-hooks';
 /**
  * Flat ESLint config for all three workspaces.
  *
- * Before brief 68 this file enabled *zero* rules: it registered the TypeScript
+ * Before 2026-08-31 this file enabled *zero* rules: it registered the TypeScript
  * parser and plugin and then switched off the only three rules it named. It
  * also only ever ran against core/ and api/ — see the `lint` script in the root
  * package.json. Both halves of that are fixed here: a real recommended baseline,
@@ -54,7 +54,7 @@ export default [
     rules: {
       ...reactHooks.configs.recommended.rules,
 
-      // Both of these were 'off' between briefs 68 and 72, which hid ten
+      // Both of these were 'off' for part of 2026-08-31, which hid ten
       // findings behind a config-level blanket. They are on. Five of those ten
       // sites were restructured; the other five carry an
       // `eslint-disable-next-line` with the reason on the line above it, so the

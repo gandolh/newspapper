@@ -1,5 +1,5 @@
 /**
- * The `?` legend: every Reader key, in the existing `Modal` (brief 105, step 9).
+ * The `?` legend: every Reader key, in the existing `Modal`.
  */
 import { Modal } from '../ui';
 import { READER_KEYS } from './keys';

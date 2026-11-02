@@ -1,5 +1,5 @@
 /**
- * The Reader — `/reader` (brief 105). It replaced `/articles`, which now
+ * The Reader — `/reader`. It replaced `/articles`, which now
  * redirects here.
  *
  * Three panes on the board's full width: the rail (what to read), the list

@@ -6,7 +6,7 @@ import react from '@vitejs/plugin-react';
  * The proof sheet is a dev route, never a shipped one.
  *
  * `/kitchen-sink` renders every primitive and every mark on one board, which
- * is what makes it worth keeping — brief 64 used it to check the chrome, and
+ * is what makes it worth keeping — the chrome was checked on it, and
  * it is the only place a lapse (a radius, a coloured pill, a second treatment
  * for a state that already has a mark) is visible at a glance. But it is also
  * the one page in the app that renders with no session at all: it calls no
@@ -19,7 +19,7 @@ import react from '@vitejs/plugin-react';
  * public page whose safety expires on that date, to buy nothing (nobody
  * proofs the chrome against production), is the wrong trade.
  *
- * Brief 69 expressed this as an Astro `injectRoute` guarded by
+ * Under Astro this was an `injectRoute` guarded by
  * `command === 'dev'`. The Vite equivalent has to be structural in the same
  * way, and a plain `import.meta.env.DEV` branch is not: `KitchenSinkIsland`
  * imports a stylesheet, so even when Rollup drops the component as dead code

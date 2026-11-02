@@ -31,7 +31,7 @@ export interface RenderSummary {
 
 /**
  * Read the run directory rather than reconstruct filenames from `slideCount`:
- * a pre-brief-57 run holds `1.png`, and a run whose directory was cleaned out
+ * a run from before JPEG renders (2026-08-27) holds `1.png`, and a run whose directory was cleaned out
  * holds nothing. Either way the list page must show what exists, not what the
  * row claims.
  */
@@ -86,7 +86,7 @@ const rendersRoutes: FastifyPluginAsync = async (fastify) => {
       return reply.send(render ? [toSummary(render)] : []);
     }
 
-    // One query for every post's newest render (brief 95). This used to list
+    // One query for every post's newest render. This used to list
     // up to 500 posts only to call latestRender once per post.
     return reply.send(latestRenders(db()).map(toSummary));
   });

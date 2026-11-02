@@ -3,7 +3,7 @@ import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 /**
- * Where everything lives, from one place (brief 99).
+ * Where everything lives, from one place.
  *
  * Eight files used to reach the repo root by counting `..` from their own depth
  * (two, three or four levels), and all had to land on the same directory. Move

@@ -20,10 +20,10 @@ The app ground. `#fbfbf9` under a 26px non-photo blue lattice drawn as two `repe
 ### The Tray (component palette / nav)
 A full-width strip at the top of the board, 78px, closed by a 1.5px graphite rule. Compartments divided by 1px `rule`, each holding one component as a **showing** plus a 8.5px mono caption. An unavailable compartment takes a 45° hatch (`repeating-linear-gradient(45deg, transparent 0 5px, rgba(43,43,43,.07) 5px 10px)`) — the same "held out" idea as rubylith, at tray scale. The comps also dropped it to 42% opacity; that puts a 9px caption at ~3.1:1, so the ink stays full and the hatch carries the state on its own.
 
-**A compartment's width is a share, not a multiple.** The strip is 78px (3 × 26) at every width. Below 640px, where one course no longer holds the brand block, four compartments and the session cell, it divides into **two courses** — one unit of head carrying the wordmark and the session, two units of compartments under it — and each compartment takes an equal share of the course, floored at 2 × 26, below which the course scrolls. Every route stays reachable down to 240px. Fixing the compartment width at a grid multiple is what made the tray unusable on a phone from brief 64 to brief 75: see [chrome.md](./chrome.md), *grid-conformance is not fitting*.
+**A compartment's width is a share, not a multiple.** The strip is 78px (3 × 26) at every width. Below 640px, where one course no longer holds the brand block, four compartments and the session cell, it divides into **two courses** — one unit of head carrying the wordmark and the session, two units of compartments under it — and each compartment takes an equal share of the course, floored at 2 × 26, below which the course scrolls. Every route stays reachable down to 240px. Fixing the compartment width at a grid multiple is what made the tray unusable on a phone from 2026-08-31 to 2026-09-01: see [chrome.md](./chrome.md), *grid-conformance is not fitting*.
 
 ### The Galley (source pane)
-A **waxed** paper strip, 372px, top-aligned, with a graphite tab carrying the filename. The bottom edge is torn, not cut — a clip-path deckle that says the copy continues. Syntax colour follows **casing**: lowercase document tags in `graphite-soft`, capitalised components in graphite 700, prop values in `process-blue`. (The comps set the document tags in `#9d9d97`, which is 2.6:1 on paper — recede by weight and case, not by dropping below the ink floor.) The selected element is waxed (`#f5d97a`, bled 0.35em, about 4px, past the text on both sides, laid once per run and under the glyphs so it covers none of them); a lint-flagged line takes a 16% rubylith wash. (The comps said 20px. In a galley 7.5px to the character that is nearly three characters of yellow either side, which reads as selecting the neighbouring tokens; brief 106 settled on the shipped 0.35em.)
+A **waxed** paper strip, 372px, top-aligned, with a graphite tab carrying the filename. The bottom edge is torn, not cut — a clip-path deckle that says the copy continues. Syntax colour follows **casing**: lowercase document tags in `graphite-soft`, capitalised components in graphite 700, prop values in `process-blue`. (The comps set the document tags in `#9d9d97`, which is 2.6:1 on paper — recede by weight and case, not by dropping below the ink floor.) The selected element is waxed (`#f5d97a`, bled 0.35em, about 4px, past the text on both sides, laid once per run and under the glyphs so it covers none of them); a lint-flagged line takes a 16% rubylith wash. (The comps said 20px. In a galley 7.5px to the character that is nearly three characters of yellow either side, which reads as selecting the neighbouring tokens; the wax-run fix (2026-10-19) settled on the shipped 0.35em.)
 
 **On wax the galley writes in `wax-ink`.** Wax is a surface, and a surface has its own ink: every token on the selected run takes `#3d3416` (8.87:1 on wax), because the paper inks do not hold 4.5:1 on it — `graphite-soft` measures 3.88:1 and `process-blue` 4.43:1. The casing distinction survives the highlight in weight and slope, not in hue: components stay 700, comments stay italic. Hue pools, and the one hue that carried meaning — `process-blue` on prop values — pools for the one element the tissue is displaying in full while it is selected. The token colours are written at zero specificity (`:where()`) so the wax ink wins on merit rather than on which CSS module the bundler emitted last.
 
@@ -66,7 +66,7 @@ when the API is up, and a tick with `API DOWN` when it is not.**
 That is a deliberate exception to *state is carried by mark*, and it exists
 because the mark has no room to carry anything else: the tick is 6 × 1px, so
 hatching it, filling it or changing its form is invisible, and hiding the word —
-which is what shipped from brief 64 to 76 — left hue as the only signal. The
+which is what shipped from 2026-08-31 to 2026-09-01 — left hue as the only signal. The
 word is the state. Spending width on it only when there is something to say is
 the way to keep it at the width where it would otherwise be dropped.
 
@@ -142,10 +142,9 @@ digits — slide counts, dates, dimensions, ordinals.
 
 ## 9. What the shipped chrome does not carry
 
-Brief 64 built §1–§7 across every route and left four things described above
+The chrome build (2026-08-31) built §1–§7 across every route and left four things described above
 without an implementation, each blocked on changing a structure rather than
-clothing. On 2026-09-01 they were split: two were built by [brief
-74](../briefs/done/74-finish-the-chrome.md), and **two are dropped** — not
+clothing. On 2026-09-01 they were split: two were built by the chrome's finish (2026-09-01), and **two are dropped** — not
 pending.
 
 **Built (74):**
@@ -196,4 +195,4 @@ galley's contrast on wax went the same way — both are written up in
 The tissue also hinges on **selection change** rather than on source focus:
 selecting a node swings the sheet down with the notes already on it. Lifting it
 off the board when the source takes focus would move a pane, and the three-pane
-layout is brief 59's.
+layout is the editor work's (2026-08-31).

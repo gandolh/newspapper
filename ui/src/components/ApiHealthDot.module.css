@@ -3,13 +3,13 @@
   align-items: center;
 }
 
-/* Below 640px — where brief 75 folds the tray into two courses — the probe
+/* Below 640px — where the tray folds into two courses — the probe
    spends width only when it has something to say.
 
    Up renders nothing. Down keeps the tick *and* the full word: the word is
    the state, because the tick is `--sp-hair` × 1px and hatching, filling or
    reshaping a 6 × 1 pixel dash is invisible. Hiding the word instead — what
-   shipped from brief 64 to 76, at a stale 768px breakpoint — left hue as the
+   shipped from 2026-08-31 to 2026-09-01, at a stale 768px breakpoint — left hue as the
    only signal, which §5 forbids.
 
    `up` is clipped, not removed: the word stays in the DOM and in the

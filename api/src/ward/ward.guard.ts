@@ -10,7 +10,7 @@
  *
  * ## `/uploads/*` is guarded, and stays so
  *
- * Brief 23's text says it "stays public for headless rendering". It does not
+ * Ward's 2026-10-13 spec said it "stays public for headless rendering". It does not
  * need to be: `core/src/render/uploads-route.ts` serves the render browser's
  * `/uploads/*` from disk, so nothing anonymous fetches it, and the 2026-09-06
  * revision in `decisions-security.md` closed it for that reason. That decision
@@ -38,7 +38,7 @@ export function isGuardedPath(url: string): boolean {
  * Whether a request must carry a session, from **what Fastify matched** as well
  * as the raw URL.
  *
- * Deciding from the raw URL alone was the bug (brief 77): find-my-way
+ * Deciding from the raw URL alone was the bug: find-my-way
  * percent-decodes the path before matching, so `/%61pi/posts` never started
  * with `/api/` here yet routed to the real `/api/posts` handler, and the whole
  * API was readable and writable without a session. `routeOptions.url` is the

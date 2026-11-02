@@ -38,7 +38,7 @@ const THUMB_SIZE = 220;
 
 /**
  * A small JPEG of the first slide. The grid used to load each post's full
- * 1080x1080 `slide-01.jpg` (~150-950 KB) to show a 104 px stamp (brief 97).
+ * 1080x1080 `slide-01.jpg` (~150-950 KB) to show a 104 px stamp.
  */
 export async function makeThumbnail(slide: Buffer): Promise<Buffer> {
   return sharp(slide)

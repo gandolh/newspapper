@@ -17,7 +17,7 @@ note pushed that page past the cap.
 | 3 | Authored posts: `posts.markup`, `keywords`, `post_keywords`, `renders`, `users`, `uploads`, `sources` in the DB |
 | 4 | The theme family: `warm-industrial` → `warm-industrial-1` in `posts.theme`, the column default, and the `defaultTheme` setting |
 | 5 | Identity moves to Ward: the `users` table is dropped. Nothing referenced it, so nothing else changes. |
-| 6 | The Reader (brief 105): `feed_items`; `sources` gains `category`, `etag`, `last_modified`, `last_fetched_at`, `last_error`; `articles` gains `note`. Every row survives. |
+| 6 | The Reader (2026-10-09): `feed_items`; `sources` gains `category`, `etag`, `last_modified`, `last_fetched_at`, `last_error`; `articles` gains `note`. Every row survives. |
 
 The library's `auth_*` tables are not versioned here: it keeps its own
 `auth_migrations` table and applies it on boot (2026-10-13), leaving
@@ -27,7 +27,7 @@ A fresh database is created at version 6 directly; an existing one walks every
 step in one boot. `migrate()` (`core/src/storage/db.ts`) keys on
 `PRAGMA user_version` and uses `IF NOT EXISTS` throughout, so re-running is a
 no-op. **Each step is one transaction** together with its `user_version` bump
-(`runMigrationStep`, brief 86): a crash mid-step rolls back to the previous
+(`runMigrationStep`, since 2026-10-02): a crash mid-step rolls back to the previous
 version's intact schema, and the step runs again on the next boot. The v3 → v4
 table rebuild turns foreign keys off *around* its transaction, because SQLite
 ignores that pragma inside one.

@@ -42,7 +42,7 @@ export async function zipRun(outputDir: string): Promise<Uint8Array>
 `renderSlides` launches a Playwright Chromium browser, screenshots each HTML string at 1080×1080, writes JPEGs + `slides.json` + optional `caption.txt`. **Pass `db`** for any run with `<Image>`s: `/uploads/*` is guarded and the render browser has no session, so the images are served from disk through `render/uploads-route.ts`, which resolves refs through the DB. Without it they come out blank.
 
 ```ts
-// core/src/render/fonts.ts — brief 66
+// core/src/render/fonts.ts — the render-font fix (2026-08-31)
 export function installFontRoute(ctx: BrowserContext): Promise<void>
 ```
 
@@ -54,7 +54,7 @@ bytes that arrived fine. [Why](./decisions-engineering.md#the-renderer-serves-it
 ```ts
 // core/src/templates/interpreter.ts (also on @newspapper/core/templates)
 // The compile target for `.wzd`, not an authoring surface: `TemplateDoc`, the
-// template JSON, the registry and `/builder` went in brief 58 — decisions.md
+// template JSON, the registry and `/builder` went in the template retirement (2026-08-27) — decisions.md
 // "The template system is removed".
 export function renderTemplate(root: TNode, data: Record<string,unknown>, theme: Theme, opts: RenderTemplateOptions): string
 export function resolveStyle(style: TStyle, theme: Theme): Record<string, string>

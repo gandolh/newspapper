@@ -40,7 +40,7 @@ const OTHER_REPOS = {
 // published by default, and keeping one back is a decision someone wrote down.
 // Links to a denied page fall through to its GitHub URL.
 // Empty on purpose: the owner chose on 2026-10-19 to publish every wiki page,
-// including the six the old hand-kept list had left out (brief 108).
+// including the six the old hand-kept list had left out.
 const DENY = new Set([])
 
 import { readFile, writeFile, mkdir, rm, readdir, stat } from 'node:fs/promises'

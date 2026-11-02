@@ -1,5 +1,5 @@
 /**
- * Brief 95: the list queries load in O(1) statements and carry only what the
+ * The list queries load in O(1) statements and carry only what the
  * lists show.
  */
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';

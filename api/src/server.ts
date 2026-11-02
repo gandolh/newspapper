@@ -164,7 +164,7 @@ export async function buildApp(options: BuildAppOptions = {}) {
   }
 
   /*
-   * The Reader's background refresh (brief 105): the first run 15 s after
+   * The Reader's background refresh: the first run 15 s after
    * boot, then every `readerRefreshMinutes`. One loop per process, which
    * assumes one API process (the container runs one). `db` is a getter, so nothing
    * opens the DB until a run. The loop is stopped, and any run of its own

@@ -5,7 +5,7 @@ import { saveArticle } from './articles.js';
 import { normalizeCategory } from './sources.js';
 
 /*
- * The Reader's stored items (schema v6, brief 105). An item is a feed entry
+ * The Reader's stored items (schema v6). An item is a feed entry
  * kept for reading; it becomes an `articles` row only when saved. Both are
  * keyed on `(source_id, guid)` with `guid` = the item's URL, so "saved" is a
  * lookup, never a copy of state.

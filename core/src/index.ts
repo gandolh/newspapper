@@ -25,7 +25,7 @@ export type {
   PingResult,
 } from './scrape/index.js';
 
-// The Reader: background refresh of stored feed items (brief 105)
+// The Reader: background refresh of stored feed items
 export * from './reader/index.js';
 
 // Util

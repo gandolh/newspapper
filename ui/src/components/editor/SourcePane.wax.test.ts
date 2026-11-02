@@ -1,12 +1,12 @@
 /**
- * Brief 106. The wax that marks the selected element in the galley must not
+ * The wax that marks the selected element in the galley must not
  * cover a single glyph, in the run or beside it.
  *
  * **Paint order is the whole bug, so this runs in real Chromium.** happy-dom
  * lays nothing out and paints nothing; a test there would pass on any CSS. The
  * shipped `SourcePane`, its CSS modules and `global.css` are bundled by Vite
- * and mounted in a Chromium page at a device scale of 3 (the brief's 300%
- * zoom), with the galley's own Spline Sans Mono served from `ui/public/fonts/`.
+ * and mounted in a Chromium page at a device scale of 3 (the 300%
+ * zoom it was reported at), with the galley's own Spline Sans Mono served from `ui/public/fonts/`.
  * It goes through the same Chromium guard as the render tests: skipped with a
  * banner locally if Chromium is missing, a failure under `CI`.
  *

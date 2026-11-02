@@ -54,8 +54,8 @@ See `assets/design-systems/warm-industrial-1.json` for all values (`-2`/`-3` are
 
 ### The type ramp
 
-Brief 54 found the original six-token ramp (`display` 80px … `label-bold` 14px)
-web-sized for a 1080² square. Brief 61 enlarged it; brief 65 widened it to
+The component-library work (2026-08-27) found the original six-token ramp (`display` 80px … `label-bold` 14px)
+web-sized for a 1080² square. The theme-family work (2026-08-27) enlarged it; the theme family's finish (2026-08-31) widened it to
 **eleven steps**, because six could not give every component five distinct
 sizes (see below). All three themes ship the same eleven token names at the
 same values — type is what makes them a family.
@@ -76,7 +76,7 @@ same values — type is what makes them a family.
 
 Letter-spacing is `em`-relative throughout, so it scales with the size.
 
-### `size` resolves to a token — and every step is distinct (brief 65)
+### `size` resolves to a token — and every step is distinct (2026-08-31)
 
 `WZD_TYPOGRAPHY_SCALES` in
 [`core/src/wizard/components/style.ts`](../../core/src/wizard/components/style.ts)
@@ -116,7 +116,7 @@ lands.
 
 ### The name
 
-There is no unsuffixed `warm-industrial`. Brief 65 deleted it and repointed
+There is no unsuffixed `warm-industrial`. The theme family's finish (2026-08-31) deleted it and repointed
 every call site — `defaultTheme`, the `THEME` env default, `DEFAULT_THEME`,
 the `posts.theme` column default, the settings placeholder and the fixtures —
 so `listThemes()` returns exactly `-1`, `-2`, `-3`. **Schema v4** rewrote the
@@ -128,7 +128,7 @@ stored `posts.theme` and `defaultTheme` values to match; see
 The JSON template documents, their file-backed registry, `/api/templates`, and
 `/builder` are all gone — see
 [decisions.md § "The template system is removed"](decisions.md#the-template-system-is-removed)
-(brief 58). What's left is the pure interpreter every `.wzd` slide compiles
+(2026-08-27). What's left is the pure interpreter every `.wzd` slide compiles
 through on its way to Chromium:
 
 1. `core/src/wizard/compile.ts` compiles a parsed `.wzd` document to one `TNode`
@@ -140,7 +140,7 @@ through on its way to Chromium:
 3. Style values resolve the same way they always did: `$color.primary` →
    `theme.colors['primary']`, numbers get `px`, typography tokens expand.
 4. `resolveStyle(style, theme)` is exported for direct reuse by the browser
-   preview brief 59 builds — no server round-trip needed.
+   preview the editor builds — no server round-trip needed.
 5. `validateSlideData(data)` is now just the non-null-object guard on the
    `data` argument; there is no more per-template field spec to validate
    against.
@@ -150,8 +150,9 @@ part of the template registry — and now lives in its own
 `api/src/routes/themes.ts`.
 
 The nine retired JSON template documents are kept as reference for how the
-built-in components should look, at
-`corpus/briefs/superseded/templates-warm-industrial/`. Unrelated to those:
+built-in components should look, in git history at
+`5d71ed4:corpus/briefs/superseded/templates-warm-industrial/` (deleted with the
+briefs on 2026-11-02). Unrelated to those:
 the original hand-authored visual-spec HTML files (`title-main.html` etc.,
 predating the JSON templates) were archived in a reference tree that was never
 used at runtime, and were deleted with it on 2026-08-31.

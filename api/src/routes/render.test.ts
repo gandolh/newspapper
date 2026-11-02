@@ -1,7 +1,7 @@
 /**
- * Brief 90. `POST /api/posts/:id/render` is the only production call site that
+ * `POST /api/posts/:id/render` is the only production call site that
  * hands the render pipeline its `db`, and `db` is what lets the render browser
- * read `<Image>` bytes from disk now that `/uploads/*` is guarded (brief 88). A
+ * read `<Image>` bytes from disk now that `/uploads/*` is guarded. A
  * refactor dropping it compiles and every other test stays green while
  * production renders come out blank. This drives the real route, with real
  * Chromium behind the shared guard, and looks at the pixels it wrote.

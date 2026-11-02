@@ -22,9 +22,9 @@ revisit and a [log.md](../log.md) entry.
 ## The UI workspace is typechecked, not just bundled
 _2026-08-31_ — `ui` has a `typecheck` script (`tsc --noEmit`) alongside its
 bundler build, and the root `build` chain runs it. (The bundler was
-`astro build` when this was decided; brief 70 made it `vite build` days later,
+`astro build` when this was decided; the move to Vite + React (2026-08-31) made it `vite build` days later,
 and the `typecheck` step was the point either way.)
-Found because brief 59 left a dangling `import { EditorStep } from
+Found because the editor work (2026-08-31) left a dangling `import { EditorStep } from
 '../editor/EditorStep'` in `ui/src/components/wizard/Wizard.tsx` and **every gate
 stayed green.** `core` and `api` both build with `tsc --noEmit`; `ui` built with
 `astro build` alone, which bundles from the page entry points and tree-shakes —
@@ -44,7 +44,7 @@ passing command is not evidence of coverage.
 
 ## The formatter and the linter are enforced, and configured to do something
 
-_2026-08-31 (brief 68)_ — Three tooling defects, found by running `npm run fmt`
+_2026-08-31_ — Three tooling defects, found by running `npm run fmt`
 on a clean tree during a verify gate and watching it rewrite 106 files.
 
 There was **no Prettier config at all**, so `npm run fmt` used Prettier's
@@ -66,12 +66,13 @@ agent running `build` for type feedback mid-refactor hits a formatting failure
 before any type error.
 
 `.astro` was dropped from the `fmt` glob rather than adding a plugin, on the
-reasoning that [brief 70](../briefs/done/70-vite-react.md) was about to delete
+reasoning that the move to Vite + React (2026-08-31) was about to delete
 every `.astro` file. It did, days later, and the glob gained `ui/vite.config.ts`
 and `ui/index.html` in the same pass — so the gap opened and closed as planned
-rather than becoming permanent. Ten `react-hooks` findings are
-suppressed at config level pending brief 72; `rules-of-hooks` and
-`exhaustive-deps`, the two that catch correctness bugs, are on and clean.
+rather than becoming permanent. Ten `react-hooks` findings were
+suppressed at config level until the hook-rules fix later that day turned the
+rules on; `rules-of-hooks` and `exhaustive-deps`, the two that catch
+correctness bugs, were on and clean throughout.
 
 ## npm workspaces, three packages, ESM throughout
 _2026-06-10_ — `core` / `api` / `ui`, all `"type": "module"` (the docs
@@ -82,7 +83,7 @@ Every runtime path must resolve from `import.meta.url`, **never**
 `32af25e`). This is the single most repeated bug in the project's history.
 
 ## The docs workspace is the one package without `"type": "module"`
-_2026-10-19_ (brief 108) — `docs/` (`@newspapper/docs-site`) moved from Astro
+_2026-10-19_ — `docs/` (`@newspapper/docs-site`) moved from Astro
 Starlight to Docusaurus 3.10 on the owner's call of 2026-10-18, and Docusaurus's
 build fails when the site package is `"type": "module"`
 (`TypeError: require.resolveWeak is not a function` during static generation,
@@ -103,6 +104,6 @@ a lockfile being the only thing standing between you and a silent upgrade.
 _2026-10-04_ (owner) — No GitHub runners, workflows or other GitHub-specific
 automation in the repo. The full gate is `npm run gate` (build, test, lint,
 corpus lint, with `CI=1` so a missing Chromium fails instead of skipping), run
-by hand or by the deploy. Rejected: `.github/workflows/ci.yml`, which brief 91
+by hand or by the deploy. Rejected: `.github/workflows/ci.yml`, which the Chromium-guard work (2026-10-03)
 added and this removed. The estate deploys through its own `vps-deploy`, and
 the owner wants no GitHub machinery in the repos.

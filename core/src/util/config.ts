@@ -14,8 +14,8 @@
  * It used to also export `loadConfig()`, a CLI-era survivor called nowhere,
  * over seven environment variables (`MAX_ARTICLES_PER_SOURCE`, `USER_AGENT`,
  * `REQUEST_TIMEOUT`, `MAX_RETRIES`, `OUTPUT_DIR`, `DB_PATH`,
- * `DEFAULT_RETENTION_DAYS`) that no code path ever consulted. Brief 73 deleted
- * the function and the variables; only this side effect was real.
+ * `DEFAULT_RETENTION_DAYS`) that no code path ever consulted. They were deleted on
+ * 2026-08-31, the function and the variables; only this side effect was real.
  *
  * There is no `Config` object. Each consumer reads the one variable it needs,
  * where it needs it: `storage/db.ts` (`NEWSPAPPER_DB_PATH`),

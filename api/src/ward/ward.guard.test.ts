@@ -19,7 +19,7 @@ describe('requiresSession', () => {
     expect(requiresSession('/posts', undefined)).toBe(false);
   });
 
-  it('decides from the matched pattern when the raw URL hides the prefix (brief 77)', () => {
+  it('decides from the matched pattern when the raw URL hides the prefix', () => {
     // find-my-way decodes `%61` before matching, so the pattern says /api/posts.
     expect(isGuardedPath('/%61pi/posts')).toBe(false);
     expect(requiresSession('/%61pi/posts', '/api/posts')).toBe(true);

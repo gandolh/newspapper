@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { parse } from '@newspapper/core/wizard';
 
 /**
- * Brief 78. Served at `/newspapper/`, every URL the *browser* resolves must
+ * Served at `/newspapper/`, every URL the *browser* resolves must
  * carry the base, and three call sites built theirs by hand: post links went to
  * the origin root, and post thumbnails, picker thumbnails and the preview
  * canvas's images all 404ed. `BASE` is read from `import.meta.env.BASE_URL` once

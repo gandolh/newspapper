@@ -40,7 +40,7 @@ const MIRRORED_FROM_SCRAPE = new Set(['ScrapedArticle']);
  * carries whatever quote character the file happens to use. That made this
  * guard sensitive to formatting: reformat one side and not the other and every
  * union type mismatches. `'a' | 'b'` and `"a" | "b"` are the same type, so the
- * quote character is normalized out here (brief 68). Nothing else about a
+ * quote character is normalized out here. Nothing else about a
  * declaration's text is allowed to matter.
  */
 function shapeOf(stmt: ts.Node, sf: ts.SourceFile, printer: ts.Printer): string {

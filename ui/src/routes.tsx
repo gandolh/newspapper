@@ -1,7 +1,7 @@
 /**
  * The page map: `/` · `/posts` · `/reader` · `/settings`, plus `/login` outside
- * the board and `/kitchen-sink` in dev only. (`/articles` became the Reader in
- * brief 105 and redirects to it.)
+ * the board and `/kitchen-sink` in dev only. (`/articles` became the Reader on
+ * 2026-10-09 and redirects to it.)
  *
  * Every route renders inside one `<App>` element at one position
  * in the tree, and that is load-bearing rather than tidy: React keeps an
@@ -47,10 +47,10 @@ export default function Routes() {
 
   const sheet = sheets[path];
   if (!sheet) {
-    // /history became /posts in brief 62. Kept so a bookmark lands somewhere
+    // /history became /posts on 2026-08-31. Kept so a bookmark lands somewhere
     // useful instead of 404ing; was an `astro.config.mjs` redirect entry.
     if (path === '/history') return <Redirect to="/posts" />;
-    // /articles became the Reader in brief 105: its Search, Library and
+    // /articles became the Reader on 2026-10-09: its Search, Library and
     // Sources panels are the Reader's views now. Same reason as above.
     if (path === '/articles') return <Redirect to="/reader" />;
     // The static build had no 404 page either — the API's index.html fallback

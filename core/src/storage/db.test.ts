@@ -269,7 +269,7 @@ describe('migrate — v3 → v4 (the warm-industrial rename)', () => {
   }
 
   /**
-   * Brief 86. A crash between `DROP TABLE posts` and the `RENAME` used to leave
+   * A crash between `DROP TABLE posts` and the `RENAME` used to leave
    * no `posts` table and `user_version` still 3, so every later boot died on
    * the missing table. A view over `posts` makes the real rebuild fail exactly
    * there: SQLite re-checks views on RENAME, and this one names a table the

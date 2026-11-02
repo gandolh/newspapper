@@ -63,8 +63,8 @@ corner, hatch), never a coloured badge. Chosen 2026-08-27 from two rounds of
 fully-drawn editor screens, over The Forme (letterpress lock-up), The Wire Desk
 (teleprinter fanfold) and Page 101 (broadcast teletext). The system is
 [design.md](./design.md) + [design-components.md](./design-components.md)
-(moved out of the repo-root `DESIGN.md` by brief 63); the build is
-[brief 64](../briefs/done/64-workstation-chrome.md).
+(moved out of the repo-root `DESIGN.md` on 2026-08-31); the build is
+the chrome build (2026-08-31).
 
 Two consequences worth stating separately, because they are the parts most
 likely to be quietly undone: the chrome face is **Archivo**, and **Inter never
@@ -91,8 +91,8 @@ that is the answer rather than a gap waiting to be filled.
 Rejected: `POST /api/articles/:id/start-post`, seeding a starter `.wzd` from
 `Article.title` and `Article.url`. It is genuinely cheap — the API already holds
 both fields, and the route would be additive rather than a redesign — which is
-exactly why it kept coming back. **It was in scope in brief 60 and withdrawn at
-dispatch, then left to brief 59, which also did not build it.** Twice specced,
+exactly why it kept coming back. **It was in scope in the articles work (2026-08-27) and withdrawn at
+dispatch, then left to the editor work (2026-08-31), which also did not build it.** Twice specced,
 twice dropped, and never for a reason anyone wrote down. That is what this entry
 fixes.
 
@@ -109,7 +109,7 @@ compose a document.
 
 ## The Reader stores items; a saved article is still a reference
 
-_2026-10-09, brief 105_ — The Reader keeps what the feeds publish in
+_2026-10-09_ — The Reader keeps what the feeds publish in
 `feed_items`, so following a feed no longer means re-running a search. Storing
 items does not make them inputs. An **Item** becomes an **Article** only when
 the writer saves it, and the Reader's only way out is the clipboard: Copy title
@@ -169,7 +169,7 @@ not the same thing as a multi-user one, and this stays single-user.
 > and still has no roles of its own. The full posture is in
 > [decisions-security.md](./decisions-security.md#identity-is-wards-and-authority-is-a-grant).
 >
-> **Revised 2026-10-13 (brief 23) — local accounts again, Ward as a second way
+> **Revised 2026-10-13 — local accounts again, Ward as a second way
 > in.** The account and the login page are back, on the shared library; it is
 > still single-user in practice. See [decisions-accounts.md](./decisions-accounts.md).
 

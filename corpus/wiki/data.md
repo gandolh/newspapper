@@ -33,7 +33,7 @@ and searched without parsing every post. See
 
 Index: `idx_posts_status_updated_at` on `(status, updated_at)`.
 
-**v3 → v4** (brief 65) rewrote `posts.theme`, the `defaultTheme` setting and the
+**v3 → v4** (2026-08-31) rewrote `posts.theme`, the `defaultTheme` setting and the
 column default to `'warm-industrial-1'`. The default needs a table rebuild, so
 `posts` is copied and renamed with `PRAGMA foreign_keys` briefly off — `DROP
 TABLE posts` would cascade `post_keywords` and `renders` away. Skipped unless
@@ -115,7 +115,7 @@ How the schema got here, and how a migration step stays crash-safe:
 ## TNode — the `.wzd` compile target
 
 Not an on-disk format: the JSON template files went with
-[the template system](decisions.md#the-template-system-is-removed) (brief 58).
+[the template system](decisions.md#the-template-system-is-removed) (2026-08-27).
 `TNode` is in-memory only — `core/src/wizard/compile.ts` builds one per
 `<Slide>`, and `renderTemplate` walks it into HTML.
 

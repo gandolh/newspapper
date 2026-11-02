@@ -1,11 +1,11 @@
 /**
  * The Reader's Sources view.
  *
- * There is no /sources route — brief 60 folded feed management into the
- * articles sheet, and brief 105 turned that sheet into the Reader — so this is
+ * There is no /sources route — feed management was folded into the articles
+ * sheet on 2026-08-27, and that sheet became the Reader on 2026-10-09 — so this is
  * a view of the Reader and not an island of its own: it renders inside
- * `ReaderIsland`'s `ToastProvider` and carries no provider of its own. Brief
- * 69 gave it a module; brief 105 moved it, unchanged in how it looks, and gave
+ * `ReaderIsland`'s `ToastProvider` and carries no provider of its own. It
+ * got a module on 2026-08-31; the Reader moved it, unchanged in how it looks, and gave
  * a feed a **category** (the Reader's rail groups by it) and a health cell that
  * reports the Reader's last refresh when no ping has been taken.
  */

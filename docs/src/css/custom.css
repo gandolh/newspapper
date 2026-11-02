@@ -38,7 +38,7 @@
 @import '@fontsource/spline-sans-mono/400.css';
 
 /*
- * Ported from the Starlight theme (src/styles/theme.css) in brief 108. The
+ * Ported from the Starlight theme (src/styles/theme.css) on 2026-10-19. The
  * selector map: .sl-markdown-content → .markdown, .starlight-aside →
  * .theme-admonition, .expressive-code / pre → .theme-code-block, --sl-* tokens →
  * --ifm-* tokens. Infima sits in a CSS cascade layer (future.v4), so these

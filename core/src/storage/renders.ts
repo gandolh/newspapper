@@ -57,7 +57,7 @@ export function latestRender(db: DB, postId: number): RenderRecord | undefined {
 /**
  * The newest render of every post that has one, in one query. The post library
  * used to list up to 500 posts (with their markup and per-post keyword lookups)
- * only to ask `latestRender` once per post: ~2N statements (brief 95).
+ * only to ask `latestRender` once per post: ~2N statements.
  */
 export function latestRenders(db: DB): RenderRecord[] {
   const rows = db

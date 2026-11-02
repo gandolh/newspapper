@@ -1,5 +1,5 @@
 /**
- * The Reader's keyboard set (brief 105, step 9). A fixed set, no remapping.
+ * The Reader's keyboard set. A fixed set, no remapping.
  *
  * Every key is ignored while focus is in a text field — typing "just" into the
  * filter must not open three items and save one — and inside an open dialog,

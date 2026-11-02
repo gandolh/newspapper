@@ -253,7 +253,7 @@ function PostsPage() {
         <ul className={styles.list} role="list">
           {posts.map((post) => {
             const render = renders.get(post.id);
-            // The render's 220 px thumbnail, not the full 1080 px slide (brief 97).
+            // The render's 220 px thumbnail, not the full 1080 px slide.
             const thumb = render?.thumb ?? null;
             const rendered = (render?.files.length ?? 0) > 0;
             const isRendering = renderingId === post.id;

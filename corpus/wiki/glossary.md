@@ -58,7 +58,7 @@ _Avoid_: template type, layout name, style
 
 **Template** (`TemplateDoc`) — **retired**:
 The JSON document that defined one slide variant. Removed with the template
-system in brief 58, along with `assets/templates/<theme>/` and `/builder`; a
+system in the template retirement (2026-08-27), along with `assets/templates/<theme>/` and `/builder`; a
 post is a [Wizard document](./markup.md) now, and the surviving compile target
 is `TNode`. Kept here only so the word is recognised in older briefs and log
 entries. _Avoid_ using it for anything current.

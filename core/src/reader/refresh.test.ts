@@ -9,7 +9,7 @@ import { getFeedItem, insertFeedItems, listFeedItems } from '../storage/feed-ite
 import { isRefreshing, refreshSources, type RefreshProgressEvent } from './refresh.js';
 
 /**
- * Brief 105: refresh against local fixtures. `safeFetch` refuses loopback, so
+ * Refresh against local fixtures. `safeFetch` refuses loopback, so
  * there is no local HTTP server: fetch and DNS are injected the way
  * `safe-url.test.ts` does it, and the guard itself still runs on every URL.
  */

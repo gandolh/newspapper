@@ -94,7 +94,7 @@ async function startFontOrigin(): Promise<FontOrigin> {
  * The family the subject's typography tokens declare.
  *
  * The one knob in this file. Quoting it (`"'Inter'"`) must change nothing about
- * whether the guard works — that is the property brief 71 exists to establish,
+ * whether the guard works — that is the property the guard fix of 2026-08-31 exists to establish,
  * and the way to re-check it by hand is to quote this string, run the file, and
  * put it back.
  */

@@ -7,7 +7,7 @@ tags: [docs, readme]
 
 # Retake the README's editing GIF after the galley wax fix
 
-`docs/images/editing.gif` was recorded on 2026-10-09 and shows the source pane with an element selected. Brief 106 (2026-10-19) changed how that selection is painted: the wax is now one span per run, under the text, so it no longer covers half of each glyph. The GIF still shows the old wax. `editor.webp` is taken with nothing selected and is unaffected.
+`docs/images/editing.gif` was recorded on 2026-10-09 and shows the source pane with an element selected. The wax fix of 2026-10-19 changed how that selection is painted: the wax is now one span per run, under the text, so it no longer covers half of each glyph. The GIF still shows the old wax. `editor.webp` is taken with nothing selected and is unaffected.
 
 ## Context
 

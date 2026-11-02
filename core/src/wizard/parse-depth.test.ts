@@ -1,5 +1,5 @@
 /**
- * Brief 98. `parse` promises never to throw. A document nested a few thousand
+ * `parse` promises never to throw. A document nested a few thousand
  * levels deep used to overflow the stack (one frame per level) and throw a
  * RangeError, which blanked the editor and left the post unopenable.
  */

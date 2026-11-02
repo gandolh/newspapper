@@ -1,5 +1,5 @@
 /**
- * Brief 105: "Mark all read" is bounded by what the list loaded. With a filter
+ * "Mark all read" is bounded by what the list loaded. With a filter
  * active it marks exactly the loaded, matching, unread rows — the bulk route
  * takes no `q`, so using it there would mark items the filter hid. Without
  * one it is a single bulk call capped at the highest loaded id.

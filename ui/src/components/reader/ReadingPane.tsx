@@ -1,7 +1,7 @@
 /**
  * The reading pane: one item, set to read, with the ways to keep it.
  *
- * "Inspire" is clip and copy, never seed (brief 105, owner decision 3): save
+ * "Inspire" is clip and copy, never seed (the owner's call, 2026-10-09): save
  * to the library with a note, copy the title and link, copy a selected passage
  * as an attributed quote. There is no "start a post from this" here, by
  * decisions.md — a saved article is a reference, not a pipeline input.

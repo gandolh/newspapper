@@ -18,7 +18,7 @@ interface State {
  * white page.
  *
  * There was no boundary anywhere in the app, so one exception unmounted the
- * whole tree. The case that found it (brief 98): a document the parser could
+ * whole tree. The case that found it: a document the parser could
  * not handle threw on every keystroke and on every reload of `?post=<id>`, so
  * the post could never be opened again through the UI. The editor now sits
  * inside one of these, and the person can get back to their posts.

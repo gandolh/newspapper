@@ -39,7 +39,7 @@ export function open(path: string): DB {
 }
 
 /*
- * Schema v6: the Reader's stored feed entries (brief 105). An item becomes an
+ * Schema v6: the Reader's stored feed entries. An item becomes an
  * `articles` row only when saved; `guid` is the item's link, the same key
  * Search writes into `articles.guid`, so "is this item saved?" is a lookup on
  * `(source_id, guid)`. `id` is AUTOINCREMENT on purpose: mark-read takes an
@@ -342,7 +342,7 @@ function migrateV4ToV5(db: DB): void {
 }
 
 /**
- * v5 → v6: the Reader (brief 105). Adds `feed_items`, the Reader's columns on
+ * v5 → v6: the Reader. Adds `feed_items`, the Reader's columns on
  * `sources` (category, the conditional-GET validators, the last refresh's
  * outcome) and `articles.note`. Every existing row survives; the new columns
  * are NULL (or `''` for `note`).

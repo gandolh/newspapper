@@ -1,5 +1,5 @@
 /**
- * Brief 97: `GET /api/renders` points the grid at the run's small thumbnail,
+ * `GET /api/renders` points the grid at the run's small thumbnail,
  * and falls back to the first slide for runs made before thumbnails existed.
  */
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';

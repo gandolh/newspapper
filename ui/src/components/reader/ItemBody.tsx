@@ -1,5 +1,5 @@
 /**
- * An item's content, as the reading pane sets it (brief 105, step 7).
+ * An item's content, as the reading pane sets it.
  *
  * The feed's HTML goes through `sanitizeItemHtml` and nowhere else. If the
  * sanitizer cannot run in this browser, the item's plain text is set as

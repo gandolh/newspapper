@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 /**
- * Brief 105: an item's body must survive a re-render of the pane untouched.
+ * An item's body must survive a re-render of the pane untouched.
  *
  * Copy quote reads the reader's selection, and selecting text re-renders the
  * pane (the passage is state). Under React 19 a fresh `{ __html }` object on

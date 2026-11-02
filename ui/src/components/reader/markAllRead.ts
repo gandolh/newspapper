@@ -1,5 +1,5 @@
 /**
- * "Mark all read", bounded by what the list loaded (brief 105).
+ * "Mark all read", bounded by what the list loaded.
  *
  * Two paths, and choosing between them is the whole point of this module:
  *

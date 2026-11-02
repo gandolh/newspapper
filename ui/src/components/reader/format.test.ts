@@ -1,5 +1,5 @@
 /**
- * Brief 105: what the Reader's two copy actions put on the clipboard, and how
+ * What the Reader's two copy actions put on the clipboard, and how
  * a list row says an item's age.
  */
 import { describe, expect, it } from 'vitest';

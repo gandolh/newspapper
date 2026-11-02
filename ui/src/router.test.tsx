@@ -1,5 +1,5 @@
 /**
- * Brief 90. The router's base-path call sites, the code that regresses only
+ * The router's base-path call sites, the code that regresses only
  * under `/newspapper/` (`base.test.ts` covers the pure helpers). No DOM:
  * `window` is stubbed with just what the router touches, and the base is
  * stubbed before a fresh import.

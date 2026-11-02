@@ -1,5 +1,5 @@
 /**
- * Brief 92. Two leaks on the shared, long-lived Chromium: concurrent launches
+ * Two leaks on the shared, long-lived Chromium: concurrent launches
  * orphaning a browser, and a render whose setup failed leaving its context open.
  */
 import { afterAll, describe, expect, it, vi } from 'vitest';
@@ -76,7 +76,7 @@ describe('renderInBrowser cleanup', () => {
   }
 });
 
-describe('renderInBrowser timeouts (brief 93)', () => {
+describe('renderInBrowser timeouts', () => {
   const never = () => new Promise<never>(() => undefined);
 
   for (const stuck of ['setContent', 'evaluate'] as const) {

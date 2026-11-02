@@ -1,5 +1,5 @@
 /**
- * Brief 105, step 7. The sanitizer is the only line of defence between a
+ * The sanitizer is the only line of defence between a
  * feed's HTML and the app's origin (there is no CSP), so it is tested as one.
  *
  * **It runs in real Chromium, not in happy-dom**, and that is the finding of

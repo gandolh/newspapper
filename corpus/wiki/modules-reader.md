@@ -5,7 +5,7 @@ updated: 2026-10-09
 
 # Modules — scrape, the Reader and its storage
 
-Split out of [modules.md](./modules.md) on 2026-10-09, when brief 105 added
+Split out of [modules.md](./modules.md) on 2026-10-09, when the Reader work (2026-10-09) added
 `core/src/reader/` and `storage/feed-items.ts`. Everything here is exported from
 the main entry, `core/src/index.ts`, unless marked internal. The tables:
 [data-reader.md](./data-reader.md).

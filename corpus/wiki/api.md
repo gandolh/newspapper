@@ -87,7 +87,7 @@ otherwise reach `loadTheme` and throw two steps later.
 
 `RenderSummary` is `{ id, postId, slideCount, optimized, createdAt, files, thumb }`,
 where `files` lists each slide **still on disk**. The run directory is read
-rather than reconstructed from `slideCount`: a pre-brief-57 run holds `1.png`
+rather than reconstructed from `slideCount`: a pre-2026-08-27 run holds `1.png`
 and a cleaned-out run holds nothing, and `/posts` must show what exists, not
 what the row claims. `outputDir` is absent by design — it is a server path.
 One call gives every row its thumbnail and its export/publish availability.

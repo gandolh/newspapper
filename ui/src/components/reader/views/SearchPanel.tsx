@@ -1,11 +1,11 @@
 /**
  * The Reader's Search view — keyword search over the enabled sources.
  *
- * Moved out of the old `/articles` sheet (`ArticlesIsland`) by brief 105, not
+ * Moved out of the old `/articles` sheet (`ArticlesIsland`) on 2026-10-09, not
  * rewritten: it still fetches every enabled feed and each matching item's page
  * live, per query, and nothing here is persisted until a result is saved. The
  * Reader's stored items are a different thing; repointing Search at them is
- * its own decision (brief 105, "Not in this brief").
+ * its own decision, left out of the Reader's first cut.
  *
  * It renders inside `ReaderIsland`'s `ToastProvider` and carries none of its
  * own.

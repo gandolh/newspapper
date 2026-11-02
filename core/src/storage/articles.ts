@@ -164,7 +164,7 @@ const EXCERPT_CHARS = 300;
 /**
  * `listArticles` for the library list: each article's body cut to an excerpt,
  * since the list shows only that. The full bodies (~4 KB each) made up most of
- * the payload (brief 95).
+ * the payload.
  */
 export function listArticleSummaries(db: DB, filter: ArticleFilter = {}): ArticleSummary[] {
   return listArticles(db, filter).map(({ body, ...rest }) => ({

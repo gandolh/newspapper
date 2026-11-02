@@ -1,11 +1,11 @@
 ---
-summary: Brief 23 (2026-10-13) — newspapper has local accounts again and a "Sign in with Ward" button, on the shared ward-auth library vendored at 0.2.0. Why routePrefix is /api/auth, why the session cookie's Path is the app base, why /uploads stays guarded, what was dropped (the hand-written Ward client, the 503, the dev /ward proxy) and the data caveat (nothing to migrate).
+summary: Since 2026-10-13 newspapper has local accounts again and a "Sign in with Ward" button, on the shared ward-auth library vendored at 0.2.0. Why routePrefix is /api/auth, why the session cookie's Path is the app base, why /uploads stays guarded, what was dropped (the hand-written Ward client, the 503, the dev /ward proxy) and the data caveat (nothing to migrate).
 updated: 2026-10-13
 ---
 
 # Decisions — accounts and Ward sign-in
 
-Brief 23. It revises the Ward-only identity of 2026-09-06
+Ward's local-accounts change (2026-10-13). It revises the Ward-only identity of 2026-09-06
 ([decisions-security.md](./decisions-security.md#identity-is-wards-and-authority-is-a-grant)).
 The estate's reasoning is Ward's own (`decisions-oidc.md` in its corpus); what
 follows is only what this app chose.
@@ -53,18 +53,17 @@ API at runtime. **Rejected:** `Path=/newspapper/api` with `/output/*` made
 public, which would reverse a recorded decision to buy a tighter cookie.
 
 ## `/uploads/*` stays guarded
-_2026-10-13_ — Brief 23's text says `/uploads/*` "stays public for headless
+_2026-10-13_ — Ward's spec for the change says `/uploads/*` "stays public for headless
 rendering, as decided in newspapper's corpus". The corpus decided the opposite
 on 2026-09-06
 ([decisions-security.md](./decisions-security.md#uploads-is-public-api-and-output-are-guarded)):
 the render browser reads uploads from disk, so nothing anonymous needs the
 route. That decision was kept, and the same guard now covers `/api/*`,
-`/output/*` and `/uploads/*` through the library's `isPublic` hook, with brief
-77's matched-route rule intact (`api/src/ward/ward.guard.ts`). Opening it is one entry
+`/output/*` and `/uploads/*` through the library's `isPublic` hook, with the matched-route rule of 2026-10-02 intact (`api/src/ward/ward.guard.ts`). Opening it is one entry
 in that function if the owner decides to.
 
 ## Nothing to migrate
-_2026-10-13_ — The brief asks for rows keyed by a Ward subject to keep working as
+_2026-10-13_ — The spec asked for rows keyed by a Ward subject to keep working as
 the local id. There are none: v5 dropped `users`, and no table in this schema
 ever held a user key (`data.md`). So there is no migration, no placeholder
 username and no `createLinkedUser` call in the code. The one existing Ward

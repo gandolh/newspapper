@@ -6,7 +6,7 @@
  *
  * This walks a compiled tree and turns every such reference into the
  * absolute URL the render browser can actually load, via the same
- * `resolveUploadSrc` brief 56 built for exactly this: it validates the ref
+ * `resolveUploadSrc`, built for exactly this: it validates the ref
  * and refuses anything that isn't one (a stray `http://` or `file://` slipped
  * into markup does not get a free pass to an arbitrary origin — it comes out
  * as no image at all).

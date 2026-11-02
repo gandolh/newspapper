@@ -6,7 +6,7 @@ A web app for writing Instagram-style news posts by hand. You write the post in 
   <img src="docs/images/editor.webp" width="100%" alt="The Newspapper editor: .wzd markup for a made-up post about Sample City's night trams on the left, its first slide set on a 1080×1080 canvas in the middle, and the component palette and post fields on the right">
 </p>
 
-**Status:** Personal project with one user. It runs at `/newspapper/`, behind its own sign-in, with "Sign in with Ward" as a second way in. The Reader, which stores RSS items for you to read (brief 105), is built and tested locally but not deployed yet.
+**Status:** Personal project with one user. It runs at `/newspapper/`, behind its own sign-in, with "Sign in with Ward" as a second way in. The Reader, which stores RSS items for you to read, is built and tested locally but not deployed yet.
 
 ## What it does
 
@@ -71,7 +71,7 @@ Open <http://localhost:4321/newspapper/> and sign in with the account you seeded
 | `assets/` | The three slide themes as JSON tokens, and the Inter fonts the renderer loads |
 | `docs/` | The Docusaurus docs site, plus the images and guides this README links to |
 | `infrastructure/` | Dockerfile and compose file for the container |
-| `corpus/` | The project wiki, the briefs that built it, and the change log |
+| `corpus/` | The project wiki, its work specs, and the change log |
 
 ## Docs
 

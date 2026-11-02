@@ -128,7 +128,7 @@ ENV NODE_ENV=production \
 # every deploy.
 VOLUME /data
 # Rendered output is a separate volume at the code's default, <repo>/output.
-# Since brief 99 it is overridable (OUTPUT_DIR, read once in
+# Since 2026-10-03 it is overridable (OUTPUT_DIR, read once in
 # core/src/util/paths.ts), so it could join /data; it stays put because moving
 # it would also move every existing run on the VPS.
 VOLUME /app/output

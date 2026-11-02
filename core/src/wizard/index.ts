@@ -2,7 +2,7 @@
  * Newspapper Wizard (`.wzd`) — the language a post is written in.
  *
  * text -> parse -> WzdDocument -> format -> text, with lint over the tree.
- * The catalogue is data; the compiler (brief 54) and the editor (brief 59)
+ * The catalogue is data; the compiler and the editor
  * both read it rather than restating it.
  */
 

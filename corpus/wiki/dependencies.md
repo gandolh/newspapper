@@ -22,9 +22,9 @@ Per-workspace. Versions are locked in `package-lock.json`.
 
 | Package | Why |
 |---------|-----|
-| `fastify` | HTTP server with schema-based request handling and plugin system. 5.12.5 since 2026-10-02 (brief 100), clearing its own advisories and, transitively, `find-my-way` and `fast-uri`. |
-| `@fastify/cors` | CORS for dev-server proxy requests from port 4321 (the Vite dev server; Astro's until brief 70). |
-| `@fastify/static` | Serves `/assets/fonts/`, `/output/`, and `ui/dist/` in prod. Not used for `/uploads/` — that route resolves refs through the DB and streams the file itself. 10.x since 2026-10-02 (brief 100): 8.3.0 carried a static-plugin guard-bypass advisory class; the 8 → 10 major changed nothing newspapper relies on. |
+| `fastify` | HTTP server with schema-based request handling and plugin system. 5.12.5 since 2026-10-02, clearing its own advisories and, transitively, `find-my-way` and `fast-uri`. |
+| `@fastify/cors` | CORS for dev-server proxy requests from port 4321 (the Vite dev server; Astro's until 2026-08-31). |
+| `@fastify/static` | Serves `/assets/fonts/`, `/output/`, and `ui/dist/` in prod. Not used for `/uploads/` — that route resolves refs through the DB and streams the file itself. 10.x since 2026-10-02: 8.3.0 carried a static-plugin guard-bypass advisory class; the 8 → 10 major changed nothing newspapper relies on. |
 | `@fastify/multipart` | Parses the single-file `POST /api/uploads` body, with a streaming 10 MB `fileSize` limit so an oversized upload is cut off rather than buffered. |
 | `@newspapper/core` | All pipeline logic. |
 | `vendor/ward/` (not an npm package) | The shared auth library, version 0.2.0, copied in whole (server bundle, types, README, LICENSE) and never edited; it needs no install and imports only `node:` built-ins. Upgrade by vendoring a newer build over it. It replaced the hand-written Ward client and its `jose` dependency (removed 2026-10-13, which was also the one unpinned version in the repo). |
@@ -33,15 +33,15 @@ Per-workspace. Versions are locked in `package-lock.json`.
 
 | Package | Why |
 |---------|-----|
-| `vite` | Build tool and dev server (dev deps, with `@vitejs/plugin-react`). Replaced Astro in brief 70 — every page was `client:load` behind auth, so nothing Astro offered was in use; [why](./decisions-engineering.md#the-ui-is-a-vite--react-spa-astro-was-removed). |
+| `vite` | Build tool and dev server (dev deps, with `@vitejs/plugin-react`). Replaced Astro in the move to Vite + React (2026-08-31) — every page was `client:load` behind auth, so nothing Astro offered was in use; [why](./decisions-engineering.md#the-ui-is-a-vite--react-spa-astro-was-removed). |
 | `vendor/ward/` (not an npm package) | The same library's React bundle: the unstyled hooks behind the login page, the tray's session cell and Settings. The copy also holds the server bundle, which the UI never imports; both copies must stay the same version. |
 | `react`, `react-dom` | The whole UI. Routing is ~95 hand-rolled lines in `ui/src/router.tsx` over `useSyncExternalStore`; **no router dependency** — see the decision above. |
 | `@base-ui/react` | Headless, accessible primitives behind the shared `components/ui/` library (Button, Input, Select, Toggle/Switch, Modal/Dialog, Toast). Styling-agnostic — styled with warm-industrial CSS-variable tokens. |
 | `@newspapper/core` | Types, plus the browser-safe `./wizard` subpath — the editor parses, lints and compiles with the same code the renderer uses. No Node APIs. |
 | `@use-gesture/react` | Pointer gestures in the editor: the split-screen divider drag and slide reordering. Replaced a half-built HTML5 drag-and-drop; pointer events give one code path for mouse, touch and pen, and drag-and-drop cannot express a resize handle at all. |
-| `animejs` | **4.5.0, installed by brief 64.** Drives the two authored motion moments — the compile and the tissue hinge — and nothing else; the canvas never animates. MIT, no dependencies, framework-agnostic. Chosen over motion-primitives and smoothui, which require Tailwind CSS; [why](./decisions-engineering.md#animejs-is-the-motion-engine-tailwind-bound-kits-are-references-only). |
-| `dompurify` | **3.4.16, added by brief 105.** Sanitizes a Reader item's feed HTML in the browser, at render, against an allowlist (`ui/src/components/reader/sanitize.ts`); the app sets no CSP, so it is the only line of defence. **Not sanitize-html on the server:** DOMPurify parses with the browser's own parser, the one that then renders the result, so nothing can parse one way when cleaned and another when shown (sanitize-html uses htmlparser2); the stored HTML stays as the feed sent it, so the allowlist can change without rewriting rows; and the API stays free of an HTML dependency. When `DOMPurify.isSupported` is false it hands its input back untouched, so the Reader then shows `content_text` instead. Its test runs in **real Chromium**, not happy-dom: see the next row. |
-| `happy-dom` (dev) | A DOM for the few UI tests that must really mount: an error boundary only works in a live render (`ErrorBoundary.test.tsx`, brief 98), and the Reader's keys, routes and item body (brief 105). Opted into per file with `// @vitest-environment happy-dom`; every other test runs in node. **DOMPurify does not work under it** although `isSupported` is `true` ([why](./green-because-nothing-ran.md)), so a test that renders an item stubs the sanitizer. |
+| `animejs` | **4.5.0, installed by the chrome build (2026-08-31).** Drives the two authored motion moments — the compile and the tissue hinge — and nothing else; the canvas never animates. MIT, no dependencies, framework-agnostic. Chosen over motion-primitives and smoothui, which require Tailwind CSS; [why](./decisions-engineering.md#animejs-is-the-motion-engine-tailwind-bound-kits-are-references-only). |
+| `dompurify` | **3.4.16, added by the Reader work (2026-10-09).** Sanitizes a Reader item's feed HTML in the browser, at render, against an allowlist (`ui/src/components/reader/sanitize.ts`); the app sets no CSP, so it is the only line of defence. **Not sanitize-html on the server:** DOMPurify parses with the browser's own parser, the one that then renders the result, so nothing can parse one way when cleaned and another when shown (sanitize-html uses htmlparser2); the stored HTML stays as the feed sent it, so the allowlist can change without rewriting rows; and the API stays free of an HTML dependency. When `DOMPurify.isSupported` is false it hands its input back untouched, so the Reader then shows `content_text` instead. Its test runs in **real Chromium**, not happy-dom: see the next row. |
+| `happy-dom` (dev) | A DOM for the few UI tests that must really mount: an error boundary only works in a live render (`ErrorBoundary.test.tsx`, 2026-10-03), and the Reader's keys, routes and item body (2026-10-09). Opted into per file with `// @vitest-environment happy-dom`; every other test runs in node. **DOMPurify does not work under it** although `isSupported` is `true` ([why](./green-because-nothing-ran.md)), so a test that renders an item stubs the sanitizer. |
 
 ## Root dev deps
 
@@ -51,9 +51,9 @@ Per-workspace. Versions are locked in `package-lock.json`.
 | `tsx` | Dev runner — `tsx watch` for the API; used in test runner. |
 | `vitest` | Test framework (co-located `*.test.ts`). |
 | `concurrently` | Runs API + UI dev servers in parallel (`npm run dev`). |
-| `eslint`, `prettier` | Lint and format — both **enforced**: `npm run build` runs `fmt:check` first, and `npm run lint` covers all three workspaces. Until brief 68 there was no Prettier config at all and `eslint.config.js` enabled **zero rules**; [why the current shape](./decisions-tooling.md#the-formatter-and-the-linter-are-enforced-and-configured-to-do-something). |
-| `@eslint/js` | The recommended JS ruleset. Was a transitive dependency; declared explicitly by brief 68 when the config started importing it. |
-| `eslint-plugin-react-hooks` | Hook correctness in `ui/`. `rules-of-hooks` and `exhaustive-deps` are on and clean; ten React Compiler findings are suppressed pending brief 72. |
+| `eslint`, `prettier` | Lint and format — both **enforced**: `npm run build` runs `fmt:check` first, and `npm run lint` covers all three workspaces. Until the tooling fix (2026-08-31) there was no Prettier config at all and `eslint.config.js` enabled **zero rules**; [why the current shape](./decisions-tooling.md#the-formatter-and-the-linter-are-enforced-and-configured-to-do-something). |
+| `@eslint/js` | The recommended JS ruleset. Was a transitive dependency; declared explicitly by the tooling fix (2026-08-31) when the config started importing it. |
+| `eslint-plugin-react-hooks` | Hook correctness in `ui/`. `rules-of-hooks` and `exhaustive-deps` are on and clean; the React Compiler rules (`set-state-in-effect`, `refs`) are errors since the hook-rules fix of 2026-08-31. |
 | `@types/node`, `@types/react`, `@types/better-sqlite3`, `@types/react-dom` | Type declarations. |
 
 ## `docs/` — `@newspapper/docs-site`
@@ -63,7 +63,7 @@ the app. Docusaurus 3.10 (`@docusaurus/core`, `preset-classic`, `faster`) with
 `@easyops-cn/docusaurus-search-local` for offline search, `typedoc` for the
 `@newspapper/core` reference, and the two `@fontsource` faces for The
 Mechanical. Pinned exactly, like everything else. It replaced Astro Starlight on
-2026-10-19 (brief 108); `astro`, `@astrojs/starlight`, `sharp` and `cookie` left
+2026-10-19; `astro`, `@astrojs/starlight`, `sharp` and `cookie` left
 with it (`core` and `api` declare their own `sharp`).
 
 **cheerio arrives here transitively**, through `@docusaurus/plugin-content-blog`

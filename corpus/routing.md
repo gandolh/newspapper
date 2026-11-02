@@ -35,7 +35,7 @@ Which layer answers which question, and how work is picked up. Useful to anyone
 | | |
 |---|---|
 | **READ** | [index.md](index.md) first, always. Then [wiki/overview.md](wiki/overview.md) + at most 2 more pages. Root `CLAUDE.md` for the hard constraints. |
-| **SKIP** | `briefs/` and `todos/` wholesale — [status.md](wiki/status.md) has every brief's state in one line. `data/`, `output/`, `uploads/`, `node_modules/`, `package-lock.json`. |
+| **SKIP** | `briefs/` and `todos/` wholesale — [status.md](wiki/status.md) has a dated line per area. `data/`, `output/`, `uploads/`, `node_modules/`, `package-lock.json`. |
 | **NEVER** | Relitigate a decisions entry without an explicit revisit + a log line. Reintroduce a removed dependency (see the constraints in root `CLAUDE.md`). |
 
 ## Working a brief

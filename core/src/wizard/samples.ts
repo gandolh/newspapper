@@ -2,7 +2,7 @@
  * A hand-written corpus of `.wzd` documents.
  *
  * The formatter's idempotency property runs over all of them, and the
- * compiler and editor briefs use them as fixtures rather than inventing
+ * compiler and editor tests use them as fixtures rather than inventing
  * their own.
  */
 

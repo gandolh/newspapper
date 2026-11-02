@@ -148,7 +148,7 @@
    Every colour below is written at zero specificity, with `:where()`, and
    that is load-bearing rather than tidy. A token span on the selected line
    also carries `.onWax` (below), which sets the ink the wax ground needs —
-   `--wax-ink`, 8.87:1; until brief 106 it carried the wax mark itself. These
+   `--wax-ink`, 8.87:1; until 2026-10-19 it carried the wax mark itself. These
    rules used to win it on cascade order alone, so the galley spent the
    selected line writing paper ink on wax: `punct` and `attr` at 3.88:1,
    `value` at 4.43:1, and the wax's own ink never applied anywhere. At zero
@@ -205,7 +205,7 @@
   font-weight: 700;
 }
 
-/* ---- The wax run (brief 106) ------------------------------------------
+/* ---- The wax run ------------------------------------------
    The selected element's tokens sit in one wrapper carrying the WAX mark, and
    only the wrapper paints wax: its ground and its 0.35em bleed. Inline boxes
    paint in tree order, so when every token carried its own bleed, each one
