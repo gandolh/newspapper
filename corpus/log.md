@@ -1754,7 +1754,7 @@ The owner's call (2026-10-18), one brief in every repo with a docs site. 108 kee
 
 ## [2026-10-31] maintenance | `.env.example` boots as copied; the README images checked
 
-A README refresh pass with the readme-docs standard. Following the README's own run steps, `npm run dev` failed: `.env.example` set `WARD_OIDC_ISSUER` with an empty client key, and the API stopped with "WARD_OIDC_ISSUER is set but WARD_OIDC_CLIENT_KEY is not". The five `WARD_OIDC_*` lines are now commented out, as [configuration.md](wiki/configuration.md) already describes an unset issuer as the local-accounts-only default; Ward's `seed.mjs` still writes them. With that, `npm install`, `npm run seed --workspace=api` and `npm run dev` work, and the API answers `/api/health` on port 3001. The README itself is current. `docs/images/shots.md` said the demo capture signs in through the local Ward; it now makes a local tester account. `editing.gif` predates brief 106's wax fix, and its demo posts are written by hand, so its retake is [a todo](todos/retake-editing-gif-after-the-wax-fix.md); the other three images are unaffected.
+A README refresh pass with the readme-docs standard. Following the README's own run steps, `npm run dev` failed: `.env.example` set `WARD_OIDC_ISSUER` with an empty client key, and the API stopped with "WARD_OIDC_ISSUER is set but WARD_OIDC_CLIENT_KEY is not". The five `WARD_OIDC_*` lines are now commented out, as [configuration.md](wiki/configuration.md) already describes an unset issuer as the local-accounts-only default; Ward's `seed.mjs` still writes them. With that, `npm install`, `npm run seed --workspace=api` and `npm run dev` work, and the API answers `/api/health` on port 3001. The README itself is current. `docs/images/shots.md` said the demo capture signs in through the local Ward; it now makes a local tester account. `editing.gif` predates brief 106's wax fix, and its demo posts are written by hand, so its retake is a todo (brief 01 since 2026-11-03); the other three images are unaffected.
 
 ## [2026-11-02] maintenance | Briefs reset
 
@@ -1772,3 +1772,9 @@ contradicts, and it now says so and leaves the Reader's production state for the
 overview.md no longer points at a brief archive. Code comments, test titles, the root CLAUDE.md,
 README, PRODUCT.md and DESIGN.md no longer cite brief numbers; the vendored Ward library is
 untouched.
+
+## [2026-11-03] todo | brief 01 — retake the editing GIF after the wax fix
+
+Promoted from the todo `retake-editing-gif-after-the-wax-fix` in an estate-wide
+grill with the owner, with the todo's acceptance as the spec. The todo is
+deleted; the brief is its record.

@@ -9,7 +9,8 @@ updated: 2026-11-02
 briefs reset) are not pushed. `npm test` passes 908 tests in 76 files;
 `npm run gate` runs build, tests, lint and the corpus lint with `CI=1`. There is
 no GitHub CI, by the owner's choice (2026-10-04). Brief numbering restarted at
-01 on 2026-11-02 (see [../log.md](../log.md), "Briefs reset"); no brief is open.
+01 on 2026-11-02 (see [../log.md](../log.md), "Briefs reset"). Open: brief 01, retaking
+the editing GIF after the wax fix (2026-11-03).
 
 ## By area
 
