@@ -1,6 +1,6 @@
 ---
 summary: The locked engineering calls — workspaces and ESM, pinned dependencies, SQLite, the UI's type copy, and where project knowledge lives.
-updated: 2026-08-31
+updated: 2026-11-04
 ---
 
 # Decisions — engineering
@@ -140,8 +140,9 @@ _2026-08-27_ — `ui/src/lib/types.ts` is a hand-maintained copy of
 `core/src/types.ts`, minus the Node-side types (`Theme`,
 `RenderTemplateOptions`).
 Rejected: importing `@newspapper/core/templates` (which is genuinely
-browser-safe and exports these types). `core` ships raw `.ts` with no build step
-(`tsc --noEmit`), and while Vite resolves that through the `exports` field in
+browser-safe and exports these types). `core` shipped raw `.ts` with no build step
+(`tsc --noEmit`; since 2026-11-04 it also compiles to `dist/`, for production's
+node alone), and while Vite resolves that through the `exports` field in
 dev, the types fight the Astro production build. The copy is the cheaper side of
 that trade.
 

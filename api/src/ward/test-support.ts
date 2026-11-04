@@ -9,8 +9,9 @@
  * chooses (`createFakeWard`). Nothing here stubs the guard, which is what makes
  * the guard's own tests worth having.
  *
- * Not imported by production code, and not part of any tsc build (tests are
- * excluded), but it lives beside the code it fakes so the two drift loudly.
+ * Not imported by production code. tsc typechecks it and emits it into `dist/`
+ * with the rest of `src/` (only `*.test.ts` is excluded), where nothing loads
+ * it; it lives beside the code it fakes so the two drift loudly.
  */
 import { generateKeyPairSync } from 'node:crypto';
 import type { FastifyInstance } from 'fastify';

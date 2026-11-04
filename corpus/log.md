@@ -1785,3 +1785,17 @@ From the owner's memory review of the VPS (vps-deploy's `memory-on-the-box` rese
 container is the second largest on the box (138 MB; its tsx process 127 MB plus 58 MB in swap) and
 starts through two `npm` processes. The owner decided the apps on the box run built JavaScript and
 start with `node` directly, which revisits the "runs from source under tsx" choice for the API.
+
+## [2026-11-04] done | Brief 02: the API runs built JavaScript, started by node
+
+The image's `CMD` is `node api/dist/server.js`: `core` and `api` compile with `tsc` into `dist/`,
+and the runtime stage installs production dependencies only, so npm, tsx and the dev tooling are
+gone from the container. `core`'s exports gain a `newspapper-built` condition pointing at `dist/`
+ahead of the `.ts` default, which the image sets through `NODE_OPTIONS`; tsx, Vite and vitest keep
+reading source. tsc rather than a bundler because `core` counts `..` from its own file to find the
+repo root. Idle memory measured locally went from 175 MiB to 87 MiB. With node as PID 1 the
+server now exits on SIGTERM itself, or `docker stop` would wait ten seconds. The revisit of "runs
+from source under tsx", which no decisions page held, is in decisions-tooling.md; commands.md,
+configuration.md, dependencies.md, modules.md, architecture.md and status.md follow. vps-deploy's
+`cutover-oidc.ts` still seeds with `npm run seed` in the container and needs `node
+api/dist/seed.js` instead.

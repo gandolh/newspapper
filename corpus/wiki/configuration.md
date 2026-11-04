@@ -1,6 +1,6 @@
 ---
 summary: Every env var and the code that reads it, how .env reaches process.env at all, the accounts and Ward sign-in variables (and what an unset issuer means), the session cookie's Path, settings precedence, and one-time setup including Playwright Chromium.
-updated: 2026-10-13
+updated: 2026-11-04
 ---
 
 # Configuration
@@ -20,8 +20,13 @@ optional: with `WARD_OIDC_ISSUER` unset the app runs on local accounts alone.
 | `WARD_OIDC_CLIENT_KEY` | — | This app's Ed25519 private key, base64url of a JWK. **A secret.** A bad key fails at boot; Ward is **not** contacted at boot. |
 | `WARD_OIDC_REDIRECT_URI` | — | The callback as the browser reaches it: `<origin><base>/api/auth/ward/callback`. Must match Ward's registration exactly. |
 | `WARD_OIDC_POST_LOGOUT_REDIRECT_URI` | — | Optional. Where Ward returns after "sign out of Ward too"; registered at Ward. |
-| `SEED_USERNAME`, `SEED_PASSWORD`, `SEED_ROLE` | role `editor` | Read **only** by `npm run seed --workspace=api`. Set in the shell, never in a file in the repo. |
+| `SEED_USERNAME`, `SEED_PASSWORD`, `SEED_ROLE` | role `editor` | Read **only** by the seed: `npm run seed --workspace=api` locally, `node api/dist/seed.js` in the container. Set in the shell, never in a file in the repo. |
 | `NEWSPAPPER_DB_PATH` | `<repo>/data/newspapper.db` | Override the SQLite path. Tests must set it — see below. |
+
+The Docker image also sets `NODE_OPTIONS=--conditions=newspapper-built`, which
+is what makes node load the compiled `core`. An env file that sets `NODE_OPTIONS`
+(a heap cap, say) replaces it and the API stops at `ERR_MODULE_NOT_FOUND`, so
+keep the flag in the value ([commands.md](./commands.md#production-mode)).
 
 ## Authentication
 

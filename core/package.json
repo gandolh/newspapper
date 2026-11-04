@@ -4,13 +4,25 @@
   "description": "Newspapper pipeline library — scrape, compose, storage.",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts",
-    "./templates": "./src/templates/index.ts",
-    "./publish": "./src/publish/index.ts",
-    "./wizard": "./src/wizard/index.ts"
+    ".": {
+      "newspapper-built": "./dist/index.js",
+      "default": "./src/index.ts"
+    },
+    "./templates": {
+      "newspapper-built": "./dist/templates/index.js",
+      "default": "./src/templates/index.ts"
+    },
+    "./publish": {
+      "newspapper-built": "./dist/publish/index.js",
+      "default": "./src/publish/index.ts"
+    },
+    "./wizard": {
+      "newspapper-built": "./dist/wizard/index.js",
+      "default": "./src/wizard/index.ts"
+    }
   },
   "scripts": {
-    "build": "tsc --noEmit"
+    "build": "tsc"
   },
   "dependencies": {
     "better-sqlite3": "12.10.0",

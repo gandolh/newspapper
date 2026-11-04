@@ -186,6 +186,14 @@ export async function buildApp(options: BuildAppOptions = {}) {
 }
 
 const start = async () => {
+  // In the container this process is PID 1, and PID 1 gets no default action
+  // for a signal it has no handler for: `docker stop` would wait out its
+  // timeout and then SIGKILL. Exit the way an unhandled signal does anywhere
+  // else (128 + the signal's number), which is also how it ended before
+  // 2026-11-04, when npm sat in front of it and forwarded the signal.
+  process.once('SIGTERM', () => process.exit(143));
+  process.once('SIGINT', () => process.exit(130));
+
   let fastify: Awaited<ReturnType<typeof buildApp>>;
   try {
     fastify = await buildApp(bootOptions());

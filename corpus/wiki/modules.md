@@ -1,11 +1,11 @@
 ---
 summary: The public API of @newspapper/core — what the wizard, render, templates, posts storage, themes, util and uploads modules export and from which entry point. Scrape, the Reader and the storage for sources, articles and feed items are in modules-reader.md.
-updated: 2026-10-09
+updated: 2026-11-04
 ---
 
 # Modules
 
-All modules are in `@newspapper/core` (`core/src/`). Exported from `core/src/index.ts` (main entry) or `core/src/templates/index.ts` (browser-safe subpath).
+All modules are in `@newspapper/core` (`core/src/`). Exported from `core/src/index.ts` (main entry) or `core/src/templates/index.ts` (browser-safe subpath). Each entry point also has a `newspapper-built` export condition that points at its `tsc` output in `core/dist/`; only production's node asks for it ([commands.md](./commands.md#production-mode)).
 
 ## Scrape, the Reader, and the reading side's storage
 

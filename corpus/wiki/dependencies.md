@@ -1,6 +1,6 @@
 ---
 summary: What each workspace depends on and why that package was chosen over the alternatives.
-updated: 2026-10-19
+updated: 2026-11-04
 ---
 
 # Dependencies
@@ -47,8 +47,8 @@ Per-workspace. Versions are locked in `package-lock.json`.
 
 | Package | Why |
 |---------|-----|
-| `typescript` | Source language for all three workspaces. |
-| `tsx` | Dev runner — `tsx watch` for the API; used in test runner. |
+| `typescript` | Source language for all three workspaces, and since 2026-11-04 the compiler that builds `core` and `api` into the `dist/` production runs. |
+| `tsx` | Dev runner: `tsx watch` for the API and `npm run seed`. **Not in the runtime image** since 2026-11-04, which installs production dependencies only and runs the compiled API under `node` ([why](./decisions-tooling.md#the-api-runs-built-javascript-started-by-node)). |
 | `vitest` | Test framework (co-located `*.test.ts`). |
 | `concurrently` | Runs API + UI dev servers in parallel (`npm run dev`). |
 | `eslint`, `prettier` | Lint and format — both **enforced**: `npm run build` runs `fmt:check` first, and `npm run lint` covers all three workspaces. Until the tooling fix (2026-08-31) there was no Prettier config at all and `eslint.config.js` enabled **zero rules**; [why the current shape](./decisions-tooling.md#the-formatter-and-the-linter-are-enforced-and-configured-to-do-something). |

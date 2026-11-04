@@ -1,6 +1,6 @@
 ---
 summary: How the three npm workspaces fit together, the SPA's routing and its load-bearing single-App rule, how a post flows write → compile → render → publish/ZIP, and how the Reader's background refresh runs (single-flight, one API process).
-updated: 2026-10-13
+updated: 2026-11-04
 ---
 
 # Architecture
@@ -184,7 +184,7 @@ failing source is recorded on its row and never stops the others.
 `READER_REFRESH_MINUTES` measured from the end of the last run, so runs never
 overlap; `0` turns it off. Its timers are `unref`'d and the server's `onClose`
 stops it. **It assumes one API process**, which is true today: the container
-runs a single `npm run start`. Two would each run a loop against the same file. Settings:
+runs a single `node api/dist/server.js`. Two would each run a loop against the same file. Settings:
 [configuration.md](./configuration.md).
 
 ## Key constraints

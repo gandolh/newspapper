@@ -1,6 +1,6 @@
 ---
 summary: Every npm script — what each one actually covers, in what order, and what it does not cover — plus ports, production mode, and the Playwright install step.
-updated: 2026-10-02
+updated: 2026-11-04
 ---
 
 # Running the app
@@ -14,11 +14,12 @@ HTTP API.
 |--------|-------------|
 | `npm install` | One-time dependency install, from the repo root |
 | `npm run dev` | API (3001) + UI dev server (4321) in parallel, via `concurrently --kill-others-on-fail` |
-| `npm run build` | `fmt:check` → `tsc --noEmit` in `core` → `tsc --noEmit` in `api` → `tsc --noEmit` in `ui` → `vite build` |
+| `npm run build` | `fmt:check` → `tsc` in `core` → `tsc` in `api` → `tsc --noEmit` in `ui` → `vite build`. The `core` and `api` steps typecheck and, since 2026-11-04, also emit `dist/` |
 | `npm test` | `vitest run` over `core/**`, `api/**` **and** `ui/**` `*.test.ts` |
 | `npm run lint` | ESLint over `core/src`, `api/src`, `ui/src` and `ui/vite.config.ts` |
 | `npm run fmt` | Prettier `--write` over the same three workspaces plus `ui/index.html` |
 | `npm run fmt:check` | The same set, read-only. `npm run build` runs this first and stops on it. |
+| `npm run start --workspace=api` | The compiled API, `node --conditions=newspapper-built dist/server.js`. Run `npm run build` first; it loads no `.env`. See Production mode |
 | `npm run seed --workspace=api` | Create the local account named by `SEED_USERNAME` / `SEED_PASSWORD` (and `SEED_ROLE`, default `editor`) if it does not exist. Never resets one that does. Set them in the shell, not a file. |
 
 Single test file: `npx vitest run core/src/path/to/file.test.ts`.
@@ -67,24 +68,35 @@ estate's identity service; locally its container in
 ## Production mode
 
 ```bash
-npm run build                    # emits ui/dist/
-npm run dev --workspace=api      # the API serves ui/dist/ at /
+npm run build                    # emits core/dist/, api/dist/ and ui/dist/
+npm run start --workspace=api    # node on api/dist/server.js; serves ui/dist/ at /
 ```
 
 When `ui/dist/` exists the API serves it at `/` and falls back to `index.html`
 for any non-`/api/` path, which is what the client-side router needs.
 
-**`npm run start -w @newspapper/api` is `tsx src/server.ts`**, and it is the
-Docker image's production `CMD`: the API runs under `tsx` in production too.
-`core` is consumed as TypeScript *source* — its `exports` map points at
-`./src/index.ts` — so plain `node` cannot load it, and compiling `api` alone
-produces a `dist/` that dies on `ERR_MODULE_NOT_FOUND` reaching into `core`.
-Making `node dist/server.js` work would mean compiling `core` and re-pointing
-its exports, which would break `ui`'s Vite build against the `./wizard` and
-`./templates` source subpaths. The dead-config cleanup (2026-08-31) measured this and deleted the script.
+**Since 2026-11-04 production runs built JavaScript under plain `node`**
+([why](./decisions-tooling.md#the-api-runs-built-javascript-started-by-node)).
+`core` and `api` compile with `tsc` into `dist/`, a mirror of `src/`. `core`'s
+`exports` still point at its `.ts` source by default, which is what tsx, Vite
+and vitest read; each entry also has a `newspapper-built` condition pointing at
+`dist/`. `start` passes `--conditions=newspapper-built`, and the Docker image
+sets it in `NODE_OPTIONS` and runs `CMD ["node", "api/dist/server.js"]`: no npm,
+no tsx, no dev dependencies. Without the condition, node resolves `core` to its
+source and stops at `ERR_MODULE_NOT_FOUND`, which is what the dead-config
+cleanup (2026-08-31) found when it deleted an earlier `node dist/server.js`.
+Re-pointing the exports at `dist/` for everyone would have fixed node and broken
+the dev tools; the condition is asked for by node alone.
 
-Outside development, `SESSION_SECRET`, `ADMIN_USERNAME` and `ADMIN_PASSWORD` are
-required and the server exits non-zero without them.
+**In the container, one-off scripts run the same way**: the seed is
+`node api/dist/seed.js`, through `docker compose exec` with `SEED_USERNAME`,
+`SEED_PASSWORD` and `SEED_ROLE` passed by `-e`. `npm run seed` needs tsx, which
+the image no longer has. Migrations need nothing: they run on boot.
+
+Nothing is required outside development. The `SESSION_SECRET` / `ADMIN_*`
+requirement went with the single-account auth; nothing in `api/src` reads them,
+and the image boots in production mode and answers its health check with only
+`PORT`, `NEWSPAPPER_BASE` and `READER_REFRESH_MINUTES` in its env file.
 
 ## Ports
 

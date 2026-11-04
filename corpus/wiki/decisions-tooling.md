@@ -1,6 +1,6 @@
 ---
-summary: The locked calls about the repo itself — workspaces and ESM (and why the Docusaurus docs workspace is the one non-ESM package), exact dependency pinning, the enforced formatter and the linter that once enabled no rules, typechecking the UI, and no GitHub-hosted CI.
-updated: 2026-10-19
+summary: The locked calls about the repo itself — workspaces and ESM (and why the Docusaurus docs workspace is the one non-ESM package), exact dependency pinning, the enforced formatter and the linter that once enabled no rules, typechecking the UI, no GitHub-hosted CI, and the API running built JavaScript under plain node (2026-11-04, revising "runs from source under tsx").
+updated: 2026-11-04
 ---
 
 # Decisions — tooling
@@ -26,7 +26,8 @@ bundler build, and the root `build` chain runs it. (The bundler was
 and the `typecheck` step was the point either way.)
 Found because the editor work (2026-08-31) left a dangling `import { EditorStep } from
 '../editor/EditorStep'` in `ui/src/components/wizard/Wizard.tsx` and **every gate
-stayed green.** `core` and `api` both build with `tsc --noEmit`; `ui` built with
+stayed green.** `core` and `api` both built with `tsc --noEmit` (they also emit
+`dist/` since 2026-11-04); `ui` built with
 `astro build` alone, which bundles from the page entry points and tree-shakes —
 nothing imports `Wizard`, so the file was never reached, never typechecked, and
 never complained.
@@ -107,3 +108,32 @@ corpus lint, with `CI=1` so a missing Chromium fails instead of skipping), run
 by hand or by the deploy. Rejected: `.github/workflows/ci.yml`, which the Chromium-guard work (2026-10-03)
 added and this removed. The estate deploys through its own `vps-deploy`, and
 the owner wants no GitHub machinery in the repos.
+
+## The API runs built JavaScript, started by node
+_2026-11-04_ (owner) — In production the API is `node api/dist/server.js`:
+`core` and `api` compile with `tsc` into `dist/`, and the image holds no npm
+process, no tsx and no dev dependencies. This **revisits** the call made when
+the app was containerized, "runs from SOURCE under `tsx`", with dev dependencies
+kept in the runtime image because there was no compile step. That call lived in
+the Dockerfile's header and [commands.md](./commands.md#production-mode), never
+on a decisions page. The reason is the box: 3.7 GiB of RAM shared by every app
+in the estate, which the owner will not upgrade, so on 2026-11-04 the owner
+decided its apps run built JavaScript and start with `node` directly. This
+container was the second largest there (138 MB; its tsx process 127 MB plus
+58 MB in swap). Measured locally on Docker Desktop with the Reader's loop off,
+idle went from 175 MiB to 87 MiB, and the process tree from npm, sh, tsx, node
+and esbuild to one node.
+
+How: `core`'s `exports` keep their `.ts` source as the default, which tsx, Vite
+and vitest read, and each entry gains a `newspapper-built` condition pointing at
+`dist/`. The image sets `NODE_OPTIONS=--conditions=newspapper-built`, so an
+env file that sets `NODE_OPTIONS` must keep that flag. Node is now PID 1, which
+gets no default action for SIGTERM, so the server exits on it itself.
+Rejected: **a bundler**, because `core` finds the repo root by counting `..`
+from its own file (`util/paths.ts`, `render/fonts.ts`); a bundle moves that code
+to another depth, where fonts, `ui/dist` and the seed list all miss, and tsc's
+`dist/` sits at `src/`'s depth. **Re-pointing the exports at `dist/`** for
+everyone, which the dead-config cleanup (2026-08-31) had already turned down:
+tsx, vitest and the UI's Vite build would read stale output or need `core` built
+first. **Node's own type stripping**, which is not built JavaScript and does not
+map the source's `.js` import specifiers to `.ts` files.
