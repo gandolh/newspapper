@@ -1778,3 +1778,10 @@ untouched.
 Promoted from the todo `retake-editing-gif-after-the-wax-fix` in an estate-wide
 grill with the owner, with the todo's acceptance as the spec. The todo is
 deleted; the brief is its record.
+
+## [2026-11-04] todo | Brief 02: the API runs built JavaScript, started by node
+
+From the owner's memory review of the VPS (vps-deploy's `memory-on-the-box` research): newspapper's
+container is the second largest on the box (138 MB; its tsx process 127 MB plus 58 MB in swap) and
+starts through two `npm` processes. The owner decided the apps on the box run built JavaScript and
+start with `node` directly, which revisits the "runs from source under tsx" choice for the API.
