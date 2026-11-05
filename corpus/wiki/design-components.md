@@ -1,6 +1,6 @@
 ---
 summary: The Mechanical, §5–§9 — the component vocabulary (board, the two-course tray, the galley and its wax ink, stage, tissue, marks), the two authored animations, browser surfaces, the do/don't list, and what the shipped chrome does not yet carry. §1–§4 and the tokens are in design.md.
-updated: 2026-10-19
+updated: 2026-11-05
 ---
 
 # Design System: Newspapper — components, motion, rules
@@ -25,7 +25,7 @@ A full-width strip at the top of the board, 78px, closed by a 1.5px graphite rul
 ### The Galley (source pane)
 A **waxed** paper strip, 372px, top-aligned, with a graphite tab carrying the filename. The bottom edge is torn, not cut — a clip-path deckle that says the copy continues. Syntax colour follows **casing**: lowercase document tags in `graphite-soft`, capitalised components in graphite 700, prop values in `process-blue`. (The comps set the document tags in `#9d9d97`, which is 2.6:1 on paper — recede by weight and case, not by dropping below the ink floor.) The selected element is waxed (`#f5d97a`, bled 0.35em, about 4px, past the text on both sides, laid once per run and under the glyphs so it covers none of them); a lint-flagged line takes a 16% rubylith wash. (The comps said 20px. In a galley 7.5px to the character that is nearly three characters of yellow either side, which reads as selecting the neighbouring tokens; the wax-run fix (2026-10-19) settled on the shipped 0.35em.)
 
-**On wax the galley writes in `wax-ink`.** Wax is a surface, and a surface has its own ink: every token on the selected run takes `#3d3416` (8.87:1 on wax), because the paper inks do not hold 4.5:1 on it — `graphite-soft` measures 3.88:1 and `process-blue` 4.43:1. The casing distinction survives the highlight in weight and slope, not in hue: components stay 700, comments stay italic. Hue pools, and the one hue that carried meaning — `process-blue` on prop values — pools for the one element the tissue is displaying in full while it is selected. The token colours are written at zero specificity (`:where()`) so the wax ink wins on merit rather than on which CSS module the bundler emitted last.
+**On wax the galley writes in `wax-ink`.** Wax is a surface, and a surface has its own ink: every token on the selected run takes `#3d3416` (8.87:1 on wax), because the paper inks do not hold 4.5:1 on it — `graphite-soft` measures 3.88:1 and `process-blue` 4.43:1. The casing distinction survives the highlight in weight and slope, not in hue: components stay 700, comments stay italic. Hue pools, and the one hue that carried meaning — `process-blue` on prop values — pools for the one element the tissue is displaying in full while it is selected. The token colours are written at zero specificity (`:where()`) so the wax ink wins on merit rather than on which CSS module the bundler emitted last. A text selection in the galley is the same wax and ink, painted by the galley rather than by the textarea: wax under exactly the selected characters, the text's height, no bleed ([chrome.md](./chrome.md)).
 
 ### The Stage (canvas)
 The 1080² slide inside 30px of clearance, with **crop marks** — 1px L-ticks at each corner — and a **register target** (a 22px crosshair inside a circle) at each of the four corners. A dimension line across the top states the real size. The slide itself is warm-industrial and untouched by this system.

@@ -48,7 +48,7 @@
   flex: 1;
 }
 
-/* The overlay and the textarea must agree on every metric that affects where a
+/* The overlays and the textarea must agree on every metric that affects where a
    glyph lands, or the paint drifts from the caret. */
 .code {
   position: relative;
@@ -58,6 +58,7 @@
 }
 
 .highlight,
+.selectionLayer,
 .input {
   position: absolute;
   inset: 0;
@@ -85,6 +86,26 @@
   z-index: 0;
 }
 
+/* ---- The text selection ---------------------------------------------
+   Wax with the wax ink on it (DESIGN.md §7), painted by the galley, not by the
+   textarea. The textarea paints above the galley, so its `::selection` ground
+   covered the glyphs it selected, and a highlight pseudo-element's box is the
+   whole 23px line, taller than the wax run. Here the textarea's selection is
+   unpainted; the ground is an inline box on a layer under the galley, exactly
+   the selected characters wide and the text's height; and the galley's tokens
+   in the range take `--wax-ink` from `.onWax`. No bleed: a selection ends
+   where its characters do. */
+.selectionLayer {
+  overflow: hidden;
+  color: transparent;
+  background: transparent;
+  pointer-events: none;
+}
+
+.selectionGround {
+  background: var(--wax);
+}
+
 .input {
   overflow: auto;
   resize: none;
@@ -99,7 +120,7 @@
 }
 
 .input::selection {
-  background: var(--wax);
+  background: transparent;
   color: transparent;
 }
 

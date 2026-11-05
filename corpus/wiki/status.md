@@ -1,19 +1,21 @@
 ---
-summary: Dated snapshot (2026-11-04) of Newspapper, per area — the Wizard rebuild (2026-08-27 to 09-01), the 2026-09-27 improvements sweep (fixed 2026-10-02/03), local accounts with Ward as a second way in (2026-10-13), the Reader (2026-10-09, schema v6), the docs site on Docusaurus and the wax fix (2026-10-19), the API on built JavaScript under node (2026-11-04); what is deployed (the accounts) and what may not be (the Reader), the owner's next steps, the green-because-nothing-ran thread, and the known strays.
+summary: Dated snapshot (2026-11-05) of Newspapper, per area — the Wizard rebuild (2026-08-27 to 09-01), the 2026-09-27 improvements sweep (fixed 2026-10-02/03), local accounts with Ward as a second way in (2026-10-13), the Reader (2026-10-09, schema v6), the docs site on Docusaurus and the wax fix (2026-10-19), the API on built JavaScript under node (2026-11-04), the galley painting its own text selection (2026-11-05); what is deployed (the accounts) and what may not be (the Reader), the owner's next steps, the green-because-nothing-ran thread, and the known strays.
 updated: 2026-11-05
 ---
 
-# Status — 2026-11-04
+# Status — 2026-11-05
 
 `origin/main` is at `b3c2ac6`; the local commits after it (`5d71ed4` and the
-briefs reset) are not pushed. `npm test` passes 908 tests in 76 files;
+briefs reset) are not pushed. `npm test` passed 908 tests in 76 files on
+2026-11-04, and brief 03 added four to the galley's Chromium test;
 `npm run gate` runs build, tests, lint and the corpus lint with `CI=1`. There is
 no GitHub CI, by the owner's choice (2026-10-04). Brief numbering restarted at
 01 on 2026-11-02 (see [../log.md](../log.md), "Briefs reset"). Open: brief 01, retaking
-the editing GIF after the wax fix (2026-11-03), held since 2026-11-05 on the todo
-`galley-text-selection-hides-the-selected-text`: a range selected in the source
-pane hides its own text under the wax, and the GIF's first beat is such a
-selection.
+the editing GIF after the wax fix (2026-11-03). What held it, a selected range
+hiding its own text under the wax, was fixed on 2026-11-05 (brief 03); it stays
+blocked because the owner put README retakes off that day. One design question
+is open in [open-questions.md](./open-questions.md): a selection inside the
+waxed element is the same wax and shows no extent.
 
 ## By area
 
@@ -25,7 +27,9 @@ selection.
 - **The chrome** (2026-08-31, finished 2026-09-01). The Mechanical: a paste-up
   board with a two-course tray under 640px ([chrome.md](./chrome.md)). Since
   2026-10-19 the galley's wax is one run laid under the text, so it no longer
-  covers letters.
+  covers letters; since 2026-11-05 the galley paints a text selection too, wax
+  under wax-ink at the text's height, where the textarea's `::selection` used
+  to hide the selected text.
 - **Tooling** (2026-08-31). Vite + React replaced Astro; the formatter and the
   linter actually run, and `npm run build` runs `fmt:check` first
   ([decisions-tooling.md](./decisions-tooling.md)).
@@ -67,8 +71,8 @@ Ward enabled. Whether the Reader, on `main` since 2026-10-09, went out with that
 deploy is not recorded here; the README still calls it undeployed. Check
 production's schema version (`PRAGMA user_version`, 6 with the Reader) before
 assuming either way. The docs site and the wax fix (2026-10-19) came after, and
-are built and checked locally only, as is the built-JavaScript runtime
-(2026-11-04).
+are built and checked locally only, as are the built-JavaScript runtime
+(2026-11-04) and the galley's text selection (2026-11-05).
 
 ## Next (owner)
 
@@ -76,9 +80,11 @@ are built and checked locally only, as is the built-JavaScript runtime
   boot, so back the database up first. The background refresh then starts 15 s
   after boot and fetches every enabled feed every 30 minutes
   (`READER_REFRESH_MINUTES`).
-- **Deploy the docs site, the wax fix and the built-JavaScript runtime** from
-  `vps-deploy` (`node cli.ts newspapper deploy`), then check the container's
-  idle memory on the box against the 138 MB it held on 2026-11-04.
+- **Deploy the docs site, the wax fix, the built-JavaScript runtime and the
+  galley's text selection** from `vps-deploy` (`node cli.ts newspapper all`),
+  then check the container's idle memory on the box against the 138 MB it held
+  on 2026-11-04, and select a range in the galley: the text stays readable on
+  wax, each line no taller than the element's wax run.
 - **vps-deploy's `cutover-oidc.ts` seeds through `npm run seed` inside the
   container**, which needs tsx and no longer works there. Its command becomes
   `node api/dist/seed.js`; that change belongs to vps-deploy.

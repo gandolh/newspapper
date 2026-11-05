@@ -1,6 +1,6 @@
 ---
 summary: The Mechanical — the app chrome as shipped: tokens, the mark set, the tray and its two-course narrow layout, the health probe's two states, the two authored animations, why it shares nothing with the slide themes, and the states a once-per-element contrast sweep cannot see.
-updated: 2026-10-19
+updated: 2026-11-05
 ---
 
 # The app chrome — The Mechanical
@@ -117,6 +117,23 @@ take `--wax-ink` from `.onWax`. Any mark that reaches past its own box has the
 same hazard; a Chromium test (`SourcePane.wax.test.ts`) counts each glyph's
 ink with and without the wax.
 
+**A highlight belongs to the element that paints it.** The galley's text is
+drawn by a `<pre>` under a transparent `<textarea>`, and until 2026-11-05 the
+textarea's `::selection` was opaque wax with transparent ink: the selection
+painted on the textarea's layer, above the galley, so every selected glyph lost
+all its ink, and its box was the whole 23 px line where the wax run is the
+text's 15 px. A highlight pseudo-element can neither move to another element's
+layer nor be shorter than its line box. So the textarea's `::selection` is now
+transparent ground and ink, and the galley paints the range itself: the ground
+on a second `<pre>` laid under the galley (the same text, unpainted, the
+selected characters in one span on wax, no bleed), the ink by giving the
+tokens in the range `.onWax`. Under the glyphs, the ground cannot cover one;
+on the tokens it would have covered the oblique comments' overhang into the
+next cell. The same Chromium test counts the selected glyphs' ink and measures
+the ground against the run. What it does not settle: a selection inside the
+waxed element is wax on wax and shows no extent
+([open-questions.md](./open-questions.md)).
+
 **A breakpoint that hides the word leaves hue holding the state.** The health
 probe hid its label under `max-width: 768px`, so from 320 to 768 both states
 painted the same 6 × 1 pixel tick and differed only in ink — a 320px tray read
@@ -133,8 +150,8 @@ actually folds; between 641 and 768 the word had been hidden inside a strip
 that was still one roomy course.
 
 Two things that look like findings and are not. The galley's `<textarea>` is
-deliberately `color: transparent` over the painted `<pre>`; any sweep will flag
-it and it is correct as it stands. And on wax the galley pools its hues into
+deliberately `color: transparent` over the painted `<pre>`, with a transparent
+`::selection` too; any sweep will flag them and they are correct as they stand. And on wax the galley pools its hues into
 `--wax-ink` on purpose: bold and italic still separate component from tag from
 comment, and the one hue that carried meaning — `process-blue` on prop values —
 is carrying it for the element the tissue is displaying in full at that moment.

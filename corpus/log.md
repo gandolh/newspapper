@@ -1821,3 +1821,21 @@ The todo `galley-text-selection-hides-the-selected-text` (found while
 retaking the editing GIF) is promoted to brief 03 at the owner's request
 for more work. The owner put README retakes off the same day, so brief 01
 stays blocked after 03 lands.
+
+## [2026-11-05] done | Brief 03: the galley paints its own text selection
+
+The textarea's `::selection` was opaque wax with transparent ink, painted above the galley, so a
+selected range was a blank bar a full 23 px line tall. It is now transparent ground and ink, and
+`SourcePane` shows the textarea's range while it has focus and is not collapsed: the ground on a
+second `<pre>` under the galley (the same text, unpainted, the selected characters in one span on
+wax, 15 px tall like the wax run, no bleed), the ink by a `text-selection` mark that gives the
+tokens `.onWax`. Ruled out: the textarea's own glyphs in wax-ink (a highlight box is the line
+box, and its glyphs are regular and upright), and a ground on the galley's tokens (it would cover
+the oblique comments' overhang). `SourcePane.wax.test.ts` gains four Chromium cases (selected
+glyphs keep their ink, wax-ink on every selected token, the ground's height and edges against the
+run and the characters, a caret and blur paint nothing); all four failed on the old CSS with
+every selected glyph at 0 ink. Checked at 1280×800 in the local app on a scratch database.
+Firefox not checked (not installed). Open for the owner, in open-questions.md: a selection inside
+the waxed element is wax on wax and shows no extent. The todo
+`galley-text-selection-hides-the-selected-text` is deleted; brief 01 stays blocked on the owner's
+README retakes.

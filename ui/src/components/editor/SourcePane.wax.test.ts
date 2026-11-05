@@ -17,6 +17,12 @@
  * 0.35em `box-shadow` bleed, the next token's bleed covered about half of the
  * previous token's last glyph, so those glyphs kept well under half their ink.
  * That failure was watched before the fix went in.
+ *
+ * A text selection gets the same check. The textarea used to paint it, above
+ * the galley, as an opaque wax ground under transparent ink, so every
+ * selected glyph lost all of its ink; that failure was watched too
+ * (2026-11-05). The control switches off the textarea's `::selection` ground
+ * as well as the galley's, or it would hide the glyphs it is the control for.
  */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { readFile } from 'node:fs/promises';
@@ -204,25 +210,44 @@ async function inkPerGlyph(png: Buffer, glyphs: Glyph[]): Promise<{ ink: number[
   );
 }
 
-/**
- * Mount `source` with `[start, end)` waxed, and return every visible glyph
- * from `start - margin` to `end + margin` with its ink waxed and unwaxed.
- */
-async function measure(source: string, range: [number, number], margin = 3) {
+/** Mount `source` with `[start, end)` waxed, or nothing waxed for `null`. */
+async function mount(source: string, range: [number, number] | null): Promise<void> {
+  // A selection left focused by the last case would outlive the new source.
+  await page!.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
   await page!.evaluate(
     ({ source, range }) =>
       (
-        window as unknown as { Galley: { mount: (s: string, r: [number, number]) => void } }
+        window as unknown as {
+          Galley: { mount: (s: string, r: [number, number] | null) => void };
+        }
       ).Galley.mount(source, range),
     { source, range },
   );
   if (pageErrors.length) throw new Error(`the page threw: ${pageErrors.join(' | ')}`);
   await page!.evaluate(() => document.fonts.ready);
+}
+
+/**
+ * Mount `source` with `range` waxed and `select` selected in the textarea, and
+ * return every visible glyph from `margin` before the first of the two to
+ * `margin` after the last, with its ink waxed and unwaxed.
+ */
+async function measure(
+  source: string,
+  range: [number, number] | null,
+  margin = 3,
+  select?: [number, number],
+) {
+  await mount(source, range);
+  if (select) await selectText(select);
+  const ranges = [range, select].filter((r): r is [number, number] => !!r);
+  const from = Math.min(...ranges.map((r) => r[0]));
+  const to = Math.max(...ranges.map((r) => r[1]));
 
   const { clip, glyphs, family } = await page!.evaluate(
     ({ from, to, scale }) => {
-      const pre = document.querySelector('pre');
-      if (!pre) throw new Error('SourcePane did not render a <pre>');
+      const pre = document.querySelector('pre[class*="highlight"]');
+      if (!pre) throw new Error('SourcePane did not render the galley <pre>');
       const box = pre.getBoundingClientRect();
       const glyphs: Glyph[] = [];
       const walker = document.createTreeWalker(pre, NodeFilter.SHOW_TEXT);
@@ -253,12 +278,14 @@ async function measure(source: string, range: [number, number], margin = 3) {
         family: getComputedStyle(pre).fontFamily,
       };
     },
-    { from: range[0] - margin, to: range[1] + margin, scale: SCALE },
+    { from: from - margin, to: to + margin, scale: SCALE },
   );
 
   const waxed = await inkPerGlyph(await page!.screenshot({ clip }), glyphs);
   const off = await page!.addStyleTag({
-    content: 'pre, pre * { background: transparent !important; box-shadow: none !important; }',
+    content:
+      'pre, pre * { background: transparent !important; box-shadow: none !important; }' +
+      ' textarea::selection { background: transparent !important; }',
   });
   const control = await inkPerGlyph(await page!.screenshot({ clip }), glyphs);
   await off.evaluate((el) => (el as Element).remove());
@@ -269,6 +296,28 @@ async function measure(source: string, range: [number, number], margin = 3) {
     waxPixels: { waxed: waxed.wax, control: control.wax },
     glyphs: glyphs.map((g, i) => ({ ...g, waxed: waxed.ink[i]!, control: control.ink[i]! })),
   };
+}
+
+/**
+ * Focus the galley's textarea and select `[start, end)` in it, the way a drag
+ * or Shift+arrows would, then give React the task it renders the change in.
+ */
+async function selectText([start, end]: [number, number]): Promise<void> {
+  await page!.evaluate(
+    async ({ start, end }) => {
+      const input = document.querySelector('textarea');
+      if (!input) throw new Error('SourcePane did not render a <textarea>');
+      input.focus();
+      const changed = new Promise((resolve) => {
+        document.addEventListener('selectionchange', resolve, { once: true, capture: true });
+        setTimeout(resolve, 1000);
+      });
+      input.setSelectionRange(start, end);
+      await changed;
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    },
+    { start, end },
+  );
 }
 
 /** Glyphs that lost ink to the wax: under 85% of their unwaxed count. Throws
@@ -314,5 +363,118 @@ describe('the selected-element wax in the galley (Chromium)', () => {
     const source = '<Heading size="xl">\n  Say something\n</Heading>\n<Text>after</Text>';
     const end = source.indexOf('\n<Text>');
     expect(covered(await measure(source, [0, end]))).toEqual([]);
+  });
+});
+
+/** The device-independent box of every line of the selection's ground. */
+const groundRects = () =>
+  page!.evaluate(() =>
+    [...document.querySelectorAll('pre [class*="selectionGround"]')].flatMap((el) =>
+      [...el.getClientRects()].map((r) => ({
+        left: r.left,
+        right: r.right,
+        top: r.top,
+        bottom: r.bottom,
+        height: r.height,
+      })),
+    ),
+  );
+
+describe('a text selection in the galley (Chromium)', () => {
+  it('keeps every selected glyph, in wax-ink on wax', async (ctx) => {
+    if (!chromium.orSkip((note) => ctx.skip(note))) return;
+    // No element is waxed, so every wax pixel in the shot is the selection's.
+    const source = '<Slide><Heading size="xl">Say something</Heading></Slide>';
+    const select: [number, number] = [source.indexOf('<Heading'), source.indexOf('</Slide>')];
+    const result = await measure(source, null, 3, select);
+    expect(covered(result)).toEqual([]);
+    // The ink, read per galley token: every token in the range is on wax.
+    const inks = await page!.evaluate(
+      ({ from, to }) => {
+        const pre = document.querySelector('pre[class*="highlight"]')!;
+        const out: string[] = [];
+        let offset = 0;
+        for (const token of pre.querySelectorAll('span:not([class*="waxRun"])')) {
+          const length = token.textContent?.length ?? 0;
+          if (offset >= from && offset < to && token.textContent?.trim())
+            out.push(getComputedStyle(token).color);
+          offset += length;
+        }
+        return out;
+      },
+      { from: select[0], to: select[1] },
+    );
+    expect(inks.length).toBeGreaterThan(5);
+    // --wax-ink is #3d3416.
+    expect(new Set(inks)).toEqual(new Set(['rgb(61, 52, 22)']));
+  });
+
+  it('is no taller than the wax run and no wider than its characters', async (ctx) => {
+    if (!chromium.orSkip((note) => ctx.skip(note))) return;
+    // The heading is the waxed element; the selection is one word inside it.
+    const source = '<Slide><Heading size="xl">Say something</Heading></Slide>';
+    const wax: [number, number] = [source.indexOf('<Heading'), source.indexOf('</Slide>')];
+    const word = source.indexOf('something');
+    const select: [number, number] = [word, word + 'something'.length];
+    expect(covered(await measure(source, wax, 3, select))).toEqual([]);
+
+    const [ground, ...more] = await groundRects();
+    expect(more).toEqual([]);
+    const { run, chars, line } = await page!.evaluate(
+      ({ start, end }) => {
+        const pre = document.querySelector('pre[class*="highlight"]')!;
+        const box = (r: DOMRect) => ({ left: r.left, right: r.right, height: r.height });
+        const run = pre.querySelector('[class*="waxRun"]')!.getBoundingClientRect();
+        // The selected characters as the galley set them.
+        const walker = document.createTreeWalker(pre, NodeFilter.SHOW_TEXT);
+        const range = document.createRange();
+        let offset = 0;
+        for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+          const length = node.textContent?.length ?? 0;
+          if (start >= offset && start < offset + length) range.setStart(node, start - offset);
+          if (end > offset && end <= offset + length) range.setEnd(node, end - offset);
+          offset += length;
+        }
+        return {
+          run: box(run),
+          chars: box(range.getBoundingClientRect()),
+          line: parseFloat(getComputedStyle(pre).lineHeight),
+        };
+      },
+      { start: select[0], end: select[1] },
+    );
+    expect(ground).toBeDefined();
+    expect(Math.abs(ground!.height - run.height)).toBeLessThan(0.5);
+    expect(ground!.height).toBeLessThan(line);
+    expect(Math.abs(ground!.left - chars.left)).toBeLessThan(0.5);
+    expect(Math.abs(ground!.right - chars.right)).toBeLessThan(0.5);
+  });
+
+  it('keeps each line of a selection over several lines to the height of the text', async (ctx) => {
+    if (!chromium.orSkip((note) => ctx.skip(note))) return;
+    const source = '<Heading size="xl">\n  Say something\n</Heading>\n<Text>after</Text>';
+    const select: [number, number] = [3, source.indexOf('</Heading>') + 5];
+    expect(covered(await measure(source, null, 3, select))).toEqual([]);
+    const rects = (await groundRects()).filter((r) => r.right > r.left);
+    expect(rects.length).toBe(3);
+    for (const r of rects) expect(r.height).toBeLessThan(23);
+  });
+
+  it('paints nothing for a caret, or once the galley loses focus', async (ctx) => {
+    if (!chromium.orSkip((note) => ctx.skip(note))) return;
+    const source = '<Slide><Heading size="xl">Say something</Heading></Slide>';
+    await mount(source, null);
+    await selectText([8, 15]);
+    expect(await groundRects()).toHaveLength(1);
+    await selectText([10, 10]);
+    expect(await groundRects()).toEqual([]);
+    await selectText([8, 15]);
+    expect(await groundRects()).toHaveLength(1);
+    await page!.evaluate(() => document.querySelector('textarea')!.blur());
+    await page!.waitForFunction(
+      () => document.querySelectorAll('pre [class*="selectionGround"]').length === 0,
+      undefined,
+      { timeout: 5000 },
+    );
   });
 });

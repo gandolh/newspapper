@@ -5,15 +5,22 @@
  * the caret, undo stack and IME are the browser's and highlighting never has
  * to reimplement any of them. Lint findings are painted at the exact ranges
  * the linter reported, and listed underneath so they can be jumped to.
+ *
+ * A text selection is the one thing the textarea would otherwise paint, and
+ * it paints above the galley: its ground hid the galley's glyphs. So the
+ * textarea's `::selection` is transparent and the galley shows the range
+ * itself, the ground on a layer under the text and the ink on the tokens.
  */
 
-import { useCallback, useEffect, useMemo, useRef, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { WzdDiagnostic } from '@newspapper/core/wizard';
 import { Button, Finding, Mark, WAX } from '../ui';
 import { decorate, tokenize, type WzdRangeMark } from './highlight.js';
 import styles from './SourcePane.module.css';
 
 const SELECTED_MARK = 'selected';
+/** The textarea's own selection, while it has focus and spans a range. */
+const TEXT_SELECTION_MARK = 'text-selection';
 
 function lineOf(source: string, offset: number): number {
   let line = 1;
@@ -50,6 +57,10 @@ export default function SourcePane({
 }: SourcePaneProps) {
   const textRef = useRef<HTMLTextAreaElement>(null);
   const preRef = useRef<HTMLPreElement>(null);
+  const groundRef = useRef<HTMLPreElement>(null);
+  const [textSelection, setTextSelection] = useState<[number, number] | null>(null);
+
+  const tokens = useMemo(() => tokenize(source), [source]);
 
   const spans = useMemo(() => {
     const marks: WzdRangeMark[] = diagnostics.map((d) => ({
@@ -64,8 +75,11 @@ export default function SourcePane({
         mark: SELECTED_MARK,
       });
     }
-    return decorate(tokenize(source), marks, source.length);
-  }, [source, diagnostics, selectionRange]);
+    if (textSelection) {
+      marks.push({ start: textSelection[0], end: textSelection[1], mark: TEXT_SELECTION_MARK });
+    }
+    return decorate(tokens, marks, source.length);
+  }, [tokens, source.length, diagnostics, selectionRange, textSelection]);
 
   const messageAt = useCallback(
     (start: number, end: number): string | undefined => {
@@ -79,8 +93,24 @@ export default function SourcePane({
 
   const reportCursor = useCallback(() => {
     const el = textRef.current;
-    if (el) onCursor(el.selectionStart);
+    if (!el) return;
+    onCursor(el.selectionStart);
+    const { selectionStart: start, selectionEnd: end } = el;
+    // A caret is not a selection: a collapsed range would be widened to one
+    // character by `decorate` and paint as if that character were selected.
+    setTextSelection((current) =>
+      start === end ? null : current?.[0] === start && current[1] === end ? current : [start, end],
+    );
   }, [onCursor]);
+
+  /** The layers under the textarea scroll with it. */
+  const followScroll = useCallback((top: number, left: number) => {
+    for (const layer of [preRef.current, groundRef.current]) {
+      if (!layer) continue;
+      layer.scrollTop = top;
+      layer.scrollLeft = left;
+    }
+  }, []);
 
   useEffect(() => {
     const handler = (): void => {
@@ -99,7 +129,7 @@ export default function SourcePane({
     const target = (line - 4) * lineHeight;
     if (target < el.scrollTop || target > el.scrollTop + el.clientHeight - lineHeight * 4) {
       el.scrollTop = Math.max(0, target);
-      if (preRef.current) preRef.current.scrollTop = el.scrollTop;
+      followScroll(el.scrollTop, el.scrollLeft);
     }
     // `source` is deliberately not a dependency: a reveal is an event, not a
     // property of the text.
@@ -129,15 +159,12 @@ export default function SourcePane({
     };
     for (const span of spans) {
       const selected = span.marks.includes(SELECTED_MARK);
-      const lint = span.marks.filter((m) => m !== SELECTED_MARK);
+      const onWax = selected || span.marks.includes(TEXT_SELECTION_MARK);
+      const lint = span.marks.filter((m) => m !== SELECTED_MARK && m !== TEXT_SELECTION_MARK);
       const token = (
         <span
           key={`${span.start}-${span.end}`}
-          className={[
-            styles[span.kind],
-            selected ? styles.onWax : null,
-            ...lint.map((m) => styles[m]),
-          ]
+          className={[styles[span.kind], onWax ? styles.onWax : null, ...lint.map((m) => styles[m])]
             .filter(Boolean)
             .join(' ')}
           title={lint.length > 0 ? messageAt(span.start, span.end) : undefined}
@@ -179,6 +206,23 @@ export default function SourcePane({
       </div>
 
       <div className={styles.code}>
+        {/* The selection's ground: the same text, unpainted, with the selected
+            range on wax. It sits under the galley, so no glyph is ever behind
+            it, and an inline box is the height of the text, not of the line. */}
+        <pre className={styles.selectionLayer} ref={groundRef} aria-hidden="true">
+          {textSelection ? (
+            <>
+              {source.slice(0, textSelection[0])}
+              <span className={styles.selectionGround}>
+                {source.slice(textSelection[0], textSelection[1])}
+              </span>
+              {source.slice(textSelection[1])}
+            </>
+          ) : (
+            source
+          )}
+          {'\n '}
+        </pre>
         <pre className={styles.highlight} ref={preRef} aria-hidden="true">
           {galley}
           {'\n '}
@@ -191,16 +235,13 @@ export default function SourcePane({
           wrap="off"
           aria-label="Wizard markup"
           onChange={(event) => onChange(event.target.value)}
-          onScroll={(event) => {
-            const el = event.currentTarget;
-            if (preRef.current) {
-              preRef.current.scrollTop = el.scrollTop;
-              preRef.current.scrollLeft = el.scrollLeft;
-            }
-          }}
+          onScroll={(event) =>
+            followScroll(event.currentTarget.scrollTop, event.currentTarget.scrollLeft)
+          }
           onClick={reportCursor}
           onKeyUp={reportCursor}
           onFocus={reportCursor}
+          onBlur={() => setTextSelection(null)}
         />
       </div>
 
