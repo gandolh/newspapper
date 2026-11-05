@@ -1,6 +1,6 @@
 ---
 summary: Dated snapshot (2026-11-04) of Newspapper, per area — the Wizard rebuild (2026-08-27 to 09-01), the 2026-09-27 improvements sweep (fixed 2026-10-02/03), local accounts with Ward as a second way in (2026-10-13), the Reader (2026-10-09, schema v6), the docs site on Docusaurus and the wax fix (2026-10-19), the API on built JavaScript under node (2026-11-04); what is deployed (the accounts) and what may not be (the Reader), the owner's next steps, the green-because-nothing-ran thread, and the known strays.
-updated: 2026-11-04
+updated: 2026-11-05
 ---
 
 # Status — 2026-11-04
@@ -10,7 +10,10 @@ briefs reset) are not pushed. `npm test` passes 908 tests in 76 files;
 `npm run gate` runs build, tests, lint and the corpus lint with `CI=1`. There is
 no GitHub CI, by the owner's choice (2026-10-04). Brief numbering restarted at
 01 on 2026-11-02 (see [../log.md](../log.md), "Briefs reset"). Open: brief 01, retaking
-the editing GIF after the wax fix (2026-11-03).
+the editing GIF after the wax fix (2026-11-03), held since 2026-11-05 on the todo
+`galley-text-selection-hides-the-selected-text`: a range selected in the source
+pane hides its own text under the wax, and the GIF's first beat is such a
+selection.
 
 ## By area
 

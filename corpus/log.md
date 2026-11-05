@@ -1799,3 +1799,18 @@ from source under tsx", which no decisions page held, is in decisions-tooling.md
 configuration.md, dependencies.md, modules.md, architecture.md and status.md follow. vps-deploy's
 `cutover-oidc.ts` still seeds with `npm run seed` in the container and needs `node
 api/dist/seed.js` instead.
+
+## [2026-11-05] todo | A text selection in the galley hides the text it selects; brief 01 held
+
+Retaking `editing.gif` (brief 01) in the local app, signed in as a tester on a scratch
+database. With a caret in slide 1's heading, the element's wax run lies under the text and every
+glyph is whole, so the 2026-10-19 fix holds. Selecting the heading's text, the gif's first beat,
+hides it: the textarea's `::selection` is opaque wax with transparent ink, laid over the galley.
+The rule dates from the editor's first commit, and the 2026-10-09 gif shows it too. Per the
+brief, no source change and no new gif: the todo `galley-text-selection-hides-the-selected-text`
+records it, and brief 01 stays in `todo/` until the owner chooses between fixing the selection
+first or retaking without the held selection frame. Notes for the retake: `agent-browser record`
+drops idle time, so step and screenshot instead; the post's text can be read off `slides.gif`
+(slide 3's text is `<Text size="lg">`, slide 4 is `<Quote size="lg" by="...">` with a `<Source>`
+ending in `{date}`); the preview scrolls in its column element, one slide every 421 px at
+1280×800.
