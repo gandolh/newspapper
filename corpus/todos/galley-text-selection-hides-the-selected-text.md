@@ -1,7 +1,7 @@
 ---
 title: A text selection in the galley hides the text it selects
 created: 2026-11-05
-status: open
+status: promoted
 tags: [chrome, editor, bug]
 ---
 

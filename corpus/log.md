@@ -1814,3 +1814,10 @@ drops idle time, so step and screenshot instead; the post's text can be read off
 (slide 3's text is `<Text size="lg">`, slide 4 is `<Quote size="lg" by="...">` with a `<Source>`
 ending in `{date}`); the preview scrolls in its column element, one slide every 421 px at
 1280×800.
+
+## [2026-11-05] brief | Brief 03: a galley selection keeps its text
+
+The todo `galley-text-selection-hides-the-selected-text` (found while
+retaking the editing GIF) is promoted to brief 03 at the owner's request
+for more work. The owner put README retakes off the same day, so brief 01
+stays blocked after 03 lands.
