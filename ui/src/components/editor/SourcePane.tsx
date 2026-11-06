@@ -9,7 +9,8 @@
  * A text selection is the one thing the textarea would otherwise paint, and
  * it paints above the galley: its ground hid the galley's glyphs. So the
  * textarea's `::selection` is transparent and the galley shows the range
- * itself, the ground on a layer under the text and the ink on the tokens.
+ * itself: the ground on a wrapper behind the selected tokens, above the wax
+ * run when the selection is inside it, and the ink on the tokens.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
@@ -57,7 +58,6 @@ export default function SourcePane({
 }: SourcePaneProps) {
   const textRef = useRef<HTMLTextAreaElement>(null);
   const preRef = useRef<HTMLPreElement>(null);
-  const groundRef = useRef<HTMLPreElement>(null);
   const [textSelection, setTextSelection] = useState<[number, number] | null>(null);
 
   const tokens = useMemo(() => tokenize(source), [source]);
@@ -103,13 +103,12 @@ export default function SourcePane({
     );
   }, [onCursor]);
 
-  /** The layers under the textarea scroll with it. */
+  /** The galley under the textarea scrolls with it. */
   const followScroll = useCallback((top: number, left: number) => {
-    for (const layer of [preRef.current, groundRef.current]) {
-      if (!layer) continue;
-      layer.scrollTop = top;
-      layer.scrollLeft = left;
-    }
+    const layer = preRef.current;
+    if (!layer) return;
+    layer.scrollTop = top;
+    layer.scrollLeft = left;
   }, []);
 
   useEffect(() => {
@@ -143,13 +142,34 @@ export default function SourcePane({
    * order: each token's bleed covered the last glyph of the token before it.
    * Inside the run the tokens keep their weight and slope and take the wax's
    * ink; the wrapper alone paints the ground and the bleed.
+   *
+   * A text selection is laid on a wrapper too, one per contiguous range of
+   * selected tokens, split where it crosses the wax run's edge: off the run it
+   * sits behind the text like the run, and inside it it is the run's child,
+   * which is how its blue lands above the wax and under the text. Its tokens
+   * take graphite, on the run or off it.
    */
   const galley = useMemo(() => {
     const out: ReactNode[] = [];
     let run: ReactNode[] | null = null;
     let runStart = 0;
+    let picked: ReactNode[] | null = null;
+    let pickedStart = 0;
+    const closePicked = (): void => {
+      if (!picked) return;
+      (run ?? out).push(
+        <span
+          key={`sel-${pickedStart}`}
+          className={run ? styles.selectionGround : `${styles.selectionGround} ${styles.offRun}`}
+        >
+          {picked}
+        </span>,
+      );
+      picked = null;
+    };
     const closeRun = (): void => {
       if (!run) return;
+      closePicked();
       out.push(
         <span key={`wax-${runStart}`} className={`${WAX} ${styles.waxRun}`}>
           {run}
@@ -159,12 +179,13 @@ export default function SourcePane({
     };
     for (const span of spans) {
       const selected = span.marks.includes(SELECTED_MARK);
-      const onWax = selected || span.marks.includes(TEXT_SELECTION_MARK);
+      const inSelection = span.marks.includes(TEXT_SELECTION_MARK);
+      const ink = inSelection ? styles.onSelection : selected ? styles.onWax : null;
       const lint = span.marks.filter((m) => m !== SELECTED_MARK && m !== TEXT_SELECTION_MARK);
       const token = (
         <span
           key={`${span.start}-${span.end}`}
-          className={[styles[span.kind], onWax ? styles.onWax : null, ...lint.map((m) => styles[m])]
+          className={[styles[span.kind], ink, ...lint.map((m) => styles[m])]
             .filter(Boolean)
             .join(' ')}
           title={lint.length > 0 ? messageAt(span.start, span.end) : undefined}
@@ -172,18 +193,26 @@ export default function SourcePane({
           {source.slice(span.start, span.end)}
         </span>
       );
-      if (selected) {
-        if (!run) {
-          run = [];
-          runStart = span.start;
-        }
-        run.push(token);
-      } else {
+      if (selected && !run) {
+        closePicked();
+        run = [];
+        runStart = span.start;
+      } else if (!selected) {
         closeRun();
-        out.push(token);
+      }
+      if (inSelection) {
+        if (!picked) {
+          picked = [];
+          pickedStart = span.start;
+        }
+        picked.push(token);
+      } else {
+        closePicked();
+        (run ?? out).push(token);
       }
     }
     closeRun();
+    closePicked();
     return out;
   }, [spans, source, messageAt]);
 
@@ -206,23 +235,6 @@ export default function SourcePane({
       </div>
 
       <div className={styles.code}>
-        {/* The selection's ground: the same text, unpainted, with the selected
-            range on wax. It sits under the galley, so no glyph is ever behind
-            it, and an inline box is the height of the text, not of the line. */}
-        <pre className={styles.selectionLayer} ref={groundRef} aria-hidden="true">
-          {textSelection ? (
-            <>
-              {source.slice(0, textSelection[0])}
-              <span className={styles.selectionGround}>
-                {source.slice(textSelection[0], textSelection[1])}
-              </span>
-              {source.slice(textSelection[1])}
-            </>
-          ) : (
-            source
-          )}
-          {'\n '}
-        </pre>
         <pre className={styles.highlight} ref={preRef} aria-hidden="true">
           {galley}
           {'\n '}
