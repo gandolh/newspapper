@@ -1860,3 +1860,12 @@ overlap, and picked non-photo blue. Measured the same day: at the grid's
 strength it is 1.05:1 against wax (hue only), so brief 05 uses it at 80%
 over paper, `#99c5ed`, graphite 7.8:1 on it and 1.3:1 against wax. The
 open question moved to "Settled".
+
+## [2026-11-06] decision | Brief 04 without undici; brief 05's colour confirmed
+
+Asked why brief 04 needed the `undici` package, the owner chose no new
+dependency: `safeFetch` makes its requests with `node:http` and
+`node:https`, whose `lookup` option vets the address the socket connects
+to, behind a small adapter that hands callers a web `Response` (with the
+decompression `fetch` used to do). The IPv6 forms and brief 05's
+`#99c5ed` ground were taken as written.

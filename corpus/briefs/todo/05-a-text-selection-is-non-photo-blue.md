@@ -30,9 +30,9 @@ lightness too. On it the other inks fail: `--wax-ink` 6.8:1 passes,
 ## Owner decisions
 
 Settled on 2026-11-06: non-photo blue for every text selection in the
-chrome. One smaller call, with the default this brief builds:
+chrome. The smaller call, answered the same day:
 
-1. **The exact ground.** Default: a new token, `--non-photo-select:
+1. **The exact ground.** **Decided:** a new token, `--non-photo-select:
    #99c5ed` (non-photo at 80%, solid), with `--graphite` as the ink on it,
    as measured above. Slide themes are untouched: they never show a
    selection.
