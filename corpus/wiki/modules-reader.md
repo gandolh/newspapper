@@ -1,6 +1,6 @@
 ---
 summary: The reading side of @newspapper/core — Search's scrape module, the feed fetchers, the Reader's refresh and schedule, and the storage for sources, saved articles and feed items — with what each exports. The posts side, render, themes, util and uploads are in modules.md.
-updated: 2026-10-09
+updated: 2026-11-06
 ---
 
 # Modules — scrape, the Reader and its storage
@@ -36,7 +36,11 @@ export function stripHtml(html: string): string
 `fetchFeedConditional` is the Reader's: it sends the stored ETag and
 Last-Modified and reports a 304 as "not modified", parsing nothing. Both
 fetchers go through `safe-url.ts`, so a feed URL that is not a public
-http(s) address is refused before any request.
+http(s) address is refused before any request, and each request connects
+only to an address that passed the check (`vettingLookup`, since 2026-11-06).
+`SafeFetchDeps` lets a test inject `fetch` (the request), `lookup` (DNS, for
+the check and the connection) and `connectTo` (where the socket goes once an
+address has passed, to reach a loopback test server).
 
 ## The Reader
 

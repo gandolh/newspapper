@@ -1,9 +1,9 @@
 ---
-summary: Dated snapshot (2026-11-05) of Newspapper, per area — the Wizard rebuild (2026-08-27 to 09-01), the 2026-09-27 improvements sweep (fixed 2026-10-02/03), local accounts with Ward as a second way in (2026-10-13), the Reader (2026-10-09, schema v6), the docs site on Docusaurus and the wax fix (2026-10-19), the API on built JavaScript under node (2026-11-04), the galley painting its own text selection (2026-11-05); what is deployed (the accounts) and what may not be (the Reader), the owner's next steps, the green-because-nothing-ran thread, and the known strays.
-updated: 2026-11-05
+summary: Dated snapshot (2026-11-06) of Newspapper, per area — the Wizard rebuild (2026-08-27 to 09-01), the 2026-09-27 improvements sweep (fixed 2026-10-02/03), local accounts with Ward as a second way in (2026-10-13), the Reader (2026-10-09, schema v6), the docs site on Docusaurus and the wax fix (2026-10-19), the API on built JavaScript under node (2026-11-04), the galley painting its own text selection (2026-11-05), feed fetches connecting only to the address they checked (2026-11-06); what is deployed (the accounts) and what may not be (the Reader), the owner's next steps, the green-because-nothing-ran thread, and the known strays.
+updated: 2026-11-06
 ---
 
-# Status — 2026-11-05
+# Status — 2026-11-06
 
 `origin/main` is at `b3c2ac6`; the local commits after it (`5d71ed4` and the
 briefs reset) are not pushed. `npm test` passed 908 tests in 76 files on
@@ -42,7 +42,10 @@ waxed element is the same wax and shows no extent.
   the render browser can't leak or hang; list routes are O(1) queries and the
   grid loads small thumbnails; the parser caps nesting and the editor has an
   error boundary; one module owns the repo root
-  ([decisions-hardening.md](./decisions-hardening.md)).
+  ([decisions-hardening.md](./decisions-hardening.md)). Since 2026-11-06 a
+  feed fetch also connects only to the address it checked, through
+  `node:http` with a vetting lookup, which closes the DNS-rebinding gap the
+  sweep had accepted.
 - **Accounts** (2026-10-13). Local accounts on the shared ward-auth library
   (vendored 0.3.1), with "Sign in with Ward" when configured; identity was
   Ward's alone from 2026-09-06 until then
@@ -72,7 +75,8 @@ deploy is not recorded here; the README still calls it undeployed. Check
 production's schema version (`PRAGMA user_version`, 6 with the Reader) before
 assuming either way. The docs site and the wax fix (2026-10-19) came after, and
 are built and checked locally only, as are the built-JavaScript runtime
-(2026-11-04) and the galley's text selection (2026-11-05).
+(2026-11-04), the galley's text selection (2026-11-05) and the connect-time
+address check on feed fetches (2026-11-06).
 
 ## Next (owner)
 
@@ -80,11 +84,13 @@ are built and checked locally only, as are the built-JavaScript runtime
   boot, so back the database up first. The background refresh then starts 15 s
   after boot and fetches every enabled feed every 30 minutes
   (`READER_REFRESH_MINUTES`).
-- **Deploy the docs site, the wax fix, the built-JavaScript runtime and the
-  galley's text selection** from `vps-deploy` (`node cli.ts newspapper all`),
-  then check the container's idle memory on the box against the 138 MB it held
-  on 2026-11-04, and select a range in the galley: the text stays readable on
-  wax, each line no taller than the element's wax run.
+- **Deploy the docs site, the wax fix, the built-JavaScript runtime, the
+  galley's text selection and the connect-time address check** from
+  `vps-deploy` (`node cli.ts newspapper all`), then check the container's idle
+  memory on the box against the 138 MB it held on 2026-11-04, select a range
+  in the galley (the text stays readable, each line no taller than the
+  element's wax run), and refresh the Reader once: every enabled feed should
+  still fetch.
 - **vps-deploy's `cutover-oidc.ts` seeds through `npm run seed` inside the
   container**, which needs tsx and no longer works there. Its command becomes
   `node api/dist/seed.js`; that change belongs to vps-deploy.

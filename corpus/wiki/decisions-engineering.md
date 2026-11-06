@@ -1,6 +1,6 @@
 ---
-summary: The locked engineering calls — workspaces and ESM, pinned dependencies, SQLite, the UI's type copy, and where project knowledge lives.
-updated: 2026-11-04
+summary: The locked engineering calls — workspaces and ESM, pinned dependencies, SQLite, the UI's type copy, scrape requests on node:http rather than fetch (2026-11-06), and where project knowledge lives.
+updated: 2026-11-06
 ---
 
 # Decisions — engineering
@@ -166,6 +166,17 @@ database's contents. A regression test now asserts the override is honoured.
 
 The general lesson is worth more than the fix: a test harness that *sets* an
 environment variable is not evidence that anything *reads* it.
+
+## Scrape requests use `node:http`, not `fetch`
+_2026-11-06_ — `safeFetch` in `core/src/scrape/safe-url.ts` makes its requests
+with `node:http` and `node:https`, through a small adapter that returns a web
+`Response`, because their `lookup` option is the one place to decide which
+address a socket connects to; Node's `fetch` takes no lookup. The adapter
+does what `fetch` did for callers: it sends `Accept-Encoding: gzip, deflate`
+(what Node 24's `fetch` sends), undoes gzip, deflate and br, gives a 204, 205
+or 304 no body, and rejects on an abort. Rejected: the `undici` package, which
+would let `fetch` take a lookup at the cost of a dependency
+([decisions-hardening.md](./decisions-hardening.md#server-side-fetches-of-feed-chosen-urls-go-to-public-addresses-only)).
 
 ## SQLite (better-sqlite3) is the only datastore
 _2026-06-10_ — `data/newspapper.db` holds the post history and settings; it is

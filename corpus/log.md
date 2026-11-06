@@ -1869,3 +1869,21 @@ dependency: `safeFetch` makes its requests with `node:http` and
 to, behind a small adapter that hands callers a web `Response` (with the
 decompression `fetch` used to do). The IPv6 forms and brief 05's
 `#99c5ed` ground were taken as written.
+
+## [2026-11-06] done | Brief 04: a fetch connects only to the address it checked
+
+`safeFetch` checked a host's addresses at resolve time, and `fetch` resolved
+the name again to connect, so a feed's DNS could swap a private address in
+between. Requests now go through `node:http`/`node:https` with a vetting
+`lookup`: the connection resolves once, through the same check, and the
+socket gets only addresses that passed. A small adapter returns a web
+`Response` (gzip, deflate and br undone; no body on 204/205/304; aborts
+reject), so the fetchers and their injected-`fetch` tests are unchanged, and
+no dependency was added. A connect-time refusal returns `null`, like a
+resolve-time one. Tests use a loopback server, reached through a test-only
+`connectTo` that runs after the check; the rebinding test gets a 200 from
+that server when the check is removed. NAT64 and IPv4-compatible IPv6 are
+judged as their IPv4, the hex mapped form is caught, and 6to4 is refused.
+Checked against three real seed feeds over TLS. Full `npm test` and the gate
+were not run here (Chromium, shared machine). Code `725a41a`; on the board as
+ready for deploy.

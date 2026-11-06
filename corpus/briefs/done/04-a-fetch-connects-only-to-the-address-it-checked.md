@@ -103,3 +103,66 @@ decision 1, then, the same day, chose no new dependency.
 - A feed refresh against real feeds still fetches items (one manual run
   of the refresh against the seed feeds, or the existing scrape test).
 - **Owner step:** `node cli.ts newspapper all` from vps-deploy.
+
+## Outcome (2026-11-06)
+
+Built in `725a41a`. `safeFetch` makes its requests with `node:http` and
+`node:https`, with `vettingLookup` as the connection's `lookup`: it resolves
+the host, refuses with a `RefusedAddressError` unless every address is public,
+and hands the socket only those, in both callback shapes (one address, and
+`all: true`, which Node's address-family fallback uses). A refusal at connect
+time makes `safeFetch` return `null`, the same as one at resolve time, so
+`fetchFeed` reports it as a non-public URL and `fetchBody` as `''`. `vetUrl`
+still runs first at every hop. No dependency was added; `rss.ts`, `body.ts`
+and the tests that inject `fetch` are unchanged.
+
+**The adapter** turns the answer into a web `Response`: every header (from the
+raw list, so a repeated one stays repeated), a body through `Readable.toWeb`,
+none for 204, 205 and 304, and an abort that rejects before the answer and
+errors the body after it. Node 24's `fetch` sends `Accept-Encoding: gzip,
+deflate` and keeps `Content-Encoding` in the response headers (checked against
+a local server); the adapter does the same, and undoes gzip, deflate and br,
+leniently on a truncated body as `fetch` does. Two calls made here: deflate is
+the zlib format HTTP specifies, without `fetch`'s sniffing for raw deflate from
+misconfigured servers (rare, and it would have cost the decoder's
+backpressure); and kept-alive sockets sit in two agents only this module uses,
+so a reused socket was opened through the same check. A request body is
+refused, since nothing sends one.
+
+**The test-only allowance** is `SafeFetchDeps.connectTo`: it maps an address
+that already passed the check to where the socket goes, so a test answers a
+public address and reaches its loopback server. The check itself is untouched
+and still judges what the lookup answered. Chosen over an injectable
+"is public" predicate, which would have weakened the check for the test.
+
+**IPv6.** NAT64 (`64:ff9b::/96`) and IPv4-compatible (`::/96`) addresses are
+judged as the IPv4 they carry, IPv4-mapped is now caught in hex form too
+(`::ffff:7f00:1`; the old regex took only the dotted form), and 6to4
+(`2002::/16`) is blocked whatever it carries. A zone id (`fe80::1%eth0`) is
+stripped before the check.
+
+**Tests.** `safe-url.test.ts` gains 28 cases (59 in all), against a server on
+loopback: a lookup that answers public then loopback is refused with the
+server seeing nothing; an always-loopback name is refused after one lookup,
+before any connection; a redirect to a private name is refused after the first
+hop; a public answer fetches with the caller's headers; gzip, deflate and br
+bodies decode; an 8 MB gzip body read through a 256 KB cap returns exactly the
+cap; a 304 has no body and `fetchFeedConditional` reports it as not modified;
+aborts before the answer and during the body both reject; `vettingLookup`
+directly in both callback shapes, with a family filter, a literal IP and a DNS
+failure. Made to fail on purpose: with the connect-time refusal removed, the
+rebinding test gets a 200 from the loopback server (and three `vettingLookup`
+cases fail).
+
+**Real feeds.** A throwaway build of `core` fetched hotnews.ro (gzip, 20
+items), context.ro (identity, 10) and g4media.ro (gzip, 30) over TLS, and the
+first item's body of each; `http://127.0.0.1:3001/` came back refused.
+
+**Checks run:** the scrape, reader and API reader tests (7 files, 130 tests),
+`npm run lint`, `npm run build` (format check, `tsc` for all three workspaces,
+vite build). **Skipped:** the full `npm test` and `npm run gate`, which launch
+real Chromium across many files on a shared machine; nothing in this change
+touches rendering. The owner's gate run before the deploy covers them.
+
+**Owner step:** `node cli.ts newspapper all` from vps-deploy, then refresh the
+Reader once.
