@@ -1839,3 +1839,24 @@ Firefox not checked (not installed). Open for the owner, in open-questions.md: a
 the waxed element is wax on wax and shows no extent. The todo
 `galley-text-selection-hides-the-selected-text` is deleted; brief 01 stays blocked on the owner's
 README retakes.
+
+## [2026-11-06] todo | Brief 04: a fetch connects only to the address it checked
+
+The owner chose to close `safe-url.ts`'s accepted DNS-rebinding gap now
+rather than file a todo: a feed decides what newspapper fetches, so it is
+more exposed than ro-housing's pasted links (its todo
+`check-every-hop-of-a-pasted-link` stays). Brief 04 resolves once per
+connection through a vetting dispatcher (the `undici` package pinned to the
+production Node's bundled version), judges NAT64 and IPv4-compatible IPv6 as
+the IPv4 they carry, blocks 6to4, and tests a simulated rebinding against a
+loopback server. The recipe came from a look at hyperlight-dev/hyperagent on
+2026-11-06.
+
+## [2026-11-06] decision | Selections leave the wax: non-photo blue, brief 05
+
+The owner settled the open question from brief 03: a text selection gets a
+colour of its own, everywhere in the chrome, not a deeper wax on the
+overlap, and picked non-photo blue. Measured the same day: at the grid's
+strength it is 1.05:1 against wax (hue only), so brief 05 uses it at 80%
+over paper, `#99c5ed`, graphite 7.8:1 on it and 1.3:1 against wax. The
+open question moved to "Settled".

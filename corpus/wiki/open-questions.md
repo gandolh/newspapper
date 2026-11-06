@@ -1,6 +1,6 @@
 ---
-summary: One question is open (2026-11-05) — how a text selection inside the galley's waxed element should show, since both are the same wax. The two before it were settled on 2026-09-01.
-updated: 2026-11-05
+summary: Nothing is open. The last question (how a text selection inside the galley's waxed element shows) was settled on 2026-11-06: selections become non-photo blue everywhere, brief 05. The two before it were settled on 2026-09-01.
+updated: 2026-11-06
 ---
 
 # Open Questions
@@ -11,19 +11,14 @@ page** — the history belongs in [../log.md](../log.md), and the outcome in
 
 ## Open
 
-- **How does a selection inside the waxed element show?** (2026-11-05, the
-  owner's call.) Since 2026-11-05 (brief 03) the galley paints a text selection as wax under
-  wax-ink, at the text's height, the same wax as the run that marks the
-  selected element ([chrome.md](./chrome.md)). A click selects the element under
-  the caret, so most selections lie inside that run: a selected word of a
-  heading keeps its text readable but shows no extent. Telling the two apart
-  is a visible change beyond "wax-ink on wax" in
-  [design-components.md §7](./design-components.md#7-browser-surfaces), such as
-  a deeper wax where they overlap (two layers of wax; `--wax-ink` on
-  `#ebb93a`, the two waxes multiplied, computes to about 6.8:1). Options: a
-  deeper wax on the overlap, a different selection ground, or leave it.
+_Nothing is open._
 
 ## Settled
+
+- *How does a selection inside the waxed element show?* (asked 2026-11-05)
+  Answered 2026-11-06: selections leave the wax for a colour of their own,
+  everywhere: non-photo blue, solid `#99c5ed` under graphite (7.8:1, and
+  1.3:1 against wax so it differs in lightness too). Brief 05 builds it.
 
 The two that survived the v4 rebuild were both settled on 2026-09-01:
 
