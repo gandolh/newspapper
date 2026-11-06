@@ -1,6 +1,6 @@
 ---
 summary: What each workspace depends on and why that package was chosen over the alternatives.
-updated: 2026-11-04
+updated: 2026-11-06
 ---
 
 # Dependencies
@@ -82,7 +82,7 @@ cheerio. `npm ls cheerio` shows both paths, and both run through
 | `cac` | `fastify` | CLI gone; HTTP server instead |
 | `react` (render) | `@fastify/cors`, `@fastify/static` | No JSX rendering needed |
 | `handlebars` | — | Compose prompt is a plain string |
-| `openai`, `axios` | — | LLM calls were Ollama-only at the time, and are gone entirely since the Wizard pivot; HTTP is native `fetch` |
+| `openai`, `axios` | — | LLM calls were Ollama-only at the time, and are gone entirely since the Wizard pivot; HTTP is Node's own: `fetch`, and `node:http`/`node:https` for the scrape requests since 2026-11-06 ([why](./decisions-engineering.md#scrape-requests-use-nodehttp-not-fetch)) |
 
 ## Native build requirements
 

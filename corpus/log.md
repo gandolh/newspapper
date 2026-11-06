@@ -1906,3 +1906,9 @@ blue's extent inside it, no gap across the run's edge, and `::selection`'s
 computed colours; six of its cases fail on the old code. `design.md`'s
 Non-Photo Rule names the exception. Gate and full `npm test` not run here
 (Chromium, shared machine). Code `910d5eb`; on the board as ready for deploy.
+
+## [2026-11-06] maintenance | dependencies.md: scrape HTTP is node:http since brief 04
+
+The "no axios" row said HTTP is native `fetch`; since brief 04 the scrape
+requests use `node:http`/`node:https`, still with no HTTP dependency. The row
+says so and links the engineering decision.
