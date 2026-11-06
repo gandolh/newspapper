@@ -1,7 +1,17 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
+import type { AddressInfo } from 'node:net';
+import { brotliCompressSync, deflateSync, gzipSync } from 'node:zlib';
 import { fetchBody } from './body.js';
-import { fetchFeed } from './rss.js';
-import { isPublicAddress, readCapped, vetUrl } from './safe-url.js';
+import { fetchFeed, fetchFeedConditional } from './rss.js';
+import {
+  isPublicAddress,
+  readCapped,
+  RefusedAddressError,
+  safeFetch,
+  vetUrl,
+  vettingLookup,
+} from './safe-url.js';
 
 /** DNS for the tests: names map to fixed addresses, nothing hits the network. */
 const DNS: Record<string, string[]> = {
@@ -43,12 +53,78 @@ describe('isPublicAddress', () => {
     'fd12::1',
     'fe80::1',
     '::ffff:127.0.0.1',
+    '::ffff:7f00:1', // mapped, hex form
+    '64:ff9b::7f00:1', // NAT64 of 127.0.0.1
+    '64:ff9b::a9fe:a9fe', // NAT64 of the metadata address
+    '::7f00:1', // IPv4-compatible 127.0.0.1
+    '::10.0.0.1',
+    '2002:7f00:1::', // 6to4
+    '2002:5db8:d822::1', // 6to4 is blocked whatever IPv4 it carries
+    'fe80::1%eth0',
   ])('refuses %s', (address) => {
     expect(isPublicAddress(address)).toBe(false);
   });
 
-  it.each(['93.184.216.34', '1.1.1.1', '172.32.0.1', '2606:4700::1111'])('allows %s', (address) => {
+  it.each([
+    '93.184.216.34',
+    '1.1.1.1',
+    '172.32.0.1',
+    '2606:4700::1111',
+    '64:ff9b::808:808', // NAT64 of a public address is that public address
+    '::ffff:93.184.216.34',
+    '2001:db8:2002::1', // 2002 only counts as the first group
+  ])('allows %s', (address) => {
     expect(isPublicAddress(address)).toBe(true);
+  });
+});
+
+describe('vettingLookup', () => {
+  const answer = (addresses: string[]) => async () => addresses;
+  type Result = { err: NodeJS.ErrnoException | null; address: unknown; family?: number };
+  const call = (lookup: ReturnType<typeof vettingLookup>, options: object) =>
+    new Promise<Result>((resolve) =>
+      lookup('host.example', options, (err, address, family) => resolve({ err, address, family })),
+    );
+
+  it('serves one address to a single-address lookup', async () => {
+    const lookup = vettingLookup(answer(['93.184.216.34', '2606:4700::1111']));
+    expect(await call(lookup, {})).toEqual({ err: null, address: '93.184.216.34', family: 4 });
+    expect(await call(lookup, { family: 6 })).toEqual({
+      err: null,
+      address: '2606:4700::1111',
+      family: 6,
+    });
+  });
+
+  it('serves every address to an all: true lookup', async () => {
+    const lookup = vettingLookup(answer(['93.184.216.34', '2606:4700::1111']));
+    expect((await call(lookup, { all: true })).address).toEqual([
+      { address: '93.184.216.34', family: 4 },
+      { address: '2606:4700::1111', family: 6 },
+    ]);
+  });
+
+  it.each([{}, { all: true }])('refuses when any address is private (%o)', async (options) => {
+    for (const addresses of [['127.0.0.1'], ['93.184.216.34', '10.0.0.5'], []]) {
+      const { err } = await call(vettingLookup(answer(addresses)), options);
+      expect(err).toBeInstanceOf(RefusedAddressError);
+    }
+  });
+
+  it('checks a literal IP host without resolving it', async () => {
+    const lookup = vi.fn(answer(['93.184.216.34']));
+    const result = await new Promise<Result>((resolve) =>
+      vettingLookup(lookup)('127.0.0.1', {}, (err, address) => resolve({ err, address })),
+    );
+    expect(result.err).toBeInstanceOf(RefusedAddressError);
+    expect(lookup).not.toHaveBeenCalled();
+  });
+
+  it('passes a DNS failure on', async () => {
+    const failing = async () => {
+      throw Object.assign(new Error('nope'), { code: 'ENOTFOUND' });
+    };
+    expect((await call(vettingLookup(failing), {})).err?.code).toBe('ENOTFOUND');
   });
 });
 
@@ -158,5 +234,161 @@ describe('fetchFeed uses the same guard', () => {
     });
     const items = await fetchFeed('https://news.example/rss', 'ua', 1000, { fetch, lookup });
     expect(items.map((i) => i.title)).toEqual(['Hello']);
+  });
+});
+
+/**
+ * The real request, against a server on loopback. `safeFetch` refuses
+ * loopback, so a test that must reach the server answers a public address and
+ * maps it to 127.0.0.1 through `connectTo`, which runs only after the check.
+ */
+describe('a request connects only to the address that was checked', () => {
+  let server: Server;
+  let port: number;
+  let hits: Array<{ url: string; headers: IncomingMessage['headers'] }>;
+  let handle: (req: IncomingMessage, res: ServerResponse) => void;
+
+  beforeEach(async () => {
+    hits = [];
+    handle = (_req, res) => res.end('ok');
+    server = createServer((req, res) => {
+      hits.push({ url: req.url ?? '', headers: req.headers });
+      handle(req, res);
+    });
+    await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+    port = (server.address() as AddressInfo).port;
+  });
+
+  afterEach(async () => {
+    server.closeAllConnections();
+    await new Promise((resolve) => server.close(resolve));
+  });
+
+  const PUBLIC = '93.184.216.34';
+  const toLoopback = () => '127.0.0.1';
+
+  it('a name that rebinds to loopback after the check is refused, and nothing reaches the server', async () => {
+    let calls = 0;
+    const lookup = async () => (calls++ === 0 ? [PUBLIC] : ['127.0.0.1']);
+    expect(await safeFetch(`http://rebind.example:${port}/secret`, {}, { lookup })).toBeNull();
+    expect(calls).toBe(2); // the check, then the connection: both went through the lookup
+    expect(hits).toEqual([]);
+  });
+
+  it('a name that always answers loopback is refused before any connection', async () => {
+    const lookup = vi.fn(async () => ['127.0.0.1']);
+    expect(await safeFetch(`http://inside.example:${port}/`, {}, { lookup })).toBeNull();
+    expect(lookup).toHaveBeenCalledTimes(1);
+    expect(hits).toEqual([]);
+  });
+
+  it('a redirect to a name that answers a private address is refused', async () => {
+    const dns: Record<string, string[]> = {
+      'public.example': [PUBLIC],
+      'inner.example': ['10.0.0.5'],
+    };
+    handle = (_req, res) => {
+      res.writeHead(302, { location: `http://inner.example:${port}/secret` });
+      res.end();
+    };
+    const res = await safeFetch(
+      `http://public.example:${port}/start`,
+      {},
+      { lookup: async (host) => dns[host] ?? [], connectTo: toLoopback },
+    );
+    expect(res).toBeNull();
+    expect(hits.map((hit) => hit.url)).toEqual(['/start']);
+  });
+
+  it('a public answer is fetched, with the caller headers', async () => {
+    const connectTo = vi.fn(toLoopback);
+    handle = (_req, res) => {
+      res.writeHead(200, { 'content-type': 'text/html', etag: '"v1"' });
+      res.end('<p>hello</p>');
+    };
+    const res = await safeFetch(
+      `http://news.example:${port}/a`,
+      { headers: { 'User-Agent': 'ua-test' } },
+      { lookup: async () => [PUBLIC], connectTo },
+    );
+    expect(res?.status).toBe(200);
+    expect(res?.headers.get('etag')).toBe('"v1"');
+    expect(await res?.text()).toBe('<p>hello</p>');
+    expect(connectTo).toHaveBeenCalledWith(PUBLIC);
+    expect(hits).toHaveLength(1);
+    expect(hits[0]!.headers['user-agent']).toBe('ua-test');
+    expect(hits[0]!.headers['accept-encoding']).toBe('gzip, deflate');
+  });
+
+  const deps = { lookup: async () => [PUBLIC], connectTo: toLoopback };
+
+  it.each([
+    ['gzip', gzipSync],
+    ['deflate', deflateSync],
+    ['br', brotliCompressSync],
+  ] as const)('a %s body comes back decompressed', async (coding, compress) => {
+    handle = (_req, res) => {
+      res.writeHead(200, { 'content-encoding': coding });
+      res.end(compress(Buffer.from('plain words')));
+    };
+    const res = await safeFetch(`http://news.example:${port}/z`, {}, deps);
+    expect(await readCapped(res!)).toBe('plain words');
+  });
+
+  it('the cap counts decompressed bytes', async () => {
+    handle = (_req, res) => {
+      res.writeHead(200, { 'content-encoding': 'gzip' });
+      res.end(gzipSync(Buffer.from('a'.repeat(8 * 1024 * 1024)))); // ~8 KB on the wire
+    };
+    const res = await safeFetch(`http://news.example:${port}/bomb`, {}, deps);
+    const text = await readCapped(res!, 256 * 1024);
+    expect(text.length).toBe(256 * 1024);
+    expect(text).toMatch(/^a+$/);
+  });
+
+  it('a 304 has no body, and the feed reader sees it as not modified', async () => {
+    handle = (_req, res) => {
+      res.writeHead(304, { etag: '"v1"' });
+      res.end();
+    };
+    const res = await safeFetch(`http://news.example:${port}/rss`, {}, deps);
+    expect(res?.status).toBe(304);
+    expect(res?.body).toBeNull();
+    const feed = await fetchFeedConditional(
+      `http://news.example:${port}/rss`,
+      { userAgent: 'ua', timeoutMs: 5000, etag: '"v1"' },
+      deps,
+    );
+    expect(feed.status).toBe('notModified');
+    expect(hits[1]!.headers['if-none-match']).toBe('"v1"');
+  });
+
+  it('an abort before the answer rejects', async () => {
+    handle = () => {}; // never answers
+    const controller = new AbortController();
+    const pending = safeFetch(
+      `http://news.example:${port}/slow`,
+      { signal: controller.signal },
+      deps,
+    );
+    await vi.waitFor(() => expect(hits).toHaveLength(1));
+    controller.abort();
+    await expect(pending).rejects.toThrow(/abort/i);
+  });
+
+  it('an abort while the body streams errors the read', async () => {
+    handle = (_req, res) => {
+      res.writeHead(200);
+      res.write('first part ');
+    };
+    const controller = new AbortController();
+    const res = await safeFetch(
+      `http://news.example:${port}/half`,
+      { signal: controller.signal },
+      deps,
+    );
+    const reading = readCapped(res!);
+    controller.abort();
+    await expect(reading).rejects.toThrow();
   });
 });
