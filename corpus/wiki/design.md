@@ -1,6 +1,6 @@
 ---
 summary: The Mechanical, §1–§4 — the paste-up board's north star, the full colour palette with measured contrast, the Archivo/Spline type hierarchy, and the two shadows. Machine-readable tokens are in this page's frontmatter. §5–§9 continue in design-components.md.
-updated: 2026-08-31
+updated: 2026-11-06
 name: Newspapper
 description: A paste-up board for setting a news carousel — the workstation, not the slides it renders.
 colors:
@@ -13,6 +13,7 @@ colors:
   rule: "#cfcfca"
   tick: "#c4c1b8"
   non-photo: "#7fb6e8"
+  non-photo-select: "#99c5ed"
   process-blue: "#1d63a8"
   rubylith: "#e8452e"
   rubylith-ink: "#c0331f"
@@ -180,7 +181,7 @@ legibility from marks and alignment, not from hue.
 - **Process Blue** (`#1d63a8`): prop values, hashtags, links — the things the markup itself names. 6.3:1 on paper.
 
 ### Marks
-- **Non-Photo Blue** (`#7fb6e8` at 40%): the 26px grid, and nothing else, ever.
+- **Non-Photo Blue** (`#7fb6e8` at 40%): the 26px grid. Since 2026-11-06 also, as **Non-Photo Select** (`#99c5ed`, the same blue at 80% over paper, solid), the ground of a text selection, with graphite on it (7.8:1). Nothing else.
 - **Rubylith** (`#e8452e`): the masking film. Held-out slides, disabled sorts, the published stamp. Applied as a 34% wash over the thing it masks, or as a 2px outline for the stamp. **The film is 3.81:1 on board and cannot carry a word** — not as ink (3.81:1), not inverted with graphite on it (3.59:1), not inverted with paper on it (3.95:1). It is a wash and a border, never a letter.
 - **Rubylith Ink** (`#c0331f`): the darker draw of the same ink, and the only rubylith that may be text — 5.43:1 on board, 5.62:1 on paper, and 5.43:1 the other way round when a chip inverts to solid. Every rubylith *word* is set in it: the stamp, an error line, a destructive control. (It is the same value as `grease`; they are one ink used for two jobs, and both are named so a later change to one does not silently move the other.)
 - **Grease** (`#c0331f`): grease-pencil findings on the tissue, and the leader line pointing at what the note is about.
@@ -194,7 +195,7 @@ legibility from marks and alignment, not from hue.
 
 ### Named Rules
 
-**The Non-Photo Rule.** The blue grid is the ink the camera cannot see. It may carry alignment and nothing else — no state, no meaning, no emphasis. Corollary: nothing that matters is rendered in `non-photo` on the board.
+**The Non-Photo Rule.** The blue grid is the ink the camera cannot see. It may carry alignment and nothing else — no state, no meaning, no emphasis. Corollary: nothing that matters is rendered in `non-photo` on the board. One exception, decided 2026-11-06: a text selection's ground is `non-photo-select`. Paste-up artists marked in this blue because it never printed, and a selection never reaches the render either ([decisions.md](./decisions.md#the-workstation-is-redesigned-the-slide-theme-is-not)).
 
 **The One Mark Rule.** A single vocabulary per idea. Rubylith is the *only* way the app says "held out", whether that is a slide excluded from the render, a component you cannot use yet, or a post that will not compile. Never invent a second treatment for the same state on a different screen.
 

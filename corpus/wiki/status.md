@@ -1,5 +1,5 @@
 ---
-summary: Dated snapshot (2026-11-06) of Newspapper, per area — the Wizard rebuild (2026-08-27 to 09-01), the 2026-09-27 improvements sweep (fixed 2026-10-02/03), local accounts with Ward as a second way in (2026-10-13), the Reader (2026-10-09, schema v6), the docs site on Docusaurus and the wax fix (2026-10-19), the API on built JavaScript under node (2026-11-04), the galley painting its own text selection (2026-11-05), feed fetches connecting only to the address they checked (2026-11-06); what is deployed (the accounts) and what may not be (the Reader), the owner's next steps, the green-because-nothing-ran thread, and the known strays.
+summary: Dated snapshot (2026-11-06) of Newspapper, per area — the Wizard rebuild (2026-08-27 to 09-01), the 2026-09-27 improvements sweep (fixed 2026-10-02/03), local accounts with Ward as a second way in (2026-10-13), the Reader (2026-10-09, schema v6), the docs site on Docusaurus and the wax fix (2026-10-19), the API on built JavaScript under node (2026-11-04), the galley painting its own text selection (2026-11-05), feed fetches connecting only to the address they checked and text selections in non-photo blue (2026-11-06); what is deployed (the accounts) and what may not be (the Reader), the owner's next steps, the green-because-nothing-ran thread, and the known strays.
 updated: 2026-11-06
 ---
 
@@ -13,9 +13,9 @@ no GitHub CI, by the owner's choice (2026-10-04). Brief numbering restarted at
 01 on 2026-11-02 (see [../log.md](../log.md), "Briefs reset"). Open: brief 01, retaking
 the editing GIF after the wax fix (2026-11-03). What held it, a selected range
 hiding its own text under the wax, was fixed on 2026-11-05 (brief 03); it stays
-blocked because the owner put README retakes off that day. One design question
-is open in [open-questions.md](./open-questions.md): a selection inside the
-waxed element is the same wax and shows no extent.
+blocked because the owner put README retakes off that day. Nothing is open in
+[open-questions.md](./open-questions.md): how a selection inside the waxed
+element shows was settled on 2026-11-06 (non-photo blue) and built the same day.
 
 ## By area
 
@@ -27,9 +27,12 @@ waxed element is the same wax and shows no extent.
 - **The chrome** (2026-08-31, finished 2026-09-01). The Mechanical: a paste-up
   board with a two-course tray under 640px ([chrome.md](./chrome.md)). Since
   2026-10-19 the galley's wax is one run laid under the text, so it no longer
-  covers letters; since 2026-11-05 the galley paints a text selection too, wax
-  under wax-ink at the text's height, where the textarea's `::selection` used
-  to hide the selected text.
+  covers letters; since 2026-11-05 the galley paints a text selection too, at
+  the text's height, where the textarea's `::selection` used to hide the
+  selected text. Since 2026-11-06 every text selection in the chrome is
+  non-photo blue under graphite, not wax, and in the galley it lies over the
+  element's wax, so a selected word inside the selected element shows its
+  extent.
 - **Tooling** (2026-08-31). Vite + React replaced Astro; the formatter and the
   linter actually run, and `npm run build` runs `fmt:check` first
   ([decisions-tooling.md](./decisions-tooling.md)).
@@ -75,8 +78,8 @@ deploy is not recorded here; the README still calls it undeployed. Check
 production's schema version (`PRAGMA user_version`, 6 with the Reader) before
 assuming either way. The docs site and the wax fix (2026-10-19) came after, and
 are built and checked locally only, as are the built-JavaScript runtime
-(2026-11-04), the galley's text selection (2026-11-05) and the connect-time
-address check on feed fetches (2026-11-06).
+(2026-11-04), the galley's text selection (2026-11-05), the connect-time
+address check on feed fetches and the blue selections (2026-11-06).
 
 ## Next (owner)
 
@@ -85,12 +88,13 @@ address check on feed fetches (2026-11-06).
   after boot and fetches every enabled feed every 30 minutes
   (`READER_REFRESH_MINUTES`).
 - **Deploy the docs site, the wax fix, the built-JavaScript runtime, the
-  galley's text selection and the connect-time address check** from
-  `vps-deploy` (`node cli.ts newspapper all`), then check the container's idle
-  memory on the box against the 138 MB it held on 2026-11-04, select a range
-  in the galley (the text stays readable, each line no taller than the
-  element's wax run), and refresh the Reader once: every enabled feed should
-  still fetch.
+  galley's text selection, the connect-time address check and the blue
+  selections** from `vps-deploy` (`node cli.ts newspapper all`), then check the
+  container's idle memory on the box against the 138 MB it held on
+  2026-11-04; in the editor, select a word inside the selected heading (it
+  shows on blue with its exact extent, inside the yellow run) and some text in
+  the inspector (the same blue); and refresh the Reader once: every enabled
+  feed should still fetch.
 - **vps-deploy's `cutover-oidc.ts` seeds through `npm run seed` inside the
   container**, which needs tsx and no longer works there. Its command becomes
   `node api/dist/seed.js`; that change belongs to vps-deploy.

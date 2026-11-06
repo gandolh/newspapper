@@ -1,6 +1,6 @@
 ---
 summary: The Mechanical — the app chrome as shipped: tokens, the mark set, the tray and its two-course narrow layout, the health probe's two states, the two authored animations, why it shares nothing with the slide themes, and the states a once-per-element contrast sweep cannot see.
-updated: 2026-11-05
+updated: 2026-11-06
 ---
 
 # The app chrome — The Mechanical
@@ -97,7 +97,7 @@ writing paper ink on wax. `--wax-ink` (8.87:1 on wax) existed the whole time
 and never applied anywhere. The states a sweep must re-visit, because each one
 changes a surface or an ink under text that already passed:
 
-- **on a highlight** — wax in the galley; `::selection` anywhere text is selectable
+- **on a highlight** — wax in the galley; non-photo blue `::selection` anywhere text is selectable, and the galley's own selection, laid over the wax
 - **selected / current** — the waxed compartment, the lifted node, the inverted chip
 - **hover and focus-visible** — anything that swaps ink or ground on pointer or key
 - **disabled and held out** — rubylith wash and 45° hatch, both laid *over* live text
@@ -112,7 +112,8 @@ box's ground and then its text, so each token's left bleed covered about half
 of the glyph before it: in `<Heading size="xl">` the `<`, the `g`, the `e` of
 `size`, the `=`, the closing quote and the `>` each lost about half their ink.
 Since the wax-run fix (2026-10-19) the run is one wrapper carrying `WAX`, laid under the galley's
-text (`z-index: -1` in the `<pre>`'s stacking context), and the tokens inside
+text (a negative `z-index` in the `<pre>`'s stacking context, `-2` since
+2026-11-06), and the tokens inside
 take `--wax-ink` from `.onWax`. Any mark that reaches past its own box has the
 same hazard; a Chromium test (`SourcePane.wax.test.ts`) counts each glyph's
 ink with and without the wax.
@@ -124,15 +125,28 @@ painted on the textarea's layer, above the galley, so every selected glyph lost
 all its ink, and its box was the whole 23 px line where the wax run is the
 text's 15 px. A highlight pseudo-element can neither move to another element's
 layer nor be shorter than its line box. So the textarea's `::selection` is now
-transparent ground and ink, and the galley paints the range itself: the ground
-on a second `<pre>` laid under the galley (the same text, unpainted, the
-selected characters in one span on wax, no bleed), the ink by giving the
-tokens in the range `.onWax`. Under the glyphs, the ground cannot cover one;
-on the tokens it would have covered the oblique comments' overhang into the
-next cell. The same Chromium test counts the selected glyphs' ink and measures
-the ground against the run. What it does not settle: a selection inside the
-waxed element is wax on wax and shows no extent
-([open-questions.md](./open-questions.md)).
+transparent ground and ink, and the galley paints the range itself, as
+non-photo blue (`--non-photo-select`) under graphite (`.onSelection`) since
+2026-11-06; it was wax under wax-ink before.
+
+**A layer can't go between a stacking context's ground and its text.** On
+2026-11-05 the selection's ground was a second `<pre>` laid under the galley,
+which kept it off every glyph but left a selection inside the selected
+element under the wax, with no visible extent. The wax run is an inline
+stacking context, and its wax and its text paint together: a layer outside
+it sits under both or over both (lifted above the run, the blue hid every
+selected glyph in it). So since 2026-11-06 the ground is a wrapper in the
+galley's own token tree, split where a selection crosses the run's edge. Off
+the run it sits behind the text at `z-index: -1`, like the run; the run went
+to `-2`, or its bleed painted over the end of a selection that stops where
+the run begins. Inside the run it is an ordinary inline box, painted after
+the wax and under its own text; inside an inline stacking context a negative
+layer paints under the element's own ground, so tree order is the only way
+in. Its one cost: the blue paints after the glyph before the selection, so an
+oblique comment leaning into the first selected cell loses its tip there. The
+Chromium test counts the selected glyphs' ink, measures the ground against
+the run and the characters, and checks the blue has no gap across the run's
+edge.
 
 **A breakpoint that hides the word leaves hue holding the state.** The health
 probe hid its label under `max-width: 768px`, so from 320 to 768 both states
@@ -152,7 +166,7 @@ that was still one roomy course.
 Two things that look like findings and are not. The galley's `<textarea>` is
 deliberately `color: transparent` over the painted `<pre>`, with a transparent
 `::selection` too; any sweep will flag them and they are correct as they stand. And on wax the galley pools its hues into
-`--wax-ink` on purpose: bold and italic still separate component from tag from
+`--wax-ink` on purpose, as a selection pools them into graphite: bold and italic still separate component from tag from
 comment, and the one hue that carried meaning — `process-blue` on prop values —
 is carrying it for the element the tissue is displaying in full at that moment.
 

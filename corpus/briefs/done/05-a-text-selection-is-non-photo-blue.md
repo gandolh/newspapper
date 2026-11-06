@@ -86,3 +86,61 @@ chrome. The smaller call, answered the same day:
   the yellow run. Select text in the inspector or a settings field; it
   shows the same blue.
 - **Owner step:** `node cli.ts newspapper all` from vps-deploy.
+
+## Outcome (2026-11-06)
+
+Built in `910d5eb`. `--non-photo-select: #99c5ed` sits beside `--non-photo`
+in `global.css` with its measurements (rechecked: graphite 7.8:1 on it, 1.3:1
+against wax), and the global `::selection` is that ground under `--graphite`.
+The only other `::selection` rule in `ui/src` is still the textarea's
+transparent one. Selected tokens in the galley take graphite from a new
+`.onSelection` class, on the run or off it; components stay 700 and comments
+italic.
+
+**The galley needed a change of structure, not a colour.** Brief 03 painted
+the ground on a second `<pre>` under the galley. Under the wax run that ground
+can only go under the wax or over everything: the run is an inline stacking
+context whose wax and text paint together, and lifting the layer above it hid
+every selected glyph in the run (watched: 0 ink on all nine letters of the
+word). So the second `<pre>` is gone and the ground is a wrapper in the
+galley's token tree, one per contiguous range of selected tokens, split where
+it crosses the run's edge. Off the run it sits behind the text at
+`z-index: -1`, as the run does. Inside the run it is an ordinary inline box:
+in an inline stacking context a negative layer paints under the element's own
+ground (tried, and the blue vanished under the wax), so tree order is the way
+in, its blue painted after the wax and under its own text. The one cost: it
+paints after the glyph before the selection, so an oblique comment leaning
+into the first selected cell would lose its tip there.
+
+**One touch on the wax run**, outside the brief's list but needed: its
+`z-index` went from `-1` to `-2`. At the same level, a selection that ends
+where the run begins comes first in tree order, and the run's bleed painted
+over its last 0.35em, glyph included (watched: the `>` before the run at 71 of
+136 ink pixels). The wax itself looks the same.
+
+**Tests.** `SourcePane.wax.test.ts` now has 11 Chromium cases. Changed: the
+selection off the run expects blue and graphite; new: a word inside the run
+shows blue pixels exactly as wide as its characters, graphite on it and
+wax-ink on the rest of the run; a selection crossing into and out of the run
+is two wrappers with no column of the blue missing; `getComputedStyle(p,
+'::selection')` gives `rgb(153, 197, 237)` and graphite, and the token reads
+`#99c5ed`. Run against the old code, six of them fail. The editor's tests
+pass (10 files, 88 tests).
+
+**Checks run:** the editor's tests, including that Chromium file;
+`npm run lint`; `npm run build` (format check, `tsc` for all three
+workspaces, vite build). **Skipped:** `npm run gate` and the full `npm test`,
+which launch real Chromium across many files on a shared machine; this change
+touches only the galley and `global.css`, whose tests ran. No browser walk in
+the dev server: the galley's look was checked on screenshots from the test's
+own page (a word inside the run, and selections crossing the run's edge both
+ways), and `::selection` by computed style. The owner's walk after the deploy
+covers the inspector and settings fields.
+
+**Corpus beyond the brief's list:** `design.md`'s Non-Photo Rule said the blue
+carries nothing, ever; it now names this one exception and the token joins
+its frontmatter. `decisions.md` takes the dated line as a list item under the
+section's last paragraph, since the page sits at the 200-line cap.
+
+**Owner step:** `node cli.ts newspapper all` from vps-deploy, then the
+editor walk in the board's deploy note.

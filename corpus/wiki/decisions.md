@@ -1,6 +1,6 @@
 ---
 summary: The locked product calls — no LLM, human-centred editing, the Wizard markup and its semantic component model, saved articles and Reader items as references only, images, and where it runs.
-updated: 2026-10-13
+updated: 2026-11-06
 ---
 
 # Decisions — product
@@ -71,6 +71,7 @@ likely to be quietly undone: the chrome face is **Archivo**, and **Inter never
 appears in the chrome** — it is the artwork's voice, and that separation is what
 keeps the slide legible as a made thing. And a board has no rounded corners:
 `border-radius` is `0` throughout.
+- _2026-11-06_ — **Selections leave the wax.** A text selection anywhere in the chrome is non-photo blue at 80% over paper (`--non-photo-select`, `#99c5ed`) under graphite, not wax: a click selects the element under the caret, so a selection inside the waxed element was wax on wax and showed no extent. Rejected: a deeper wax where the two overlap (one mark would mean two things), and non-photo blue at the grid's strength (1.05:1 against wax, hue alone). The slide themes never show a selection and are untouched.
 
 ## The template system is removed
 _2026-08-27_ — `TemplateDoc`, the nine template JSON files, the registry, and

@@ -1887,3 +1887,22 @@ judged as their IPv4, the hex mapped form is caught, and 6to4 is refused.
 Checked against three real seed feeds over TLS. Full `npm test` and the gate
 were not run here (Chromium, shared machine). Code `725a41a`; on the board as
 ready for deploy.
+
+## [2026-11-06] done | Brief 05: a text selection is non-photo blue
+
+Every text selection in the chrome is now `--non-photo-select` (`#99c5ed`,
+non-photo blue at 80% over paper) under graphite, not wax, so a selected word
+inside the galley's selected element shows its extent. The global
+`::selection` takes the token. In the galley the ground could not stay on
+brief 03's second `<pre>`: the wax run is an inline stacking context, its wax
+and text painted together, so that layer could only sit under the wax or over
+the text. The ground is now a wrapper in the galley's token tree, split at the
+run's edge: behind the text at `z-index: -1` off the run, an ordinary inline
+box inside it (a negative layer there paints under the run's own wax). The
+run moved to `z-index: -2` so its bleed can't cut into a selection that stops
+where it starts. Selected tokens take graphite from `.onSelection`. The
+galley's Chromium test checks blue and graphite on and off the run, the
+blue's extent inside it, no gap across the run's edge, and `::selection`'s
+computed colours; six of its cases fail on the old code. `design.md`'s
+Non-Photo Rule names the exception. Gate and full `npm test` not run here
+(Chromium, shared machine). Code `910d5eb`; on the board as ready for deploy.
