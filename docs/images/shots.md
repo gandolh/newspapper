@@ -5,7 +5,7 @@ How each image was made, so the next refresh is a re-run. Re-take an image when 
 | File | Shows | How to reach that state | Viewport | Data | Taken |
 |---|---|---|---|---|---|
 | editor.webp | The editor with post 1 open, slide 1 on the canvas | see "Demo data", then open `/newspapper/?post=1` and reload so nothing is selected | 1440×900 @2x | made-up posts | 2026-10-09 |
-| editing.gif | Retyping slide 1's heading, then scrolling the preview to slides 2 and 3 | same post; recorded with `agent-browser record`, about 8 s | 1280×800, scaled to 960 wide | made-up posts | 2026-10-09 |
+| editing.gif | Retyping slide 1's heading, then scrolling the preview to slides 2 and 3 | same post, at `/?post=1` on the dev server; recorded with a Chromium screencast, about 9 s (see "Capture") | 1280×800, scaled to 960 wide | made-up posts | 2026-11-07 |
 | posts.webp | The posts list with three cards, one published | `/newspapper/posts` after the demo posts are rendered and post 2 is published | 1440×700 @2x | made-up posts | 2026-10-09 |
 | slides.gif | The four JPEGs a render wrote for post 1, 1.6 s each | built from `output/<run>/slide-01.jpg` … `slide-04.jpg` with ffmpeg | 540×540 with a 1 px border | made-up posts | 2026-10-09 |
 
@@ -36,10 +36,10 @@ agent-browser --session newspapper screenshot /abs/path/editor.png
 ffmpeg -y -loglevel error -i editor.png -c:v libwebp -quality 82 editor.webp
 ```
 
-The editing GIF: `record start`, select the heading's text in the textarea with `setSelectionRange`, `keyboard type` the new headline one word at a time, then `scrollBy` the preview column twice; `record stop`. Converted with
+The editing GIF is recorded with a Chromium screencast (Playwright's CDP session, `Page.startScreencast` as PNG), keeping each frame's timestamp. `agent-browser record` drops idle time, so it is not used. The dev server serves the app at `/` unless `NEWSPAPPER_BASE` is set, so the post is at `http://localhost:4321/?post=1`. The editor autosaves, so before each take put post 1's hand-written markup back with `PUT /api/posts/1`, then load the post and reload it so nothing is selected. The beats: about 0.4 s idle; focus the textarea and select the heading's text (`Sample City's trams will run all night`) with `setSelectionRange`; hold 0.8 s; `keyboard type` "Night trams start on 1 November" one word at a time, 0.2 s between words; hold 0.5 s; `scrollBy({ top: 421, behavior: 'smooth' })` on the preview column, hold 1 s, scroll again, hold 1.1 s. Write the frames with an ffmpeg concat list whose `duration` lines are the gaps between timestamps (0.5 s for the last), and convert with
 
 ```bash
-ffmpeg -y -loglevel error -i editing.webm -vf "setpts=1.25*PTS,fps=12,scale=960:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=128:stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=4" -loop 0 editing.gif
+ffmpeg -y -loglevel error -f concat -safe 0 -i list.txt -vf "setpts=1.25*PTS,fps=12,scale=960:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=128:stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=4" -loop 0 editing.gif
 ```
 
 The slides GIF:
