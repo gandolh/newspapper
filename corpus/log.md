@@ -1912,3 +1912,15 @@ Non-Photo Rule names the exception. Gate and full `npm test` not run here
 The "no axios" row said HTTP is native `fetch`; since brief 04 the scrape
 requests use `node:http`/`node:https`, still with no HTTP dependency. The row
 says so and links the engineering decision.
+
+## [2026-11-07] done | Brief 01: the editing GIF retaken after the wax fix
+
+At the owner's request, `docs/images/editing.gif` is retaken with the same post and beats as the
+2026-10-09 GIF, in the local app on a scratch database, signed in as a tester. The selected
+element's wax now lies under the text, every glyph whole, and the selected range is non-photo
+blue (brief 05). `shots.md` dates the row and records the new capture: a Chromium screencast that
+keeps each frame's timestamp, the post at `/?post=1` (the dev server's base is `/` unless
+`NEWSPAPPER_BASE` is set), and post 1's markup put back before each take since the editor
+autosaves. `CLAUDE.md` and the `editor.webp` row still name `/newspapper/` for the local UI; left
+for the owner. Commit `2ad75ef`; the brief is
+[done](briefs/done/01-retake-the-editing-gif-after-the-wax-fix.md).
