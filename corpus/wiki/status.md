@@ -1,6 +1,6 @@
 ---
 summary: Dated snapshot (2026-11-07) of Newspapper, per area — the Wizard rebuild (2026-08-27 to 09-01), the 2026-09-27 improvements sweep (fixed 2026-10-02/03), local accounts with Ward as a second way in (2026-10-13), the Reader (2026-10-09, schema v6), the docs site on Docusaurus and the wax fix (2026-10-19), the API on built JavaScript under node (2026-11-04), the galley painting its own text selection (2026-11-05), feed fetches connecting only to the address they checked and text selections in non-photo blue (2026-11-06), the README's editing GIF retaken (2026-11-07); what is deployed (the accounts) and what may not be (the Reader), the owner's next steps, the green-because-nothing-ran thread, and the known strays.
-updated: 2026-11-07
+updated: 2026-11-09
 ---
 
 # Status — 2026-11-06
@@ -10,7 +10,9 @@ briefs reset) are not pushed. `npm test` passed 908 tests in 76 files on
 2026-11-04, and brief 03 added four to the galley's Chromium test;
 `npm run gate` runs build, tests, lint and the corpus lint with `CI=1`. There is
 no GitHub CI, by the owner's choice (2026-10-04). Brief numbering restarted at
-01 on 2026-11-02 (see [../log.md](../log.md), "Briefs reset"). No brief is open:
+01 on 2026-11-02 (see [../log.md](../log.md), "Briefs reset"). Brief 06,
+[a post as a video](../briefs/todo/06-a-post-as-a-video-with-hyperframes.md), was
+filed on 2026-11-09 and waits on the owner's grilling of 2026-11-10. Before it,
 brief 01 retook the README's editing GIF on 2026-11-07, after briefs 03 and 05
 changed how a selection paints. Nothing is open in
 [open-questions.md](./open-questions.md): how a selection inside the waxed

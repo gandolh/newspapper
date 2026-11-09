@@ -1924,3 +1924,13 @@ keeps each frame's timestamp, the post at `/?post=1` (the dev server's base is `
 autosaves. `CLAUDE.md` and the `editor.webp` row still name `/newspapper/` for the local UI; left
 for the owner. Commit `2ad75ef`; the brief is
 [done](briefs/done/01-retake-the-editing-gif-after-the-wax-fix.md).
+
+## [2026-11-09] todo | Brief 06: a post as a video, with HyperFrames
+
+From the owner's review of popular agent repos: heygen-com/hyperframes
+renders HTML to deterministic MP4. Newspapper already compiles a post to
+HTML and screenshots it in Chromium. The brief starts with a half-day spike
+that compares frames against the JPEGs before anything is built. It records
+the runtime cost: FFmpeg, and Puppeteer's own Chrome in the image. It waits
+on the owner's grilling on 2026-11-10. See the
+[brief](briefs/todo/06-a-post-as-a-video-with-hyperframes.md).
