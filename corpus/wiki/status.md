@@ -14,7 +14,7 @@ no GitHub CI, by the owner's choice (2026-10-04). Brief numbering restarted at
 [a post as a video](../briefs/todo/06-a-post-as-a-video-with-hyperframes.md), was
 filed on 2026-11-09 and waits on the owner's grilling of 2026-11-10. Before it,
 brief 01 retook the README's editing GIF on 2026-11-07, after briefs 03 and 05
-changed how a selection paints. Nothing is open in
+changed how a selection paints. Briefs 07 to 11 (Base UI 1.9.0, the house-style harness, Base UI by the conventions, the UI on Tailwind, the API in the house structure) were filed on 2026-11-10 from the owner's calls of 2026-11-09, and wait on the grilling of 2026-11-10; see [../log.md](../log.md). Nothing is open in
 [open-questions.md](./open-questions.md): how a selection inside the waxed
 element shows was settled on 2026-11-06 (non-photo blue) and built the same day.
 
