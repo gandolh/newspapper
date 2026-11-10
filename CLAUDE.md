@@ -104,7 +104,7 @@ corpus/
   lint.sh      health check; exits non-zero on findings
   log.md       append-only, chronological, newest last
   todos/       captured ideas, prose, pre-spec
-  briefs/      work specs — todo/ · done/ · superseded/
+  briefs/      work specs — todo/ · blocked/ · done/ · superseded/
   wiki/        the synthesis layer. The LLM owns this.
 ```
 
@@ -132,6 +132,9 @@ A corpus exists to make an agent **cheaper**, not just better-informed.
 - **Briefs are immutable.** Numbers are stable — never renumber one when it
   moves. Don't edit a brief in `done/`; if later work undoes it, move it to
   `superseded/` with a one-line note. New work gets a new brief in `todo/`.
+  A brief that waits on an outside condition sits in `blocked/` with a
+  `**Blocked by:**` line under its title; it moves back to `todo/` only when
+  the owner says so.
   Briefs run in number order; `wiki/status.md` doesn't list them.
 - **Numbering restarted at 01 on 2026-11-02.** The seventy-one briefs before that
   were folded into the wiki and deleted; the last commit holding them is

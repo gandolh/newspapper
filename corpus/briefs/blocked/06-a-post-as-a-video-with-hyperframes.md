@@ -1,5 +1,7 @@
 # Task 06: A post as a video, with HyperFrames
 
+**Blocked by:** the owner asks for video (Reels) export. On 2026-11-10 they said "no reels support yet".
+
 ## Context
 
 On 2026-11-09 the owner had the skills library review popular repos for

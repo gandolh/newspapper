@@ -11,8 +11,9 @@ briefs reset) are not pushed. `npm test` passed 908 tests in 76 files on
 `npm run gate` runs build, tests, lint and the corpus lint with `CI=1`. There is
 no GitHub CI, by the owner's choice (2026-10-04). Brief numbering restarted at
 01 on 2026-11-02 (see [../log.md](../log.md), "Briefs reset"). Brief 06,
-[a post as a video](../briefs/todo/06-a-post-as-a-video-with-hyperframes.md), was
-filed on 2026-11-09 and waits on the owner's grilling of 2026-11-10. Before it,
+[a post as a video](../briefs/blocked/06-a-post-as-a-video-with-hyperframes.md), was
+filed on 2026-11-09 and is blocked since 2026-11-10: the owner wants no video
+export yet. Before it,
 brief 01 retook the README's editing GIF on 2026-11-07, after briefs 03 and 05
 changed how a selection paints. Briefs 07 to 11 (Base UI 1.9.0, the house-style harness, Base UI by the conventions, the UI on Tailwind, the API in the house structure) were filed on 2026-11-10 from the owner's calls of 2026-11-09, and wait on the grilling of 2026-11-10; see [../log.md](../log.md). Nothing is open in
 [open-questions.md](./open-questions.md): how a selection inside the waxed
