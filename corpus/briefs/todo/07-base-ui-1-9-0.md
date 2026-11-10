@@ -79,7 +79,8 @@ Six wrappers in `ui/src/components/ui/`, one per primitive. They are the only im
 
 1. **Pin 1.9.0 exactly.** Default: yes, through `npm install ... --save-exact`. No range.
 2. **Nothing else moves.** Default: no general `npm update`, no other dependency. The lockfile diff is Base UI's own tree and nothing else.
-3. **A visual change the bump causes** is logged in the outcome note and left. It is not restyled here; briefs 09 and 10 own the markup and the styling.
+3. **A visual change the bump causes** is logged in the outcome note and left. It is not restyled here; briefs 09 and 10 own the markup and the styling. Parity, where it is judged, means "close enough" (decided 2026-11-10, owner, Q19): no visible change to layout or colour at 1280 and 390 px; a few pixels of drift needn't be listed.
+4. **Release flow** (decided 2026-11-10, owner, Q4 and Q31). The bump is one commit on `main`, pushed directly. No branch, no pull request.
 
 ## Files you OWN
 
@@ -136,4 +137,5 @@ One commit for the bump, `chore(deps): @base-ui/react 1.9.0`. The gate is green 
 ## Interplay
 
 - Brief 09 rebuilds `Modal` and `ConfirmDialog` and adds wrappers; it starts from a tree already on 1.9.0, so the `AlertDialog`, `Tabs`, `ToggleGroup` and `Toast.Portal` APIs it needs are the 1.9.0 ones.
-- Brief 06 (a post as a video) touches `core/` and `infrastructure/Dockerfile`, and brief 10 needs a Vite 6.4.5 check; neither depends on this one, but both read the lockfile this brief rewrites. Run them one at a time.
+- Brief 10 needs a Vite 6.4.5 check; it does not depend on this one, but it reads the lockfile this brief rewrites. Run them one at a time.
+- Work happens on `main` and each commit is pushed straight to `main` (owner, 2026-11-10, Q4 and Q31): no branch, no pull request. The owner reviews `main`.

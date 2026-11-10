@@ -7,7 +7,7 @@
   - the brief *A code-structure skill for the Fastify and React apps*: rules 1-11, the server skeleton, the zod type provider reference, the migration method, `check-structure.mjs`, and the dependency-cruiser and knip presets;
   - the brief *The Fastify servers adopt the code structure*: Newspapper's row and the method;
   - the brief *Enforce the base-ui and code-structure skills in every repo*: `check-structure` runs `--warn-only` until this brief is done.
-- The owner's grilling of 2026-11-10: Q1 (how vps-deploy starts the service), Q23 (`features/`), Q24 (plugin options, explicit registration), Q25 (response schemas everywhere), Q27 (the test runner), and the new questions below.
+- The owner's grilling of 2026-11-10: Q1 (how the service starts: leave the deploy alone), Q23 (`features/`), Q24 and Q56 (plugin options, explicit registration, no decorator seam), Q25 and Q53 (response schemas, streams exempt), Q43 (one error handler), Q52 (validation before authorisation), Q55 (where schemas live), Q27 (the test runner), and the questions still open below.
 
 **Order:** after 08. It touches nothing in `ui/`, so it may run before 09 and 10, but never at the same time as either: all three change `package-lock.json`.
 
@@ -66,7 +66,7 @@ What is missing:
 | `routes/uploads.ts`, `uploads.test.ts` | 199, 258 | `features/uploads/routes.ts`, `routes.test.ts` | multipart, and the binary `GET /uploads/:ref` |
 | (new) | | `config.ts`, `plugins/errors.ts`, `plugins/static.ts` | the error handler (`server.ts:126-133`) and the static and SPA fallback (lines 71-77, 136-165) |
 
-**There is no `store.ts` layer to move.** Persistence is in `core/src/storage/*` (a library the routes call directly), so the skill's `features/<name>/store.ts` has nothing to hold. Default: a feature is `routes.ts` plus `schemas.ts` (step 5); `core` stays the data layer. *New question for the grilling:* does the skill's `store.ts` rule apply to a repo whose data layer is a workspace library, or does `core` count as the store?
+**There is no `store.ts` layer to move.** Persistence is in `core/src/storage/*` (a library the routes call directly), so the skill's `features/<name>/store.ts` has nothing to hold. Default: a feature is `routes.ts` plus `schemas.ts` (step 5); `core` stays the data layer. *Still open for the owner (decision 12):* does the skill's `store.ts` rule apply to a repo whose data layer is a workspace library, or does `core` count as the store?
 
 **Feature boundaries after the move** (rule 5, only through an `index.ts`): the routes import `@newspapper/core` and each other nowhere today, so no feature needs an `index.ts` yet. `render.ts` imports `PORT` from nowhere (it re-reads the environment), which `config.ts` ends.
 
@@ -80,7 +80,7 @@ What is missing:
 | `api/src/lib/db.ts:14` | `NEWSPAPPER_DB_PATH` | `config.ts` |
 | `api/src/ward/auth.ts:36, 61, 96` | `WARD_OIDC_*`, `SEED_*`, defaults `env = process.env` | `config.ts` (`loadSeedConfig()`, the Ward block) |
 | `api/src/ward/config.ts:61, 84` | `authPaths`, `publicOrigin`: the auth base and origin | `config.ts` |
-| `core/src/reader/config.ts:22, 27`, `storage/settings.ts:15`, `uploads/index.ts:110, 112`, `util/paths.ts:22, 45` | 7 readers inside the library | **out of scope here**: `core` is a library (decision 4 of brief 08 keeps its readers as a recorded exception) |
+| `core/src/reader/config.ts:22, 27`, `storage/settings.ts:15`, `uploads/index.ts:110, 112`, `util/paths.ts:22, 45` | 7 readers inside the library | **out of scope here**: `core` is a library (decision 8 of brief 08 keeps its readers as a recorded exception) |
 | `ui/vite.config.ts:68, 78` | `NEWSPAPPER_BASE`, `PORT` | out of scope: a build config |
 | tests | 42 in `api` and `core` | excepted |
 
@@ -105,9 +105,9 @@ No file reads `NODE_ENV`; the Dockerfile sets it only for Fastify's own dependen
 
 39 `req.body|query|params as {…}` casts in the route files (`grep -rnE "req\.(body|query|params)" api/src/routes | grep -v test`). **Nothing validates input today**; a malformed body reaches the handler as whatever it was.
 
-**Routes a `response` schema cannot describe: 7.** The three SSE routes (`scrape.ts`, `render.ts:38`, `reader.ts:202`, which write to `reply.raw`), `export.zip` (`render.ts:130`), `GET /uploads/:ref` and `/original` (a `createReadStream`, `uploads.ts:79-80`) and the multipart `POST /api/uploads` (body is not JSON). The rule "every route declares `response`" is met by 30 routes and excepted for these 7, recorded with a reason in `scripts/conventions.json`; they still validate `params` and `querystring`. *New question for the grilling:* does the skill's response-schema rule have a standing exception for streams, or must those routes declare `response: { 200: z.any() }`.
+**Routes a `response` schema cannot describe: 7.** The three SSE routes (`scrape.ts`, `render.ts:38`, `reader.ts:202`, which write to `reply.raw`), `export.zip` (`render.ts:130`), `GET /uploads/:ref` and `/original` (a `createReadStream`, `uploads.ts:79-80`) and the multipart `POST /api/uploads` (body is not JSON). The rule "every route declares `response`" is met by 30 routes and excepted for these 7, recorded with a reason in `scripts/conventions.json`; they still validate `params` and `querystring`. Q53 (decided 2026-11-10, technical call) gives streams and binary routes a standing exception, so none declares `response: { 200: z.any() }`.
 
-**The error body.** Newspapper sends `{ error: string }`: the handler at `server.ts:126-133` answers `{ error: 'Internal Server Error' }` for 5xx and the thrown message for 4xx, and `ui/src/lib/api.ts:92-93, 138-139` read `payload.error`. The skill's example body is `{ error, message, issues? }`. **Default: keep `{ error: string }`**, with the rule's substance (one handler, no 5xx detail, a validation 400) holding. A validation failure becomes `400 { error: "<path>: <message>" }`. This is the same question as the estate's *new question for the grilling* on whether the skill prescribes a shape or only a handler.
+**The error body.** Newspapper sends `{ error: string }`: the handler at `server.ts:126-133` answers `{ error: 'Internal Server Error' }` for 5xx and the thrown message for 4xx, and `ui/src/lib/api.ts:92-93, 138-139` read `payload.error`. The skill's example body is `{ error, message, issues? }`. **Q43 (decided 2026-11-10, technical call): keep `{ error: string }`**, with the rule's substance (one handler, no 5xx detail, Fastify's own 4xx passed through) holding. A validation failure becomes `400 { error: "<path>: <message>" }`.
 
 ### The entry file does not rename
 
@@ -119,19 +119,25 @@ No file reads `NODE_ENV`; the Dockerfile sets it only for Fastify's own dependen
 - All `inject()` tests build the app through `buildApp({ wardClient: null })`; the helper in `server.test.ts:61-64` (`inject`) is the one brief 08 fixes for typing.
 - New tests: a request body that fails its schema is a 400 with the existing error shape; an extra field on a row is stripped from a reply; a reply that fails its response schema is a 500 `Internal Server Error` with no detail; `config.ts` parses the environment once and rejects a bad one; and the response schemas are transform-free.
 
-## Owner decisions (defaults this brief builds)
+## Owner decisions
 
-1. **`api/src/features/<name>/`** (Q23). Default: yes, as the map.
-2. **Typed plugin options and explicit registration** (Q24). Default: the plugins and features are imported and registered by name in `app.ts`; the options object is typed (`{ refresh }` for reader today). **Newspapper already uses decorators** for two app-wide services (`accounts`, `readerSchedule`, `declare module 'fastify'` at `server.ts:56-62`). Default: keep them, since both are request-time lookups the guard and the SSE route need; no new decorator. *New question for the grilling:* the skill prefers options over decorators, so should these two move to a `FeatureContext` object as Almanac's did.
-3. **A response schema on every JSON route** (Q25), the 7 stream routes excepted as above.
-4. **Where the schemas live.** There is no `shared/` workspace, and [wiki/decisions-engineering.md](../../wiki/decisions-engineering.md) ("The UI keeps its own copy of the shared types") keeps the UI's types separate from `core`'s on purpose. Default: the zod schemas live beside their routes in `features/<name>/schemas.ts`, in `api`, not shared with the UI. *New question for the grilling:* a new `shared/` workspace the UI forms and the API both read (the estate's usual shape) or the schemas in `api/`.
-5. **The error body.** Default: keep `{ error: string }`.
-6. **The test runner** (Q27). Default: vitest stays, with `inject()`.
-7. **The test helper.** Default: the skill names `buildTestApp`; Newspapper's tests call `buildApp({ wardClient: null })` directly in 5 files plus a `signInCookie` helper. Add `testing/buildTestApp.ts` (the options, the scratch database, the session) and move the 5 files to it, or record the exception. Default: add it, since the same four lines open every test.
-8. **Timeouts and proxy.** Defaults, as in the estate: `connectionTimeout: 10_000`; `requestTimeout: 30_000` **except that the SSE routes and `export.zip` must not hit it** (a render takes longer; step 3 measures one and sets the route's own limit); `keepAliveTimeout: 125_000`, above Caddy's two-minute idle keep-alive to its upstream (check the deploy's Caddy snippet for its own `keepalive`); `trustProxy` loopback plus `AUTH_TRUSTED_PROXIES`, which the vendored Ward library already parses (`parseTrustedProxies`). Listen host stays `0.0.0.0` (`server.ts`, the container needs it).
-9. **Logging.** Default: JSON as today (`Fastify({ logger: true })`), no `pino-pretty`.
-10. **The reader's single-process loop** (the `startReaderSchedule` call at the end of `buildApp`) stays in `app.ts` as an `onClose`-stopped service; it assumes one API process, as [CLAUDE.md](../../../CLAUDE.md) says. Not moved to a feature.
-11. **Fastify 5.12.8.** Default: not in this brief.
+Decided on 2026-11-10 (the owner's grilling; the technical calls are marked, and the owner may overrule them). An item no answer covers stays a default.
+
+1. **`api/src/features/<name>/`** (Q23, decided 2026-11-10, technical call), as the map.
+2. **Typed plugin options and explicit registration** (Q24 and Q56, decided 2026-11-10, technical call). The plugins and features are imported and registered by name in `app.ts`; the options object is typed (`{ refresh }` for reader today). **No decorators as a test seam** (Q56): tests pass their dependencies as plugin options, as the reader tests pass `refresh` today. Newspapper already uses decorators for two app-wide services (`accounts`, `readerSchedule`, `declare module 'fastify'` at `server.ts:56-62`); both are request-time lookups the guard and the SSE route need, not test seams, so default: keep them, and add no new one. *Still open for the owner:* move those two to a `FeatureContext` object as Almanac's did. A feature's CLI may live beside it (Q56): `seed.ts` stays where it is.
+3. **A response schema on every route** (Q25 and Q53, decided 2026-11-10, technical call). Pass-through JSON uses a loose object. **The 7 streams and binary routes are exempt** (Q53): the three SSE routes, `export.zip`, `GET /uploads/:ref` and `/original`, and the multipart `POST /api/uploads`. Each has an entry in `scripts/conventions.json` naming the route and the reason, and still validates `params` and `querystring`. (The multipart upload's reply is JSON: it declares its `response` too, and the exemption is for its body, not its reply.)
+4. **Where the schemas live** (Q55, decided 2026-11-10, technical call). A zod schema lives in `shared/` when the client imports it, otherwise in its feature folder. Newspapper has no `shared/` folder, and [wiki/decisions-engineering.md](../../wiki/decisions-engineering.md) ("The UI keeps its own copy of the shared types") keeps the UI's types separate from `core`'s on purpose. The UI does not import these schemas, so they live beside their routes in `features/<name>/schemas.ts`, in `api`. A `shared/` workspace is rejected for now.
+5. **The error handler** (Q43, decided 2026-11-10, technical call). One error handler, keeping the repo's body shape `{ error: string }`. It passes Fastify's own 4xx (a validation 400) through, and never echoes a thrown message to the client on a 5xx. The handler at `server.ts:126-133` already does both; it moves unchanged to `plugins/errors.ts`.
+6. **Validation before authorisation** (Q52, decided 2026-11-10, technical call: accepted). Not an issue here: the session guard is an `onRequest` hook (`server.ts:83`), so it runs before validation and an unauthenticated request to a guarded route answers 401, not 400. No route authorises inside its handler.
+7. **The test runner** (Q27, decided 2026-11-10, technical call). vitest stays (atrium is the only repo on `node:test`), with `inject()`. Q26's "tests handlers and plugins without `inject()`" is Shelfmark's, not this repo's.
+8. **The test helper.** Default: the skill names `buildTestApp`; Newspapper's tests call `buildApp({ wardClient: null })` directly in 5 files plus a `signInCookie` helper. Add `testing/buildTestApp.ts` (the options, the scratch database, the session) and move the 5 files to it, or record the exception. Default: add it, since the same four lines open every test.
+9. **Timeouts and proxy.** Defaults, as in the estate: `connectionTimeout: 10_000`; `requestTimeout: 30_000` **except that the SSE routes and `export.zip` must not hit it** (a render takes longer; step 3 measures one and sets the route's own limit); `keepAliveTimeout: 125_000`, above Caddy's two-minute idle keep-alive to its upstream (check the deploy's Caddy snippet for its own `keepalive`); `trustProxy` loopback plus `AUTH_TRUSTED_PROXIES`, which the vendored Ward library already parses (`parseTrustedProxies`). Listen host stays `0.0.0.0` (`server.ts`, the container needs it).
+10. **Logging.** Default: JSON as today (`Fastify({ logger: true })`), no `pino-pretty`.
+11. **The reader's single-process loop** (the `startReaderSchedule` call at the end of `buildApp`) stays in `app.ts` as an `onClose`-stopped service; it assumes one API process, as [CLAUDE.md](../../../CLAUDE.md) says. Not moved to a feature.
+12. **A store layer** (Q54 covers a big `store.ts`, which this repo has none of). Default: a feature is `routes.ts` plus `schemas.ts`; `core` stays the data layer. *Still open for the owner:* whether the skill's `store.ts` rule applies to a repo whose data layer is a workspace library.
+13. **Fastify 5.12.8.** Default: not in this brief.
+14. **How the service starts** (Q1, decided 2026-11-10, fact). The container starts a file path, `CMD ["node", "api/dist/server.js"]`, built by `npm ci` and `tsc`, with no tests or lint. Leave the deploy alone: `server.ts` stays the entry, so no Dockerfile edit is owed. `npm run check` and the plugin's `Stop` hook are the gate, not the deploy.
+15. **Release flow** (Q4 and Q31, decided 2026-11-10, owner). One commit per step on `main`, pushed to `main`. No branch, no pull request; the owner reviews `main`.
 
 ## Files you OWN
 
@@ -158,7 +164,7 @@ Follow the skill's migration method. One commit per step; after each, `CI=1 npm 
 1. **Before.**
    - Run `check-structure` strict and record its counts by rule.
    - Seed a scratch database as [docs/images/shots.md](../../../docs/images/shots.md) does, with a tester account, and save the JSON of every JSON route above, signed in, with fixed query ranges, in a folder outside the repo.
-   - Measure one real render's duration and the largest SSE stream's duration, for decision 8.
+   - Measure one real render's duration and the largest SSE stream's duration, for decision 9.
 2. **`config.ts` and the split.** One zod-parsed `config.ts` (`loadConfig(env = process.env)`, `loadSeedConfig()`, `resolveDbPath()`). `server.ts` becomes the entry: `loadConfig`, `buildApp(config, { logger: true, server: { … } })`, `close-with-grace` in place of the two `process.once` handlers at lines 154-155 (keep their exit codes, 143 and 130, which the comment explains), `listen`. `app.ts` takes `buildApp`. Move the five test imports. `no-process-env` now finds nothing in `api/src` outside `config.ts` and tests; make it an error.
 3. **The plugins:** `plugins/errors.ts` (the existing handler, in `fastify-plugin`, registered first, keeping `{ error: string }` and the logging at line 128), `plugins/static.ts`, `plugins/sse.ts`, `plugins/auth/` (from `ward/`), all as the map. Every test passes unchanged.
 4. **Feature folders.** `git mv` file by file so history follows. Rewrite the relative imports one level deeper. Add `.dependency-cruiser.cjs`, and check that a deliberate import of one feature's file from another feature fails it.
@@ -172,6 +178,8 @@ Follow the skill's migration method. One commit per step; after each, `CI=1 npm 
 - [ ] `check-structure` passes strict, with every exception in `scripts/conventions.json` and its reason. Its counts before and after are in the outcome note, for the skills library's table.
 - [ ] `grep -rnE "req\.(body|query|params) as" api/src` prints nothing, and every route in the table has a `schema`, with a `response` on the 30 JSON routes.
 - [ ] `grep -rn "process\.env" api/src --include=*.ts | grep -v "\.test\.ts"` prints only `config.ts`, and `no-process-env` is an error on `api/src`.
+- [ ] Every commit is on `main` and pushed there; no branch or pull request.
+- [ ] Each of the 7 exempt routes has a `scripts/conventions.json` entry with its reason (Q53), and a thrown error's message never reaches a 5xx body (a test).
 - [ ] A malformed body to each of `POST /api/articles`, `PUT /api/posts/:id`, `POST /api/sources` and `PUT /api/settings` answers 400 with `{ error }`; a test for each. The stripped-field test, the serialization-500 test and the transform-free test pass, with every existing test unchanged except its import path.
 - [ ] The before and after JSON comparison is in `log.md`, with every dropped field named.
 - [ ] `npm run build` still writes `api/dist/server.js` and `api/dist/app.js`; `docker build -f infrastructure/Dockerfile .` succeeds and the container answers its health check. No deploy edit is owed (the `CMD` is unchanged); the outcome note says so.
@@ -182,5 +190,4 @@ Follow the skill's migration method. One commit per step; after each, `CI=1 npm 
 ## Interplay
 
 - Brief 08's default-export change touches the 12 route plugins this brief moves; run 08 first. Its `no-process-env` warning becomes an error here.
-- Brief 06 (a post as a video) adds a render kind to `features/renders/` and `core`; build it on the structure this brief leaves, with its own schema.
 - The skills library should hear that this repo has no `shared/` workspace and no store layer, and that 7 of 37 routes are streams, before the other servers run the migration brief.
