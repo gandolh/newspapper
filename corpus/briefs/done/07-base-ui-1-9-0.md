@@ -139,3 +139,9 @@ One commit for the bump, `chore(deps): @base-ui/react 1.9.0`. The gate is green 
 - Brief 09 rebuilds `Modal` and `ConfirmDialog` and adds wrappers; it starts from a tree already on 1.9.0, so the `AlertDialog`, `Tabs`, `ToggleGroup` and `Toast.Portal` APIs it needs are the 1.9.0 ones.
 - Brief 10 needs a Vite 6.4.5 check; it does not depend on this one, but it reads the lockfile this brief rewrites. Run them one at a time.
 - Work happens on `main` and each commit is pushed straight to `main` (owner, 2026-11-10, Q4 and Q31): no branch, no pull request. The owner reviews `main`.
+
+## Outcome (2026-11-10)
+
+Built: `ui/package.json` reads `1.9.0`; the lockfile resolves one copy at 1.9.0 (hoisted at `node_modules/@base-ui/react`); the diff is the two files only. The OTPFieldPreview/otp-field/sanitizeValue grep printed nothing. `CI=1 npm run gate` passed before (944 tests, 76 files) and after (944), with Chromium installed and no "DID NOT RUN" banner. The wrappers compile and their tests pass unchanged; no source fix was needed.
+
+Not done: the per-wrapper changelog lines (GitHub and `gh` were unreachable from the build session), the `docker build` (Docker returned an I/O error), and the browser behaviour table (no dev server was started). The owner should do the browser walk after deploy.

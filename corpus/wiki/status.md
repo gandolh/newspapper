@@ -15,7 +15,7 @@ no GitHub CI, by the owner's choice (2026-10-04). Brief numbering restarted at
 filed on 2026-11-09 and is blocked since 2026-11-10: the owner wants no video
 export yet. Before it,
 brief 01 retook the README's editing GIF on 2026-11-07, after briefs 03 and 05
-changed how a selection paints. Briefs 07 to 11 (Base UI 1.9.0, the house-style harness, Base UI by the conventions, the UI on Tailwind, the API in the house structure) were filed on 2026-11-10 from the owner's calls of 2026-11-09, and were revised to the owner's grilling of 2026-11-10, with a redesign brief (12) added; see [../log.md](../log.md). Nothing is open in
+changed how a selection paints. Brief 07 (Base UI 1.9.0) was built on 2026-11-10 and awaits a deploy. Briefs 07 to 11 (Base UI 1.9.0, the house-style harness, Base UI by the conventions, the UI on Tailwind, the API in the house structure) were filed on 2026-11-10 from the owner's calls of 2026-11-09, and were revised to the owner's grilling of 2026-11-10, with a redesign brief (12) added; see [../log.md](../log.md). Nothing is open in
 [open-questions.md](./open-questions.md): how a selection inside the waxed
 element shows was settled on 2026-11-06 (non-photo blue) and built the same day.
 
