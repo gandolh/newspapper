@@ -1924,3 +1924,17 @@ keeps each frame's timestamp, the post at `/?post=1` (the dev server's base is `
 autosaves. `CLAUDE.md` and the `editor.webp` row still name `/newspapper/` for the local UI; left
 for the owner. Commit `2ad75ef`; the brief is
 [done](briefs/done/01-retake-the-editing-gif-after-the-wax-fix.md).
+
+## [2026-11-09] todo | Brief 06: a post as a video, with HyperFrames
+
+From the owner's review of popular agent repos: heygen-com/hyperframes
+renders HTML to deterministic MP4. Newspapper already compiles a post to
+HTML and screenshots it in Chromium. The brief starts with a half-day spike
+that compares frames against the JPEGs before anything is built. It records
+the runtime cost: FFmpeg, and Puppeteer's own Chrome in the image. It waits
+on the owner's grilling on 2026-11-10. See the
+[brief](briefs/todo/06-a-post-as-a-video-with-hyperframes.md).
+
+## [2026-11-10] todo | Briefs 07-11: the owner's three estate calls, as five Newspapper briefs
+
+From the owner's calls of 2026-11-09 (Base UI 1.9.0 everywhere, whole apps on Tailwind v4, the researched conventions enforced in each repo). Each brief was written against measurements on a scratch copy; nothing in the repo changed. Order: [07](briefs/todo/07-base-ui-1-9-0.md) the bump (`ui` only, nests under `ui/node_modules`), [08](briefs/todo/08-the-house-style-harness.md) the harness and the single-to-double-quote reformat (6,768 lines at width 100), [09](briefs/todo/09-base-ui-by-the-conventions.md) the conventions, [10](briefs/todo/10-the-ui-to-tailwind.md) Tailwind, [11](briefs/todo/11-the-api-in-the-code-structure.md) the API structure. Findings that changed the plan: the `core` and `api` tsconfigs exclude 49 test files (117 errors hidden, an eleventh "green because nothing ran"); the Tailwind decision in `decisions-engineering.md` does exist; the wax test selects CSS-Modules class substrings; the preview shares no CSS with the render; `global.css` has 11 `@font-face` rules, not 12; the API has no validation, no zod and no store layer. They wait on the owner's grilling of 2026-11-10.
