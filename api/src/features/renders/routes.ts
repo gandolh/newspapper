@@ -1,4 +1,4 @@
-import type { FastifyPluginAsync } from "fastify";
+import type { FastifyPluginAsyncZod } from "@fastify/type-provider-zod";
 import { basename, join, resolve, sep } from "node:path";
 import { existsSync, readdirSync } from "node:fs";
 import {
@@ -9,12 +9,13 @@ import {
   type RenderRecord,
 } from "@newspapper/core";
 import { db } from "../../lib/db.js";
+import { renderQuerySchema, renderSummaryListSchema } from "./schemas.js";
 
 const outputRoot = outputRootDir();
 
 const SLIDE_FILE = /^slide-\d+\.jpg$/i;
 
-export interface RenderSummary {
+interface RenderSummary {
   id: number;
   postId: number;
   slideCount: number;
@@ -67,7 +68,7 @@ function toSummary(render: RenderRecord): RenderSummary {
   };
 }
 
-export const rendersRoutes: FastifyPluginAsync = async (fastify) => {
+export const rendersRoutes: FastifyPluginAsyncZod = async (fastify) => {
   /**
    * GET /api/renders?postId=
    *
@@ -75,18 +76,20 @@ export const rendersRoutes: FastifyPluginAsync = async (fastify) => {
    * a thumbnail and decide whether export and publish are available without a
    * request per row. `outputDir` is deliberately absent — it is a server path.
    */
-  fastify.get("/api/renders", async (req, reply) => {
-    const { postId } = req.query as { postId?: string };
+  fastify.get(
+    "/api/renders",
+    { schema: { querystring: renderQuerySchema, response: { 200: renderSummaryListSchema } } },
+    async (req, reply) => {
+      const { postId } = req.query;
 
-    if (postId !== undefined) {
-      const id = Number(postId);
-      if (!Number.isInteger(id)) return reply.status(400).send({ error: "postId must be an integer" });
-      const render = latestRender(db(), id);
-      return reply.send(render ? [toSummary(render)] : []);
-    }
+      if (postId !== undefined) {
+        const render = latestRender(db(), postId);
+        return reply.send(render ? [toSummary(render)] : []);
+      }
 
-    // One query for every post's newest render. This used to list
-    // up to 500 posts only to call latestRender once per post.
-    return reply.send(latestRenders(db()).map(toSummary));
-  });
+      // One query for every post's newest render. This used to list
+      // up to 500 posts only to call latestRender once per post.
+      return reply.send(latestRenders(db()).map(toSummary));
+    },
+  );
 };

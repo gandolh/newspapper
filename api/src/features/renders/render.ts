@@ -1,4 +1,4 @@
-import type { FastifyPluginAsync } from "fastify";
+import type { FastifyPluginAsyncZod } from "@fastify/type-provider-zod";
 import { existsSync } from "node:fs";
 import {
   findPost,
@@ -16,6 +16,7 @@ import {
   outputRoot,
 } from "@newspapper/core";
 import { db } from "../../lib/db.js";
+import { renderParamsSchema } from "./schemas.js";
 import { sseHeaders, sseWrite, sseDone, sseError } from "../../plugins/sse.js";
 
 const outputPrefix = outputRoot();
@@ -32,14 +33,17 @@ function formatCaption(head: Record<string, string>): string | undefined {
   return hashtags ? `${caption}\n\n${hashtags}` : caption;
 }
 
-export const renderRoutes: FastifyPluginAsync<RenderRoutesOptions> = async (fastify, { port }) => {
+export const renderRoutes: FastifyPluginAsyncZod<RenderRoutesOptions> = async (fastify, { port }) => {
   /**
    * POST /api/posts/:id/render  (SSE)
    * Compiles the post's `.wzd` markup and renders every slide to JPEG.
+   *
+   * A stream, so no response schema: every reply is a 200 of `text/event-stream`, its outcome in the
+   * events (scripts/conventions.json records the exception). It takes no body.
    */
-  fastify.post("/api/posts/:id/render", async (req, reply) => {
+  fastify.post("/api/posts/:id/render", { schema: { params: renderParamsSchema } }, async (req, reply) => {
     sseHeaders(reply);
-    const { id } = req.params as { id: string };
+    const { id } = req.params;
     const post = findPost(db(), Number(id));
     if (!post) {
       sseError(reply, "Post not found");
@@ -113,9 +117,12 @@ export const renderRoutes: FastifyPluginAsync<RenderRoutesOptions> = async (fast
 
   /**
    * GET /api/posts/:id/export.zip — the latest render's JPEGs + caption.
+   *
+   * Binary, so no response schema (scripts/conventions.json records the exception): a declared 404
+   * would type the reply as JSON only. The 404s go out as `{ error }` all the same.
    */
-  fastify.get("/api/posts/:id/export.zip", async (req, reply) => {
-    const { id } = req.params as { id: string };
+  fastify.get("/api/posts/:id/export.zip", { schema: { params: renderParamsSchema } }, async (req, reply) => {
+    const { id } = req.params;
     const post = findPost(db(), Number(id));
     if (!post) return reply.status(404).send({ error: "Post not found" });
 
