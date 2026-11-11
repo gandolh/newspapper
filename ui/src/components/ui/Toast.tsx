@@ -18,15 +18,19 @@ interface ToastContextValue {
  * ToastProvider / useToast — thin wrapper over Base UI's Toast.
  * The public API (`useToast().addToast(message, variant, duration)`) is unchanged,
  * so existing callers don't need updating; Base UI handles timers, the live region,
- * stacking, swipe-to-dismiss, and animation lifecycle.
+ * stacking, swipe-to-dismiss, and animation lifecycle. The viewport sits in a
+ * portal, so no ancestor's stacking context can put it under the page.
+ * An error toast stays until its Dismiss button is pressed.
  */
 export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <Toast.Provider>
       {children}
-      <Toast.Viewport className={styles.region}>
-        <ToastList />
-      </Toast.Viewport>
+      <Toast.Portal>
+        <Toast.Viewport className={styles.region}>
+          <ToastList />
+        </Toast.Viewport>
+      </Toast.Portal>
     </Toast.Provider>
   );
 }
@@ -35,7 +39,13 @@ export function useToast(): ToastContextValue {
   const manager = Toast.useToastManager();
   const addToast = useCallback(
     (message: string, variant: ToastVariant = "info", duration = 4000) => {
-      manager.add({ title: message, type: variant, timeout: duration });
+      // An error stays until it is dismissed, whatever duration the caller gave.
+      manager.add({
+        title: message,
+        type: variant,
+        timeout: variant === "error" ? 0 : duration,
+        priority: variant === "error" ? "high" : "low",
+      });
     },
     [manager],
   );
