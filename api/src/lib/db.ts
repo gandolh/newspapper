@@ -2,17 +2,18 @@
  * Shared DB accessor for the API.
  * Provides a single open connection per-process (module-level singleton).
  *
- * Tests can override the DB path via the NEWSPAPPER_DB_PATH env variable.
+ * The path is `NEWSPAPPER_DB_PATH` (`resolveDbPath` in `config.ts`), read at the
+ * first open, so a test can point it at a scratch file before building the app.
  */
 import { getDb } from "@newspapper/core";
 import type { DB } from "@newspapper/core";
+import { resolveDbPath } from "../config.js";
 
 let _db: DB | null = null;
 
 export function db(): DB {
   if (_db === null || !_db.open) {
-    const dbPath = process.env["NEWSPAPPER_DB_PATH"];
-    _db = getDb(dbPath);
+    _db = getDb(resolveDbPath());
   }
   return _db;
 }

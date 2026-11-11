@@ -1,209 +1,63 @@
-import { join } from "node:path";
-import { existsSync, readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { fontsDir, outputRoot, uiDistDir, readerRefreshMinutes, startReaderSchedule } from "@newspapper/core";
-import type { ReaderSchedule, RefreshOptions } from "@newspapper/core";
-import Fastify from "fastify";
-import cors from "@fastify/cors";
-import staticPlugin from "@fastify/static";
-import { health } from "./routes/health.js";
-import { scrapeRoutes } from "./routes/scrape.js";
-import { articlesRoutes } from "./routes/articles.js";
-import { postsRoutes } from "./routes/posts.js";
-import { renderRoutes } from "./routes/render.js";
-import { rendersRoutes } from "./routes/renders.js";
-import { publishRoutes } from "./routes/publish.js";
-import { themesRoutes } from "./routes/themes.js";
-import { sourcesRoutes } from "./routes/sources.js";
-import { settingsRoutes } from "./routes/settings.js";
-import { uploadsRoutes } from "./routes/uploads.js";
-import { readerRoutes } from "./routes/reader.js";
-import { db } from "./lib/db.js";
-import { createAppAccounts, registerAuth, wardClientFromEnv } from "./ward/auth.js";
-import type { Accounts, WardClient } from "../vendor/ward/ward-auth.js";
+/**
+ * The process: the settings, the app, shutdown, listen. Nothing else in the API listens; tests and the
+ * seed command build what they need without opening a port.
+ */
+import { constants } from "node:os";
+import closeWithGrace from "close-with-grace";
+import { buildApp } from "./app.js";
+import { loadConfig } from "./config.js";
 
-export const PORT = Number(process.env.PORT ?? 3001);
-
-export interface BuildAppOptions {
-  /**
-   * The Ward client behind "Sign in with Ward". Left out, it is built from the
-   * `WARD_OIDC_*` environment, or absent (local accounts only) when
-   * `WARD_OIDC_ISSUER` is unset. A test passes `createWardClient({ ..., fetch })`
-   * with a fake `fetch`, or `null` to switch the button off whatever the
-   * environment says. Nothing contacts Ward at boot.
-   */
-  wardClient?: WardClient | null;
-  /**
-   * Minutes between the Reader's background refreshes. **Omitted means off**,
-   * so every test that builds an app gets no loop and no timer by
-   * construction; `start()` passes `READER_REFRESH_MINUTES` (default 30) via
-   * `bootOptions()`. `0` is off too.
-   */
-  readerRefreshMinutes?: number;
-  /**
-   * Passed to every refresh the API starts, the SSE route's and the loop's.
-   * Tests inject fetch and DNS here so a refresh never reaches the network.
-   */
-  readerRefresh?: Pick<RefreshOptions, "deps" | "now">;
+let app: Awaited<ReturnType<typeof buildApp>>;
+let port: number;
+try {
+  const config = loadConfig();
+  port = config.port;
+  app = await buildApp(config, {
+    readerRefreshMinutes: config.readerRefreshMinutes,
+    server: {
+      // JSON lines, as the container's log collector reads them.
+      logger: true,
+      // Caddy is the only way in: on the host it connects from loopback, and to a container through
+      // Docker's proxy, from the bridge network AUTH_TRUSTED_PROXIES names.
+      trustProxy: ["loopback", ...config.trustedProxies],
+      // A socket silent this long mid-request is cut. The longest silent JSON route is a source's
+      // ping, which waits up to its 30 s feed timeout; the SSE streams turn the limit off for
+      // their own connection (`lib/sse.ts`), since a stream can go quiet for longer.
+      connectionTimeout: 35_000,
+      // The whole request, body included, must arrive within this. It covers receiving the
+      // request only, not the reply: a long render or zip is not cut by it. A 10 MB upload
+      // needs about 1.4 Mbit/s to make it.
+      requestTimeout: 60_000,
+      // Longer than Caddy keeps an idle upstream connection (2 minutes), so Caddy never sends a
+      // request down a socket the server has just closed.
+      keepAliveTimeout: 125_000,
+    },
+  });
+} catch (err) {
+  console.error(`Startup failed: ${err instanceof Error ? err.message : String(err)}`);
+  process.exit(1);
 }
 
-declare module "fastify" {
-  interface FastifyInstance {
-    /** The local accounts and sessions. A test mints a session with `startSession`. */
-    accounts: Accounts;
-    /** The Reader's background loop. Stopped in `onClose`. */
-    readerSchedule: ReaderSchedule;
-  }
-}
+/*
+ * SIGTERM, SIGINT, an uncaught error: stop taking requests, let the ones in flight finish, run every
+ * onClose hook (the Reader's loop stops there), then exit. After 10 s it exits 1 anyway.
+ *
+ * In the container this process is PID 1, which gets no default action for a signal it has no
+ * handler for. A signal still ends it the way an unhandled one does anywhere else, 128 + the
+ * signal's number (143 for SIGTERM, 130 for SIGINT), which is also how it ended before 2026-11-04,
+ * when npm sat in front of it and forwarded the signal.
+ */
+closeWithGrace({ delay: 10_000, logger: app.log }, async ({ signal, err }) => {
+  if (err) app.log.error({ err }, "closing after an uncaught error");
+  else app.log.info(`closing on ${signal ?? "exit"}`);
+  await app.close();
+  if (signal !== undefined) process.exit(128 + (constants.signals[signal as NodeJS.Signals] ?? 0));
+});
 
-/** What `start()` boots with: the production settings, read from `env`. */
-export function bootOptions(env: NodeJS.ProcessEnv = process.env): BuildAppOptions {
-  return { readerRefreshMinutes: readerRefreshMinutes(env) };
-}
-
-export async function buildApp(options: BuildAppOptions = {}) {
-  const fastify = Fastify({ logger: true });
-
-  await fastify.register(cors, {
-    origin: ["http://localhost:4321", "http://127.0.0.1:4321"],
-    credentials: true,
-  });
-
-  /*
-   * Identity is local, with Ward as a second way in. Accounts and sessions live
-   * in the app's own database (`auth_*` tables); a Ward sign-in creates or finds
-   * the linked local user, and a Ward-originated session is re-checked against
-   * Ward every 30 seconds. Registered before every other route: the guard is an
-   * `onRequest` hook, and only routes registered after it are covered.
-   */
-  const accounts = createAppAccounts(db());
-  fastify.decorate("accounts", accounts);
-  const wardClient = options.wardClient === undefined ? await wardClientFromEnv() : (options.wardClient ?? undefined);
-  await registerAuth(fastify, { accounts, wardClient });
-
-  // Serve font assets at /assets/fonts/
-  await fastify.register(staticPlugin, {
-    root: fontsDir(),
-    prefix: "/assets/fonts/",
-    decorateReply: false,
-  });
-
-  // Serve rendered output at /output/
-  await fastify.register(staticPlugin, {
-    root: outputRoot(),
-    prefix: "/output/",
-    decorateReply: false,
-  });
-
-  // Register all API routes
-  await fastify.register(health);
-  await fastify.register(scrapeRoutes);
-  await fastify.register(articlesRoutes);
-  await fastify.register(postsRoutes);
-  await fastify.register(renderRoutes);
-  await fastify.register(rendersRoutes);
-  await fastify.register(publishRoutes);
-  await fastify.register(themesRoutes);
-  await fastify.register(sourcesRoutes);
-  await fastify.register(settingsRoutes);
-  await fastify.register(uploadsRoutes);
-  await fastify.register(readerRoutes, { refresh: options.readerRefresh });
-
-  // Global error handler
-  // A 4xx carries a message a route chose to show the caller. A 5xx is a fault,
-  // and its message is whatever the exception said: SQL fragments, file paths,
-  // "Cannot read properties of null". That stays in the server log, never in
-  // the response.
-  fastify.setErrorHandler((err: Error & { statusCode?: number }, _req, reply) => {
-    const status = err.statusCode ?? 500;
-    fastify.log.error(err);
-    void reply.status(status).send({ error: status >= 500 ? "Internal Server Error" : err.message });
-  });
-
-  // Production static: serve ui/dist if present (fallback to index.html for non-API GETs)
-  const uiDist = uiDistDir();
-  if (existsSync(uiDist)) {
-    await fastify.register(staticPlugin, {
-      root: uiDist,
-      prefix: "/",
-      decorateReply: false,
-      wildcard: false,
-    });
-
-    // Fallback to index.html for client-side routing (Astro static output)
-    fastify.setNotFoundHandler(async (req, reply) => {
-      if (!req.url.startsWith("/api/")) {
-        // Try route-specific index.html first (Astro directory output)
-        const urlPath = req.url.split("?")[0].replace(/\/$/, "") || "/";
-        const routeFile = join(uiDist, urlPath, "index.html");
-        if (existsSync(routeFile)) {
-          const html = readFileSync(routeFile, "utf8");
-          return reply.type("text/html").send(html);
-        }
-        // Fall back to root index.html
-        const rootIndex = join(uiDist, "index.html");
-        if (existsSync(rootIndex)) {
-          const html = readFileSync(rootIndex, "utf8");
-          return reply.type("text/html").send(html);
-        }
-        return reply.status(404).send({ error: "Not found" });
-      }
-      return reply.status(404).send({ error: "Not found" });
-    });
-  }
-
-  /*
-   * The Reader's background refresh: the first run 15 s after
-   * boot, then every `readerRefreshMinutes`. One loop per process, which
-   * assumes one API process (the container runs one). `db` is a getter, so nothing
-   * opens the DB until a run. The loop is stopped, and any run of its own
-   * aborted and settled, before the server finishes closing; every timer is
-   * unref'd besides, so none can hold a process or vitest open.
-   */
-  const schedule = startReaderSchedule(() => db(), {
-    intervalMinutes: options.readerRefreshMinutes ?? 0,
-    refresh: options.readerRefresh,
-    onResult: ({ newCount, errors, purged }) =>
-      fastify.log.info({ newCount, failedSources: errors.length, purged }, "reader refresh"),
-  });
-  fastify.decorate("readerSchedule", schedule);
-  fastify.addHook("onClose", async () => {
-    await schedule.stop();
-  });
-
-  return fastify;
-}
-
-const start = async () => {
-  // In the container this process is PID 1, and PID 1 gets no default action
-  // for a signal it has no handler for: `docker stop` would wait out its
-  // timeout and then SIGKILL. Exit the way an unhandled signal does anywhere
-  // else (128 + the signal's number), which is also how it ended before
-  // 2026-11-04, when npm sat in front of it and forwarded the signal.
-  process.once("SIGTERM", () => process.exit(143));
-  process.once("SIGINT", () => process.exit(130));
-
-  let fastify: Awaited<ReturnType<typeof buildApp>>;
-  try {
-    fastify = await buildApp(bootOptions());
-  } catch (err) {
-    console.error(`Startup failed: ${err instanceof Error ? err.message : String(err)}`);
-    process.exit(1);
-    return;
-  }
-  try {
-    await fastify.listen({ port: PORT, host: "0.0.0.0" });
-    console.log(`API server listening on http://localhost:${PORT}`);
-  } catch (err) {
-    fastify.log.error(err);
-    process.exit(1);
-  }
-};
-
-// Only start when run directly, not when imported by tests
-const isMain =
-  process.argv[1] !== undefined && fileURLToPath(import.meta.url).endsWith(process.argv[1].replace(/\\/g, "/"));
-
-if (isMain) {
-  void start();
+try {
+  await app.listen({ port, host: "0.0.0.0" });
+  console.log(`API server listening on http://localhost:${port}`);
+} catch (err) {
+  app.log.error(err);
+  process.exit(1);
 }

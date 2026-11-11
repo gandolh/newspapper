@@ -14,7 +14,7 @@ import { fileURLToPath } from "node:url";
 import sharp from "sharp";
 import { createPost, saveUpload } from "@newspapper/core";
 
-import { buildApp } from "../server.js";
+import { buildTestApp } from "../testing/buildTestApp.js";
 import { db, resetDb } from "../lib/db.js";
 import { signInCookie } from "../ward/test-support.js";
 import { probeChromium, type ChromiumGuard } from "../../../core/src/render/test-support/chromium.js";
@@ -22,7 +22,7 @@ import { probeChromium, type ChromiumGuard } from "../../../core/src/render/test
 const repoRoot = resolve(fileURLToPath(new URL(".", import.meta.url)), "../../..");
 
 let tmp: string;
-let app: Awaited<ReturnType<typeof buildApp>>;
+let app: Awaited<ReturnType<typeof buildTestApp>>;
 let session: Record<string, string>;
 let chromium: ChromiumGuard;
 const createdOutputDirs: string[] = [];
@@ -44,7 +44,7 @@ afterAll(async () => {
 });
 
 beforeEach(async () => {
-  app = await buildApp({ wardClient: null });
+  app = await buildTestApp();
   await app.ready();
   session = (await signInCookie(app)).cookies;
 });

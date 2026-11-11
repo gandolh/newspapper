@@ -20,7 +20,10 @@ import { sseHeaders, sseWrite, sseDone, sseError } from "../lib/sse.js";
 
 const outputPrefix = outputRoot();
 
-const PORT = Number(process.env.PORT ?? 3001);
+export interface RenderRoutesOptions {
+  /** The API's port (`config.port`): the slides name the fonts at `http://localhost:<port>/assets/fonts`. */
+  port: number;
+}
 
 function formatCaption(head: Record<string, string>): string | undefined {
   const caption = head["caption"];
@@ -29,7 +32,7 @@ function formatCaption(head: Record<string, string>): string | undefined {
   return hashtags ? `${caption}\n\n${hashtags}` : caption;
 }
 
-export const renderRoutes: FastifyPluginAsync = async (fastify) => {
+export const renderRoutes: FastifyPluginAsync<RenderRoutesOptions> = async (fastify, { port }) => {
   /**
    * POST /api/posts/:id/render  (SSE)
    * Compiles the post's `.wzd` markup and renders every slide to JPEG.
@@ -68,7 +71,7 @@ export const renderRoutes: FastifyPluginAsync = async (fastify) => {
     }
 
     const total = slides.length;
-    const fontBaseUrl = `http://localhost:${PORT}/assets/fonts`;
+    const fontBaseUrl = `http://localhost:${port}/assets/fonts`;
     const uploadBase = uploadsBaseUrl();
     const htmlList = slides.map((root, i) =>
       renderTemplate(resolveImageUrls(root, uploadBase), {}, theme, {

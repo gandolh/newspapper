@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { mkdtempSync, rmSync } from "node:fs";
 
-import { buildApp } from "../server.js";
+import { buildTestApp, type TestAppOptions } from "../testing/buildTestApp.js";
 import { db, resetDb } from "../lib/db.js";
 import {
   createWardIdentities,
@@ -21,19 +21,16 @@ import { createFakeWard, signInCookie, TEST_ISSUER, type FakeWard } from "./test
  */
 
 let tmpDir: string;
-let app: Awaited<ReturnType<typeof buildApp>>;
+let app: Awaited<ReturnType<typeof buildTestApp>>;
 
 beforeAll(() => {
   tmpDir = mkdtempSync(join(tmpdir(), "newspapper-auth-"));
   process.env["NEWSPAPPER_DB_PATH"] = join(tmpDir, "test.db");
-  // The deploy's layout: the app lives under a base that the proxy strips.
-  process.env["NEWSPAPPER_BASE"] = "/newspapper/";
 });
 
 afterAll(() => {
   resetDb();
   delete process.env["NEWSPAPPER_DB_PATH"];
-  delete process.env["NEWSPAPPER_BASE"];
   rmSync(tmpDir, { recursive: true, force: true });
 });
 
@@ -43,8 +40,9 @@ afterEach(async () => {
 
 const PASSWORD = "correct horse battery";
 
-async function boot(options: Parameters<typeof buildApp>[0] = { wardClient: null }) {
-  app = await buildApp(options);
+/** The deploy's layout: the app lives under a base that the proxy strips. */
+async function boot(options: TestAppOptions = { wardClient: null }) {
+  app = await buildTestApp({ ...options, env: { NEWSPAPPER_BASE: "/newspapper/" } });
   await app.ready();
   return app;
 }

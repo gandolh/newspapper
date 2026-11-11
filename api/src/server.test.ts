@@ -10,7 +10,7 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { mkdtempSync, rmSync } from "node:fs";
-import { buildApp } from "./server.js";
+import { buildTestApp } from "./testing/buildTestApp.js";
 import { db as appDb, resetDb } from "./lib/db.js";
 import { recordRender } from "@newspapper/core";
 import { signInCookie } from "./ward/test-support.js";
@@ -44,11 +44,11 @@ afterAll(() => {
 });
 
 describe("API server", () => {
-  let app: Awaited<ReturnType<typeof buildApp>>;
+  let app: Awaited<ReturnType<typeof buildTestApp>>;
   let session: Record<string, string>;
 
   beforeEach(async () => {
-    app = await buildApp({ wardClient: null });
+    app = await buildTestApp();
     await app.ready();
     session = (await signInCookie(app)).cookies;
   });
@@ -650,10 +650,10 @@ describe("API server", () => {
 // =========================================================================
 
 describe("the global error handler", () => {
-  let app: Awaited<ReturnType<typeof buildApp>>;
+  let app: Awaited<ReturnType<typeof buildTestApp>>;
 
   beforeEach(async () => {
-    app = await buildApp({ wardClient: null });
+    app = await buildTestApp();
     // Routes outside the guarded prefixes, so no session is needed to reach them.
     app.get("/__test/boom", async () => {
       throw new Error("secret internal detail: /srv/newspapper/data/newspapper.db");

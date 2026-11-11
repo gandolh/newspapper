@@ -6,12 +6,12 @@ import {
   createWardClient,
   seedUsers,
   wardAuth,
-  wardClientOptionsFromEnv,
   type Accounts,
   type WardClient,
+  type WardClientOptions,
 } from "../../vendor/ward/ward-auth.js";
 import type { DB } from "@newspapper/core";
-import { AUTH_ROUTE_PREFIX, SESSION_COOKIE, authPaths, publicOrigin } from "./config.js";
+import { AUTH_ROUTE_PREFIX, SESSION_COOKIE, type AuthPaths } from "./config.js";
 import { requiresSession } from "./ward.guard.js";
 
 /**
@@ -27,23 +27,22 @@ export function createAppAccounts(db: DB): Accounts {
 }
 
 /**
- * The Ward client the environment describes, or `undefined` when
- * `WARD_OIDC_ISSUER` is unset and the app runs with local accounts only. A set
- * issuer with another variable missing throws, naming it: that is a deploy
- * mistake and should stop the boot. Nothing here contacts Ward.
+ * The Ward client `config.ts` describes, or `undefined` when `WARD_OIDC_ISSUER`
+ * is unset and the app runs with local accounts only. Nothing here contacts Ward.
  */
-export async function wardClientFromEnv(
-  env: Record<string, string | undefined> = process.env,
-): Promise<WardClient | undefined> {
-  const options = wardClientOptionsFromEnv(env);
+export async function wardClientFrom(options: WardClientOptions | undefined): Promise<WardClient | undefined> {
   return options === undefined ? undefined : createWardClient(options);
 }
 
 export interface RegisterAuthOptions {
   accounts: Accounts;
   /** Absent means no "Sign in with Ward" button: local accounts only. */
-  wardClient?: WardClient;
-  env?: Record<string, string | undefined>;
+  wardClient?: WardClient | undefined;
+  /** The browser-side paths and origin, from `config.ts`. */
+  paths: AuthPaths;
+  publicOrigin: string;
+  /** `AUTH_TRUSTED_PROXIES`, from `config.ts`, so the library never reads the environment itself. */
+  trustedProxies: string[];
 }
 
 /**
@@ -58,14 +57,14 @@ export interface RegisterAuthOptions {
  */
 export async function registerAuth(
   fastify: FastifyInstance,
-  { accounts, wardClient, env = process.env }: RegisterAuthOptions,
+  { accounts, wardClient, paths, publicOrigin, trustedProxies }: RegisterAuthOptions,
 ): Promise<void> {
-  const paths = authPaths(env);
   await fastify.register(wardAuth, {
     accounts,
     cookieName: SESSION_COOKIE,
     cookiePath: paths.cookiePath,
-    publicOrigin: publicOrigin(env),
+    publicOrigin,
+    trustedProxies,
     routePrefix: AUTH_ROUTE_PREFIX,
     isPublic: (request) => !requiresSession(request.url, request.routeOptions?.url),
     ...(wardClient && {
@@ -89,11 +88,12 @@ export interface SeedEnv {
  * Create the one local account the environment names, if it does not exist.
  * Never resets a password or a role, so it is safe to run on every deploy.
  *
- * The password comes from the environment, never from a file in the repository.
+ * The password comes from the environment (`loadSeedConfig` in `config.ts`),
+ * never from a file in the repository.
  * Returns what `seedUsers` reports; throws when username or password is unset,
  * rather than creating nothing and exiting 0.
  */
-export async function seedFromEnv(accounts: Accounts, env: SeedEnv = process.env) {
+export async function seedFromEnv(accounts: Accounts, env: SeedEnv) {
   const username = env.SEED_USERNAME?.trim();
   const password = env.SEED_PASSWORD;
   if (!username || !password) {

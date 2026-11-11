@@ -9,14 +9,14 @@ import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createPost, recordRender } from "@newspapper/core";
 
-import { buildApp } from "../server.js";
+import { buildTestApp } from "../testing/buildTestApp.js";
 import { db, resetDb } from "../lib/db.js";
 import { signInCookie } from "../ward/test-support.js";
 
 const outputRoot = resolve(fileURLToPath(new URL(".", import.meta.url)), "../../../output");
 const dirs = ["1999-01-01-1", "1999-01-01-2"].map((d) => join(outputRoot, d));
 let tmp: string;
-let app: Awaited<ReturnType<typeof buildApp>>;
+let app: Awaited<ReturnType<typeof buildTestApp>>;
 let session: Record<string, string>;
 
 beforeAll(() => {
@@ -37,7 +37,7 @@ afterAll(() => {
 });
 
 beforeEach(async () => {
-  app = await buildApp({ wardClient: null });
+  app = await buildTestApp();
   await app.ready();
   session = (await signInCookie(app)).cookies;
 });

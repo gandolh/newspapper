@@ -11,7 +11,8 @@ import { join } from "node:path";
 import { insertFeedItems, saveSources } from "@newspapper/core";
 import type { FeedItem, FeedItemPage, ReaderCounts, Article } from "@newspapper/core";
 
-import { buildApp, bootOptions } from "../server.js";
+import { loadConfig } from "../config.js";
+import { buildTestApp } from "../testing/buildTestApp.js";
 import { db, resetDb } from "../lib/db.js";
 import { signInCookie } from "../ward/test-support.js";
 
@@ -47,7 +48,7 @@ const deps = {
 };
 
 let tmp: string;
-let app: Awaited<ReturnType<typeof buildApp>>;
+let app: Awaited<ReturnType<typeof buildTestApp>>;
 let session: Record<string, string>;
 
 beforeAll(() => {
@@ -66,7 +67,7 @@ beforeEach(async () => {
   db().exec("DELETE FROM articles");
   saveSources(SOURCES, db());
   fetchSpy.mockClear();
-  app = await buildApp({ wardClient: null, readerRefresh: { deps } });
+  app = await buildTestApp({ readerRefresh: { deps } });
   await app.ready();
   session = (await signInCookie(app)).cookies;
 });
@@ -442,17 +443,16 @@ describe("the background loop", () => {
   });
 
   it("boots from READER_REFRESH_MINUTES: 30 by default, 0 for off", () => {
-    expect(bootOptions({}).readerRefreshMinutes).toBe(30);
-    expect(bootOptions({ READER_REFRESH_MINUTES: "0" }).readerRefreshMinutes).toBe(0);
-    expect(bootOptions({ READER_REFRESH_MINUTES: "5" }).readerRefreshMinutes).toBe(5);
+    expect(loadConfig({}).readerRefreshMinutes).toBe(30);
+    expect(loadConfig({ READER_REFRESH_MINUTES: "0" }).readerRefreshMinutes).toBe(0);
+    expect(loadConfig({ READER_REFRESH_MINUTES: "5" }).readerRefreshMinutes).toBe(5);
   });
 
   it("refreshes after its first delay, and closing the server stops it with no timer left", async () => {
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
     try {
-      const looped = await buildApp({
-        wardClient: null,
-        ...bootOptions({}),
+      const looped = await buildTestApp({
+        readerRefreshMinutes: loadConfig({}).readerRefreshMinutes,
         readerRefresh: { deps },
       });
       await looped.ready();

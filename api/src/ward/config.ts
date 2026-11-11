@@ -1,6 +1,6 @@
 /**
- * Where the auth plugin is mounted and how the browser reaches it, read from
- * the environment. Pure, so the paths are testable without a server.
+ * Where the auth plugin is mounted and how the browser reaches it, from the
+ * environment `config.ts` hands in. Pure, so the paths are testable without a server.
  *
  * ## Three paths that look alike and are not
  *
@@ -58,7 +58,7 @@ export interface AuthPaths {
  * Ward callback is configured, the base is read back out of the callback, which
  * the library already requires to end in `/api/auth/ward/callback`.
  */
-export function authPaths(env: Record<string, string | undefined> = process.env): AuthPaths {
+export function authPaths(env: Record<string, string | undefined>): AuthPaths {
   let base = trimBase(env["NEWSPAPPER_BASE"]);
   if (base === "" && env["NEWSPAPPER_BASE"] === undefined) {
     const callback = parseUrl(env["WARD_OIDC_REDIRECT_URI"])?.pathname;
@@ -80,7 +80,7 @@ export function authPaths(env: Record<string, string | undefined> = process.env)
  * `PUBLIC_ORIGIN` wins. Without it the origin is the callback's, which is on
  * the app's own origin by construction, and without that, the dev server's.
  */
-export function publicOrigin(env: Record<string, string | undefined> = process.env): string {
+export function publicOrigin(env: Record<string, string | undefined>): string {
   const explicit = env["PUBLIC_ORIGIN"]?.trim().replace(/\/+$/, "");
   if (explicit) return explicit;
   return parseUrl(env["WARD_OIDC_REDIRECT_URI"])?.origin ?? "http://localhost:4321";

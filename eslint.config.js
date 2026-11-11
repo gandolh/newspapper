@@ -37,14 +37,6 @@ export default [
     rules: { "n/no-process-env": "off" },
   },
   {
-    // A warning for now (2026-11-11): these files still read the environment themselves. When the
-    // server takes its settings from config.ts, this block goes and the rule is an error again.
-    name: "newspapper/process-env-warns",
-    files: ["api/src/**"],
-    ignores: ["**/*.test.ts"],
-    rules: { "n/no-process-env": "warn" },
-  },
-  {
     // Off since 2026-11-11, until the repo turns on noUncheckedIndexedAccess: without it the rule flags
     // the non-null assertions that indexed reads need.
     name: "newspapper/no-unnecessary-type-assertion-off",
