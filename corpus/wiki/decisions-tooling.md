@@ -174,3 +174,15 @@ everyone, which the dead-config cleanup (2026-08-31) had already turned down:
 tsx, vitest and the UI's Vite build would read stale output or need `core` built
 first. **Node's own type stripping**, which is not built JavaScript and does not
 map the source's `.js` import specifiers to `.ts` files.
+
+## Base UI by the conventions (2026-11-11, brief 09)
+
+The dialogs, the toast, the chip rows and the narrow editor's pane switcher follow the base-ui skill's rules 8, 12, 13 and 16. Structure and behaviour only; the styling stays on CSS modules until brief 10.
+
+- **A filter is a `RadioGroup`, a picker that saves is a guarded `ToggleGroup`** (rule 16, Q41 and Q57). `ChipRow` takes a required `kind`. Where each writes decided it: the keyword chips on `/posts`, Unread and All in the Reader and the proof sheet's first row only change what a list shows; the inspector's `size`, `align` and `emphasis` write to the post on each choice. The guard drops an empty value, so one chip stays pressed, and arrow keys only move focus.
+- **One behaviour went:** a second click on the chosen keyword no longer clears the filter (a `RadioGroup` does not fire on a repeat click). "All keywords" is the way back.
+- **`ConfirmDialog` has no ✕.** It is an `AlertDialog`: Cancel has the focus, Esc and Cancel close it, an outside press does nothing, and while `loading` nothing closes it. Its six callers did not change.
+- **A form dialog ignores an outside tap** (Q58): Add and Edit source pass `dismissOnBackdrop={false}`. `Modal` has the Escape guard and sends focus to `[data-autofocus]`, else the first field (a file input never counts), else the first button, else the dialog.
+- **An error toast stays until dismissed**, whatever duration a caller passes, and is announced at once. The viewport is in a `Toast.Portal`.
+- **`Tabs` activates on focus**, as the skill's rule 16 says; an inactive pane is not mounted, as before.
+- The guard: `no-restricted-imports` on the `@base-ui/react` root in `eslint.config.js`, and `check-base-ui`. It stays `--warn-only`, because rule 5 (43 CSS files) is brief 10's.

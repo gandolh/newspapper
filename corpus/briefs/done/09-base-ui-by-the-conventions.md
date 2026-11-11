@@ -157,3 +157,23 @@ One commit per numbered step. After each, `npm run check` passes (brief 08), wit
 - Brief 10 styles `ui/src/components/ui/` with Tailwind on the parts, replaces the bare z-indexes with tokens, and removes the CSS rules this brief renamed. The new wrappers are styled there like any other.
 - Brief 08's `no-default-export` change touches the same files (the wrappers are default exports re-exported by `ui/src/components/ui/index.ts`); run 08 first.
 - Brief 10 builds the Light / Dark / System switch. It is a `Select` or a small `RadioGroup` from this brief's set, so it needs nothing new from here.
+
+## Outcome (2026-11-11)
+
+Built on `main` in 8 commits, `8cd6e1f` to `cb4c728` (plus the closeout), ready for deploy. `CI=1 npm run check` exits 0 (985 tests), `bash corpus/lint.sh` is clean.
+
+- **check-base-ui**, by rule: before and after, rule 5 reports 43 (42 CSS modules and `global.css`) and every other rule 0, so it stays `--warn-only` (brief 10 clears rule 5). The checker never saw rules 8, 12, 13 or 16, so those were audited by review: one portal added (the toast), `Modal` and `ConfirmDialog` on rule 12, `ChipRow` and the pane switcher on rule 13, no `*.Trigger` over a component, `Select.Root` has `items`, no native dialog. The guard is `no-restricted-imports` on the `@base-ui/react` root in `eslint.config.js`; no `conventions.json` exception was needed (the checker has no widget rule for the `Splitter`).
+- **Acceptance greps:** the Base UI imports outside `components/ui/` and every root import print nothing; `behavior` is gone from `ChipRow.tsx`; `git diff --stat` shows `PostsIsland.tsx`, `InspectorPane.tsx`, `ItemList.tsx` and `EditorIsland.tsx` changed only at the `ChipRow` lines and the switcher; `LibraryPanel.tsx`, `ReaderIsland.tsx` and `SearchPanel.tsx` are untouched.
+- **Tests:** `Modal.test.tsx` (Esc, the Escape guard, `[data-autofocus]`, the field fallback, an outside press by default and with `dismissOnBackdrop={false}`), `ConfirmDialog.test.tsx` (focus on Cancel, no ✕, nothing closes it while `loading`), `ChipRow.test.tsx` (filter: arrows choose, a repeat click is silent; picker: arrows only move focus, never empty, a click emits) in happy-dom; `ToastAndTabs.chromium.test.ts` in real Chromium (toast outside the app root and in a live region, an error toast outlasts its 50 ms and needs F6 then Dismiss, the tab list and arrow keys with one pane on screen).
+- **Screenshots** (two throwaway clones, scratch data, made-up posts and sources, light theme, 1280 and 390 px, kept out of git): 23 states per side. Pixel-identical (a channel difference over 24 counted): the posts grid and keyword chips, the toast, the editor's three panes at 390 and the proof sheet at both widths, the Add source and Keyboard shortcuts dialogs, Unread and All. Visible differences, all on purpose: the delete confirm lost its ✕ and is 3 px shorter at both widths. One diff in the inspector pane at 390 px (3,481 pixels) shows no visible change in the crop.
+- **Not taken:** the publish confirm (its button is disabled until a post is rendered, and the confirm is the same `ConfirmDialog`), the image picker, the inspector's `size` chips with a selection (the click did not select), and the Reader's Add source, key legend and Unread/All shots at 390 px (the rail is collapsed there). The proof sheet shows both `ChipRow` kinds and matches.
+
+### Deviations
+
+- **`Tabs` activates on focus** (`activateOnFocus`, the skill's rule 16), so an arrow key on the narrow switcher changes the pane at once. An inactive pane stays unmounted, as before (`keepMounted` off).
+- **`Modal`'s focus fallback is the dialog itself** (`ui/src/components/ui/Modal.tsx`) where there is no field or button (the key legend), so focus never lands on the ✕. A file input never counts as a field (`ImagePicker`'s is hidden).
+- **An error toast stays until dismissed and is `priority: "high"`** (`Toast.tsx`), from the controller's standing ruling, not the brief.
+- **`ConfirmDialog` shares `Modal`'s stylesheet** for its backdrop, popup, header and body, so no CSS rule moved; `ConfirmDialog.module.css` is unchanged.
+- **The proof sheet's second row** (`align`, held out) is a `picker`, the first (`size`) a `filter`, as the brief says; neither writes anywhere.
+- **Pre-existing, not touched:** the old editor froze the page at 390 px when `?post=` named a deleted post (see the findings file).
+- **Owner questions still open:** whether `ConfirmDialog` keeps the ✕ (decision 3, default taken: removed).

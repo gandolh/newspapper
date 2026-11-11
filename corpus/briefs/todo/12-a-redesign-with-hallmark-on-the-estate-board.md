@@ -3,7 +3,7 @@
 **Depends on:**
 
 - In Newspapper:
-  - [brief 09](09-base-ui-by-the-conventions.md), which settles the Base UI wrappers in `ui/src/components/ui/`;
+  - [brief 09](../done/09-base-ui-by-the-conventions.md), which settles the Base UI wrappers in `ui/src/components/ui/`;
   - [brief 10](10-the-ui-to-tailwind.md), which moves the whole UI to Tailwind with one token set in `ui/src/styles/index.css` and builds the Light / Dark / System switch. A redesign is then mostly a new token set and layout.
 - In the owner's skills library:
   - brief 24, which vendors Hallmark as the design skill and adopts taste-skill 2.5's ideas (palettes and type dealt by trade, its copy layer);

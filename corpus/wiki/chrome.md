@@ -61,7 +61,13 @@ text; §9 records what the chrome does not yet carry.
   where the sighted view gives it up. See the note below.
 - **Primitives** in `ui/src/components/ui/` still sit on Base UI with
   unchanged wrapper APIs (`Select`'s `onValueChange`, `Toggle`'s
-  `onCheckedChange`); keep raw `<input>`/`<button>`/dialog elements out of
+  `onCheckedChange`). Since brief 09 (2026-11-11) the dialogs follow the
+  base-ui skill's rule 12: `Modal` has a required `title`, the Escape guard,
+  initial focus on `[data-autofocus]` and `dismissOnBackdrop`; `ConfirmDialog`
+  is an `AlertDialog` (no ✕, nothing dismisses it while `loading`); the toast
+  viewport is in a `Toast.Portal` and an error toast stays until dismissed;
+  `ChipRow` takes `kind="filter"` (a `RadioGroup`) or `kind="picker"` (a
+  guarded `ToggleGroup`); `Tabs` is the editor's narrow pane switcher. Keep raw `<input>`/`<button>`/dialog elements out of
   feature components. `/kitchen-sink` is the proof surface — every
   primitive and mark on one board — and it exists **only under `vite dev`**,
   via the `proofSheet` plugin in `ui/vite.config.ts`. Keep it current.

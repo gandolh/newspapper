@@ -15,7 +15,7 @@ no GitHub CI, by the owner's choice (2026-10-04). Brief numbering restarted at
 filed on 2026-11-09 and is blocked since 2026-11-10: the owner wants no video
 export yet. Before it,
 brief 01 retook the README's editing GIF on 2026-11-07, after briefs 03 and 05
-changed how a selection paints. Brief 07 (Base UI 1.9.0) was built on 2026-11-10 and awaits a deploy, and brief 08 (the house-style harness) on 2026-11-11. Briefs 07 to 11 (Base UI 1.9.0, the house-style harness, Base UI by the conventions, the UI on Tailwind, the API in the house structure) were filed on 2026-11-10 from the owner's calls of 2026-11-09, and were revised to the owner's grilling of 2026-11-10, with a redesign brief (12) added; see [../log.md](../log.md). Nothing is open in
+changed how a selection paints. Brief 07 (Base UI 1.9.0) was built on 2026-11-10 and awaits a deploy, and brief 08 (the house-style harness) on 2026-11-11, and brief 09 (Base UI by the conventions) on 2026-11-11, which awaits a deploy with them. Briefs 07 to 11 (Base UI 1.9.0, the house-style harness, Base UI by the conventions, the UI on Tailwind, the API in the house structure) were filed on 2026-11-10 from the owner's calls of 2026-11-09, and were revised to the owner's grilling of 2026-11-10, with a redesign brief (12) added; see [../log.md](../log.md). Nothing is open in
 [open-questions.md](./open-questions.md): how a selection inside the waxed
 element shows was settled on 2026-11-06 (non-photo blue) and built the same day.
 
@@ -43,7 +43,7 @@ element shows was settled on 2026-11-06 (non-photo blue) and built the same day.
   `check:fast`. Follow-up counts, measured 2026-11-11: `noUncheckedIndexedAccess` is off and
   would report 80 errors in source (`core` 34, `api` 1, `ui` 45) and 245 in tests (171, 16, 58);
   `exactOptionalPropertyTypes` would report 23 (`core` 5, `api` 12, `ui` 7). Both checkers run
-  `--warn-only`: `check-base-ui` reports 43 (rule 5: 42 CSS modules and `global.css`),
+  `--warn-only`: `check-base-ui` reports 43 (rule 5: 42 CSS modules and `global.css`), still 43 after brief 09 (every other rule is 0),
   `check-structure` reported 50 errors (rule 2: 1, rule 3: 7, rule 6: 42) and 6 warnings (rule 11) until
   brief 11, below.
 - **The API's structure** (2026-11-11, brief 11). `api/src` is in the estate's
