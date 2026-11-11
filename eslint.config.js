@@ -24,8 +24,8 @@ export default [
       "ui/src/components/ErrorBoundary.tsx",
     ],
     // Read through `default` by a runtime contract: the virtual proof-sheet module re-exports the
-    // proof sheet's default, and ambient `declare module` blocks declare what a plugin's module exports.
-    defaultExports: ["ui/src/proofSheet.ts", "ui/src/proof/KitchenSink.tsx", "ui/src/**/*.d.ts"],
+    // proof sheet's default.
+    defaultExports: ["ui/src/proofSheet.ts", "ui/src/proof/KitchenSink.tsx"],
     // docs/ is the Docusaurus workspace, with its own build; data/, output/ and uploads/ are local state.
     ignores: ["docs/**", "data/**", "output/**", "uploads/**", ".claude/**"],
   }),
@@ -43,5 +43,11 @@ export default [
     files: ["api/src/**"],
     ignores: ["**/*.test.ts"],
     rules: { "n/no-process-env": "warn" },
+  },
+  {
+    // Off since 2026-11-11, until the repo turns on noUncheckedIndexedAccess: without it the rule flags
+    // the non-null assertions that indexed reads need.
+    name: "newspapper/no-unnecessary-type-assertion-off",
+    rules: { "@typescript-eslint/no-unnecessary-type-assertion": "off" },
   },
 ];

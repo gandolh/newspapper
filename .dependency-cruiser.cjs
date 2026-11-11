@@ -5,13 +5,6 @@ module.exports = {
   extends: "./vendor/house-style/.dependency-cruiser.cjs",
   forbidden: [
     {
-      // A Vite plugin makes `virtual:proof-sheet` (ui/vite.config.ts), so no file resolves it.
-      name: "not-to-unresolvable",
-      severity: "error",
-      from: {},
-      to: { couldNotResolve: true, pathNot: "^virtual:" },
-    },
-    {
       // A warning for now (2026-11-11): api/src/lib/sse.ts types its reply with Fastify's FastifyReply.
       // When the SSE helper takes a structural reply type, or moves out of lib/, this goes and the rule
       // is an error again.
