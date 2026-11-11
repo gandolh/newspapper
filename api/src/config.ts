@@ -1,7 +1,7 @@
 import { READER_REFRESH_MINUTES_DEFAULT } from "@newspapper/core";
 import { z } from "zod";
 import { parseTrustedProxies, wardClientOptionsFromEnv, type WardClientOptions } from "../vendor/ward/ward-auth.js";
-import { authPaths, publicOrigin, type AuthPaths } from "./ward/config.js";
+import { authPaths, publicOrigin, type AuthPaths } from "./plugins/auth/paths.js";
 
 /**
  * The API's settings, parsed once at start. No other file in `api/src` reads the environment.

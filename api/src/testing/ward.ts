@@ -17,7 +17,7 @@ import { generateKeyPairSync } from "node:crypto";
 import type { FastifyInstance } from "fastify";
 
 import { createWardClient, type WardClient } from "../../vendor/ward/ward-auth.js";
-import { SESSION_COOKIE } from "./config.js";
+import { SESSION_COOKIE } from "../plugins/auth/paths.js";
 
 export const TEST_ISSUER = "http://localhost:8792/ward-api/oidc";
 export const TEST_REDIRECT = "http://localhost:4321/newspapper/api/auth/ward/callback";

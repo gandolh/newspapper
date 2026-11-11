@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from "fastify";
 import { searchArticles, listSources } from "@newspapper/core";
-import { sseHeaders, sseWrite, sseDone, sseError } from "../lib/sse.js";
+import { sseHeaders, sseWrite, sseDone, sseError } from "../plugins/sse.js";
 import { db } from "../lib/db.js";
 
 export const scrapeRoutes: FastifyPluginAsync = async (fastify) => {

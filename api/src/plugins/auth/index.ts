@@ -1,4 +1,5 @@
-import type { FastifyInstance } from "fastify";
+import type { FastifyPluginAsync } from "fastify";
+import fp from "fastify-plugin";
 
 import {
   createAccounts,
@@ -9,10 +10,10 @@ import {
   type Accounts,
   type WardClient,
   type WardClientOptions,
-} from "../../vendor/ward/ward-auth.js";
+} from "../../../vendor/ward/ward-auth.js";
 import type { DB } from "@newspapper/core";
-import { AUTH_ROUTE_PREFIX, SESSION_COOKIE, type AuthPaths } from "./config.js";
-import { requiresSession } from "./ward.guard.js";
+import { AUTH_ROUTE_PREFIX, SESSION_COOKIE, type AuthPaths } from "./paths.js";
+import { requiresSession } from "./guard.js";
 
 /**
  * Newspapper's accounts: local users and sessions in the app's own SQLite
@@ -34,7 +35,7 @@ export async function wardClientFrom(options: WardClientOptions | undefined): Pr
   return options === undefined ? undefined : createWardClient(options);
 }
 
-export interface RegisterAuthOptions {
+export interface AuthOptions {
   accounts: Accounts;
   /** Absent means no "Sign in with Ward" button: local accounts only. */
   wardClient?: WardClient | undefined;
@@ -46,19 +47,19 @@ export interface RegisterAuthOptions {
 }
 
 /**
- * Register the guard and the auth routes. **Call it before every route that is
+ * The guard and the auth routes. **Register it before every route that is
  * not the plugin's own**: its guard is an `onRequest` hook, and Fastify copies
  * hooks into a child context when the child is created, so anything registered
- * earlier is unguarded.
+ * earlier is unguarded. Wrapped in fastify-plugin, so the guard sits on the root.
  *
- * Who needs a session is `ward.guard.ts`'s answer, passed as `isPublic`. There is no
+ * Who needs a session is `guard.ts`'s answer, passed as `isPublic`. There is no
  * `registration` option: newspapper has no register page, so an account comes
  * from the seed script or from a Ward sign-in.
  */
-export async function registerAuth(
-  fastify: FastifyInstance,
-  { accounts, wardClient, paths, publicOrigin, trustedProxies }: RegisterAuthOptions,
-): Promise<void> {
+const registerAuth: FastifyPluginAsync<AuthOptions> = async (
+  fastify,
+  { accounts, wardClient, paths, publicOrigin, trustedProxies },
+) => {
   await fastify.register(wardAuth, {
     accounts,
     cookieName: SESSION_COOKIE,
@@ -76,7 +77,9 @@ export async function registerAuth(
       },
     }),
   });
-}
+};
+
+export const auth = fp(registerAuth, { name: "auth" });
 
 export interface SeedEnv {
   SEED_USERNAME?: string;

@@ -22,7 +22,7 @@ try {
       trustProxy: ["loopback", ...config.trustedProxies],
       // A socket silent this long mid-request is cut. The longest silent JSON route is a source's
       // ping, which waits up to its 30 s feed timeout; the SSE streams turn the limit off for
-      // their own connection (`lib/sse.ts`), since a stream can go quiet for longer.
+      // their own connection (`plugins/sse.ts`), since a stream can go quiet for longer.
       connectionTimeout: 35_000,
       // The whole request, body included, must arrive within this. It covers receiving the
       // request only, not the reply: a long render or zip is not cut by it. A 10 MB upload

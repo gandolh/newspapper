@@ -6,7 +6,7 @@
  */
 import { loadSeedConfig } from "./config.js";
 import { db } from "./lib/db.js";
-import { createAppAccounts, seedFromEnv } from "./ward/auth.js";
+import { createAppAccounts, seedFromEnv } from "./plugins/auth/index.js";
 
 try {
   const result = await seedFromEnv(createAppAccounts(db()), loadSeedConfig());

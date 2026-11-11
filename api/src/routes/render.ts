@@ -16,7 +16,7 @@ import {
   outputRoot,
 } from "@newspapper/core";
 import { db } from "../lib/db.js";
-import { sseHeaders, sseWrite, sseDone, sseError } from "../lib/sse.js";
+import { sseHeaders, sseWrite, sseDone, sseError } from "../plugins/sse.js";
 
 const outputPrefix = outputRoot();
 

@@ -13,7 +13,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { buildTestApp } from "./testing/buildTestApp.js";
 import { db as appDb, resetDb } from "./lib/db.js";
 import { recordRender } from "@newspapper/core";
-import { signInCookie } from "./ward/test-support.js";
+import { signInCookie } from "./testing/ward.js";
 
 /*
  * Every /api/* route is behind the session guard, so each test mints a real
@@ -680,5 +680,33 @@ describe("the global error handler", () => {
     const res = await app.inject({ method: "GET", url: "/__test/bad-request" });
     expect(res.statusCode).toBe(400);
     expect(res.json()).toEqual({ error: "title is required" });
+  });
+
+  // The routes are plugins registered inside buildApp. Until 2026-11-11 the handler was set after
+  // them, so they kept Fastify's default handler, which sends a 500's message.
+  it("keeps a real route's 500 detail out of the body too", async () => {
+    const session = (await signInCookie(app)).cookies;
+    appDb().exec("ALTER TABLE articles RENAME TO articles_gone");
+    try {
+      const res = await app.inject({ method: "GET", url: "/api/articles", cookies: session });
+      expect(res.statusCode).toBe(500);
+      expect(res.json()).toEqual({ error: "Internal Server Error" });
+      expect(res.body).not.toContain("articles");
+    } finally {
+      appDb().exec("ALTER TABLE articles_gone RENAME TO articles");
+    }
+  });
+
+  it("answers Fastify's own 400 for a body that is not JSON in the same body", async () => {
+    const session = (await signInCookie(app)).cookies;
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/articles",
+      cookies: session,
+      headers: { "content-type": "application/json" },
+      payload: "{",
+    });
+    expect(res.statusCode).toBe(400);
+    expect(res.json()).toEqual({ error: "Body is not valid JSON but content-type is set to 'application/json'" });
   });
 });

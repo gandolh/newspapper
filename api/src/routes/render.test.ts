@@ -16,7 +16,7 @@ import { createPost, saveUpload } from "@newspapper/core";
 
 import { buildTestApp } from "../testing/buildTestApp.js";
 import { db, resetDb } from "../lib/db.js";
-import { signInCookie } from "../ward/test-support.js";
+import { signInCookie } from "../testing/ward.js";
 import { probeChromium, type ChromiumGuard } from "../../../core/src/render/test-support/chromium.js";
 
 const repoRoot = resolve(fileURLToPath(new URL(".", import.meta.url)), "../../..");

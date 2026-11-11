@@ -14,7 +14,7 @@ import type { FeedItem, FeedItemPage, ReaderCounts, Article } from "@newspapper/
 import { loadConfig } from "../config.js";
 import { buildTestApp } from "../testing/buildTestApp.js";
 import { db, resetDb } from "../lib/db.js";
-import { signInCookie } from "../ward/test-support.js";
+import { signInCookie } from "../testing/ward.js";
 
 const ALPHA_FEED = "https://feeds.example/alpha";
 const BETA_FEED = "https://feeds.example/beta";

@@ -3,14 +3,5 @@
 // its tsconfig.
 module.exports = {
   extends: "./vendor/house-style/.dependency-cruiser.cjs",
-  forbidden: [
-    {
-      // A warning for now (2026-11-11): api/src/lib/sse.ts types its reply with Fastify's FastifyReply.
-      // When the SSE helper takes a structural reply type, or moves out of lib/, this goes and the rule
-      // is an error again.
-      name: "lib-without-fastify",
-      severity: "warn",
-    },
-  ],
   options: { tsConfig: { fileName: "ui/tsconfig.json" } },
 };

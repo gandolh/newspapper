@@ -3,17 +3,17 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { mkdtempSync, rmSync } from "node:fs";
 
-import { buildTestApp, type TestAppOptions } from "../testing/buildTestApp.js";
-import { db, resetDb } from "../lib/db.js";
+import { buildTestApp, type TestAppOptions } from "../../testing/buildTestApp.js";
+import { db, resetDb } from "../../lib/db.js";
 import {
   createWardIdentities,
   hashSessionToken,
   LOCKOUT_MAX_FAILURES,
   type WardAuthStore,
-} from "../../vendor/ward/ward-auth.js";
-import { SESSION_COOKIE } from "./config.js";
-import { createAppAccounts, seedFromEnv } from "./auth.js";
-import { createFakeWard, signInCookie, TEST_ISSUER, type FakeWard } from "./test-support.js";
+} from "../../../vendor/ward/ward-auth.js";
+import { SESSION_COOKIE } from "./paths.js";
+import { createAppAccounts, seedFromEnv } from "./index.js";
+import { createFakeWard, signInCookie, TEST_ISSUER, type FakeWard } from "../../testing/ward.js";
 
 /**
  * Accounts, the guard and the Ward routes, end to end through a real Fastify

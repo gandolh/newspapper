@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { authPaths, publicOrigin, trimBase } from "./config.js";
+import { authPaths, publicOrigin, trimBase } from "./paths.js";
 
 describe("trimBase", () => {
   it("normalises the spellings of one base", () => {
@@ -12,7 +12,7 @@ describe("trimBase", () => {
 
 describe("authPaths", () => {
   it("scopes the cookie to the app base, not to <base>/api", () => {
-    // <img src="/newspapper/output/..."> must carry the session; see config.ts.
+    // <img src="/newspapper/output/..."> must carry the session; see paths.ts.
     const paths = authPaths({ NEWSPAPPER_BASE: "/newspapper/" });
     expect(paths).toEqual({
       base: "/newspapper",

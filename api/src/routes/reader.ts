@@ -11,7 +11,7 @@ import {
   InvalidCursorError,
 } from "@newspapper/core";
 import type { RefreshOptions } from "@newspapper/core";
-import { sseHeaders, sseWrite, sseDone, sseError } from "../lib/sse.js";
+import { sseHeaders, sseWrite, sseDone, sseError } from "../plugins/sse.js";
 import { db } from "../lib/db.js";
 
 /*

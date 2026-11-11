@@ -1,6 +1,6 @@
 /**
  * Where the auth plugin is mounted and how the browser reaches it, from the
- * environment `config.ts` hands in. Pure, so the paths are testable without a server.
+ * environment `config.ts` (the API's, at `api/src/config.ts`) hands in. Pure, so the paths are testable without a server.
  *
  * ## Three paths that look alike and are not
  *

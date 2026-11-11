@@ -11,7 +11,7 @@ import { createPost, recordRender } from "@newspapper/core";
 
 import { buildTestApp } from "../testing/buildTestApp.js";
 import { db, resetDb } from "../lib/db.js";
-import { signInCookie } from "../ward/test-support.js";
+import { signInCookie } from "../testing/ward.js";
 
 const outputRoot = resolve(fileURLToPath(new URL(".", import.meta.url)), "../../../output");
 const dirs = ["1999-01-01-1", "1999-01-01-2"].map((d) => join(outputRoot, d));

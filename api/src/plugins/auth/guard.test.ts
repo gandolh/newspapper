@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { isGuardedPath, requiresSession } from "./ward.guard.js";
+import { isGuardedPath, requiresSession } from "./guard.js";
 
 /**
  * The route-pattern decision, without a server. The end-to-end cases (a real

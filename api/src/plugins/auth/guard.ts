@@ -15,7 +15,7 @@
  * `/uploads/*` from disk, so nothing anonymous fetches it, and the 2026-09-06
  * revision in `decisions-security.md` closed it for that reason. That decision
  * stands here. The consequence is on the cookie, not the guard: see
- * `config.ts` on why the session cookie's path is the app base.
+ * `paths.ts` on why the session cookie's path is the app base.
  */
 
 /** Prefixes the guard covers. Everything else (the UI, fonts) is public. */
