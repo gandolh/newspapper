@@ -62,14 +62,6 @@ export const articleInputSchema = z.object(
 /** A path id the handler turns into a row id; a non-numeric one is a 404 there, as before. */
 export const articleParamsSchema = z.object({ id: z.string() });
 
-/** `PATCH /api/articles/:id`: a positive integer id, or a 400. */
-export const articleIdSchema = z.object({
-  id: z.coerce
-    .number<string>({ error: "id must be a positive integer" })
-    .int({ error: "id must be a positive integer" })
-    .positive({ error: "id must be a positive integer" }),
-});
-
 const note = "note must be a string";
 export const notePatchSchema = z.object({ note: z.string({ error: note }) }, { error: note });
 

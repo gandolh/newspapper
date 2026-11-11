@@ -22,3 +22,9 @@ export function queryInteger(message: string) {
     z.coerce.number<unknown>({ error: message }).int({ error: message }).optional(),
   );
 }
+
+const positiveId = "id must be a positive integer";
+/** A path id that must be a positive integer by `Number()`, or a 400: the check the handlers made by hand. */
+export const positiveIdParams = z.object({
+  id: z.coerce.number<string>({ error: positiveId }).int({ error: positiveId }).positive({ error: positiveId }),
+});

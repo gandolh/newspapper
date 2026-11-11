@@ -1,9 +1,8 @@
 import type { FastifyPluginAsyncZod } from "@fastify/type-provider-zod";
 import { saveArticle, listArticleSummaries, removeArticle, updateArticleNote } from "@newspapper/core";
 import { db } from "../../lib/db.js";
-import { errorSchema } from "../../lib/schemas.js";
+import { errorSchema, positiveIdParams } from "../../lib/schemas.js";
 import {
-  articleIdSchema,
   articleInputSchema,
   articleParamsSchema,
   articleQuerySchema,
@@ -59,7 +58,7 @@ export const articlesRoutes: FastifyPluginAsyncZod = async (fastify) => {
     "/api/articles/:id",
     {
       schema: {
-        params: articleIdSchema,
+        params: positiveIdParams,
         body: notePatchSchema,
         response: { 200: articleSchema, 404: errorSchema },
       },
