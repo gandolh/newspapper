@@ -1,4 +1,12 @@
-import { describe, it, expect } from "vitest";
+import { mkdtempSync, rmSync } from "node:fs";
+import type { AddressInfo } from "node:net";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { saveSources } from "@newspapper/core";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { db, resetDb } from "../lib/db.js";
+import { buildTestApp } from "../testing/buildTestApp.js";
+import { signInCookie } from "../testing/ward.js";
 
 /**
  * Unit test for SSE frame format.
@@ -73,5 +81,75 @@ describe("SSE helper frame format", () => {
     const reply = makeReply();
     sseWrite(reply, "progress", { done: 3, total: 7 });
     expect(reply.raw.written[0]).toBe('event: progress\ndata: {"done":3,"total":7}\n\n');
+  });
+});
+
+/*
+ * On a real socket, because `inject()` can't show it: Fastify runs its onClose hooks only after
+ * the requests in flight have finished, and a stream waiting on a slow feed doesn't finish for up to
+ * its 30 s fetch timeout. At SIGTERM, close-with-grace would give up after 10 s and exit 1.
+ */
+describe("closing the server", () => {
+  let tmp: string;
+
+  beforeAll(() => {
+    tmp = mkdtempSync(join(tmpdir(), "np-sse-close-"));
+    process.env["NEWSPAPPER_DB_PATH"] = join(tmp, "test.db");
+  });
+
+  afterAll(() => {
+    resetDb();
+    delete process.env["NEWSPAPPER_DB_PATH"];
+    rmSync(tmp, { recursive: true, force: true });
+  });
+
+  it("ends an open stream with an error event rather than waiting for a slow feed", async () => {
+    saveSources([{ id: "slow", name: "Slow", rss: "https://feeds.example/slow", enabled: true, category: null }], db());
+    let release = () => {};
+    const held = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const deps = {
+      fetch: (async () => {
+        await held;
+        throw new Error("released");
+      }) as unknown as typeof fetch,
+      lookup: async () => ["93.184.216.34"],
+    };
+    const app = await buildTestApp({ readerRefresh: { deps } });
+    await app.listen({ port: 0, host: "127.0.0.1" });
+    const { cookies } = await signInCookie(app);
+    const { port } = app.server.address() as AddressInfo;
+    const res = await fetch(`http://127.0.0.1:${port}/api/reader/refresh`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        cookie: Object.entries(cookies)
+          .map(([name, value]) => `${name}=${value}`)
+          .join("; "),
+      },
+      body: "{}",
+    });
+    const reader = (res.body as ReadableStream<Uint8Array>).getReader();
+    const decoder = new TextDecoder();
+    let text = "";
+    while (!text.includes('"status":"fetching"')) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      text += decoder.decode(value);
+    }
+
+    const started = Date.now();
+    await app.close();
+    const closedIn = Date.now() - started;
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      text += decoder.decode(value);
+    }
+    release();
+
+    expect(closedIn).toBeLessThan(2_000);
+    expect(text).toMatch(/event: error\ndata: \{"message":"The server is restarting\. Try again in a moment\."\}\n\n$/);
   });
 });

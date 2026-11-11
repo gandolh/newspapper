@@ -17,6 +17,7 @@ import { readerRoutes } from "./routes/reader.js";
 import { db } from "./lib/db.js";
 import { auth, createAppAccounts, wardClientFrom } from "./plugins/auth/index.js";
 import { errors } from "./plugins/errors.js";
+import { sse } from "./plugins/sse.js";
 import { staticFiles } from "./plugins/static.js";
 import type { Accounts, WardClient } from "../vendor/ward/ward-auth.js";
 import type { Config } from "./config.js";
@@ -62,13 +63,15 @@ declare module "fastify" {
 
 /**
  * The app, ready to listen and not listening: `server.ts` listens, and tests inject. It registers in a
- * fixed order: the error handler first, so every route inherits it; CORS; the session guard, before
- * every route it covers; the static files; then the routes.
+ * fixed order: the error handler first, so every route inherits it; the SSE streams' close hook;
+ * CORS; the session guard, before every route it covers; the static files; then the routes.
  */
 export async function buildApp(config: Config, options: BuildAppOptions = {}) {
   const fastify = Fastify(options.server);
 
   await fastify.register(errors);
+  // Ends the open SSE streams when the server closes, so a slow feed can't hold the shutdown.
+  await fastify.register(sse);
   await fastify.register(cors, {
     origin: ["http://localhost:4321", "http://127.0.0.1:4321"],
     credentials: true,
