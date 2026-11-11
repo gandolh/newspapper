@@ -1,4 +1,4 @@
-import type { FastifyPluginAsync } from "fastify";
+import type { FastifyPluginAsyncZod } from "@fastify/type-provider-zod";
 import {
   createPost,
   findPost,
@@ -11,6 +11,16 @@ import {
   type PostInput,
 } from "@newspapper/core";
 import { db } from "../../lib/db.js";
+import { errorSchema } from "../../lib/schemas.js";
+import {
+  deletedSchema,
+  postInputSchema,
+  postParamsSchema,
+  postQuerySchema,
+  postSchema,
+  postSummaryListSchema,
+  statusInputSchema,
+} from "./schemas.js";
 
 /**
  * The index columns are derived from the markup's `<head>`, server-side, so a
@@ -36,22 +46,13 @@ function deriveInput(markup: string, theme?: string): PostInput {
   };
 }
 
-function markupOf(body: unknown): string | null {
-  if (typeof body !== "object" || body === null) return null;
-  const markup = (body as { markup?: unknown }).markup;
-  return typeof markup === "string" ? markup : null;
-}
-
 /**
  * An omitted or blank theme means "leave it to the column default"; anything
  * else must name a theme on disk. `loadTheme` throws at render time otherwise,
  * which would turn a bad save into a failure two steps later.
  */
-function themeOf(body: unknown): string | undefined {
-  if (typeof body !== "object" || body === null) return undefined;
-  const theme = (body as { theme?: unknown }).theme;
-  if (typeof theme !== "string") return undefined;
-  const trimmed = theme.trim();
+function themeOf(theme: string | null | undefined): string | undefined {
+  const trimmed = theme?.trim();
   return trimmed === "" ? undefined : trimmed;
 }
 
@@ -59,100 +60,118 @@ function unknownTheme(theme: string | undefined): boolean {
   return theme !== undefined && !listThemes().includes(theme);
 }
 
-export const postsRoutes: FastifyPluginAsync = async (fastify) => {
+export const postsRoutes: FastifyPluginAsyncZod = async (fastify) => {
   /**
    * GET /api/posts?status=&keyword=&search=&limit=&offset=
    */
-  fastify.get("/api/posts", async (req, reply) => {
-    const query = req.query as {
-      status?: string;
-      keyword?: string;
-      search?: string;
-      limit?: string;
-      offset?: string;
-    };
-    const status = query.status === "draft" || query.status === "published" ? query.status : undefined;
-    // Summaries, without each post's markup: the grid never reads it, and it
-    // was most of the payload. `GET /api/posts/:id` still returns the full post.
-    return reply.send(
-      queryPostSummaries(db(), {
-        status,
-        keyword: query.keyword,
-        search: query.search,
-        limit: query.limit === undefined ? undefined : Number(query.limit),
-        offset: query.offset === undefined ? undefined : Number(query.offset),
-      }),
-    );
-  });
+  fastify.get(
+    "/api/posts",
+    { schema: { querystring: postQuerySchema, response: { 200: postSummaryListSchema } } },
+    async (req, reply) => {
+      const query = req.query;
+      const status = query.status === "draft" || query.status === "published" ? query.status : undefined;
+      // Summaries, without each post's markup: the grid never reads it, and it
+      // was most of the payload. `GET /api/posts/:id` still returns the full post.
+      return reply.send(
+        queryPostSummaries(db(), {
+          status,
+          keyword: query.keyword,
+          search: query.search,
+          limit: query.limit,
+          offset: query.offset,
+        }),
+      );
+    },
+  );
 
   /**
    * POST /api/posts  { markup, theme? }
    */
-  fastify.post("/api/posts", async (req, reply) => {
-    const markup = markupOf(req.body);
-    if (markup === null) {
-      return reply.status(400).send({ error: "markup is required and must be a string" });
-    }
-    const theme = themeOf(req.body);
-    if (unknownTheme(theme)) {
-      return reply.status(400).send({ error: `Unknown theme: "${theme}"` });
-    }
-    const post = createPost(db(), deriveInput(markup, theme));
-    return reply.status(201).send(post);
-  });
+  fastify.post(
+    "/api/posts",
+    { schema: { body: postInputSchema, response: { 201: postSchema, 400: errorSchema } } },
+    async (req, reply) => {
+      const theme = themeOf(req.body.theme);
+      if (unknownTheme(theme)) {
+        return reply.status(400).send({ error: `Unknown theme: "${theme}"` });
+      }
+      const post = createPost(db(), deriveInput(req.body.markup, theme));
+      return reply.status(201).send(post);
+    },
+  );
 
   /**
    * GET /api/posts/:id
    */
-  fastify.get("/api/posts/:id", async (req, reply) => {
-    const id = Number((req.params as { id: string }).id);
-    const post = Number.isInteger(id) ? findPost(db(), id) : undefined;
-    if (!post) return reply.status(404).send({ error: "Post not found" });
-    return reply.send(post);
-  });
+  fastify.get(
+    "/api/posts/:id",
+    { schema: { params: postParamsSchema, response: { 200: postSchema, 404: errorSchema } } },
+    async (req, reply) => {
+      const id = Number(req.params.id);
+      const post = Number.isInteger(id) ? findPost(db(), id) : undefined;
+      if (!post) return reply.status(404).send({ error: "Post not found" });
+      return reply.send(post);
+    },
+  );
 
   /**
    * PUT /api/posts/:id  { markup, theme? }
    */
-  fastify.put("/api/posts/:id", async (req, reply) => {
-    const id = Number((req.params as { id: string }).id);
-    const markup = markupOf(req.body);
-    if (markup === null) {
-      return reply.status(400).send({ error: "markup is required and must be a string" });
-    }
-    const theme = themeOf(req.body);
-    if (unknownTheme(theme)) {
-      return reply.status(400).send({ error: `Unknown theme: "${theme}"` });
-    }
-    const existing = Number.isInteger(id) ? findPost(db(), id) : undefined;
-    if (!existing) return reply.status(404).send({ error: "Post not found" });
+  fastify.put(
+    "/api/posts/:id",
+    {
+      schema: {
+        params: postParamsSchema,
+        body: postInputSchema,
+        response: { 200: postSchema, 400: errorSchema, 404: errorSchema },
+      },
+    },
+    async (req, reply) => {
+      const id = Number(req.params.id);
+      const theme = themeOf(req.body.theme);
+      if (unknownTheme(theme)) {
+        return reply.status(400).send({ error: `Unknown theme: "${theme}"` });
+      }
+      const existing = Number.isInteger(id) ? findPost(db(), id) : undefined;
+      if (!existing) return reply.status(404).send({ error: "Post not found" });
 
-    const updated = updatePost(db(), id, deriveInput(markup, theme ?? existing.theme));
-    if (!updated) return reply.status(404).send({ error: "Post not found" });
-    return reply.send(updated);
-  });
+      const updated = updatePost(db(), id, deriveInput(req.body.markup, theme ?? existing.theme));
+      if (!updated) return reply.status(404).send({ error: "Post not found" });
+      return reply.send(updated);
+    },
+  );
 
   /**
    * PUT /api/posts/:id/status  { status: 'draft' | 'published' }
    */
-  fastify.put("/api/posts/:id/status", async (req, reply) => {
-    const id = Number((req.params as { id: string }).id);
-    const { status } = (req.body ?? {}) as { status?: string };
-    if (status !== "draft" && status !== "published") {
-      return reply.status(400).send({ error: "status must be 'draft' or 'published'" });
-    }
-    const updated = Number.isInteger(id) ? setPostStatus(db(), id, status) : undefined;
-    if (!updated) return reply.status(404).send({ error: "Post not found" });
-    return reply.send(updated);
-  });
+  fastify.put(
+    "/api/posts/:id/status",
+    {
+      schema: {
+        params: postParamsSchema,
+        body: statusInputSchema,
+        response: { 200: postSchema, 404: errorSchema },
+      },
+    },
+    async (req, reply) => {
+      const id = Number(req.params.id);
+      const updated = Number.isInteger(id) ? setPostStatus(db(), id, req.body.status) : undefined;
+      if (!updated) return reply.status(404).send({ error: "Post not found" });
+      return reply.send(updated);
+    },
+  );
 
   /**
    * DELETE /api/posts/:id — render records and keyword links cascade away.
    */
-  fastify.delete("/api/posts/:id", async (req, reply) => {
-    const id = Number((req.params as { id: string }).id);
-    const deleted = Number.isInteger(id) ? removePost(db(), id) : undefined;
-    if (!deleted) return reply.status(404).send({ error: "Post not found" });
-    return reply.send({ id, deleted: true });
-  });
+  fastify.delete(
+    "/api/posts/:id",
+    { schema: { params: postParamsSchema, response: { 200: deletedSchema, 404: errorSchema } } },
+    async (req, reply) => {
+      const id = Number(req.params.id);
+      const deleted = Number.isInteger(id) ? removePost(db(), id) : undefined;
+      if (!deleted) return reply.status(404).send({ error: "Post not found" });
+      return reply.send({ id, deleted: true });
+    },
+  );
 };

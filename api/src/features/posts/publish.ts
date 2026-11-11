@@ -1,8 +1,10 @@
-import type { FastifyPluginAsync } from "fastify";
+import type { FastifyPluginAsyncZod } from "@fastify/type-provider-zod";
 import { OutputDirMissingError, publishPost } from "@newspapper/core/publish";
 import { db } from "../../lib/db.js";
+import { errorSchema } from "../../lib/schemas.js";
+import { postParamsSchema, publishResultSchema } from "./schemas.js";
 
-export const publishRoutes: FastifyPluginAsync = async (fastify) => {
+export const publishRoutes: FastifyPluginAsyncZod = async (fastify) => {
   /**
    * POST /api/posts/:id/publish
    *
@@ -11,8 +13,12 @@ export const publishRoutes: FastifyPluginAsync = async (fastify) => {
    * re-encode (the render's `optimized` flag guards it) so publishing twice
    * never degrades the image.
    */
-  fastify.post("/api/posts/:id/publish", async (req, reply) => {
-    const { id } = req.params as { id: string };
+  const schema = {
+    params: postParamsSchema,
+    response: { 200: publishResultSchema, 404: errorSchema, 409: errorSchema },
+  };
+  fastify.post("/api/posts/:id/publish", { schema }, async (req, reply) => {
+    const { id } = req.params;
     try {
       const result = await publishPost(db(), Number(id));
       return reply.send(result);

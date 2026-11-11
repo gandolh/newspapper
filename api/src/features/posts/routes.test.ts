@@ -1,9 +1,11 @@
 /**
  * The post routes and publish, through the whole app (guard included), with a signed-in session.
  */
+import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { recordRender } from "@newspapper/core";
+import sharp from "sharp";
 import { describe, expect, it } from "vitest";
 import { db as appDb } from "../../lib/db.js";
 import { useSignedInApp } from "../../testing/signedInApp.js";
@@ -213,5 +215,47 @@ describe("POST /api/posts/:id/publish", () => {
     expect(res.json()).toEqual({ error: "Output directory no longer exists" });
     expect(res.body).not.toContain(tmpdir());
     await inject({ method: "DELETE", url: `/api/posts/${id}` });
+  });
+});
+
+describe("a malformed post body", () => {
+  it("answers 400 with the error body on create and on update", async () => {
+    const created = await inject({ method: "POST", url: "/api/posts", payload: { markup: "<body />" } });
+    const { id } = created.json<{ id: number }>();
+    for (const [payload, error] of [
+      [{ markup: 5 }, "markup is required and must be a string"],
+      [["<body />"], "markup is required and must be a string"],
+      [{ markup: "<body />", theme: 5 }, "theme must be a string"],
+    ] as const) {
+      const res = await inject({ method: "PUT", url: `/api/posts/${id}`, payload });
+      expect(res.statusCode).toBe(400);
+      expect(res.json()).toEqual({ error });
+    }
+    expect((await inject({ method: "GET", url: `/api/posts/${id}` })).json()).toMatchObject({ markup: "<body />" });
+    await inject({ method: "DELETE", url: `/api/posts/${id}` });
+  });
+});
+
+describe("the publish reply", () => {
+  // The render record carries outputDir, a server path; the response schema strips it.
+  it("leaves the render's server path out", async () => {
+    const created = await inject({ method: "POST", url: "/api/posts", payload: { markup: "<body />" } });
+    const { id } = created.json<{ id: number }>();
+    const dir = mkdtempSync(join(tmpdir(), "np-publish-"));
+    try {
+      await sharp({ create: { width: 8, height: 8, channels: 3, background: "#808080" } })
+        .jpeg()
+        .toFile(join(dir, "slide-01.jpg"));
+      recordRender(appDb(), { postId: id, outputDir: dir, slideCount: 1 });
+      const res = await inject({ method: "POST", url: `/api/posts/${id}/publish` });
+      expect(res.statusCode).toBe(200);
+      const body = res.json<{ render: Record<string, unknown>; reencoded: number }>();
+      expect(Object.keys(body.render)).toEqual(["id", "postId", "slideCount", "optimized", "createdAt"]);
+      expect(body.reencoded).toBe(1);
+      expect(res.body).not.toContain(dir);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+      await inject({ method: "DELETE", url: `/api/posts/${id}` });
+    }
   });
 });
