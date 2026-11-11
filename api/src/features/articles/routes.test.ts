@@ -156,3 +156,24 @@ describe("DELETE /api/articles/:id", () => {
     expect(after.json()).toEqual([]);
   });
 });
+
+describe("a malformed article request", () => {
+  it("answers 400 with the error body, and saves nothing", async () => {
+    for (const [payload, error] of [
+      [{ title: 5 }, "title is required"],
+      [{ title: "Typed", guid: 9 }, "guid must be a string"],
+      [["Typed"], "title is required"],
+    ] as const) {
+      const res = await inject({ method: "POST", url: "/api/articles", payload });
+      expect(res.statusCode).toBe(400);
+      expect(res.json()).toEqual({ error });
+    }
+    expect((await inject({ method: "GET", url: "/api/articles?search=Typed" })).json()).toEqual([]);
+  });
+
+  it("answers a limit that isn't an integer with 400, where the database used to fail with a 500", async () => {
+    const res = await inject({ method: "GET", url: "/api/articles?limit=abc" });
+    expect(res.statusCode).toBe(400);
+    expect(res.json()).toEqual({ error: "limit must be an integer" });
+  });
+});
