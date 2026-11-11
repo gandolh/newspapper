@@ -11,7 +11,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { TNode, Theme } from "@newspapper/core/templates";
-import TNodeView, { type NodeGestures } from "./TNodeView.js";
+import { TNodeView, type NodeGestures } from "./TNodeView.js";
 import type { SlotDescriptor } from "./slots.js";
 import { zoneKey, type MeasuredZone } from "../dragTypes.js";
 import styles from "./SlideCanvas.module.css";
@@ -31,7 +31,7 @@ export interface SlideCanvasProps {
   onZonesMeasured: (slideKey: string, zones: MeasuredZone[]) => void;
 }
 
-export default function SlideCanvas({
+export function SlideCanvas({
   slideKey,
   slide,
   theme,

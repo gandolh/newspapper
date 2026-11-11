@@ -46,7 +46,7 @@ export interface SourcePaneProps {
   formatted: boolean;
 }
 
-export default function SourcePane({
+export function SourcePane({
   source,
   onChange,
   diagnostics,

@@ -384,7 +384,7 @@ function PostsPage() {
   );
 }
 
-export default function PostsIsland() {
+export function PostsIsland() {
   return (
     <ToastProvider>
       <PostsPage />

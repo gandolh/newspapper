@@ -15,7 +15,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import ItemBody from "./ItemBody";
+import { ItemBody } from "./ItemBody";
 
 vi.mock("./sanitize", () => ({
   sanitizeItemHtml: (html: string | null) => html ?? "",

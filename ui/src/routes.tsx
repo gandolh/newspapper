@@ -19,13 +19,13 @@
  */
 import type { ComponentType } from "react";
 import ProofSheet from "./proofSheet";
-import App from "./layouts/App";
-import EditorIsland from "./components/editor/EditorIsland";
-import PostsIsland from "./components/posts/PostsIsland";
-import ReaderIsland from "./components/reader/ReaderIsland";
-import SettingsIsland from "./components/settings/SettingsIsland";
+import { App } from "./layouts/App";
+import { EditorIsland } from "./components/editor/EditorIsland";
+import { PostsIsland } from "./components/posts/PostsIsland";
+import { ReaderIsland } from "./components/reader/ReaderIsland";
+import { SettingsIsland } from "./components/settings/SettingsIsland";
 import { Redirect, usePathname } from "./router";
-import LoginPage from "./pages/Login";
+import { LoginPage } from "./pages/Login";
 
 type Sheet = { title: string; width?: "default" | "fluid"; Island: ComponentType };
 
@@ -39,7 +39,7 @@ const sheets: Record<string, Sheet> = {
   ...(ProofSheet ? { "/kitchen-sink": { title: "Kitchen Sink", Island: ProofSheet } } : {}),
 };
 
-export default function Routes() {
+export function Routes() {
   const path = usePathname();
 
   // The one route outside the board: no tray, nothing that needs a session.

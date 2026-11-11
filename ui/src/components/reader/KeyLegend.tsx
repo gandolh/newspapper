@@ -5,7 +5,7 @@ import { Modal } from "../ui";
 import { READER_KEYS } from "./keys";
 import styles from "./KeyLegend.module.css";
 
-export default function KeyLegend({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function KeyLegend({ open, onClose }: { open: boolean; onClose: () => void }) {
   return (
     <Modal open={open} onClose={onClose} title="Keyboard shortcuts" width={440}>
       <dl className={styles.list}>

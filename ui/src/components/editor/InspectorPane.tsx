@@ -129,7 +129,7 @@ export interface InspectorPaneProps {
   disabled: boolean;
 }
 
-export default function InspectorPane(props: InspectorPaneProps) {
+export function InspectorPane(props: InspectorPaneProps) {
   const {
     doc,
     selectedPath,

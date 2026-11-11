@@ -37,7 +37,7 @@ export interface ImagePickerProps {
   onChoose: (ref: string) => void;
 }
 
-export default function ImagePicker({ open, onClose, onChoose }: ImagePickerProps) {
+export function ImagePicker({ open, onClose, onChoose }: ImagePickerProps) {
   const [uploads, setUploads] = useState<UploadSummary[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);

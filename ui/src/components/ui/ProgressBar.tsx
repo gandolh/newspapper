@@ -8,7 +8,7 @@ export interface ProgressBarProps {
   variant?: "default" | "success" | "error";
 }
 
-export default function ProgressBar({ value, label, showPercent = false, variant = "default" }: ProgressBarProps) {
+export function ProgressBar({ value, label, showPercent = false, variant = "default" }: ProgressBarProps) {
   const clamped = Math.min(100, Math.max(0, value));
 
   return (

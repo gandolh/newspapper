@@ -307,7 +307,7 @@ const COLUMNS: Array<{ label: string; center: boolean }> = [
   { label: "", center: true },
 ];
 
-export default function SourcesPanel() {
+export function SourcesPanel() {
   const { addToast } = useToast();
   const [sources, setSources] = useState<Source[]>([]);
   const [loading, setLoading] = useState(true);

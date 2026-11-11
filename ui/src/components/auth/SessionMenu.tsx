@@ -15,7 +15,7 @@ import styles from "./SessionMenu.module.css";
  * page without the 401 redirect firing before the page it asked for has had a
  * chance to render anything.
  */
-export default function SessionMenu() {
+export function SessionMenu() {
   const session = useSession();
   const { logout, pending } = useLogout();
 

@@ -47,7 +47,7 @@ export interface ChipRowProps {
  * (`Hold out`), but no scale in the Wizard catalogue has such a value, and a
  * variant with no caller is a variant nobody has looked at.
  */
-export default function ChipRow({
+export function ChipRow({
   options,
   value,
   onValueChange,

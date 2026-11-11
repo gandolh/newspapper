@@ -22,13 +22,7 @@ function isBlank(html: string): boolean {
   return html.replace(/<[^>]*>/g, "").replace(/&nbsp;|\s/g, "") === "";
 }
 
-export default function ItemBody({
-  item,
-  empty,
-}: {
-  item: Pick<FeedItem, "contentHtml" | "contentText">;
-  empty: ReactNode;
-}) {
+export function ItemBody({ item, empty }: { item: Pick<FeedItem, "contentHtml" | "contentText">; empty: ReactNode }) {
   // The `{ __html }` object is memoized, not just the string: React 19 rewrites
   // `innerHTML` whenever the object is new, which replaces every text node and
   // collapses the reader's selection on the re-render that selecting causes.

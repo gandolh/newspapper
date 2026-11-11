@@ -23,7 +23,7 @@ interface State {
  * the post could never be opened again through the UI. The editor now sits
  * inside one of these, and the person can get back to their posts.
  */
-export default class ErrorBoundary extends Component<Props, State> {
+export class ErrorBoundary extends Component<Props, State> {
   state: State = { error: null };
 
   static getDerivedStateFromError(error: Error): State {

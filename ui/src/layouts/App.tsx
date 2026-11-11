@@ -7,10 +7,10 @@
  * tray is simply never unmounted.
  */
 import { useEffect, type ReactNode } from "react";
-import Sidebar from "../components/Sidebar";
+import { Sidebar } from "../components/Sidebar";
 import styles from "./App.module.css";
 
-export default function App({
+export function App({
   title = "newspapper",
   width = "default",
   children,

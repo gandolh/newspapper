@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Button, Card, PageHeader, Select, Skeleton, ToastProvider, useToast } from "../ui";
 import { api } from "@/lib/api";
-import AccountSection from "./AccountSection";
+import { AccountSection } from "./AccountSection";
 import type { Settings } from "@/lib/types";
 import styles from "./SettingsIsland.module.css";
 
@@ -122,7 +122,7 @@ function SettingsPage() {
   );
 }
 
-export default function SettingsIsland() {
+export function SettingsIsland() {
   return (
     <ToastProvider>
       <SettingsPage />

@@ -27,7 +27,7 @@ vi.mock("@/lib/auth", () => ({
   useWardUnlink: () => ({ ...idle, unlink, done: false }),
 }));
 
-const { default: AccountSection } = await import("./AccountSection");
+const { AccountSection } = await import("./AccountSection");
 const { ToastProvider } = await import("../ui");
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;

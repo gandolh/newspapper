@@ -21,7 +21,7 @@ vi.mock("@/lib/auth", () => ({
   useWardSignIn: () => wardSignIn(),
 }));
 
-const { default: LoginIsland } = await import("./LoginIsland");
+const { LoginIsland } = await import("./LoginIsland");
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 

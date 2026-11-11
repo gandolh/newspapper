@@ -30,18 +30,18 @@ import type {
   Source,
 } from "@/lib/types";
 import { Button, ConfirmDialog, EmptyState, ToastProvider, useToast } from "../ui";
-import BackControl from "./BackControl";
-import ItemList from "./ItemList";
-import KeyLegend from "./KeyLegend";
-import Rail, { type ReaderView, type RefreshState, type SourceProgress } from "./Rail";
-import ReadingPane, { type NoteDraft } from "./ReadingPane";
+import { BackControl } from "./BackControl";
+import { ItemList } from "./ItemList";
+import { KeyLegend } from "./KeyLegend";
+import { Rail, type ReaderView, type RefreshState, type SourceProgress } from "./Rail";
+import { ReadingPane, type NoteDraft } from "./ReadingPane";
 import { attributedQuote, titleAndLink } from "./format";
 import { useReaderKeys, type ReaderKeyAction } from "./keys";
 import { markAllRead } from "./markAllRead";
 import { adjustUnread, itemsPath, unreadIn, type Narrow, type ReaderScope } from "./query";
-import LibraryPanel from "./views/LibraryPanel";
-import SearchPanel from "./views/SearchPanel";
-import SourcesPanel from "./views/SourcesPanel";
+import { LibraryPanel } from "./views/LibraryPanel";
+import { SearchPanel } from "./views/SearchPanel";
+import { SourcesPanel } from "./views/SourcesPanel";
 import styles from "./ReaderIsland.module.css";
 
 /** Which pane shows below the narrow breakpoint. */
@@ -666,7 +666,7 @@ function ReaderPage() {
   );
 }
 
-export default function ReaderIsland() {
+export function ReaderIsland() {
   return (
     <ToastProvider>
       <ReaderPage />

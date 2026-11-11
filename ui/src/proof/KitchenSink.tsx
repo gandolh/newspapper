@@ -7,4 +7,4 @@
  * `vite build`, so the page is a working surface and never a shipped one.
  * See that file for why.
  */
-export { default } from "../components/KitchenSinkIsland";
+export { KitchenSinkIsland as default } from "../components/KitchenSinkIsland";

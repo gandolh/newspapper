@@ -116,7 +116,7 @@ function PaletteItem({
   );
 }
 
-export default function PalettePane({
+export function PalettePane({
   onDragStart,
   onDragMove,
   onDragEnd,

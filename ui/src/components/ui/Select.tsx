@@ -28,7 +28,7 @@ export interface SelectProps {
  * Replaces the native `<select>` with an accessible, fully styleable listbox.
  * Controlled via `value` + `onValueChange(value)` (was the native `onChange`).
  */
-export default function Select({
+export function Select({
   label,
   hint,
   error,

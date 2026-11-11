@@ -15,7 +15,7 @@ export interface PageHeaderProps {
  * optional actions slot. Used by History, Sources, and Settings so the
  * page-top vocabulary stays identical across the app.
  */
-export default function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
+export function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
   return (
     <div className={styles.header}>
       <div className={styles.titleBlock}>

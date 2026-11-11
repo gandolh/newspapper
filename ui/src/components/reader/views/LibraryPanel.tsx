@@ -29,7 +29,7 @@ import {
 import { excerpt, formatDate } from "../format";
 import styles from "./Clippings.module.css";
 
-export default function LibraryPanel() {
+export function LibraryPanel() {
   const { addToast } = useToast();
   const [articles, setArticles] = useState<ArticleSummary[]>([]);
   const [sources, setSources] = useState<Source[]>([]);

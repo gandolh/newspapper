@@ -23,7 +23,7 @@ import styles from "./SettingsIsland.module.css";
  * The library supplies state and handlers and nothing visible; every sentence
  * here comes from `authMessage`, so the wording matches the login page.
  */
-export default function AccountSection() {
+export function AccountSection() {
   const session = useSession();
 
   if (session.status === "loading") {

@@ -16,8 +16,8 @@
  * so navigation swaps the sheet under it and never unmounts the strip. The
  * health probe keeps running for the life of the tab.
  */
-import ApiHealthDot from "./ApiHealthDot";
-import SessionMenu from "./auth/SessionMenu";
+import { ApiHealthDot } from "./ApiHealthDot";
+import { SessionMenu } from "./auth/SessionMenu";
 import { Link, usePathname } from "../router";
 import styles from "./Sidebar.module.css";
 
@@ -30,7 +30,7 @@ const navLinks = [
   { href: "/settings", caption: "Settings", showing: "chips" },
 ];
 
-export default function Sidebar() {
+export function Sidebar() {
   const path = usePathname();
   function isActive(href: string): boolean {
     if (href === "/") return path === "/";

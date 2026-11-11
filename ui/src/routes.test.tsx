@@ -19,21 +19,21 @@ import { createRoot, type Root } from "react-dom/client";
 // loads; `null` is its production body.
 vi.mock("./proofSheet", () => ({ default: null }));
 
-function stubIsland(name: string) {
+function stubIsland(name: string, exportName: string) {
   return async () => {
     const { createElement } = await import("react");
-    return { default: () => createElement("p", { "data-island": name }, name) };
+    return { [exportName]: () => createElement("p", { "data-island": name }, name) };
   };
 }
 
-vi.mock("./components/editor/EditorIsland", stubIsland("editor"));
-vi.mock("./components/posts/PostsIsland", stubIsland("posts"));
-vi.mock("./components/reader/ReaderIsland", stubIsland("reader"));
-vi.mock("./components/settings/SettingsIsland", stubIsland("settings"));
-vi.mock("./components/auth/SessionMenu", () => ({ default: () => null }));
-vi.mock("./components/ApiHealthDot", () => ({ default: () => null }));
+vi.mock("./components/editor/EditorIsland", stubIsland("editor", "EditorIsland"));
+vi.mock("./components/posts/PostsIsland", stubIsland("posts", "PostsIsland"));
+vi.mock("./components/reader/ReaderIsland", stubIsland("reader", "ReaderIsland"));
+vi.mock("./components/settings/SettingsIsland", stubIsland("settings", "SettingsIsland"));
+vi.mock("./components/auth/SessionMenu", () => ({ SessionMenu: () => null }));
+vi.mock("./components/ApiHealthDot", () => ({ ApiHealthDot: () => null }));
 
-const { default: Routes } = await import("./routes");
+const { Routes } = await import("./routes");
 const { navigate } = await import("./router");
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;

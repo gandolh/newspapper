@@ -1,5 +1,5 @@
-import Modal from "./Modal";
-import Button from "./Button";
+import { Modal } from "./Modal";
+import { Button } from "./Button";
 import styles from "./ConfirmDialog.module.css";
 
 export interface ConfirmDialogProps {
@@ -14,7 +14,7 @@ export interface ConfirmDialogProps {
   loading?: boolean;
 }
 
-export default function ConfirmDialog({
+export function ConfirmDialog({
   open,
   onClose,
   onConfirm,

@@ -69,7 +69,7 @@ function ToastDemo() {
   );
 }
 
-export default function KitchenSinkIsland() {
+export function KitchenSinkIsland() {
   const [modalOpen, setModalOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [progress, setProgress] = useState(40);

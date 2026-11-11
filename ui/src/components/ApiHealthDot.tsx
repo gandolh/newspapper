@@ -21,7 +21,7 @@ type Status = "up" | "down";
  * in the stylesheet is what keeps the word in the accessibility tree at the
  * width where the sighted view gives it up.
  */
-export default function ApiHealthDot() {
+export function ApiHealthDot() {
   const [status, setStatus] = useState<Status>("up");
 
   async function check() {

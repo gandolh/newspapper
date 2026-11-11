@@ -8,7 +8,7 @@ export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElemen
   autoGrow?: boolean;
 }
 
-export default function Textarea({
+export function Textarea({
   label,
   hint,
   error,

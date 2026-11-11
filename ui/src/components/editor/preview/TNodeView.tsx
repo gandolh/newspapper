@@ -36,7 +36,7 @@ export interface TNodeViewProps {
   registerNode: (offset: number, el: HTMLElement | null) => void;
 }
 
-export default function TNodeView(props: TNodeViewProps): ReactNode {
+export function TNodeView(props: TNodeViewProps): ReactNode {
   const { node, theme, selectedOffset, gestures, registerNode } = props;
   const offset = sourceOffsetOf(node);
   const { css, problems } = resolveTolerant(styleWithoutStamp(node), theme);

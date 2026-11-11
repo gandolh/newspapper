@@ -13,7 +13,7 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import type { FeedItemSummary, Source } from "@/lib/types";
 import { Button, ChipRow, Finding, Input, Mark, Skeleton } from "../ui";
-import BackControl from "./BackControl";
+import { BackControl } from "./BackControl";
 import { formatAge } from "./format";
 import type { ReaderScope } from "./query";
 import styles from "./ItemList.module.css";
@@ -51,7 +51,7 @@ const SCOPES = [
   { value: "all", label: "All" },
 ];
 
-export default function ItemList(props: ItemListProps) {
+export function ItemList(props: ItemListProps) {
   const { rows, selectedId } = props;
   const listRef = useRef<HTMLUListElement>(null);
 

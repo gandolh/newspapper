@@ -60,7 +60,7 @@ import { createElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
 import ${JSON.stringify(here("../../styles/global.css"))};
-import SourcePane from ${JSON.stringify(here("./SourcePane.tsx"))};
+import { SourcePane } from ${JSON.stringify(here("./SourcePane.tsx"))};
 let root = null;
 export function mount(source, range) {
   const host = document.getElementById('host');

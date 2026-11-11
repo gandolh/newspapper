@@ -23,7 +23,7 @@ interface SourceProgress {
   error?: string;
 }
 
-export default function SearchPanel() {
+export function SearchPanel() {
   const { addToast } = useToast();
   const [keywordsInput, setKeywordsInput] = useState("");
   const [searching, setSearching] = useState(false);

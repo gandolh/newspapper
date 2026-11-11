@@ -8,7 +8,7 @@ export interface EmptyStateProps {
   action?: ReactNode;
 }
 
-export default function EmptyState({ icon, title, hint, action }: EmptyStateProps) {
+export function EmptyState({ icon, title, hint, action }: EmptyStateProps) {
   return (
     <div className={styles.container}>
       {icon && (

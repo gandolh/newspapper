@@ -10,7 +10,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { WzdDocument } from "@newspapper/core/wizard";
 import type { TNode, Theme } from "@newspapper/core/templates";
 import { Button, CropMarks, EmptyState, Mark, RegisterTargets } from "../ui";
-import SlideCanvas from "./preview/SlideCanvas.js";
+import { SlideCanvas } from "./preview/SlideCanvas.js";
 import type { NodeGestures } from "./preview/TNodeView.js";
 import { slotsForSubtree, type SlotDescriptor } from "./preview/slots.js";
 import { collectStyleProblems } from "./preview/resolve.js";
@@ -58,7 +58,7 @@ export interface PreviewPaneProps {
   onNudgeSlide: (path: WzdPath, delta: -1 | 1) => void;
 }
 
-export default function PreviewPane(props: PreviewPaneProps) {
+export function PreviewPane(props: PreviewPaneProps) {
   const {
     doc,
     slides,

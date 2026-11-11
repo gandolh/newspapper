@@ -8,7 +8,7 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   error?: string;
 }
 
-export default function Input({ label, hint, error, className = "", id, ...rest }: InputProps) {
+export function Input({ label, hint, error, className = "", id, ...rest }: InputProps) {
   const inputId = id ?? label?.toLowerCase().replace(/\s+/g, "-");
   const cls = [styles.input, error ? styles["input--error"] : "", className].filter(Boolean).join(" ");
 

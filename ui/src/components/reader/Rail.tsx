@@ -70,7 +70,7 @@ function ProgressMark({ p }: { p: SourceProgress | undefined }) {
   ) : null;
 }
 
-export default function Rail(props: RailProps) {
+export function Rail(props: RailProps) {
   const { sources, counts, refresh, view, narrow, scope } = props;
   const reading = view === "read";
   const groups = sources ? groupSources(sources) : [];

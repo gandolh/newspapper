@@ -20,7 +20,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
  * means "held out" everywhere else in the app, and says the state in the mark
  * face. The label keeps its space so nothing reflows.
  */
-export default function Button({
+export function Button({
   variant = "primary",
   size = "md",
   loading = false,

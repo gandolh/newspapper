@@ -16,7 +16,7 @@ export interface SplitterProps {
   onResize: (width: number) => void;
 }
 
-export default function Splitter({ width, min, max, direction = 1, label, onResize }: SplitterProps) {
+export function Splitter({ width, min, max, direction = 1, label, onResize }: SplitterProps) {
   const bind = useDrag(
     ({ movement: [dx], memo }) => {
       const start = typeof memo === "number" ? memo : width;

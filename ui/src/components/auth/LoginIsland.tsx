@@ -24,7 +24,7 @@ import styles from "./LoginIsland.module.css";
  * - the reason the last session was refused, when a 401 sent the person here
  *   (`?reason=`) or the session probe says so (Ward unreachable).
  */
-export default function LoginIsland() {
+export function LoginIsland() {
   const session = useSession();
   const { login, pending, error } = useLogin();
   const ward = useWardSignIn();

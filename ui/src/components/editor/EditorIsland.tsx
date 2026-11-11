@@ -20,12 +20,12 @@ import type { Theme } from "@newspapper/core/templates";
 import { Button, Mark, Select, Skeleton, ToastProvider, useToast } from "../ui";
 import { api, ApiError, sse } from "@/lib/api";
 import type { Post, Settings } from "@/lib/types";
-import SourcePane from "./SourcePane.js";
-import PreviewPane from "./PreviewPane.js";
-import InspectorPane from "./InspectorPane.js";
-import PalettePane from "./PalettePane.js";
-import ImagePicker from "./ImagePicker.js";
-import Splitter from "./Splitter.js";
+import { SourcePane } from "./SourcePane.js";
+import { PreviewPane } from "./PreviewPane.js";
+import { InspectorPane } from "./InspectorPane.js";
+import { PalettePane } from "./PalettePane.js";
+import { ImagePicker } from "./ImagePicker.js";
+import { Splitter } from "./Splitter.js";
 import { compileTraced } from "./preview/compileTraced.js";
 import { canContain } from "./preview/slots.js";
 import { zoneAt, type DragPayload, type MeasuredZone } from "./dragTypes.js";
@@ -45,7 +45,7 @@ import { starterDocument } from "./starter.js";
 import styles from "./EditorIsland.module.css";
 import { withBase } from "@/lib/base";
 import { createSaveQueue, type SaveQueue } from "./saveQueue";
-import ErrorBoundary from "../ErrorBoundary";
+import { ErrorBoundary } from "../ErrorBoundary";
 
 /**
  * Compile options for the live preview canvas. Its `<Image>` backgrounds are
@@ -658,7 +658,7 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
   );
 }
 
-export default function EditorIsland(props: EditorIslandProps) {
+export function EditorIsland(props: EditorIslandProps) {
   return (
     <ToastProvider>
       <ErrorBoundary>

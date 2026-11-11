@@ -19,7 +19,7 @@ export interface ToggleProps {
  * Toggle — Base UI `Switch` styled as a board control: square, mono, tick-edged.
  * Controlled via `checked` + `onCheckedChange(checked)` (was the native `onChange`).
  */
-export default function Toggle({
+export function Toggle({
   checked,
   defaultChecked,
   onCheckedChange,
