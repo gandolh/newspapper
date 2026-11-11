@@ -36,6 +36,9 @@ export type { EmptyStateProps } from "./EmptyState";
 export { PageHeader } from "./PageHeader";
 export type { PageHeaderProps } from "./PageHeader";
 
+export { Tabs } from "./Tabs";
+export type { TabsProps, TabOption } from "./Tabs";
+
 export { Modal } from "./Modal";
 export type { ModalProps } from "./Modal";
 

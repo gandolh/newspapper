@@ -75,6 +75,14 @@
 }
 
 /* Narrow: the three panes become a scale-chip row of one-at-a-time views. */
+/* The narrow layout's tab set: the tabs on top, the one pane filling the rest. */
+.narrow {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
 .tabs {
   display: flex;
   gap: 4px;

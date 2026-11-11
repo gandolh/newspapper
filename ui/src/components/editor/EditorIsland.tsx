@@ -17,7 +17,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { format, isFormatted, lintSource, parse, WZD_RENDERABLE_NAMES } from "@newspapper/core/wizard";
 import type { Theme } from "@newspapper/core/templates";
-import { Button, Mark, Select, Skeleton, ToastProvider, useToast } from "../ui";
+import { Button, Mark, Select, Skeleton, Tabs, ToastProvider, useToast } from "../ui";
 import { api, ApiError, sse } from "@/lib/api";
 import type { Post, Settings } from "@/lib/types";
 import { SourcePane } from "./SourcePane.js";
@@ -85,6 +85,12 @@ interface ThemeRecord {
 type SaveState = "clean" | "dirty" | "saving" | "saved" | "error";
 
 type Pane = "source" | "preview" | "inspector";
+
+const PANE_TABS: readonly { value: Pane; label: string }[] = [
+  { value: "source", label: "Source" },
+  { value: "preview", label: "Preview" },
+  { value: "inspector", label: "Inspector" },
+];
 
 interface InsertionPoint {
   parentPath: WzdPath;
@@ -591,18 +597,21 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
 
       {!loading && narrow && (
         <>
-          <nav className={styles.tabs}>
-            {(["source", "preview", "inspector"] as Pane[]).map((name) => (
-              <Button key={name} variant={pane === name ? "primary" : "ghost"} size="sm" onClick={() => setPane(name)}>
-                {name[0].toUpperCase() + name.slice(1)}
-              </Button>
-            ))}
-          </nav>
-          <div className={styles.singlePane}>
-            {pane === "source" && sourcePane}
-            {pane === "preview" && previewPane}
-            {pane === "inspector" && <div className={styles.scroller}>{inspectorPane}</div>}
-          </div>
+          <Tabs
+            label="Editor pane"
+            tabs={PANE_TABS}
+            value={pane}
+            onValueChange={setPane}
+            className={styles.narrow}
+            listClassName={styles.tabs}
+            panelClassName={styles.singlePane}
+          >
+            {(name) => {
+              if (name === "source") return sourcePane;
+              if (name === "preview") return previewPane;
+              return <div className={styles.scroller}>{inspectorPane}</div>;
+            }}
+          </Tabs>
         </>
       )}
 
