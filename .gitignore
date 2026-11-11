@@ -30,3 +30,4 @@ build/
 
 # Local-only skills (voice guide)
 .claude/skills/
+*.tsbuildinfo

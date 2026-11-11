@@ -1,9 +1,5 @@
 export type UploadRejectionCode =
-  | 'empty_upload'
-  | 'file_too_large'
-  | 'unsupported_format'
-  | 'unreadable_image'
-  | 'image_too_large';
+  'empty_upload' | 'file_too_large' | 'unsupported_format' | 'unreadable_image' | 'image_too_large';
 
 /** A caller-facing rejection: the request was bad, not the server. */
 export class UploadRejected extends Error {

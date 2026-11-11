@@ -78,8 +78,7 @@ afterEach(() => {
 
 function itemByUrl(url: string) {
   const row = db.prepare('SELECT id FROM feed_items WHERE url = ?').get(url) as
-    | { id: number }
-    | undefined;
+    { id: number } | undefined;
   return row ? getFeedItem(db, row.id) : undefined;
 }
 

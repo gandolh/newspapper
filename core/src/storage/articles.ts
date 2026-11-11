@@ -54,8 +54,7 @@ function cleanNote(note: string | undefined): string {
 function resolveSourceId(db: DB, sourceId: string | null | undefined): string | null {
   if (!sourceId) return null;
   const row = db.prepare('SELECT id FROM sources WHERE id = ?').get(sourceId) as
-    | { id: string }
-    | undefined;
+    { id: string } | undefined;
   return row ? row.id : null;
 }
 

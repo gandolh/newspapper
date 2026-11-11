@@ -501,8 +501,7 @@ describe('migrate — v2 schema (payload posts) with existing rows', () => {
     buildV2Db(dbPath);
     const db = getDb(dbPath);
     const row = db.prepare('SELECT value FROM settings WHERE key = ?').get('defaultTheme') as
-      | { value: string }
-      | undefined;
+      { value: string } | undefined;
     db.close();
     expect(row?.value).toBe('warm-industrial-1');
   });

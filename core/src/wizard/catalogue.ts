@@ -30,12 +30,7 @@ export type WzdChildModel =
   | 'elements';
 
 export type WzdComponentGroup =
-  | 'document'
-  | 'metadata'
-  | 'structure'
-  | 'content'
-  | 'accent'
-  | 'generated';
+  'document' | 'metadata' | 'structure' | 'content' | 'accent' | 'generated';
 
 export interface WzdComponentSpec {
   name: string;

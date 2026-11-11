@@ -11,14 +11,7 @@
  */
 
 export type WzdTokenKind =
-  | 'text'
-  | 'punct'
-  | 'component'
-  | 'structure'
-  | 'attr'
-  | 'value'
-  | 'comment'
-  | 'binding';
+  'text' | 'punct' | 'component' | 'structure' | 'attr' | 'value' | 'comment' | 'binding';
 
 export interface WzdToken {
   start: number;

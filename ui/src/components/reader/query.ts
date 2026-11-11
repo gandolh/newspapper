@@ -14,9 +14,7 @@ export type ReaderScope = 'unread' | 'all';
  * the uncategorized group — a real selection, distinct from no narrowing.
  */
 export type Narrow =
-  | { kind: 'source'; sourceId: string }
-  | { kind: 'category'; category: string | null }
-  | null;
+  { kind: 'source'; sourceId: string } | { kind: 'category'; category: string | null } | null;
 
 /**
  * `GET /api/reader/items` for a selection.
