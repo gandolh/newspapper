@@ -220,13 +220,14 @@ function PostsPage() {
 
       {allKeywords.length > 0 && (
         <ChipRow
+          kind="filter"
           className={styles.keywords}
           ariaLabel="Filter by keyword"
           wrap
           pad="hair"
           options={[{ value: ALL_KEYWORDS, label: "All keywords" }, ...allKeywords.map((k) => ({ value: k }))]}
           value={keyword ?? ALL_KEYWORDS}
-          onValueChange={(v) => setKeyword(v === ALL_KEYWORDS || v === keyword ? null : v)}
+          onValueChange={(v) => setKeyword(v === ALL_KEYWORDS ? null : v)}
         />
       )}
 

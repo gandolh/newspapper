@@ -253,6 +253,7 @@ export function InspectorPane(props: InspectorPaneProps) {
                 return (
                   <div className={styles.prop} key={propSpec.name}>
                     <ChipRow
+                      kind="picker"
                       label={propSpec.name}
                       hint={
                         isSet

@@ -73,8 +73,8 @@
 /* Attribute selectors, not a modifier class: (0,2,0) out-ranks `:hover` at
    (0,1,1) on its own, so the active chip cannot go graphite-on-graphite the
    moment you point at it. */
-.chip[aria-pressed="true"],
-.chip[aria-selected="true"] {
+.chip[data-pressed],
+.chip[data-checked] {
   background: var(--graphite);
   border-color: var(--graphite);
   color: var(--board);
@@ -82,12 +82,13 @@
 
 /* Held out. `pointer-events: none` keeps `:hover` off it entirely, so the
    active chip stays legible while the row is unusable. */
-.chip:disabled {
+.chip:disabled,
+.chip[data-disabled] {
   cursor: not-allowed;
   pointer-events: none;
 }
 
-.chip:disabled:not([aria-pressed="true"]):not([aria-selected="true"]) {
+.chip:is(:disabled, [data-disabled]):not([data-pressed]):not([data-checked]) {
   background: var(--board);
   color: var(--graphite-soft);
   border-color: var(--tick);

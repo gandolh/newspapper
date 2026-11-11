@@ -1,3 +1,7 @@
+import { Radio } from "@base-ui/react/radio";
+import { RadioGroup } from "@base-ui/react/radio-group";
+import { Toggle } from "@base-ui/react/toggle";
+import { ToggleGroup } from "@base-ui/react/toggle-group";
 import styles from "./ChipRow.module.css";
 
 export interface ChipOption {
@@ -15,12 +19,16 @@ export interface ChipRowProps {
   hint?: string;
   disabled?: boolean;
   /**
-   * The ARIA shape. `toggle` (default) renders `aria-pressed` buttons — a
-   * filter, where "none of them" is a real state. `tablist` renders
-   * `role="tab"` with `aria-selected`, for a row that switches which panel is
-   * on screen.
+   * What choosing a chip does (the base-ui skill's rule 16).
+   *
+   * - `filter` switches what a list shows and saves nothing: a `RadioGroup`,
+   *   where the arrow keys move and choose. A repeat click on the chosen chip
+   *   does not fire, and `value` may be `null` ("none of them").
+   * - `picker` saves on each choice (the inspector's scales write to the
+   *   post): a guarded `ToggleGroup`. Arrow keys only move focus; Space, Enter
+   *   or a click chooses. An empty value is ignored, so one chip stays pressed.
    */
-  behavior?: "toggle" | "tablist";
+  kind: "filter" | "picker";
   /** Every chip takes the same width — what §5 means by "equal chips". */
   equal?: boolean;
   /** Chips run onto a second line instead of squeezing. */
@@ -54,7 +62,7 @@ export function ChipRow({
   label,
   hint,
   disabled,
-  behavior = "toggle",
+  kind,
   equal,
   wrap,
   pad = "half",
@@ -71,6 +79,13 @@ export function ChipRow({
   const chipCls = [styles.chip, equal ? styles["chip--equal"] : "", pad === "hair" ? styles["chip--hair"] : ""]
     .filter(Boolean)
     .join(" ");
+  const groupProps = {
+    className: rowCls,
+    disabled,
+    "aria-label": ariaLabel,
+    "aria-labelledby": ariaLabel ? undefined : labelId,
+    "aria-describedby": hintId,
+  } as const;
 
   return (
     <div className={fieldCls}>
@@ -79,33 +94,44 @@ export function ChipRow({
           {label}
         </span>
       )}
-      <div
-        className={rowCls}
-        role={behavior === "tablist" ? "tablist" : "group"}
-        aria-label={ariaLabel}
-        aria-labelledby={ariaLabel ? undefined : labelId}
-        aria-describedby={hintId}
-      >
-        {options.map((option) => {
-          const active = option.value === value;
-          const state =
-            behavior === "tablist"
-              ? ({ role: "tab", "aria-selected": active } as const)
-              : ({ "aria-pressed": active } as const);
-          return (
-            <button
+      {kind === "filter" ? (
+        <RadioGroup
+          {...groupProps}
+          value={value}
+          onValueChange={(next) => {
+            if (typeof next === "string") onValueChange(next);
+          }}
+        >
+          {options.map((option) => (
+            <Radio.Root
               key={option.value}
-              type="button"
+              value={option.value}
               className={chipCls}
-              disabled={disabled}
-              onClick={() => onValueChange(option.value)}
-              {...state}
+              nativeButton
+              render={<button type="button" />}
             >
               {option.label ?? option.value}
-            </button>
-          );
-        })}
-      </div>
+            </Radio.Root>
+          ))}
+        </RadioGroup>
+      ) : (
+        <ToggleGroup
+          {...groupProps}
+          value={value === null ? [] : [value]}
+          onValueChange={(next) => {
+            // The guard: an empty group (the pressed chip pressed again) is not a
+            // choice, and neither is the value already chosen.
+            const chosen = next[0];
+            if (chosen !== undefined && chosen !== value) onValueChange(chosen);
+          }}
+        >
+          {options.map((option) => (
+            <Toggle key={option.value} value={option.value} className={chipCls}>
+              {option.label ?? option.value}
+            </Toggle>
+          ))}
+        </ToggleGroup>
+      )}
       {hint && (
         <span id={hintId} className={styles.hint}>
           {hint}

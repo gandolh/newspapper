@@ -69,6 +69,7 @@ export function ItemList(props: ItemListProps) {
       <header className={styles.head}>
         <h2 className={styles.heading}>{props.heading}</h2>
         <ChipRow
+          kind="filter"
           options={SCOPES}
           value={props.scope}
           onValueChange={(v) => props.onScopeChange(v as ReaderScope)}

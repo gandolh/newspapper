@@ -146,6 +146,7 @@ export function KitchenSinkIsland() {
             <Textarea label="Caption" placeholder="What goes with the post…" />
             <Select label="Theme" options={SELECT_OPTIONS} value={theme} onValueChange={setTheme} />
             <ChipRow
+              kind="filter"
               label="size"
               hint="A named scale picks itself in a row, not in a menu."
               options={SIZE_SCALE}
@@ -154,6 +155,7 @@ export function KitchenSinkIsland() {
               onValueChange={setSize}
             />
             <ChipRow
+              kind="picker"
               label="align"
               hint="Held out — the markup does not parse."
               options={[{ value: "left" }, { value: "center" }, { value: "right" }]}
