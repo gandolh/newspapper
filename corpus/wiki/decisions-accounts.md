@@ -59,7 +59,7 @@ on 2026-09-06
 ([decisions-security.md](./decisions-security.md#uploads-is-public-api-and-output-are-guarded)):
 the render browser reads uploads from disk, so nothing anonymous needs the
 route. That decision was kept, and the same guard now covers `/api/*`,
-`/output/*` and `/uploads/*` through the library's `isPublic` hook, with the matched-route rule of 2026-10-02 intact (`api/src/ward/ward.guard.ts`). Opening it is one entry
+`/output/*` and `/uploads/*` through the library's `isPublic` hook, with the matched-route rule of 2026-10-02 intact (`api/src/plugins/auth/guard.ts`). Opening it is one entry
 in that function if the owner decides to.
 
 ## Nothing to migrate

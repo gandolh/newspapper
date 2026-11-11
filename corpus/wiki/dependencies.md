@@ -1,6 +1,6 @@
 ---
 summary: What each workspace depends on and why that package was chosen over the alternatives.
-updated: 2026-11-06
+updated: 2026-11-11
 ---
 
 # Dependencies
@@ -27,6 +27,11 @@ Per-workspace. Versions are locked in `package-lock.json`.
 | `@fastify/static` | Serves `/assets/fonts/`, `/output/`, and `ui/dist/` in prod. Not used for `/uploads/` — that route resolves refs through the DB and streams the file itself. 10.x since 2026-10-02: 8.3.0 carried a static-plugin guard-bypass advisory class; the 8 → 10 major changed nothing newspapper relies on. |
 | `@fastify/multipart` | Parses the single-file `POST /api/uploads` body, with a streaming 10 MB `fileSize` limit so an oversized upload is cut off rather than buffered. |
 | `@newspapper/core` | All pipeline logic. |
+| `zod` 4.6.7 | The route schemas: every route's params, query string, body and reply (2026-11-11, [decision](./decisions-api.md)), and `config.ts`'s parse of the environment. One copy in the tree (`npm ls zod`): eslint-plugin-react-hooks and knip resolve the same 4.6.7. MIT. |
+| `@fastify/type-provider-zod` 1.0.3 | Fastify validates each request and encodes each reply with the route's zod schemas, and types the handlers from them. Its serializer can't run a `.transform()` backwards, so the reply schemas hold none (`app.schemas.test.ts`). MIT. |
+| `@fastify/swagger` 9.9.3, `openapi-types` 12.1.3 | The provider's required peers, which npm installs: type-only weight here, since the API publishes no OpenAPI document. Pinned so the lockfile can't drift them. MIT. |
+| `fastify-plugin` 6.0.1 | Lets the cross-cutting plugins (errors, the SSE close hook, auth, static files) reach the root instead of their own scope. The tree also holds 5.1.0 for `@fastify/*` packages' own use. MIT. |
+| `close-with-grace` 2.5.0 | `server.ts`'s shutdown: on a signal it closes the server, lets requests finish and runs the `onClose` hooks, then exits (143 on SIGTERM, 130 on SIGINT, which `server.ts` keeps), or exits 1 after 10 s. MIT. |
 | `vendor/ward/` (not an npm package) | The shared auth library, version 0.2.0, copied in whole (server bundle, types, README, LICENSE) and never edited; it needs no install and imports only `node:` built-ins. Upgrade by vendoring a newer build over it. It replaced the hand-written Ward client and its `jose` dependency (removed 2026-10-13, which was also the one unpinned version in the repo). |
 
 ## `ui/` — `@newspapper/ui`

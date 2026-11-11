@@ -1,13 +1,15 @@
 ---
 summary: The reading side of the HTTP API — sources, saved articles, the keyword Search (SSE) and the Reader's stored items (list, open, read state, counts, save, refresh over SSE) — with bodies, responses and error codes. The rest of the API, and the guard every route sits behind, is in api.md.
-updated: 2026-10-09
+updated: 2026-11-11
 ---
 
 # HTTP API — sources, articles and the Reader
 
 The routes behind the `/reader` page. Everything in [api.md](./api.md)'s
-preamble applies: the `/api/` prefix, the Ward session guard (401 / 403 / 503)
-and the SSE framing. Storage behind these routes: [data-reader.md](./data-reader.md).
+preamble applies: the `/api/` prefix, the Ward session guard (401 / 403 / 503),
+the SSE framing, and the zod schemas every route validates with: a body or
+query of the wrong shape is a 400 `{ error }` carrying the message the handler
+used to send. Storage behind these routes: [data-reader.md](./data-reader.md).
 
 ## Sources
 
@@ -17,8 +19,8 @@ Sources live in the DB (schema v3 on). They are managed from the Reader's
 | Method | Path | Body | Response |
 |--------|------|------|----------|
 | GET | `/api/sources` | — | `Source[]` |
-| POST | `/api/sources` | `{ id, name, rss, enabled?, category? }` | 201 `Source[]` (full list) · 409 if the id exists |
-| PUT | `/api/sources/:id` | `Partial<SourceConfig>` | `Source[]` · 404 |
+| POST | `/api/sources` | `{ id, name, rss, enabled?, category? }`: non-empty strings, a boolean, a string or null | 201 `Source[]` (full list) · 400 · 409 if the id exists |
+| PUT | `/api/sources/:id` | `Partial<SourceConfig>`, or no body; other keys are dropped | `Source[]` · 400 · 404 |
 | DELETE | `/api/sources/:id` | — | `Source[]` · 404 |
 | POST | `/api/sources/:id/ping` | — | `{ ok, itemCount?, latencyMs?, error? }`, the Sources view's "Ping" |
 
@@ -39,8 +41,8 @@ search result nor a Reader item is written there until the user saves it.
 
 | Method | Path | Query / Body | Response |
 |--------|------|---------------|----------|
-| GET | `/api/articles` | query `sourceId?`, `search?` (title/body substring), `limit?`, `offset?` | `ArticleSummary[]` (an `Article` with `body` replaced by a ≤300-char `excerpt`), most recently saved first |
-| POST | `/api/articles` | body `NewArticle` (`title` required; `sourceId`, `sourceName`, `guid`, `url`, `body`, `publishedAt`, `note` optional) | 201 `Article`, idempotent on `(source_id, guid)`: a repeat save returns the existing row, its note unchanged. `sourceName` defaults to `'Manual'` when no `sourceId` is given. |
+| GET | `/api/articles` | query `sourceId?`, `search?` (title/body substring), `limit?`, `offset?` (integers: 400 otherwise, where `limit=abc` used to be a 500) | `ArticleSummary[]` (an `Article` with `body` replaced by a ≤300-char `excerpt`), most recently saved first |
+| POST | `/api/articles` | body `NewArticle` (`title` required; `sourceId`, `sourceName`, `guid`, `url`, `body`, `publishedAt`, `note` optional, each a string; `sourceId` and `url` may be null) | 400 · 201 `Article`, idempotent on `(source_id, guid)`: a repeat save returns the existing row, its note unchanged. `sourceName` defaults to `'Manual'` when no `sourceId` is given. |
 | PATCH | `/api/articles/:id` | `{ note: string }` | `Article` with the note replaced (`''` clears it) · 400 · 404 |
 | DELETE | `/api/articles/:id` | — | `{ ok: true }` · 404 |
 
@@ -57,7 +59,7 @@ a separate `POST /api/articles`. Its matching rule is locked
 
 | Body | SSE events |
 |------|------------|
-| `{ keywords: string[], maxPerSource?: number }` | `progress: { sourceId, status: 'fetching'\|'done'\|'error', count?, error? }` (a `done` count is matches found) · `done: { articles: ScrapedArticle[], errors: Array<{ sourceId, error }> }` · `error: { message }` (e.g. no keywords given) |
+| `{ keywords: string[], maxPerSource?: number }`, or no body (a JSON 400 if `keywords` isn't a list of strings or `maxPerSource` a positive integer) | `progress: { sourceId, status: 'fetching'\|'done'\|'error', count?, error? }` (a `done` count is matches found) · `done: { articles: ScrapedArticle[], errors: Array<{ sourceId, error }> }` · `error: { message }` (e.g. no keywords given) |
 
 `ScrapedArticle` is `{ sourceId, sourceName, guid, title, url, body,
 publishedAt, matchCount }`: no `id` or `savedAt`, since it isn't a row. An
@@ -101,7 +103,8 @@ the item's `articleId`.
 stores the new items. It streams Search's progress shape, where a `done` count
 is the number of new items, then `done: { newCount, errors }`. A source's
 failure is in `errors` and on its row's `lastError`, never an SSE `error`;
-that event means a bad `sourceId` or a database failure ("Refresh failed", the
-detail only logged). The refresh is single-flight: a request during a running
+that event means an unknown `sourceId` or a database failure ("Refresh failed",
+the detail only logged). A `sourceId` that isn't a string is a JSON 400 before
+the stream opens (until 2026-11-11, an `error` event). The refresh is single-flight: a request during a running
 refresh, background or manual, joins it and streams its remaining events. How
 the loop runs: [architecture.md](./architecture.md#the-reader).

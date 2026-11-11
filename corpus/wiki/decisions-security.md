@@ -1,6 +1,6 @@
 ---
 summary: The locked security calls — the Ward-only identity of 2026-09-06 (revised by decisions-accounts.md), the retired single-account auth and its lockout, which paths are guarded (decided from the matched route) versus public, and how local development signed in through a local Ward. The feed-fetch and 5xx-body calls are in decisions-hardening.md.
-updated: 2026-10-13
+updated: 2026-11-11
 ---
 
 # Decisions — security
@@ -181,6 +181,12 @@ the URL ourselves** and re-testing the prefix. Double-encoding, `..` and mixed
 case make a hand decoder easy to get wrong, while the matched pattern is
 already the router's own answer. `@fastify/static` routes carry a pattern too
 (`/output/*`).
+
+The rule lives in `api/src/plugins/auth/guard.ts` (`requiresSession`), handed
+to the auth plugin as its `isPublic`; it was `api/src/ward/ward.guard.ts` until
+the API moved to feature folders on 2026-11-11. The plugin is registered before
+every route, and a guarded route answers 401 before its schema runs, so a
+signed-out request with a malformed body is still a 401.
 
 Two hardening calls, server-side fetches of feed URLs and generic 5xx bodies, are in
 [decisions-hardening.md](./decisions-hardening.md).

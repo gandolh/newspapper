@@ -1,6 +1,6 @@
 ---
-summary: Two hardening calls from the 2026-10-02 sweep — server-side fetches of feed-chosen URLs go to public addresses only (2026-10-02; since 2026-11-06 the connection itself goes only to a checked address, closing DNS rebinding), and a 5xx never shows the caller the exception's text (2026-10-02).
-updated: 2026-11-06
+summary: Two hardening calls from the 2026-10-02 sweep — server-side fetches of feed-chosen URLs go to public addresses only (2026-10-02; since 2026-11-06 the connection itself goes only to a checked address, closing DNS rebinding), and a 5xx never shows the caller the exception's text (2026-10-02; until 2026-11-11 it held only for routes registered after the handler).
+updated: 2026-11-11
 ---
 
 # Decisions — hardening
@@ -50,3 +50,12 @@ _2026-10-02_ — The global error handler answers any `>= 500` with
 `{ "error": "Internal Server Error" }` and logs the real error. A deliberate 4xx
 keeps its message. Rejected: echoing `err.message` for everything, which leaked
 SQL fragments, file paths and null-dereference text.
+
+_2026-11-11_ — **It held only for routes registered after it.** The handler was
+set on the root after the route plugins, and a plugin registered earlier keeps
+the handler it was created with: Fastify's default, which sends a 500's
+message. So every route's 500 sent its text (`Post NaN not found`, SQLite's
+`datatype mismatch`) and Fastify's own 400s their four-field body; the test
+passed because it added its own route after the handler. Since 2026-11-11 the
+handler is `api/src/plugins/errors.ts`, wrapped in `fastify-plugin` and
+registered first, and `app.test.ts` proves it on a real route.

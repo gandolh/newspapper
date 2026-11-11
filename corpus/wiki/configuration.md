@@ -1,6 +1,6 @@
 ---
-summary: Every env var and the code that reads it, how .env reaches process.env at all, the accounts and Ward sign-in variables (and what an unset issuer means), the session cookie's Path, settings precedence, and one-time setup including Playwright Chromium.
-updated: 2026-11-04
+summary: Every env var and the code that reads it (api/src/config.ts alone, in the API), how .env reaches process.env at all, the accounts and Ward sign-in variables (and what an unset issuer means), the session cookie's Path, settings precedence, and one-time setup including Playwright Chromium.
+updated: 2026-11-11
 ---
 
 # Configuration
@@ -10,9 +10,20 @@ updated: 2026-11-04
 Copy `.env.example` to `.env`. Everything has a default. "Sign in with Ward" is
 optional: with `WARD_OIDC_ISSUER` unset the app runs on local accounts alone.
 
+**In the API, `api/src/config.ts` is the only reader** (since 2026-11-11): it
+parses the variables below once, with zod, when the server starts, and a bad
+one stops the boot with a `ConfigError` naming every variable at fault (`PORT=abc`,
+a negative `READER_REFRESH_MINUTES`, an `AUTH_TRUSTED_PROXIES` entry that isn't an
+address, a `WARD_OIDC_ISSUER` without the other three). A blank value counts as
+unset. `n/no-process-env` is an error everywhere else in `api/src`. `core` reads its
+own (`NEWSPAPPER_DB_PATH`'s default, `UPLOADS_DIR`, `OUTPUT_DIR`, `UPLOADS_BASE_URL`,
+`THEME`, `READER_RETENTION_DAYS`), recorded in `scripts/conventions.json`.
+
 | Variable | Default | Meaning |
 |----------|---------|---------|
-| `PORT` | `3001` | API server port. Also the origin the render browser uses for `/uploads/*` and `/assets/fonts/*`. |
+| `PORT` | `3001` | API server port, 1–65535. Also the origin the render browser uses for `/uploads/*` and `/assets/fonts/*`. |
+| `READER_REFRESH_MINUTES` | `30` | Minutes between the Reader's background refreshes; `0` is off. Not a number ≥ 0 stops the boot (until 2026-11-11 a typo fell back to 30). |
+| `AUTH_TRUSTED_PROXIES` | — (loopback only) | Comma-separated addresses or CIDR ranges whose `X-Forwarded-For` is believed, beyond loopback: in a container, the Docker bridge Caddy connects from. The login lockout reads it, and since 2026-11-11 Fastify's `trustProxy` too (`request.ip` in the logs). The deploy sets it. |
 | `NEWSPAPPER_BASE` | `/` | Where the app is served from (`/newspapper/`). Baked into the UI bundle at build time **and read by the API at runtime** for the session cookie's `Path` ([below](#the-session-cookie-and-the-callback-path)). Unset, it is read back from `WARD_OIDC_REDIRECT_URI`. |
 | `PUBLIC_ORIGIN` | origin of `WARD_OIDC_REDIRECT_URI`, else `http://localhost:4321` | The app's own origin, no path. Decides the cookie's `Secure` flag and what a browser's `Origin` must be on sign-in POSTs. |
 | `WARD_OIDC_ISSUER` | — | Ward's issuer, ending in `/oidc`. Unset means no Ward button. Set, the next three are **required** and the boot throws naming the missing one. |
@@ -36,8 +47,8 @@ password hashes and opaque server-side sessions live in the app's SQLite file
 by the shared library's own migrations when the API boots. The library is
 vendored at `api/vendor/ward/` (server bundle) and `ui/vendor/ward/` (React
 hooks), version 0.2.0; neither copy is ever edited. The wiring is
-`api/src/ward/`: `auth.ts` registers the plugin, `config.ts` holds the paths,
-`ward.guard.ts` decides which routes need a session.
+`api/src/plugins/auth/`: `index.ts` registers the plugin, `paths.ts` holds the paths,
+`guard.ts` decides which routes need a session.
 
 - **There is no register page.** An account comes from the seed script
   (`npm run seed --workspace=api`, which never resets an existing account) or
@@ -68,7 +79,7 @@ That fixes two values, in development and in the deploy alike:
   the posts list load `/output/*` and `/uploads/*` as `<img>` sources, beside
   `/api` and guarded; a cookie scoped to `/newspapper/api` would never reach them
   and every thumbnail would 401. `fastify.inject` ignores cookie paths, so no
-  test can show this: it is a rule in `api/src/ward/config.ts` and a test of the
+  test can show this: it is a rule in `api/src/plugins/auth/paths.ts` and a test of the
   value there. The library's boot check keeps the callback under the cookie path.
 
 `NEWSPAPPER_BASE` therefore has to be in the **container's** environment in a

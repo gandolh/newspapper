@@ -1,13 +1,13 @@
 ---
-summary: The HTTP API's ground rules (the /api prefix, the session guard and its 401, the /api/auth routes, SSE framing) and the writing side's routes — posts, renders, publish, export, themes, settings, uploads. Sources, articles, Search and the Reader are in api-reader.md.
-updated: 2026-10-09
+summary: The HTTP API's ground rules (the /api prefix, the session guard and its 401, the /api/auth routes, SSE framing, every route's zod schemas and the 400 they answer) and the writing side's routes — posts, renders, publish, export, themes, settings, uploads. Sources, articles, Search and the Reader are in api-reader.md.
+updated: 2026-11-11
 ---
 
 # HTTP API
 
 All endpoints are prefixed with `/api/`. The server runs on port 3001 by default.
 
-SSE endpoints stream `event: <type>\ndata: <json>\n\n` frames. Long-running endpoints emit `progress` events during work and end with `done` or `error`.
+SSE endpoints stream `event: <type>\ndata: <json>\n\n` frames. Long-running endpoints emit `progress` events during work and end with `done` or `error` ([sse.md](./sse.md)).
 
 Every route is behind the [session guard](./configuration.md#authentication)
 except `/api/health`, the plugin's own `/api/auth/*` sign-in routes and what is
@@ -22,8 +22,21 @@ guarded too
 and an unmatched `/api/...` URL is a 401, not a 404 that says which paths exist.
 A 5xx answers `{ error: "Internal Server Error" }`; the real error is only logged.
 
-Who needs a session is `api/src/ward/ward.guard.ts`'s `requiresSession`, handed to the
+Who needs a session is `api/src/plugins/auth/guard.ts`'s `requiresSession`, handed to the
 auth plugin as its `isPublic`. There is no per-route opt-out.
+
+**Every route validates its input** (since 2026-11-11): its `params`,
+`querystring` and `body` are zod schemas in its feature's `schemas.ts`, checked
+before the handler runs, and a reply for each status the handler sends is
+encoded by its response schema, so a field the schema doesn't name never leaves
+the server ([decision](./decisions-api.md)). A request that fails its schema is
+**400 `{ error: "<the first issue's message>" }`**; each schema writes its own
+messages, the handlers' old ones where they had one (`title is required`,
+`id must be a positive integer`). The guard runs first, so a signed-out request
+is a 401 whatever its body. A query value given twice is a 400 (`Each query
+parameter may be given once`). Bad JSON is Fastify's 400 in the same body. The
+three streams, `export.zip` and the two file routes have no response schema,
+and the upload's multipart body no body schema ([sse.md](./sse.md)).
 
 ## Health
 
@@ -33,7 +46,7 @@ auth plugin as its `isPublic`. There is no per-route opt-out.
 
 ## Accounts and sign-in
 
-The routes are the shared library's, mounted at `/api/auth` by `api/src/ward/auth.ts`
+The routes are the shared library's, mounted at `/api/auth` by `api/src/plugins/auth/index.ts`
 ([decision](./decisions-accounts.md)). As the browser sees them they sit under
 the base, e.g. `/newspapper/api/auth/login`. Every `POST` refuses a browser
 request from another origin (`403 cross_site`).
@@ -69,8 +82,8 @@ tells the author their title is missing.
 
 | Method | Path | Query / Body | Response |
 |--------|------|---------------|----------|
-| GET | `/api/posts` | query `status?` (`draft`\|`published`), `keyword?`, `search?`, `limit?`, `offset?` | `PostSummary[]`: every post field except `markup` (two queries for any N). `GET /api/posts/:id` has the markup. |
-| POST | `/api/posts` | `{ markup, theme? }` | 201 `PostRow` · 400 missing markup or unknown theme |
+| GET | `/api/posts` | query `status?` (`draft`\|`published`; anything else is no filter), `keyword?`, `search?`, `limit?`, `offset?` (integers; 400 otherwise) | `PostSummary[]`: every post field except `markup` (two queries for any N). `GET /api/posts/:id` has the markup. |
+| POST | `/api/posts` | `{ markup, theme? }`: a string markup, a string (or null) theme | 201 `PostRow` · 400 missing or non-string markup, a non-string or unknown theme |
 | GET | `/api/posts/:id` | — | `PostRow` · 404 |
 | PUT | `/api/posts/:id` | `{ markup, theme? }` | `PostRow` · 400 · 404. An omitted theme keeps the post's current one. |
 | PUT | `/api/posts/:id/status` | `{ status: 'draft' \| 'published' }` | `PostRow` · 400 · 404 |
@@ -109,8 +122,10 @@ code — the response has already begun.
 
 | Method | Path | Response |
 |--------|------|----------|
-| POST | `/api/posts/:id/publish` | `{ ... }` · 404 not found · 409 anything else (e.g. never rendered) |
+| POST | `/api/posts/:id/publish` | `{ post, render, reencoded }` · 404 no such post, or its output directory is gone · 409 never rendered |
 
+`render` is `{ id, postId, slideCount, optimized, createdAt }`: its `outputDir`, a
+server path, left the reply on 2026-11-11, as `GET /api/renders` never sent it.
 Marks the post published and runs the JPEG optimization pass over its latest
 render **the first time only** — the render's `optimized` flag guards the
 re-encode, so publishing twice never degrades the image. In the UI it is a
@@ -137,15 +152,15 @@ part of that registry, so it survives on its own:
 | Method | Path | Body | Response |
 |--------|------|------|----------|
 | GET | `/api/settings` | — | `Settings` |
-| PUT | `/api/settings` | `Partial<Settings>` | `Settings` |
+| PUT | `/api/settings` | `Partial<Settings>`: an object; other keys are dropped | `Settings` · 400 not an object, or a `defaultTheme` that isn't a theme on disk |
 
 ## Uploads
 
 | Method | Path | Body | Response |
 |--------|------|------|----------|
 | POST | `/api/uploads` | `multipart/form-data`, one file part | 201 `Upload & { original }` · 400 · 413 · 415 |
-| GET | `/api/uploads?limit&offset` | — | `Upload[]`, newest first |
-| GET | `/api/uploads/:id` | — | `Upload` · 404 |
+| GET | `/api/uploads?limit&offset` | — | `Upload[]`, newest first; a bad `limit` or `offset` falls back to 100 and 0 |
+| GET | `/api/uploads/:id` | — | `Upload` · 400 non-integer id · 404 |
 | DELETE | `/api/uploads/:id` | — | `{ id, deleted: true }` · 404 |
 
 The response shape adds a **ref** and three URLs to the DB row:

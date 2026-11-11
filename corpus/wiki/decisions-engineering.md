@@ -9,7 +9,8 @@ Runtime and library calls. Three sibling pages hold the rest:
 [decisions.md](./decisions.md) for product-shaping ones,
 [decisions-security.md](./decisions-security.md) for the security posture, and
 [decisions-tooling.md](./decisions-tooling.md) for how the repo itself is built,
-formatted, linted and pinned. The same rule applies to all four: don't reopen
+formatted, linted and pinned. How the API is structured and validated is
+[decisions-api.md](./decisions-api.md). The same rule applies to all of them: don't reopen
 one without an explicit revisit and a [log.md](../log.md) entry.
 
 Reasons marked _(reconstructed)_ were recovered from `log.md` and the git

@@ -1,6 +1,6 @@
 ---
-summary: How the three npm workspaces fit together, the SPA's routing and its load-bearing single-App rule, how a post flows write → compile → render → publish/ZIP, and how the Reader's background refresh runs (single-flight, one API process).
-updated: 2026-11-04
+summary: How the three npm workspaces fit together, the SPA's routing and its load-bearing single-App rule, how a post flows write → compile → render → publish/ZIP, and how the Reader's background refresh runs (single-flight, one API process). The api/src layout is modules-api.md and the SSE protocol sse.md.
+updated: 2026-11-11
 ---
 
 # Architecture
@@ -52,11 +52,13 @@ Exact signatures: [modules.md](./modules.md).
 
 ### `api/` — Fastify server
 
-A thin HTTP layer over `@newspapper/core`, with one route plugin per feature
-area. Every route is behind the session guard except `/api/health` and `/api/auth/*`
-(the vendored auth library, wired in `api/src/ward/`;
-[decisions-accounts.md](./decisions-accounts.md)). SSE is used for the three long operations, **search, render and the Reader's
-refresh**. It serves:
+A thin HTTP layer over `@newspapper/core`: a folder per feature, each route
+validated by its zod schemas, laid out in [modules-api.md](./modules-api.md)
+([decision](./decisions-api.md)). Every route is behind the session guard except
+`/api/health` and `/api/auth/*` (the vendored auth library, wired in
+`api/src/plugins/auth/`; [decisions-accounts.md](./decisions-accounts.md)). SSE
+is used for the three long operations, **search, render and the Reader's
+refresh** ([sse.md](./sse.md)). It serves:
 
 - `/api/*` — all endpoints ([api.md](./api.md), [api-reader.md](./api-reader.md))
 - `/assets/fonts/*` — Inter TTFs (public)
@@ -154,22 +156,10 @@ POST /api/reader/items/:id/save → the item becomes an article, guid = its URL
 
 ## SSE protocol
 
-The three long-running POST endpoints stream Server-Sent Events:
-
-```
-event: progress
-data: {…}
-
-event: done
-data: {…}
-
-event: error
-data: {"message": "…"}
-```
-
-The UI reads these with `fetch()` (not `EventSource`) and parses lines manually —
-`EventSource` cannot POST. Once the stream has begun, failures arrive as an
-`error` event rather than a status code.
+The three long-running POST endpoints stream server-sent events (`progress`,
+then `done` or `error`), which the UI reads with `fetch()`. The frame format,
+and how the API's structure treats the streams (no response schema, no socket
+timeout, ended when the server closes), are in [sse.md](./sse.md).
 
 ## The Reader
 

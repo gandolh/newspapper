@@ -147,7 +147,7 @@ through on its way to Chromium:
 
 `GET /api/themes` (list themes + tokens) survived the retirement — it wasn't
 part of the template registry — and now lives in its own
-`api/src/routes/themes.ts`.
+`api/src/features/themes/routes.ts`.
 
 The nine retired JSON template documents are kept as reference for how the
 built-in components should look, in git history at
