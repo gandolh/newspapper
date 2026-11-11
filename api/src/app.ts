@@ -1,5 +1,6 @@
 import { startReaderSchedule } from "@newspapper/core";
 import type { ReaderSchedule, RefreshOptions } from "@newspapper/core";
+import { serializerCompiler, validatorCompiler } from "@fastify/type-provider-zod";
 import Fastify, { type FastifyServerOptions } from "fastify";
 import cors from "@fastify/cors";
 import { articlesRoutes } from "./features/articles/index.js";
@@ -61,11 +62,14 @@ declare module "fastify" {
 
 /**
  * The app, ready to listen and not listening: `server.ts` listens, and tests inject. It registers in a
- * fixed order: the error handler first, so every route inherits it; the SSE streams' close hook;
+ * fixed order: the zod compilers, the error handler, so every route inherits it; the SSE streams' close hook;
  * CORS; the session guard, before every route it covers; the static files; then the routes.
  */
 export async function buildApp(config: Config, options: BuildAppOptions = {}) {
   const fastify = Fastify(options.server);
+  // Zod checks every request and encodes every reply, in every plugin registered below.
+  fastify.setValidatorCompiler(validatorCompiler);
+  fastify.setSerializerCompiler(serializerCompiler);
 
   await fastify.register(errors);
   // Ends the open SSE streams when the server closes, so a slow feed can't hold the shutdown.
