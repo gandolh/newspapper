@@ -1,6 +1,6 @@
-import type { ReactNode } from 'react';
-import { Dialog } from '@base-ui/react/dialog';
-import styles from './Modal.module.css';
+import type { ReactNode } from "react";
+import { Dialog } from "@base-ui/react/dialog";
+import styles from "./Modal.module.css";
 
 export interface ModalProps {
   open: boolean;
@@ -26,10 +26,7 @@ export default function Modal({ open, onClose, title, children, width = 480 }: M
     >
       <Dialog.Portal>
         <Dialog.Backdrop className={styles.backdrop} />
-        <Dialog.Popup
-          className={styles.dialog}
-          style={{ width: typeof width === 'number' ? `${width}px` : width }}
-        >
+        <Dialog.Popup className={styles.dialog} style={{ width: typeof width === "number" ? `${width}px` : width }}>
           {title && (
             <div className={styles.header}>
               <Dialog.Title className={styles.title}>{title}</Dialog.Title>

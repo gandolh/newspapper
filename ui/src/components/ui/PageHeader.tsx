@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react';
-import styles from './PageHeader.module.css';
+import type { ReactNode } from "react";
+import styles from "./PageHeader.module.css";
 
 export interface PageHeaderProps {
   /** Page title (Display type — 26px/800). */

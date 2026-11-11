@@ -4,13 +4,13 @@
  * exist. Run it from a shell that has those set; never write them to a file in
  * the repo. An existing account is left exactly as it is.
  */
-import { createAppAccounts, seedFromEnv } from './ward/auth.js';
-import { db } from './lib/db.js';
+import { createAppAccounts, seedFromEnv } from "./ward/auth.js";
+import { db } from "./lib/db.js";
 
 try {
   const result = await seedFromEnv(createAppAccounts(db()));
   console.log(
-    `created: ${result.created.join(', ') || 'none'}; already there: ${result.existing.join(', ') || 'none'}`,
+    `created: ${result.created.join(", ") || "none"}; already there: ${result.existing.join(", ") || "none"}`,
   );
 } catch (err) {
   console.error(err instanceof Error ? err.message : String(err));

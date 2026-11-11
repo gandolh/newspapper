@@ -1,5 +1,5 @@
-import type { DB } from './db.js';
-import type { Article, ArticleSummary } from '../types.js';
+import type { DB } from "./db.js";
+import type { Article, ArticleSummary } from "../types.js";
 
 interface ArticleDbRow {
   id: number;
@@ -43,7 +43,7 @@ export interface NewArticle {
 }
 
 function cleanNote(note: string | undefined): string {
-  return (note ?? '').trim();
+  return (note ?? "").trim();
 }
 
 /**
@@ -53,8 +53,7 @@ function cleanNote(note: string | undefined): string {
  */
 function resolveSourceId(db: DB, sourceId: string | null | undefined): string | null {
   if (!sourceId) return null;
-  const row = db.prepare('SELECT id FROM sources WHERE id = ?').get(sourceId) as
-    { id: string } | undefined;
+  const row = db.prepare("SELECT id FROM sources WHERE id = ?").get(sourceId) as { id: string } | undefined;
   return row ? row.id : null;
 }
 
@@ -75,11 +74,11 @@ function saveOne(db: DB, input: NewArticle): { article: Article; inserted: boole
 
   const row = {
     source_id: sourceId,
-    source_name: input.sourceName ?? '',
+    source_name: input.sourceName ?? "",
     guid,
     title: input.title,
     url: input.url ?? null,
-    body: input.body ?? '',
+    body: input.body ?? "",
     published_at: input.publishedAt ?? now,
     saved_at: now,
     note: cleanNote(input.note),
@@ -119,7 +118,7 @@ export function saveArticles(db: DB, rows: NewArticle[]): number {
 }
 
 export function countArticles(db: DB): number {
-  const row = db.prepare('SELECT COUNT(*) AS n FROM articles').get() as { n: number };
+  const row = db.prepare("SELECT COUNT(*) AS n FROM articles").get() as { n: number };
   return row.n;
 }
 
@@ -136,20 +135,20 @@ export function listArticles(db: DB, filter: ArticleFilter = {}): Article[] {
   const params: Record<string, unknown> = {};
 
   if (filter.sourceId) {
-    where.push('source_id = @source_id');
-    params['source_id'] = filter.sourceId;
+    where.push("source_id = @source_id");
+    params["source_id"] = filter.sourceId;
   }
   if (filter.search) {
-    where.push('(title LIKE @search OR body LIKE @search)');
-    params['search'] = `%${filter.search}%`;
+    where.push("(title LIKE @search OR body LIKE @search)");
+    params["search"] = `%${filter.search}%`;
   }
-  params['limit'] = filter.limit ?? 100;
-  params['offset'] = filter.offset ?? 0;
+  params["limit"] = filter.limit ?? 100;
+  params["offset"] = filter.offset ?? 0;
 
   const rows = db
     .prepare(
       `SELECT * FROM articles
-       ${where.length ? `WHERE ${where.join(' AND ')}` : ''}
+       ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
        ORDER BY saved_at DESC, id DESC
        LIMIT @limit OFFSET @offset`,
     )
@@ -173,13 +172,13 @@ export function listArticleSummaries(db: DB, filter: ArticleFilter = {}): Articl
 }
 
 export function findArticle(db: DB, id: number): Article | undefined {
-  const row = db.prepare('SELECT * FROM articles WHERE id = ?').get(id) as ArticleDbRow | undefined;
+  const row = db.prepare("SELECT * FROM articles WHERE id = ?").get(id) as ArticleDbRow | undefined;
   return row ? rowToArticle(row) : undefined;
 }
 
 export function getArticlesByIds(db: DB, ids: number[]): Article[] {
   if (ids.length === 0) return [];
-  const placeholders = ids.map(() => '?').join(', ');
+  const placeholders = ids.map(() => "?").join(", ");
   const rows = db
     .prepare(`SELECT * FROM articles WHERE id IN (${placeholders}) ORDER BY published_at DESC`)
     .all(...ids) as ArticleDbRow[];
@@ -189,13 +188,13 @@ export function getArticlesByIds(db: DB, ids: number[]): Article[] {
 /** Replace an article's note. Returns the updated article, or `undefined` if
  * there is no such id. */
 export function updateArticleNote(db: DB, id: number, note: string): Article | undefined {
-  const r = db.prepare('UPDATE articles SET note = ? WHERE id = ?').run(cleanNote(note), id);
+  const r = db.prepare("UPDATE articles SET note = ? WHERE id = ?").run(cleanNote(note), id);
   return r.changes === 0 ? undefined : findArticle(db, id);
 }
 
 export function removeArticle(db: DB, id: number): Article | undefined {
   const existing = findArticle(db, id);
   if (!existing) return undefined;
-  db.prepare('DELETE FROM articles WHERE id = ?').run(id);
+  db.prepare("DELETE FROM articles WHERE id = ?").run(id);
   return existing;
 }

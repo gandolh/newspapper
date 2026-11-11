@@ -5,10 +5,10 @@
  * Same-day re-runs never overwrite existing directories.
  */
 
-import { existsSync, readdirSync, mkdirSync, unlinkSync } from 'node:fs';
-import { writeFile } from 'node:fs/promises';
-import { join, resolve } from 'node:path';
-import { outputRoot } from '../util/paths.js';
+import { existsSync, readdirSync, mkdirSync, unlinkSync } from "node:fs";
+import { writeFile } from "node:fs/promises";
+import { join, resolve } from "node:path";
+import { outputRoot } from "../util/paths.js";
 
 /** Resolve the repo root (four levels up from core/src/render/output.ts). */
 function defaultOutputRoot(): string {
@@ -62,8 +62,8 @@ export function reserveOutputDir(date: string, outputRoot?: string): string {
       mkdirSync(dir);
       return dir;
     } catch (err) {
-      if ((err as NodeJS.ErrnoException).code !== 'EEXIST') throw err;
-      const n = Number(dir.slice(dir.lastIndexOf('-') + 1));
+      if ((err as NodeJS.ErrnoException).code !== "EEXIST") throw err;
+      const n = Number(dir.slice(dir.lastIndexOf("-") + 1));
       dir = resolve(join(root, `${date}-${n + 1}`));
     }
   }
@@ -81,7 +81,7 @@ export interface OutputFile {
  */
 function removeStalePngs(dir: string): void {
   for (const name of readdirSync(dir)) {
-    if (name.toLowerCase().endsWith('.png')) {
+    if (name.toLowerCase().endsWith(".png")) {
       unlinkSync(join(dir, name));
     }
   }

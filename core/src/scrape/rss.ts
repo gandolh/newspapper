@@ -1,5 +1,5 @@
-import Parser from 'rss-parser';
-import { readCapped, safeFetch, type SafeFetchDeps } from './safe-url.js';
+import Parser from "rss-parser";
+import { readCapped, safeFetch, type SafeFetchDeps } from "./safe-url.js";
 
 export interface RssItem {
   title: string;
@@ -41,8 +41,8 @@ export interface FeedFetchOptions {
  * is not an error.
  */
 export type FeedFetchResult =
-  | { status: 'ok'; items: RssItem[]; etag: string | null; lastModified: string | null }
-  | { status: 'notModified'; etag: string | null; lastModified: string | null };
+  | { status: "ok"; items: RssItem[]; etag: string | null; lastModified: string | null }
+  | { status: "notModified"; etag: string | null; lastModified: string | null };
 
 /**
  * A feed's items, fetched conditionally when validators are given. The feed
@@ -59,15 +59,15 @@ export async function fetchFeedConditional(
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), opts.timeoutMs);
   const onAbort = () => controller.abort();
-  opts.signal?.addEventListener('abort', onAbort, { once: true });
+  opts.signal?.addEventListener("abort", onAbort, { once: true });
   if (opts.signal?.aborted) controller.abort();
 
   const headers: Record<string, string> = {
-    'User-Agent': opts.userAgent,
-    Accept: 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*',
+    "User-Agent": opts.userAgent,
+    Accept: "application/rss+xml, application/atom+xml, application/xml, text/xml, */*",
   };
-  if (opts.etag) headers['If-None-Match'] = opts.etag;
-  if (opts.lastModified) headers['If-Modified-Since'] = opts.lastModified;
+  if (opts.etag) headers["If-None-Match"] = opts.etag;
+  if (opts.lastModified) headers["If-Modified-Since"] = opts.lastModified;
 
   let xml: string;
   let etag: string | null;
@@ -79,20 +79,20 @@ export async function fetchFeedConditional(
     if (res.status === 304) {
       await res.body?.cancel().catch(() => {});
       return {
-        status: 'notModified',
-        etag: res.headers.get('etag') ?? opts.etag ?? null,
-        lastModified: res.headers.get('last-modified') ?? opts.lastModified ?? null,
+        status: "notModified",
+        etag: res.headers.get("etag") ?? opts.etag ?? null,
+        lastModified: res.headers.get("last-modified") ?? opts.lastModified ?? null,
       };
     }
     if (!res.ok) throw new Error(`Feed request failed with status ${res.status}`);
-    etag = res.headers.get('etag');
-    lastModified = res.headers.get('last-modified');
+    etag = res.headers.get("etag");
+    lastModified = res.headers.get("last-modified");
     xml = await readCapped(res, MAX_FEED_BYTES);
   } finally {
     clearTimeout(timer);
-    opts.signal?.removeEventListener('abort', onAbort);
+    opts.signal?.removeEventListener("abort", onAbort);
   }
-  return { status: 'ok', items: await parseFeed(xml), etag, lastModified };
+  return { status: "ok", items: await parseFeed(xml), etag, lastModified };
 }
 
 /**
@@ -108,14 +108,14 @@ export async function fetchFeed(
   const result = await fetchFeedConditional(url, { userAgent, timeoutMs }, deps);
   // Nothing was sent to be "not modified" against, so a 304 here is a server
   // fault, and any non-2xx has always thrown.
-  if (result.status === 'notModified') throw new Error('Feed request failed with status 304');
+  if (result.status === "notModified") throw new Error("Feed request failed with status 304");
   return result.items;
 }
 
 /** A string field, or `undefined` when rss-parser gave an object (an element
  * with attributes) or nothing. */
 function text(value: unknown): string | undefined {
-  return typeof value === 'string' && value.trim() !== '' ? value : undefined;
+  return typeof value === "string" && value.trim() !== "" ? value : undefined;
 }
 
 /** The item's date as ISO 8601, or `null`. `new Date(bad).toISOString()`
@@ -144,14 +144,13 @@ async function parseFeed(xml: string): Promise<RssItem[]> {
       (item.contentSnippet as string | undefined) ??
       (item.content as string | undefined) ??
       (item.summary as string | undefined) ??
-      '';
+      "";
     items.push({
       title: item.title,
       url: item.link,
       summary,
-      contentHtml:
-        text(fields['content:encoded']) ?? text(item.content) ?? text(item.summary) ?? '',
-      author: text(item.creator) ?? text(fields['author']) ?? null,
+      contentHtml: text(fields["content:encoded"]) ?? text(item.content) ?? text(item.summary) ?? "",
+      author: text(item.creator) ?? text(fields["author"]) ?? null,
       publishedAt: isoDate(item),
     });
   }

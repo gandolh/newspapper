@@ -1,7 +1,7 @@
-import type { DB } from '../storage/db.js';
-import { log } from '../util/logger.js';
-import { readerRefreshMinutes } from './config.js';
-import { refreshSources, type RefreshOptions, type RefreshResult } from './refresh.js';
+import type { DB } from "../storage/db.js";
+import { log } from "../util/logger.js";
+import { readerRefreshMinutes } from "./config.js";
+import { refreshSources, type RefreshOptions, type RefreshResult } from "./refresh.js";
 
 /** The first background refresh waits this long after boot, so it does not
  * compete with startup. */
@@ -16,7 +16,7 @@ export interface ReaderScheduleOptions {
   /** Delay before the first run. Default 15 s. */
   firstRunDelayMs?: number;
   /** Passed to every run. The schedule supplies its own `signal`. */
-  refresh?: Omit<RefreshOptions, 'signal'>;
+  refresh?: Omit<RefreshOptions, "signal">;
   /** Called after each completed run. */
   onResult?: (result: RefreshResult) => void;
   /** Called when a run rejects (say, the DB is gone). Default: log a warning. */
@@ -47,22 +47,15 @@ export interface ReaderSchedule {
  * Every timer is `unref`'d, and `stop` clears it, so nothing here keeps a
  * process (or vitest) alive.
  */
-export function startReaderSchedule(
-  db: DB | (() => DB),
-  options: ReaderScheduleOptions = {},
-): ReaderSchedule {
+export function startReaderSchedule(db: DB | (() => DB), options: ReaderScheduleOptions = {}): ReaderSchedule {
   const minutes = options.intervalMinutes ?? readerRefreshMinutes();
   if (!(minutes > 0)) return { active: false, stop: async () => {} };
 
   const intervalMs = Math.min(minutes * 60_000, MAX_TIMER_MS);
-  const firstRunMs = Math.min(
-    Math.max(0, options.firstRunDelayMs ?? READER_FIRST_RUN_DELAY_MS),
-    MAX_TIMER_MS,
-  );
+  const firstRunMs = Math.min(Math.max(0, options.firstRunDelayMs ?? READER_FIRST_RUN_DELAY_MS), MAX_TIMER_MS);
   const onError =
     options.onError ??
-    ((err: unknown) =>
-      log.warn('reader refresh failed:', err instanceof Error ? err.message : String(err)));
+    ((err: unknown) => log.warn("reader refresh failed:", err instanceof Error ? err.message : String(err)));
   const controller = new AbortController();
   let stopped = false;
   let timer: ReturnType<typeof setTimeout> | null = null;
@@ -76,7 +69,7 @@ export function startReaderSchedule(
 
   const run = async () => {
     try {
-      const handle = typeof db === 'function' ? db() : db;
+      const handle = typeof db === "function" ? db() : db;
       const result = await refreshSources(handle, {
         ...options.refresh,
         signal: controller.signal,

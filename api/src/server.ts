@@ -1,32 +1,26 @@
-import { join } from 'node:path';
-import { existsSync, readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import {
-  fontsDir,
-  outputRoot,
-  uiDistDir,
-  readerRefreshMinutes,
-  startReaderSchedule,
-} from '@newspapper/core';
-import type { ReaderSchedule, RefreshOptions } from '@newspapper/core';
-import Fastify from 'fastify';
-import cors from '@fastify/cors';
-import staticPlugin from '@fastify/static';
-import health from './routes/health.js';
-import scrapeRoutes from './routes/scrape.js';
-import articlesRoutes from './routes/articles.js';
-import postsRoutes from './routes/posts.js';
-import renderRoutes from './routes/render.js';
-import rendersRoutes from './routes/renders.js';
-import publishRoutes from './routes/publish.js';
-import themesRoutes from './routes/themes.js';
-import sourcesRoutes from './routes/sources.js';
-import settingsRoutes from './routes/settings.js';
-import uploadsRoutes from './routes/uploads.js';
-import readerRoutes from './routes/reader.js';
-import { db } from './lib/db.js';
-import { createAppAccounts, registerAuth, wardClientFromEnv } from './ward/auth.js';
-import type { Accounts, WardClient } from '../vendor/ward/ward-auth.js';
+import { join } from "node:path";
+import { existsSync, readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { fontsDir, outputRoot, uiDistDir, readerRefreshMinutes, startReaderSchedule } from "@newspapper/core";
+import type { ReaderSchedule, RefreshOptions } from "@newspapper/core";
+import Fastify from "fastify";
+import cors from "@fastify/cors";
+import staticPlugin from "@fastify/static";
+import health from "./routes/health.js";
+import scrapeRoutes from "./routes/scrape.js";
+import articlesRoutes from "./routes/articles.js";
+import postsRoutes from "./routes/posts.js";
+import renderRoutes from "./routes/render.js";
+import rendersRoutes from "./routes/renders.js";
+import publishRoutes from "./routes/publish.js";
+import themesRoutes from "./routes/themes.js";
+import sourcesRoutes from "./routes/sources.js";
+import settingsRoutes from "./routes/settings.js";
+import uploadsRoutes from "./routes/uploads.js";
+import readerRoutes from "./routes/reader.js";
+import { db } from "./lib/db.js";
+import { createAppAccounts, registerAuth, wardClientFromEnv } from "./ward/auth.js";
+import type { Accounts, WardClient } from "../vendor/ward/ward-auth.js";
 
 export const PORT = Number(process.env.PORT ?? 3001);
 
@@ -50,10 +44,10 @@ export interface BuildAppOptions {
    * Passed to every refresh the API starts, the SSE route's and the loop's.
    * Tests inject fetch and DNS here so a refresh never reaches the network.
    */
-  readerRefresh?: Pick<RefreshOptions, 'deps' | 'now'>;
+  readerRefresh?: Pick<RefreshOptions, "deps" | "now">;
 }
 
-declare module 'fastify' {
+declare module "fastify" {
   interface FastifyInstance {
     /** The local accounts and sessions. A test mints a session with `startSession`. */
     accounts: Accounts;
@@ -71,7 +65,7 @@ export async function buildApp(options: BuildAppOptions = {}) {
   const fastify = Fastify({ logger: true });
 
   await fastify.register(cors, {
-    origin: ['http://localhost:4321', 'http://127.0.0.1:4321'],
+    origin: ["http://localhost:4321", "http://127.0.0.1:4321"],
     credentials: true,
   });
 
@@ -83,24 +77,21 @@ export async function buildApp(options: BuildAppOptions = {}) {
    * `onRequest` hook, and only routes registered after it are covered.
    */
   const accounts = createAppAccounts(db());
-  fastify.decorate('accounts', accounts);
-  const wardClient =
-    options.wardClient === undefined
-      ? await wardClientFromEnv()
-      : (options.wardClient ?? undefined);
+  fastify.decorate("accounts", accounts);
+  const wardClient = options.wardClient === undefined ? await wardClientFromEnv() : (options.wardClient ?? undefined);
   await registerAuth(fastify, { accounts, wardClient });
 
   // Serve font assets at /assets/fonts/
   await fastify.register(staticPlugin, {
     root: fontsDir(),
-    prefix: '/assets/fonts/',
+    prefix: "/assets/fonts/",
     decorateReply: false,
   });
 
   // Serve rendered output at /output/
   await fastify.register(staticPlugin, {
     root: outputRoot(),
-    prefix: '/output/',
+    prefix: "/output/",
     decorateReply: false,
   });
 
@@ -126,9 +117,7 @@ export async function buildApp(options: BuildAppOptions = {}) {
   fastify.setErrorHandler((err: Error & { statusCode?: number }, _req, reply) => {
     const status = err.statusCode ?? 500;
     fastify.log.error(err);
-    void reply
-      .status(status)
-      .send({ error: status >= 500 ? 'Internal Server Error' : err.message });
+    void reply.status(status).send({ error: status >= 500 ? "Internal Server Error" : err.message });
   });
 
   // Production static: serve ui/dist if present (fallback to index.html for non-API GETs)
@@ -136,30 +125,30 @@ export async function buildApp(options: BuildAppOptions = {}) {
   if (existsSync(uiDist)) {
     await fastify.register(staticPlugin, {
       root: uiDist,
-      prefix: '/',
+      prefix: "/",
       decorateReply: false,
       wildcard: false,
     });
 
     // Fallback to index.html for client-side routing (Astro static output)
     fastify.setNotFoundHandler(async (req, reply) => {
-      if (!req.url.startsWith('/api/')) {
+      if (!req.url.startsWith("/api/")) {
         // Try route-specific index.html first (Astro directory output)
-        const urlPath = req.url.split('?')[0].replace(/\/$/, '') || '/';
-        const routeFile = join(uiDist, urlPath, 'index.html');
+        const urlPath = req.url.split("?")[0].replace(/\/$/, "") || "/";
+        const routeFile = join(uiDist, urlPath, "index.html");
         if (existsSync(routeFile)) {
-          const html = readFileSync(routeFile, 'utf8');
-          return reply.type('text/html').send(html);
+          const html = readFileSync(routeFile, "utf8");
+          return reply.type("text/html").send(html);
         }
         // Fall back to root index.html
-        const rootIndex = join(uiDist, 'index.html');
+        const rootIndex = join(uiDist, "index.html");
         if (existsSync(rootIndex)) {
-          const html = readFileSync(rootIndex, 'utf8');
-          return reply.type('text/html').send(html);
+          const html = readFileSync(rootIndex, "utf8");
+          return reply.type("text/html").send(html);
         }
-        return reply.status(404).send({ error: 'Not found' });
+        return reply.status(404).send({ error: "Not found" });
       }
-      return reply.status(404).send({ error: 'Not found' });
+      return reply.status(404).send({ error: "Not found" });
     });
   }
 
@@ -175,10 +164,10 @@ export async function buildApp(options: BuildAppOptions = {}) {
     intervalMinutes: options.readerRefreshMinutes ?? 0,
     refresh: options.readerRefresh,
     onResult: ({ newCount, errors, purged }) =>
-      fastify.log.info({ newCount, failedSources: errors.length, purged }, 'reader refresh'),
+      fastify.log.info({ newCount, failedSources: errors.length, purged }, "reader refresh"),
   });
-  fastify.decorate('readerSchedule', schedule);
-  fastify.addHook('onClose', async () => {
+  fastify.decorate("readerSchedule", schedule);
+  fastify.addHook("onClose", async () => {
     await schedule.stop();
   });
 
@@ -191,8 +180,8 @@ const start = async () => {
   // timeout and then SIGKILL. Exit the way an unhandled signal does anywhere
   // else (128 + the signal's number), which is also how it ended before
   // 2026-11-04, when npm sat in front of it and forwarded the signal.
-  process.once('SIGTERM', () => process.exit(143));
-  process.once('SIGINT', () => process.exit(130));
+  process.once("SIGTERM", () => process.exit(143));
+  process.once("SIGINT", () => process.exit(130));
 
   let fastify: Awaited<ReturnType<typeof buildApp>>;
   try {
@@ -203,7 +192,7 @@ const start = async () => {
     return;
   }
   try {
-    await fastify.listen({ port: PORT, host: '0.0.0.0' });
+    await fastify.listen({ port: PORT, host: "0.0.0.0" });
     console.log(`API server listening on http://localhost:${PORT}`);
   } catch (err) {
     fastify.log.error(err);
@@ -213,8 +202,7 @@ const start = async () => {
 
 // Only start when run directly, not when imported by tests
 const isMain =
-  process.argv[1] !== undefined &&
-  fileURLToPath(import.meta.url).endsWith(process.argv[1].replace(/\\/g, '/'));
+  process.argv[1] !== undefined && fileURLToPath(import.meta.url).endsWith(process.argv[1].replace(/\\/g, "/"));
 
 if (isMain) {
   start();

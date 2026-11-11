@@ -1,14 +1,14 @@
-import type { FastifyPluginAsync } from 'fastify';
-import { basename, join, resolve, sep } from 'node:path';
-import { existsSync, readdirSync } from 'node:fs';
+import type { FastifyPluginAsync } from "fastify";
+import { basename, join, resolve, sep } from "node:path";
+import { existsSync, readdirSync } from "node:fs";
 import {
   latestRender,
   latestRenders,
   outputRoot as outputRootDir,
   THUMB_FILE,
   type RenderRecord,
-} from '@newspapper/core';
-import { db } from '../lib/db.js';
+} from "@newspapper/core";
+import { db } from "../lib/db.js";
 
 const outputRoot = outputRootDir();
 
@@ -75,13 +75,12 @@ const rendersRoutes: FastifyPluginAsync = async (fastify) => {
    * a thumbnail and decide whether export and publish are available without a
    * request per row. `outputDir` is deliberately absent — it is a server path.
    */
-  fastify.get('/api/renders', async (req, reply) => {
+  fastify.get("/api/renders", async (req, reply) => {
     const { postId } = req.query as { postId?: string };
 
     if (postId !== undefined) {
       const id = Number(postId);
-      if (!Number.isInteger(id))
-        return reply.status(400).send({ error: 'postId must be an integer' });
+      if (!Number.isInteger(id)) return reply.status(400).send({ error: "postId must be an integer" });
       const render = latestRender(db(), id);
       return reply.send(render ? [toSummary(render)] : []);
     }

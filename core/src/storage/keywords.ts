@@ -1,5 +1,5 @@
-import type { DB } from './db.js';
-import type { Keyword } from '../types.js';
+import type { DB } from "./db.js";
+import type { Keyword } from "../types.js";
 
 interface KeywordDbRow {
   id: number;
@@ -33,12 +33,10 @@ export function normalizeKeywords(names: string[]): string[] {
 export function setPostKeywords(db: DB, postId: number, names: string[]): string[] {
   const normalized = normalizeKeywords(names);
 
-  const insertKeyword = db.prepare('INSERT OR IGNORE INTO keywords (name) VALUES (?)');
-  const findKeyword = db.prepare('SELECT id FROM keywords WHERE name = ?');
-  const clearJoin = db.prepare('DELETE FROM post_keywords WHERE post_id = ?');
-  const insertJoin = db.prepare(
-    'INSERT OR IGNORE INTO post_keywords (post_id, keyword_id) VALUES (?, ?)',
-  );
+  const insertKeyword = db.prepare("INSERT OR IGNORE INTO keywords (name) VALUES (?)");
+  const findKeyword = db.prepare("SELECT id FROM keywords WHERE name = ?");
+  const clearJoin = db.prepare("DELETE FROM post_keywords WHERE post_id = ?");
+  const insertJoin = db.prepare("INSERT OR IGNORE INTO post_keywords (post_id, keyword_id) VALUES (?, ?)");
 
   const tx = db.transaction((items: string[]) => {
     clearJoin.run(postId);
@@ -104,8 +102,6 @@ export function listKeywords(db: DB): Keyword[] {
 
 /** Delete keywords no post references any more. Returns the number removed. */
 export function pruneKeywords(db: DB): number {
-  const r = db
-    .prepare('DELETE FROM keywords WHERE id NOT IN (SELECT keyword_id FROM post_keywords)')
-    .run();
+  const r = db.prepare("DELETE FROM keywords WHERE id NOT IN (SELECT keyword_id FROM post_keywords)").run();
   return r.changes;
 }

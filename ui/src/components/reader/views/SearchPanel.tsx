@@ -10,22 +10,22 @@
  * It renders inside `ReaderIsland`'s `ToastProvider` and carries none of its
  * own.
  */
-import { useState, useRef } from 'react';
-import { api, sse, ApiError } from '@/lib/api';
-import type { Article, ScrapedArticle } from '@/lib/types';
-import { Button, Card, Input, Mark, EmptyState, PageHeader, useToast } from '../../ui';
-import { excerpt, formatDate } from '../format';
-import styles from './Clippings.module.css';
+import { useState, useRef } from "react";
+import { api, sse, ApiError } from "@/lib/api";
+import type { Article, ScrapedArticle } from "@/lib/types";
+import { Button, Card, Input, Mark, EmptyState, PageHeader, useToast } from "../../ui";
+import { excerpt, formatDate } from "../format";
+import styles from "./Clippings.module.css";
 
 interface SourceProgress {
-  status: 'fetching' | 'done' | 'error';
+  status: "fetching" | "done" | "error";
   count?: number;
   error?: string;
 }
 
 export default function SearchPanel() {
   const { addToast } = useToast();
-  const [keywordsInput, setKeywordsInput] = useState('');
+  const [keywordsInput, setKeywordsInput] = useState("");
   const [searching, setSearching] = useState(false);
   const [progress, setProgress] = useState<Record<string, SourceProgress>>({});
   const [results, setResults] = useState<ScrapedArticle[]>([]);
@@ -37,11 +37,11 @@ export default function SearchPanel() {
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     const keywords = keywordsInput
-      .split(',')
+      .split(",")
       .map((k) => k.trim())
       .filter(Boolean);
     if (keywords.length === 0) {
-      addToast('Enter at least one keyword', 'error');
+      addToast("Enter at least one keyword", "error");
       return;
     }
 
@@ -57,15 +57,15 @@ export default function SearchPanel() {
 
     try {
       await sse(
-        '/api/scrape',
+        "/api/scrape",
         { keywords },
         {
           signal: controller.signal,
           onEvent: (event, data) => {
-            if (event === 'progress') {
+            if (event === "progress") {
               const p = data as {
                 sourceId: string;
-                status: SourceProgress['status'];
+                status: SourceProgress["status"];
                 count?: number;
                 error?: string;
               };
@@ -77,7 +77,7 @@ export default function SearchPanel() {
                   error: p.error,
                 },
               }));
-            } else if (event === 'done') {
+            } else if (event === "done") {
               const d = data as { articles: ScrapedArticle[] };
               setResults(d.articles);
             }
@@ -85,7 +85,7 @@ export default function SearchPanel() {
         },
       );
     } catch (err) {
-      addToast(err instanceof ApiError ? err.message : 'Search failed', 'error');
+      addToast(err instanceof ApiError ? err.message : "Search failed", "error");
     } finally {
       setSearching(false);
     }
@@ -94,8 +94,8 @@ export default function SearchPanel() {
   async function handleSave(article: ScrapedArticle) {
     setSavingGuid(article.guid);
     try {
-      await api<Article>('/api/articles', {
-        method: 'POST',
+      await api<Article>("/api/articles", {
+        method: "POST",
         json: {
           sourceId: article.sourceId,
           sourceName: article.sourceName,
@@ -107,9 +107,9 @@ export default function SearchPanel() {
         },
       });
       setSavedGuids((prev) => new Set(prev).add(article.guid));
-      addToast('Saved to library', 'success');
+      addToast("Saved to library", "success");
     } catch (err) {
-      addToast((err as Error).message, 'error');
+      addToast((err as Error).message, "error");
     } finally {
       setSavingGuid(null);
     }
@@ -142,11 +142,11 @@ export default function SearchPanel() {
         <div className={styles.progressList}>
           {progressRows.map(([sourceId, p]) => (
             <span key={sourceId} className={styles.progressItem}>
-              <Mark tone={p.status === 'error' ? 'rubylith' : p.status === 'done' ? 'ink' : 'dim'}>
+              <Mark tone={p.status === "error" ? "rubylith" : p.status === "done" ? "ink" : "dim"}>
                 {sourceId}
-                {p.status === 'fetching' && ' …'}
-                {p.status === 'done' && ` · ${p.count ?? 0} match${p.count === 1 ? '' : 'es'}`}
-                {p.status === 'error' && ' · failed'}
+                {p.status === "fetching" && " …"}
+                {p.status === "done" && ` · ${p.count ?? 0} match${p.count === 1 ? "" : "es"}`}
+                {p.status === "error" && " · failed"}
               </Mark>
             </span>
           ))}
@@ -165,17 +165,13 @@ export default function SearchPanel() {
         {results.map((article) => {
           const saved = savedGuids.has(article.guid);
           return (
-            <Card
-              key={`${article.sourceId}:${article.guid}`}
-              padding="sm"
-              className={styles.resultCard}
-            >
+            <Card key={`${article.sourceId}:${article.guid}`} padding="sm" className={styles.resultCard}>
               <div className={styles.resultMeta}>
                 <Mark>{article.sourceName}</Mark>
                 <span className={styles.metaText}>{formatDate(article.publishedAt)}</span>
                 <span className={styles.metaText}>
                   {article.matchCount} match
-                  {article.matchCount === 1 ? '' : 'es'}
+                  {article.matchCount === 1 ? "" : "es"}
                 </span>
                 {article.url && (
                   <a
@@ -194,12 +190,12 @@ export default function SearchPanel() {
               <div className={styles.resultActions}>
                 <Button
                   size="sm"
-                  variant={saved ? 'secondary' : 'primary'}
+                  variant={saved ? "secondary" : "primary"}
                   disabled={saved}
                   loading={savingGuid === article.guid}
                   onClick={() => handleSave(article)}
                 >
-                  {saved ? 'Saved' : 'Save'}
+                  {saved ? "Saved" : "Save"}
                 </Button>
               </div>
             </Card>

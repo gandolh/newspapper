@@ -3,8 +3,8 @@
  * a horizontal delta into a new width and clamps it.
  */
 
-import { useDrag } from '@use-gesture/react';
-import styles from './Splitter.module.css';
+import { useDrag } from "@use-gesture/react";
+import styles from "./Splitter.module.css";
 
 export interface SplitterProps {
   width: number;
@@ -16,17 +16,10 @@ export interface SplitterProps {
   onResize: (width: number) => void;
 }
 
-export default function Splitter({
-  width,
-  min,
-  max,
-  direction = 1,
-  label,
-  onResize,
-}: SplitterProps) {
+export default function Splitter({ width, min, max, direction = 1, label, onResize }: SplitterProps) {
   const bind = useDrag(
     ({ movement: [dx], memo }) => {
-      const start = typeof memo === 'number' ? memo : width;
+      const start = typeof memo === "number" ? memo : width;
       onResize(Math.max(min, Math.min(max, start + dx * direction)));
       return start;
     },
@@ -43,8 +36,8 @@ export default function Splitter({
       tabIndex={0}
       onKeyDown={(event) => {
         const step = event.shiftKey ? 48 : 16;
-        if (event.key === 'ArrowLeft') onResize(Math.max(min, Math.min(max, width - step)));
-        if (event.key === 'ArrowRight') onResize(Math.max(min, Math.min(max, width + step)));
+        if (event.key === "ArrowLeft") onResize(Math.max(min, Math.min(max, width - step)));
+        if (event.key === "ArrowRight") onResize(Math.max(min, Math.min(max, width + step)));
       }}
     />
   );

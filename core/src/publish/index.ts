@@ -3,18 +3,13 @@
  * optimization pass that runs once, the first time a render is published.
  */
 
-import { existsSync } from 'node:fs';
-import { findPost, latestRender, markRenderOptimized, setPostStatus } from '../storage/index.js';
-import type { DB } from '../storage/index.js';
-import type { Post, RenderRecord } from '../types.js';
-import { optimizeOutputDir, PUBLISH_JPEG_QUALITY } from './optimize.js';
+import { existsSync } from "node:fs";
+import { findPost, latestRender, markRenderOptimized, setPostStatus } from "../storage/index.js";
+import type { DB } from "../storage/index.js";
+import type { Post, RenderRecord } from "../types.js";
+import { optimizeOutputDir, PUBLISH_JPEG_QUALITY } from "./optimize.js";
 
-export {
-  optimizeOutputDir,
-  optimizeSlideFile,
-  slideFilesIn,
-  PUBLISH_JPEG_QUALITY,
-} from './optimize.js';
+export { optimizeOutputDir, optimizeSlideFile, slideFilesIn, PUBLISH_JPEG_QUALITY } from "./optimize.js";
 
 /**
  * The render's output directory is gone (manual cleanup, disk pruning). Its own
@@ -23,8 +18,8 @@ export {
  */
 export class OutputDirMissingError extends Error {
   constructor() {
-    super('Output directory no longer exists');
-    this.name = 'OutputDirMissingError';
+    super("Output directory no longer exists");
+    this.name = "OutputDirMissingError";
   }
 }
 
@@ -65,6 +60,6 @@ export async function publishPost(db: DB, postId: number): Promise<PublishResult
     finalRender = markRenderOptimized(db, render.id) ?? render;
   }
 
-  const publishedPost = setPostStatus(db, postId, 'published') ?? post;
+  const publishedPost = setPostStatus(db, postId, "published") ?? post;
   return { post: publishedPost, render: finalRender, reencoded };
 }

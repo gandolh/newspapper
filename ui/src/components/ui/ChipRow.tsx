@@ -1,4 +1,4 @@
-import styles from './ChipRow.module.css';
+import styles from "./ChipRow.module.css";
 
 export interface ChipOption {
   value: string;
@@ -20,13 +20,13 @@ export interface ChipRowProps {
    * `role="tab"` with `aria-selected`, for a row that switches which panel is
    * on screen.
    */
-  behavior?: 'toggle' | 'tablist';
+  behavior?: "toggle" | "tablist";
   /** Every chip takes the same width — what §5 means by "equal chips". */
   equal?: boolean;
   /** Chips run onto a second line instead of squeezing. */
   wrap?: boolean;
   /** Horizontal padding inside a chip. `half` (13px) is the default. */
-  pad?: 'hair' | 'half';
+  pad?: "hair" | "half";
   /** Labels the row when there is no visible `label`. */
   ariaLabel?: string;
   /** Lands on the field wrapper — for the caller's own margins, nothing else. */
@@ -54,27 +54,23 @@ export default function ChipRow({
   label,
   hint,
   disabled,
-  behavior = 'toggle',
+  behavior = "toggle",
   equal,
   wrap,
-  pad = 'half',
+  pad = "half",
   ariaLabel,
-  className = '',
+  className = "",
   id,
 }: ChipRowProps) {
-  const rowId = id ?? label?.toLowerCase().replace(/\s+/g, '-');
+  const rowId = id ?? label?.toLowerCase().replace(/\s+/g, "-");
   const hintId = hint && rowId ? `${rowId}-hint` : undefined;
   const labelId = label && rowId ? `${rowId}-label` : undefined;
 
-  const fieldCls = [styles.field, className].filter(Boolean).join(' ');
-  const rowCls = [styles.row, wrap ? styles['row--wrap'] : ''].filter(Boolean).join(' ');
-  const chipCls = [
-    styles.chip,
-    equal ? styles['chip--equal'] : '',
-    pad === 'hair' ? styles['chip--hair'] : '',
-  ]
+  const fieldCls = [styles.field, className].filter(Boolean).join(" ");
+  const rowCls = [styles.row, wrap ? styles["row--wrap"] : ""].filter(Boolean).join(" ");
+  const chipCls = [styles.chip, equal ? styles["chip--equal"] : "", pad === "hair" ? styles["chip--hair"] : ""]
     .filter(Boolean)
-    .join(' ');
+    .join(" ");
 
   return (
     <div className={fieldCls}>
@@ -85,7 +81,7 @@ export default function ChipRow({
       )}
       <div
         className={rowCls}
-        role={behavior === 'tablist' ? 'tablist' : 'group'}
+        role={behavior === "tablist" ? "tablist" : "group"}
         aria-label={ariaLabel}
         aria-labelledby={ariaLabel ? undefined : labelId}
         aria-describedby={hintId}
@@ -93,9 +89,9 @@ export default function ChipRow({
         {options.map((option) => {
           const active = option.value === value;
           const state =
-            behavior === 'tablist'
-              ? ({ role: 'tab', 'aria-selected': active } as const)
-              : ({ 'aria-pressed': active } as const);
+            behavior === "tablist"
+              ? ({ role: "tab", "aria-selected": active } as const)
+              : ({ "aria-pressed": active } as const);
           return (
             <button
               key={option.value}

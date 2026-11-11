@@ -1,4 +1,4 @@
-import styles from './BackControl.module.css';
+import styles from "./BackControl.module.css";
 
 /**
  * The narrow layout's way back: article → list → rail. Rendered always and

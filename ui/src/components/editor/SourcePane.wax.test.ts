@@ -26,21 +26,18 @@
  * Since 2026-11-06 a selection is non-photo blue, painted above the element's
  * wax run, so a selection inside the run shows where it starts and ends.
  */
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { readFile } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
-import { build, type Plugin, type Rollup } from 'vite';
-import { getBrowser } from '../../../../core/src/render/browser.js';
-import {
-  probeChromium,
-  type ChromiumGuard,
-} from '../../../../core/src/render/test-support/chromium.js';
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
+import { build, type Plugin, type Rollup } from "vite";
+import { getBrowser } from "../../../../core/src/render/browser.js";
+import { probeChromium, type ChromiumGuard } from "../../../../core/src/render/test-support/chromium.js";
 
 /** Playwright's `Page`, taken from core's `getBrowser` rather than imported
  * from `playwright`, which `ui/package.json` does not declare. */
-type Page = Awaited<ReturnType<Awaited<ReturnType<typeof getBrowser>>['newPage']>>;
+type Page = Awaited<ReturnType<Awaited<ReturnType<typeof getBrowser>>["newPage"]>>;
 
-const ORIGIN = 'http://galley.test';
+const ORIGIN = "http://galley.test";
 const SCALE = 3;
 
 let chromium: ChromiumGuard;
@@ -51,19 +48,19 @@ const here = (rel: string): string => fileURLToPath(new URL(rel, import.meta.url
 
 /** A virtual entry that mounts the real SourcePane and exposes `mount()`. */
 function entry(): Plugin {
-  const id = 'virtual:galley-entry';
+  const id = "virtual:galley-entry";
   return {
-    name: 'galley-entry',
+    name: "galley-entry",
     // Lib mode hands the entry over joined to `root`, so match the tail.
-    resolveId: (source) => (source.endsWith(id) ? '\0' + id : null),
+    resolveId: (source) => (source.endsWith(id) ? "\0" + id : null),
     load: (resolved) =>
-      resolved === '\0' + id
+      resolved === "\0" + id
         ? `
 import { createElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
-import ${JSON.stringify(here('../../styles/global.css'))};
-import SourcePane from ${JSON.stringify(here('./SourcePane.tsx'))};
+import ${JSON.stringify(here("../../styles/global.css"))};
+import SourcePane from ${JSON.stringify(here("./SourcePane.tsx"))};
 let root = null;
 export function mount(source, range) {
   const host = document.getElementById('host');
@@ -91,41 +88,37 @@ export function mount(source, range) {
 async function bundle(): Promise<{ js: string; css: string }> {
   const result = (await build({
     configFile: false,
-    logLevel: 'silent',
-    root: here('../../..'),
+    logLevel: "silent",
+    root: here("../../.."),
     plugins: [entry()],
     // Under Vitest NODE_ENV is `test`, so Vite would emit `jsxDEV` calls, which
     // the production React this bundle defines has no implementation for.
-    esbuild: { jsx: 'automatic', jsxDev: false },
-    resolve: { alias: { '@': here('../..') } },
-    define: { 'process.env.NODE_ENV': '"production"' },
+    esbuild: { jsx: "automatic", jsxDev: false },
+    resolve: { alias: { "@": here("../..") } },
+    define: { "process.env.NODE_ENV": '"production"' },
     build: {
       write: false,
       minify: false,
       cssCodeSplit: false,
-      lib: { entry: 'virtual:galley-entry', formats: ['iife'], name: 'Galley', fileName: 'galley' },
+      lib: { entry: "virtual:galley-entry", formats: ["iife"], name: "Galley", fileName: "galley" },
     },
   })) as Rollup.RollupOutput[];
   const output = result[0]!.output;
-  const js = output.find((o): o is Rollup.OutputChunk => o.type === 'chunk');
+  const js = output.find((o): o is Rollup.OutputChunk => o.type === "chunk");
   const css = output
-    .filter((o): o is Rollup.OutputAsset => o.type === 'asset' && o.fileName.endsWith('.css'))
+    .filter((o): o is Rollup.OutputAsset => o.type === "asset" && o.fileName.endsWith(".css"))
     .map((o) => String(o.source))
-    .join('\n');
-  if (!js) throw new Error('vite produced no chunk for SourcePane');
-  if (!css.includes('box-shadow'))
-    throw new Error('the galley CSS did not make it into the bundle');
+    .join("\n");
+  if (!js) throw new Error("vite produced no chunk for SourcePane");
+  if (!css.includes("box-shadow")) throw new Error("the galley CSS did not make it into the bundle");
   return { js: js.code, css };
 }
 
 beforeAll(async () => {
-  chromium = await probeChromium(
-    'SourcePane.wax.test',
-    'that the selected-element wax in the galley covers no glyph',
-  );
+  chromium = await probeChromium("SourcePane.wax.test", "that the selected-element wax in the galley covers no glyph");
   if (!chromium.available) return;
   const { js, css } = await bundle();
-  const fontsDir = here('../../../public/fonts/');
+  const fontsDir = here("../../../public/fonts/");
   page = await (
     await getBrowser()
   ).newPage({
@@ -134,21 +127,21 @@ beforeAll(async () => {
   });
   await page.route(`${ORIGIN}/**`, async (route) => {
     const path = new URL(route.request().url()).pathname;
-    if (path.startsWith('/fonts/')) {
-      const body = await readFile(fontsDir + path.slice('/fonts/'.length)).catch(() => null);
+    if (path.startsWith("/fonts/")) {
+      const body = await readFile(fontsDir + path.slice("/fonts/".length)).catch(() => null);
       return body
-        ? route.fulfill({ body, contentType: path.endsWith('.ttf') ? 'font/ttf' : 'font/woff2' })
-        : route.fulfill({ status: 404, body: '' });
+        ? route.fulfill({ body, contentType: path.endsWith(".ttf") ? "font/ttf" : "font/woff2" })
+        : route.fulfill({ status: 404, body: "" });
     }
     return route.fulfill({
-      contentType: 'text/html',
+      contentType: "text/html",
       body:
-        '<!doctype html><html><head><style>html,body{margin:0}#host{width:900px;height:400px}</style></head>' +
+        "<!doctype html><html><head><style>html,body{margin:0}#host{width:900px;height:400px}</style></head>" +
         '<body><div id="host"></div></body></html>',
     });
   });
   // React reports a render error to the page, not to `mount()`'s caller.
-  page.on('pageerror', (e) => pageErrors.push(e.message));
+  page.on("pageerror", (e) => pageErrors.push(e.message));
   await page.goto(`${ORIGIN}/`);
   await page.addStyleTag({ content: css });
   await page.addScriptTag({ content: js });
@@ -201,16 +194,14 @@ async function inkPerGlyph(png: Buffer, glyphs: Glyph[]): Promise<Shot> {
       const img = new Image();
       img.src = `data:image/png;base64,${data}`;
       await img.decode();
-      const canvas = document.createElement('canvas');
+      const canvas = document.createElement("canvas");
       canvas.width = img.width;
       canvas.height = img.height;
-      const ctx = canvas.getContext('2d')!;
+      const ctx = canvas.getContext("2d")!;
       ctx.drawImage(img, 0, 0);
       const all = ctx.getImageData(0, 0, img.width, img.height).data;
       const near = (i: number, [r, g, b]: number[]) =>
-        Math.abs(all[i]! - r!) < 8 &&
-        Math.abs(all[i + 1]! - g!) < 8 &&
-        Math.abs(all[i + 2]! - b!) < 8;
+        Math.abs(all[i]! - r!) < 8 && Math.abs(all[i + 1]! - g!) < 8 && Math.abs(all[i + 2]! - b!) < 8;
       let wax = 0;
       let blue = 0;
       let [x0, y0, x1, y1] = [Infinity, Infinity, -1, -1];
@@ -240,7 +231,7 @@ async function inkPerGlyph(png: Buffer, glyphs: Glyph[]): Promise<Shot> {
       });
       return { ink, wax, blue, blueBox, blueColumns: columns.size };
     },
-    { data: png.toString('base64'), glyphs },
+    { data: png.toString("base64"), glyphs },
   );
 }
 
@@ -257,7 +248,7 @@ async function mount(source: string, range: [number, number] | null): Promise<vo
       ).Galley.mount(source, range),
     { source, range },
   );
-  if (pageErrors.length) throw new Error(`the page threw: ${pageErrors.join(' | ')}`);
+  if (pageErrors.length) throw new Error(`the page threw: ${pageErrors.join(" | ")}`);
   await page!.evaluate(() => document.fonts.ready);
 }
 
@@ -266,12 +257,7 @@ async function mount(source: string, range: [number, number] | null): Promise<vo
  * return every visible glyph from `margin` before the first of the two to
  * `margin` after the last, with its ink waxed and unwaxed.
  */
-async function measure(
-  source: string,
-  range: [number, number] | null,
-  margin = 3,
-  select?: [number, number],
-) {
+async function measure(source: string, range: [number, number] | null, margin = 3, select?: [number, number]) {
   await mount(source, range);
   if (select) await selectText(select);
   const ranges = [range, select].filter((r): r is [number, number] => !!r);
@@ -281,13 +267,13 @@ async function measure(
   const { clip, glyphs, family } = await page!.evaluate(
     ({ from, to, scale }) => {
       const pre = document.querySelector('pre[class*="highlight"]');
-      if (!pre) throw new Error('SourcePane did not render the galley <pre>');
+      if (!pre) throw new Error("SourcePane did not render the galley <pre>");
       const box = pre.getBoundingClientRect();
       const glyphs: Glyph[] = [];
       const walker = document.createTreeWalker(pre, NodeFilter.SHOW_TEXT);
       let offset = 0;
       for (let node = walker.nextNode(); node; node = walker.nextNode()) {
-        const text = node.textContent ?? '';
+        const text = node.textContent ?? "";
         for (let i = 0; i < text.length; i += 1) {
           const at = offset + i;
           if (at < from || at >= to || /\s/.test(text[i]!)) continue;
@@ -320,8 +306,8 @@ async function measure(
   const origin = { x: clip.x, y: clip.y };
   const off = await page!.addStyleTag({
     content:
-      'pre, pre * { background: transparent !important; box-shadow: none !important; }' +
-      ' textarea::selection { background: transparent !important; }',
+      "pre, pre * { background: transparent !important; box-shadow: none !important; }" +
+      " textarea::selection { background: transparent !important; }",
   });
   const control = await inkPerGlyph(await page!.screenshot({ clip }), glyphs);
   await off.evaluate((el) => (el as Element).remove());
@@ -350,11 +336,11 @@ async function measure(
 async function selectText([start, end]: [number, number]): Promise<void> {
   await page!.evaluate(
     async ({ start, end }) => {
-      const input = document.querySelector('textarea');
-      if (!input) throw new Error('SourcePane did not render a <textarea>');
+      const input = document.querySelector("textarea");
+      if (!input) throw new Error("SourcePane did not render a <textarea>");
       input.focus();
       const changed = new Promise((resolve) => {
-        document.addEventListener('selectionchange', resolve, { once: true, capture: true });
+        document.addEventListener("selectionchange", resolve, { once: true, capture: true });
         setTimeout(resolve, 1000);
       });
       input.setSelectionRange(start, end);
@@ -368,27 +354,23 @@ async function selectText([start, end]: [number, number]): Promise<void> {
 /** Glyphs that lost ink to the wax or the selection's blue: under 85% of
  * their unpainted count. Throws if the ground named did not show at all,
  * which would make "none" meaningless. */
-function covered(result: Awaited<ReturnType<typeof measure>>, ground: 'wax' | 'blue' = 'wax') {
-  const { waxed, control } = ground === 'wax' ? result.waxPixels : result.bluePixels;
+function covered(result: Awaited<ReturnType<typeof measure>>, ground: "wax" | "blue" = "wax") {
+  const { waxed, control } = ground === "wax" ? result.waxPixels : result.bluePixels;
   if (!(control === 0 && waxed > 2000)) {
-    throw new Error(
-      `the ${ground} did not paint: ${waxed} ${ground} pixels painted, ${control} in the control`,
-    );
+    throw new Error(`the ${ground} did not paint: ${waxed} ${ground} pixels painted, ${control} in the control`);
   }
   return result.glyphs
     .filter((g) => g.control > 0 && g.waxed < g.control * 0.85)
     .map((g) => `${JSON.stringify(g.char)}@${g.index} ${g.waxed}/${g.control}`);
 }
 
-describe('the selected-element wax in the galley (Chromium)', () => {
-  it('runs: the galley font loaded, the wax painted, and every glyph has ink', async (ctx) => {
+describe("the selected-element wax in the galley (Chromium)", () => {
+  it("runs: the galley font loaded, the wax painted, and every glyph has ink", async (ctx) => {
     if (!chromium.orSkip((note) => ctx.skip(note))) return;
     const source = '<Slide><Heading size="xl">Hi</Heading></Slide>';
-    const start = source.indexOf('<Heading');
-    const result = await measure(source, [start, source.indexOf('</Slide>')]);
-    expect(await page!.evaluate(() => document.fonts.check('12.5px "Spline Sans Mono"'))).toBe(
-      true,
-    );
+    const start = source.indexOf("<Heading");
+    const result = await measure(source, [start, source.indexOf("</Slide>")]);
+    expect(await page!.evaluate(() => document.fonts.check('12.5px "Spline Sans Mono"'))).toBe(true);
     expect(pageErrors).toEqual([]);
     expect(result.family).toMatch(/Spline Sans Mono/);
     expect(result.waxCount).toBeGreaterThan(0);
@@ -397,19 +379,19 @@ describe('the selected-element wax in the galley (Chromium)', () => {
     for (const g of result.glyphs) expect(g.control, `${g.char}@${g.index}`).toBeGreaterThan(0);
   });
 
-  it('covers no glyph inside a mid-line run, at a token boundary, or beside it', async (ctx) => {
+  it("covers no glyph inside a mid-line run, at a token boundary, or beside it", async (ctx) => {
     if (!chromium.orSkip((note) => ctx.skip(note))) return;
     // A glyph sits right against both ends of the run: `>` before, `<` after.
     const source = '<Slide><Heading size="xl">Say something</Heading></Slide>';
-    const start = source.indexOf('<Heading');
-    const end = source.indexOf('</Slide>');
+    const start = source.indexOf("<Heading");
+    const end = source.indexOf("</Slide>");
     expect(covered(await measure(source, [start, end]))).toEqual([]);
   });
 
-  it('covers no glyph in a run from column 0 to the end of a line, over several lines', async (ctx) => {
+  it("covers no glyph in a run from column 0 to the end of a line, over several lines", async (ctx) => {
     if (!chromium.orSkip((note) => ctx.skip(note))) return;
     const source = '<Heading size="xl">\n  Say something\n</Heading>\n<Text>after</Text>';
-    const end = source.indexOf('\n<Text>');
+    const end = source.indexOf("\n<Text>");
     expect(covered(await measure(source, [0, end]))).toEqual([]);
   });
 });
@@ -437,11 +419,9 @@ const tokenStyles = (from: number, to: number) =>
       const out: Array<{ text: string; color: string; weight: string; inRun: boolean }> = [];
       let offset = 0;
       // The tokens only: the wax run's and the selection's wrappers hold them.
-      const tokens = pre.querySelectorAll(
-        'span:not([class*="waxRun"]):not([class*="selectionGround"])',
-      );
+      const tokens = pre.querySelectorAll('span:not([class*="waxRun"]):not([class*="selectionGround"])');
       for (const token of tokens) {
-        const text = token.textContent ?? '';
+        const text = token.textContent ?? "";
         if (offset >= from && offset < to && text.trim()) {
           const style = getComputedStyle(token);
           out.push({
@@ -459,37 +439,37 @@ const tokenStyles = (from: number, to: number) =>
   );
 
 // --graphite is #2b2b2b, --wax-ink #3d3416.
-const GRAPHITE = 'rgb(43, 43, 43)';
-const WAX_INK = 'rgb(61, 52, 22)';
+const GRAPHITE = "rgb(43, 43, 43)";
+const WAX_INK = "rgb(61, 52, 22)";
 
-describe('a text selection in the galley (Chromium)', () => {
-  it('keeps every selected glyph, in graphite on non-photo blue', async (ctx) => {
+describe("a text selection in the galley (Chromium)", () => {
+  it("keeps every selected glyph, in graphite on non-photo blue", async (ctx) => {
     if (!chromium.orSkip((note) => ctx.skip(note))) return;
     // No element is waxed: the selection is off the wax run.
     const source = '<Slide><Heading size="xl">Say something</Heading></Slide>';
-    const select: [number, number] = [source.indexOf('<Heading'), source.indexOf('</Slide>')];
+    const select: [number, number] = [source.indexOf("<Heading"), source.indexOf("</Slide>")];
     const result = await measure(source, null, 3, select);
-    expect(covered(result, 'blue')).toEqual([]);
+    expect(covered(result, "blue")).toEqual([]);
     expect(result.waxPixels.waxed).toBe(0);
     // The ink, read per galley token: every token in the range is graphite,
     // and a component keeps its weight.
     const tokens = await tokenStyles(select[0], select[1]);
     expect(tokens.length).toBeGreaterThan(5);
     expect(new Set(tokens.map((t) => t.color))).toEqual(new Set([GRAPHITE]));
-    expect(tokens.find((t) => t.text === 'Heading')?.weight).toBe('700');
+    expect(tokens.find((t) => t.text === "Heading")?.weight).toBe("700");
   });
 
-  it('shows on blue inside the wax run, exactly as wide as its characters', async (ctx) => {
+  it("shows on blue inside the wax run, exactly as wide as its characters", async (ctx) => {
     if (!chromium.orSkip((note) => ctx.skip(note))) return;
     // The heading is the waxed element; the selection is one word inside it.
     const source = '<Slide><Heading size="xl">Say something</Heading></Slide>';
-    const wax: [number, number] = [source.indexOf('<Heading'), source.indexOf('</Slide>')];
-    const word = source.indexOf('something');
-    const select: [number, number] = [word, word + 'something'.length];
+    const wax: [number, number] = [source.indexOf("<Heading"), source.indexOf("</Slide>")];
+    const word = source.indexOf("something");
+    const select: [number, number] = [word, word + "something".length];
     const result = await measure(source, wax, 3, select);
     // Both grounds paint, and neither covers a glyph.
-    expect(covered(result, 'wax')).toEqual([]);
-    expect(covered(result, 'blue')).toEqual([]);
+    expect(covered(result, "wax")).toEqual([]);
+    expect(covered(result, "blue")).toEqual([]);
 
     // The blue is painted over the wax, not under it: the blue pixels span
     // the selected characters, and stop where they do.
@@ -516,26 +496,26 @@ describe('a text selection in the galley (Chromium)', () => {
 
     // Ink: graphite on the selected word, the wax's ink on the rest of the run.
     const tokens = await tokenStyles(wax[0], wax[1]);
-    const inWord = tokens.filter((t) => t.text === 'something');
+    const inWord = tokens.filter((t) => t.text === "something");
     expect(inWord.map((t) => [t.color, t.inRun])).toEqual([[GRAPHITE, true]]);
-    const rest = tokens.filter((t) => t.text !== 'something');
+    const rest = tokens.filter((t) => t.text !== "something");
     expect(rest.length).toBeGreaterThan(5);
     expect(new Set(rest.map((t) => t.color))).toEqual(new Set([WAX_INK]));
   });
 
   it.for([
-    ['into the run', '<Slide', 'Heading size'],
-    ['out of the run', 'something', '/Slide'],
-  ] as const)('is one unbroken blue when it crosses %s', async ([, from, to], ctx) => {
+    ["into the run", "<Slide", "Heading size"],
+    ["out of the run", "something", "/Slide"],
+  ] as const)("is one unbroken blue when it crosses %s", async ([, from, to], ctx) => {
     if (!chromium.orSkip((note) => ctx.skip(note))) return;
     // Split at the run's edge, the selection must not show the run's bleed
     // between its two halves.
     const source = '<Slide><Heading size="xl">Say something</Heading></Slide>';
-    const wax: [number, number] = [source.indexOf('<Heading'), source.indexOf('</Slide>')];
+    const wax: [number, number] = [source.indexOf("<Heading"), source.indexOf("</Slide>")];
     const select: [number, number] = [source.indexOf(from), source.indexOf(to) + to.length];
     const result = await measure(source, wax, 3, select);
-    expect(covered(result, 'wax')).toEqual([]);
-    expect(covered(result, 'blue')).toEqual([]);
+    expect(covered(result, "wax")).toEqual([]);
+    expect(covered(result, "blue")).toEqual([]);
     expect(await groundRects()).toHaveLength(2);
     expect(result.blueGapColumns).toBe(0);
     const tokens = await tokenStyles(select[0], select[1]);
@@ -543,13 +523,13 @@ describe('a text selection in the galley (Chromium)', () => {
     expect(new Set(tokens.map((t) => t.inRun))).toEqual(new Set([true, false]));
   });
 
-  it('is no taller than the wax run and no wider than its characters', async (ctx) => {
+  it("is no taller than the wax run and no wider than its characters", async (ctx) => {
     if (!chromium.orSkip((note) => ctx.skip(note))) return;
     // The heading is the waxed element; the selection is one word inside it.
     const source = '<Slide><Heading size="xl">Say something</Heading></Slide>';
-    const wax: [number, number] = [source.indexOf('<Heading'), source.indexOf('</Slide>')];
-    const word = source.indexOf('something');
-    const select: [number, number] = [word, word + 'something'.length];
+    const wax: [number, number] = [source.indexOf("<Heading"), source.indexOf("</Slide>")];
+    const word = source.indexOf("something");
+    const select: [number, number] = [word, word + "something".length];
     expect(covered(await measure(source, wax, 3, select))).toEqual([]);
 
     const [ground, ...more] = await groundRects();
@@ -584,17 +564,17 @@ describe('a text selection in the galley (Chromium)', () => {
     expect(Math.abs(ground!.right - chars.right)).toBeLessThan(0.5);
   });
 
-  it('keeps each line of a selection over several lines to the height of the text', async (ctx) => {
+  it("keeps each line of a selection over several lines to the height of the text", async (ctx) => {
     if (!chromium.orSkip((note) => ctx.skip(note))) return;
     const source = '<Heading size="xl">\n  Say something\n</Heading>\n<Text>after</Text>';
-    const select: [number, number] = [3, source.indexOf('</Heading>') + 5];
-    expect(covered(await measure(source, null, 3, select), 'blue')).toEqual([]);
+    const select: [number, number] = [3, source.indexOf("</Heading>") + 5];
+    expect(covered(await measure(source, null, 3, select), "blue")).toEqual([]);
     const rects = (await groundRects()).filter((r) => r.right > r.left);
     expect(rects.length).toBe(3);
     for (const r of rects) expect(r.height).toBeLessThan(23);
   });
 
-  it('paints nothing for a caret, or once the galley loses focus', async (ctx) => {
+  it("paints nothing for a caret, or once the galley loses focus", async (ctx) => {
     if (!chromium.orSkip((note) => ctx.skip(note))) return;
     const source = '<Slide><Heading size="xl">Say something</Heading></Slide>';
     await mount(source, null);
@@ -604,7 +584,7 @@ describe('a text selection in the galley (Chromium)', () => {
     expect(await groundRects()).toEqual([]);
     await selectText([8, 15]);
     expect(await groundRects()).toHaveLength(1);
-    await page!.evaluate(() => document.querySelector('textarea')!.blur());
+    await page!.evaluate(() => document.querySelector("textarea")!.blur());
     await page!.waitForFunction(
       () => document.querySelectorAll('pre [class*="selectionGround"]').length === 0,
       undefined,
@@ -613,18 +593,16 @@ describe('a text selection in the galley (Chromium)', () => {
   });
 });
 
-describe('a text selection anywhere in the chrome (Chromium)', () => {
-  it('resolves ::selection to the non-photo blue token, with graphite on it', async (ctx) => {
+describe("a text selection anywhere in the chrome (Chromium)", () => {
+  it("resolves ::selection to the non-photo blue token, with graphite on it", async (ctx) => {
     if (!chromium.orSkip((note) => ctx.skip(note))) return;
     const style = await page!.evaluate(() => {
-      const p = document.createElement('p');
-      p.textContent = 'An inspector field';
+      const p = document.createElement("p");
+      p.textContent = "An inspector field";
       document.body.append(p);
-      const selection = getComputedStyle(p, '::selection');
+      const selection = getComputedStyle(p, "::selection");
       const out = {
-        token: getComputedStyle(document.documentElement)
-          .getPropertyValue('--non-photo-select')
-          .trim(),
+        token: getComputedStyle(document.documentElement).getPropertyValue("--non-photo-select").trim(),
         background: selection.backgroundColor,
         color: selection.color,
       };
@@ -632,8 +610,8 @@ describe('a text selection anywhere in the chrome (Chromium)', () => {
       return out;
     });
     expect(style).toEqual({
-      token: '#99c5ed',
-      background: 'rgb(153, 197, 237)',
+      token: "#99c5ed",
+      background: "rgb(153, 197, 237)",
       color: GRAPHITE,
     });
   });

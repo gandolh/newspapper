@@ -12,11 +12,11 @@
  * mid-flight; `networkidle` alone never guaranteed that.
  */
 
-import type { Browser, BrowserContext, Page } from 'playwright';
-import { getBrowser } from './browser.js';
-import { installFontRoute } from './fonts.js';
-import { installUploadsRoute } from './uploads-route.js';
-import type { DB } from '../storage/db.js';
+import type { Browser, BrowserContext, Page } from "playwright";
+import { getBrowser } from "./browser.js";
+import { installFontRoute } from "./fonts.js";
+import { installUploadsRoute } from "./uploads-route.js";
+import type { DB } from "../storage/db.js";
 
 export interface HtmlToPngOptions {
   width?: number;
@@ -54,7 +54,7 @@ const DEFAULT_HEIGHT = 1080;
 export const DEFAULT_JPEG_QUALITY = 92;
 
 /** Evaluated in the page: settles when every used @font-face has resolved. */
-const WAIT_FOR_FONTS = 'document.fonts.ready.then(() => true)';
+const WAIT_FOR_FONTS = "document.fonts.ready.then(() => true)";
 
 /**
  * How long one slide may take to settle, and to finish loading its fonts.
@@ -71,7 +71,7 @@ export const RENDER_TIMEOUTS = { settleMs: 20_000, fontsMs: 10_000 } as const;
 export class RenderTimeoutError extends Error {
   constructor(step: string, ms: number) {
     super(`Rendering a slide timed out: ${step} did not finish within ${ms / 1000} s`);
-    this.name = 'RenderTimeoutError';
+    this.name = "RenderTimeoutError";
   }
 }
 
@@ -106,7 +106,7 @@ async function withRenderedPage<T>(
  * restarted.
  */
 export async function renderInBrowser<T>(
-  browser: Pick<Browser, 'newContext'>,
+  browser: Pick<Browser, "newContext">,
   html: string,
   width: number,
   height: number,
@@ -130,15 +130,15 @@ export async function renderInBrowser<T>(
 
     page = await ctx.newPage();
     await within(
-      page.setContent(html, { waitUntil: 'networkidle', timeout: timeouts.settleMs }),
+      page.setContent(html, { waitUntil: "networkidle", timeout: timeouts.settleMs }),
       timeouts.settleMs,
-      'loading the slide',
+      "loading the slide",
     );
     // @font-face loading is lazy and not part of any navigation lifecycle:
     // fonts.ready settles once every face the document actually used has
     // finished (or failed). Written as a source string because `core` compiles
     // without the DOM lib — `document` is not a name this workspace has.
-    await within(page.evaluate(WAIT_FOR_FONTS), timeouts.fontsMs, 'loading its fonts');
+    await within(page.evaluate(WAIT_FOR_FONTS), timeouts.fontsMs, "loading its fonts");
     return await fn(page);
   } finally {
     await page?.close().catch(() => undefined);
@@ -154,7 +154,7 @@ export async function htmlToPng(html: string, opts?: HtmlToPngOptions): Promise<
     html,
     width,
     height,
-    (page) => page.screenshot({ type: 'png', clip: { x: 0, y: 0, width, height } }),
+    (page) => page.screenshot({ type: "png", clip: { x: 0, y: 0, width, height } }),
     opts?.db,
   );
   return Buffer.from(buffer);
@@ -172,7 +172,7 @@ export async function htmlToJpeg(html: string, opts?: HtmlToJpegOptions): Promis
     html,
     width,
     height,
-    (page) => page.screenshot({ type: 'jpeg', quality, clip: { x: 0, y: 0, width, height } }),
+    (page) => page.screenshot({ type: "jpeg", quality, clip: { x: 0, y: 0, width, height } }),
     opts?.db,
   );
   return Buffer.from(buffer);

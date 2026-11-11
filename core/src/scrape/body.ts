@@ -1,4 +1,4 @@
-import { readCapped, safeFetch, type SafeFetchDeps } from './safe-url.js';
+import { readCapped, safeFetch, type SafeFetchDeps } from "./safe-url.js";
 
 /**
  * The article body behind a feed item's link, as plain text, or `''`.
@@ -20,20 +20,20 @@ export async function fetchBody(
     const res = await safeFetch(
       url,
       {
-        headers: { 'User-Agent': userAgent, Accept: 'text/html,application/xhtml+xml' },
+        headers: { "User-Agent": userAgent, Accept: "text/html,application/xhtml+xml" },
         signal: controller.signal,
       },
       deps,
     );
-    if (!res?.ok) return '';
-    const ct = res.headers.get('content-type') ?? '';
-    if (!ct.includes('html')) {
+    if (!res?.ok) return "";
+    const ct = res.headers.get("content-type") ?? "";
+    if (!ct.includes("html")) {
       await res.body?.cancel().catch(() => {});
-      return '';
+      return "";
     }
     return stripHtml(await readCapped(res));
   } catch {
-    return '';
+    return "";
   } finally {
     clearTimeout(timer);
   }
@@ -41,18 +41,18 @@ export async function fetchBody(
 
 export function stripHtml(html: string): string {
   return html
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, ' ')
-    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, ' ')
-    .replace(/<noscript\b[^<]*(?:(?!<\/noscript>)<[^<]*)*<\/noscript>/gi, ' ')
-    .replace(/<!--[\s\S]*?-->/g, ' ')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, " ")
+    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, " ")
+    .replace(/<noscript\b[^<]*(?:(?!<\/noscript>)<[^<]*)*<\/noscript>/gi, " ")
+    .replace(/<!--[\s\S]*?-->/g, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
     .replace(/&#(\d+);/g, (_, n: string) => String.fromCharCode(Number(n)))
-    .replace(/\s+/g, ' ')
+    .replace(/\s+/g, " ")
     .trim();
 }

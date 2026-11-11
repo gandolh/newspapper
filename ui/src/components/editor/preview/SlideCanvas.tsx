@@ -9,12 +9,12 @@
  * coordinates, which is the space the pointer speaks.
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import type { TNode, Theme } from '@newspapper/core/templates';
-import TNodeView, { type NodeGestures } from './TNodeView.js';
-import type { SlotDescriptor } from './slots.js';
-import { zoneKey, type MeasuredZone } from '../dragTypes.js';
-import styles from './SlideCanvas.module.css';
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { TNode, Theme } from "@newspapper/core/templates";
+import TNodeView, { type NodeGestures } from "./TNodeView.js";
+import type { SlotDescriptor } from "./slots.js";
+import { zoneKey, type MeasuredZone } from "../dragTypes.js";
+import styles from "./SlideCanvas.module.css";
 
 export const SLIDE_SIZE = 1080;
 
@@ -63,7 +63,7 @@ export default function SlideCanvas({
 
     const add = (
       slot: SlotDescriptor,
-      edge: MeasuredZone['edge'],
+      edge: MeasuredZone["edge"],
       left: number,
       top: number,
       width: number,
@@ -84,16 +84,16 @@ export default function SlideCanvas({
       const target = slot.childOffset === null ? container : nodes.current.get(slot.childOffset);
       if (!target) continue;
       const rect = target.getBoundingClientRect();
-      if (slot.side === 'inside') {
-        add(slot, 'all', rect.left, rect.top, rect.width, rect.height);
+      if (slot.side === "inside") {
+        add(slot, "all", rect.left, rect.top, rect.width, rect.height);
         continue;
       }
-      const horizontal = getComputedStyle(container).flexDirection.startsWith('row');
-      const first = slot.side === 'before';
+      const horizontal = getComputedStyle(container).flexDirection.startsWith("row");
+      const first = slot.side === "before";
       if (horizontal) {
         add(
           slot,
-          first ? 'left' : 'right',
+          first ? "left" : "right",
           first ? rect.left : rect.left + rect.width / 2,
           rect.top,
           rect.width / 2,
@@ -102,7 +102,7 @@ export default function SlideCanvas({
       } else {
         add(
           slot,
-          first ? 'top' : 'bottom',
+          first ? "top" : "bottom",
           rect.left,
           first ? rect.top : rect.top + rect.height / 2,
           rect.width,
@@ -122,12 +122,9 @@ export default function SlideCanvas({
       ref={wrapperRef}
       className={styles.wrapper}
       style={{ width: inner, height: inner }}
-      data-drag={dragActive ? '' : undefined}
+      data-drag={dragActive ? "" : undefined}
     >
-      <div
-        className={styles.canvas}
-        style={{ width: SLIDE_SIZE, height: SLIDE_SIZE, transform: `scale(${scale})` }}
-      >
+      <div className={styles.canvas} style={{ width: SLIDE_SIZE, height: SLIDE_SIZE, transform: `scale(${scale})` }}>
         <TNodeView
           node={slide}
           theme={theme}
@@ -142,9 +139,7 @@ export default function SlideCanvas({
           {zones.map((zone) => (
             <div
               key={zone.key}
-              className={[styles.zone, activeZoneKey === zone.key ? styles.zoneActive : '']
-                .filter(Boolean)
-                .join(' ')}
+              className={[styles.zone, activeZoneKey === zone.key ? styles.zoneActive : ""].filter(Boolean).join(" ")}
               data-edge={zone.edge}
               style={{
                 left: zone.local.left,

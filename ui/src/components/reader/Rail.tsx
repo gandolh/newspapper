@@ -10,15 +10,15 @@
  * selected, as a note over the list. A disabled source takes the hatch, the
  * board's "held out" at this scale.
  */
-import type { ReaderCounts, Source } from '@/lib/types';
-import { Button, HATCH, Mark, ProgressBar, Skeleton } from '../ui';
-import { groupSources, sameNarrow, unreadIn, type Narrow, type ReaderScope } from './query';
-import styles from './Rail.module.css';
+import type { ReaderCounts, Source } from "@/lib/types";
+import { Button, HATCH, Mark, ProgressBar, Skeleton } from "../ui";
+import { groupSources, sameNarrow, unreadIn, type Narrow, type ReaderScope } from "./query";
+import styles from "./Rail.module.css";
 
-export type ReaderView = 'read' | 'search' | 'library' | 'sources';
+export type ReaderView = "read" | "search" | "library" | "sources";
 
 export interface SourceProgress {
-  status: 'fetching' | 'done' | 'error';
+  status: "fetching" | "done" | "error";
   count?: number;
   error?: string;
 }
@@ -45,19 +45,19 @@ export interface RailProps {
 }
 
 const VIEWS: Array<{ view: ReaderView; label: string; note: string }> = [
-  { view: 'search', label: 'Search', note: 'live keyword search' },
-  { view: 'library', label: 'Library', note: 'saved, with notes' },
-  { view: 'sources', label: 'Sources', note: 'feeds and categories' },
+  { view: "search", label: "Search", note: "live keyword search" },
+  { view: "library", label: "Library", note: "saved, with notes" },
+  { view: "sources", label: "Sources", note: "feeds and categories" },
 ];
 
 function Count({ n }: { n: number | undefined }) {
-  return <span className={styles.count}>{n === undefined ? '' : n}</span>;
+  return <span className={styles.count}>{n === undefined ? "" : n}</span>;
 }
 
 function ProgressMark({ p }: { p: SourceProgress | undefined }) {
   if (!p) return null;
-  if (p.status === 'fetching') return <Mark bare>…</Mark>;
-  if (p.status === 'error')
+  if (p.status === "fetching") return <Mark bare>…</Mark>;
+  if (p.status === "error")
     return (
       <Mark tone="rubylith" bare>
         failed
@@ -72,15 +72,13 @@ function ProgressMark({ p }: { p: SourceProgress | undefined }) {
 
 export default function Rail(props: RailProps) {
   const { sources, counts, refresh, view, narrow, scope } = props;
-  const reading = view === 'read';
+  const reading = view === "read";
   const groups = sources ? groupSources(sources) : [];
   const categorized = groups.some((g) => g.category !== null);
-  const settled = refresh
-    ? Object.values(refresh.progress).filter((p) => p.status !== 'fetching').length
-    : 0;
+  const settled = refresh ? Object.values(refresh.progress).filter((p) => p.status !== "fetching").length : 0;
 
-  function current(isIt: boolean): 'true' | undefined {
-    return isIt ? 'true' : undefined;
+  function current(isIt: boolean): "true" | undefined {
+    return isIt ? "true" : undefined;
   }
 
   return (
@@ -106,8 +104,8 @@ export default function Rail(props: RailProps) {
           <button
             type="button"
             className={styles.item}
-            aria-current={current(reading && narrow === null && scope === 'unread')}
-            onClick={() => props.onSelect('unread', null)}
+            aria-current={current(reading && narrow === null && scope === "unread")}
+            onClick={() => props.onSelect("unread", null)}
           >
             <span className={styles.label}>Unread</span>
             <Count n={counts?.unread} />
@@ -117,8 +115,8 @@ export default function Rail(props: RailProps) {
           <button
             type="button"
             className={styles.item}
-            aria-current={current(reading && narrow === null && scope === 'all')}
-            onClick={() => props.onSelect('all', null)}
+            aria-current={current(reading && narrow === null && scope === "all")}
+            onClick={() => props.onSelect("all", null)}
           >
             <span className={styles.label}>All</span>
             <Count n={counts?.all} />
@@ -142,9 +140,9 @@ export default function Rail(props: RailProps) {
         </div>
       ) : (
         groups.map((group) => {
-          const groupNarrow: Narrow = { kind: 'category', category: group.category };
+          const groupNarrow: Narrow = { kind: "category", category: group.category };
           return (
-            <section key={group.category ?? '\0'} className={styles.section}>
+            <section key={group.category ?? "\0"} className={styles.section}>
               {categorized && (
                 <button
                   type="button"
@@ -152,33 +150,29 @@ export default function Rail(props: RailProps) {
                   aria-current={current(reading && sameNarrow(narrow, groupNarrow))}
                   onClick={() => props.onSelect(null, groupNarrow)}
                 >
-                  <span className={styles.label}>{group.category ?? 'Uncategorized'}</span>
+                  <span className={styles.label}>{group.category ?? "Uncategorized"}</span>
                   <Count n={counts ? unreadIn(counts, groupNarrow, sources) : undefined} />
                 </button>
               )}
               <ul className={styles.group}>
                 {group.sources.map((source) => {
-                  const sourceNarrow: Narrow = { kind: 'source', sourceId: source.id };
+                  const sourceNarrow: Narrow = { kind: "source", sourceId: source.id };
                   const p = refresh?.progress[source.id];
                   const failing = !p && source.lastError !== null;
                   return (
                     <li key={source.id}>
                       <button
                         type="button"
-                        className={[
-                          styles.item,
-                          styles.source,
-                          source.enabled ? '' : `${styles.disabled} ${HATCH}`,
-                        ]
+                        className={[styles.item, styles.source, source.enabled ? "" : `${styles.disabled} ${HATCH}`]
                           .filter(Boolean)
-                          .join(' ')}
+                          .join(" ")}
                         aria-current={current(reading && sameNarrow(narrow, sourceNarrow))}
                         title={
                           failing
                             ? `Last refresh failed: ${source.lastError}`
                             : source.enabled
                               ? undefined
-                              : 'Disabled: not refreshed'
+                              : "Disabled: not refreshed"
                         }
                         onClick={() => props.onSelect(null, sourceNarrow)}
                       >

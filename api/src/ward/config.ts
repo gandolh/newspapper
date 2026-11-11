@@ -25,19 +25,19 @@
  */
 
 /** Unique in the estate: every app shares one origin. */
-export const SESSION_COOKIE = 'newspapper_session';
+export const SESSION_COOKIE = "newspapper_session";
 
 /** Fastify-side mount of the plugin's routes: `/api` stays, only the base is stripped. */
-export const AUTH_ROUTE_PREFIX = '/api/auth';
+export const AUTH_ROUTE_PREFIX = "/api/auth";
 
 /** The callback's tail, as `routePrefix` spells it. */
 const CALLBACK_TAIL = `${AUTH_ROUTE_PREFIX}/ward/callback`;
 
 /** `/newspapper/` or `/newspapper` becomes `/newspapper`; the root becomes `''`. */
 export function trimBase(raw: string | undefined): string {
-  const trimmed = (raw ?? '').trim().replace(/\/+$/, '');
-  if (trimmed === '') return '';
-  return trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+  const trimmed = (raw ?? "").trim().replace(/\/+$/, "");
+  if (trimmed === "") return "";
+  return trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
 }
 
 export interface AuthPaths {
@@ -59,15 +59,14 @@ export interface AuthPaths {
  * the library already requires to end in `/api/auth/ward/callback`.
  */
 export function authPaths(env: Record<string, string | undefined> = process.env): AuthPaths {
-  let base = trimBase(env['NEWSPAPPER_BASE']);
-  if (base === '' && env['NEWSPAPPER_BASE'] === undefined) {
-    const callback = parseUrl(env['WARD_OIDC_REDIRECT_URI'])?.pathname;
-    if (callback?.endsWith(CALLBACK_TAIL))
-      base = trimBase(callback.slice(0, -CALLBACK_TAIL.length));
+  let base = trimBase(env["NEWSPAPPER_BASE"]);
+  if (base === "" && env["NEWSPAPPER_BASE"] === undefined) {
+    const callback = parseUrl(env["WARD_OIDC_REDIRECT_URI"])?.pathname;
+    if (callback?.endsWith(CALLBACK_TAIL)) base = trimBase(callback.slice(0, -CALLBACK_TAIL.length));
   }
   return {
     base,
-    cookiePath: base === '' ? '/' : base,
+    cookiePath: base === "" ? "/" : base,
     loginPath: `${base}/login`,
     settingsPath: `${base}/settings`,
     afterSignInPath: `${base}/`,
@@ -82,9 +81,9 @@ export function authPaths(env: Record<string, string | undefined> = process.env)
  * the app's own origin by construction, and without that, the dev server's.
  */
 export function publicOrigin(env: Record<string, string | undefined> = process.env): string {
-  const explicit = env['PUBLIC_ORIGIN']?.trim().replace(/\/+$/, '');
+  const explicit = env["PUBLIC_ORIGIN"]?.trim().replace(/\/+$/, "");
   if (explicit) return explicit;
-  return parseUrl(env['WARD_OIDC_REDIRECT_URI'])?.origin ?? 'http://localhost:4321';
+  return parseUrl(env["WARD_OIDC_REDIRECT_URI"])?.origin ?? "http://localhost:4321";
 }
 
 function parseUrl(value: string | undefined): URL | undefined {

@@ -24,11 +24,11 @@ import {
   type WzdDocument,
   type WzdNode,
   type WzdRenderContext,
-} from '@newspapper/core/wizard';
-import type { TNode, TStyle, Theme } from '@newspapper/core/templates';
+} from "@newspapper/core/wizard";
+import type { TNode, TStyle, Theme } from "@newspapper/core/templates";
 
 /** Custom-property name, so it resolves to an inert CSS declaration if it leaks. */
-export const WZD_SRC_KEY = '--wzd-src';
+export const WZD_SRC_KEY = "--wzd-src";
 
 export interface TracedCompile {
   slides: TNode[];
@@ -44,7 +44,7 @@ function stamp(node: TNode, offset: number): TNode {
 
 function tracedRender(node: WzdNode, ctx: WzdRenderContext): TNode | null {
   const rendered = renderComponent(node, ctx);
-  if (!rendered || node.kind !== 'element') return rendered;
+  if (!rendered || node.kind !== "element") return rendered;
   return stamp(rendered, node.loc.start.offset);
 }
 
@@ -60,7 +60,7 @@ function tracedChildren(nodes: readonly WzdNode[], ctx: WzdRenderContext): TNode
 /** The source offset a node was stamped with, or null for a node core produced. */
 export function sourceOffsetOf(node: TNode): number | null {
   const raw = node.style?.[WZD_SRC_KEY];
-  return typeof raw === 'number' ? raw : null;
+  return typeof raw === "number" ? raw : null;
 }
 
 /** The node's style with the stamp removed — what `resolveStyle` must see. */
@@ -71,11 +71,7 @@ export function styleWithoutStamp(node: TNode): TStyle {
   return copy;
 }
 
-export function compileTraced(
-  doc: WzdDocument,
-  theme: Theme,
-  options: { uploadBaseUrl?: string } = {},
-): TracedCompile {
+export function compileTraced(doc: WzdDocument, theme: Theme, options: { uploadBaseUrl?: string } = {}): TracedCompile {
   const diagnostics = lint(doc);
   const missing = missingThemeTokens(theme);
   if (missing.length) {
@@ -83,7 +79,7 @@ export function compileTraced(
       slides: [],
       head: { ...doc.head },
       diagnostics,
-      themeError: `Theme "${theme.name}" is missing tokens the component library needs: ${missing.join(', ')}.`,
+      themeError: `Theme "${theme.name}" is missing tokens the component library needs: ${missing.join(", ")}.`,
     };
   }
 
@@ -94,8 +90,8 @@ export function compileTraced(
       ...baseContext({
         theme,
         head: doc.head,
-        align: 'left',
-        size: 'md',
+        align: "left",
+        size: "md",
         index: i + 1,
         total,
         uploadBaseUrl: options.uploadBaseUrl ?? WZD_COMPILE_DEFAULTS.uploadBaseUrl,

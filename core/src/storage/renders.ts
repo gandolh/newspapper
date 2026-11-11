@@ -1,5 +1,5 @@
-import type { DB } from './db.js';
-import type { RenderRecord } from '../types.js';
+import type { DB } from "./db.js";
+import type { RenderRecord } from "../types.js";
 
 interface RenderDbRow {
   id: number;
@@ -48,9 +48,8 @@ export function recordRender(db: DB, input: NewRender): RenderRecord {
 
 /** The render a post's export and thumbnail should read from. */
 export function latestRender(db: DB, postId: number): RenderRecord | undefined {
-  const row = db
-    .prepare('SELECT * FROM renders WHERE post_id = ? ORDER BY id DESC LIMIT 1')
-    .get(postId) as RenderDbRow | undefined;
+  const row = db.prepare("SELECT * FROM renders WHERE post_id = ? ORDER BY id DESC LIMIT 1").get(postId) as
+    RenderDbRow | undefined;
   return row ? rowToRender(row) : undefined;
 }
 
@@ -71,20 +70,18 @@ export function latestRenders(db: DB): RenderRecord[] {
 }
 
 export function listRenders(db: DB, postId: number): RenderRecord[] {
-  const rows = db
-    .prepare('SELECT * FROM renders WHERE post_id = ? ORDER BY id DESC')
-    .all(postId) as RenderDbRow[];
+  const rows = db.prepare("SELECT * FROM renders WHERE post_id = ? ORDER BY id DESC").all(postId) as RenderDbRow[];
   return rows.map(rowToRender);
 }
 
 export function findRender(db: DB, id: number): RenderRecord | undefined {
-  const row = db.prepare('SELECT * FROM renders WHERE id = ?').get(id) as RenderDbRow | undefined;
+  const row = db.prepare("SELECT * FROM renders WHERE id = ?").get(id) as RenderDbRow | undefined;
   return row ? rowToRender(row) : undefined;
 }
 
 /** Flag a render as having been through the publish-time optimization pass. */
 export function markRenderOptimized(db: DB, id: number): RenderRecord | undefined {
-  const r = db.prepare('UPDATE renders SET optimized = 1 WHERE id = ?').run(id);
+  const r = db.prepare("UPDATE renders SET optimized = 1 WHERE id = ?").run(id);
   if (r.changes === 0) return undefined;
   return findRender(db, id);
 }
@@ -93,6 +90,6 @@ export function markRenderOptimized(db: DB, id: number): RenderRecord | undefine
 export function removeRender(db: DB, id: number): RenderRecord | undefined {
   const existing = findRender(db, id);
   if (!existing) return undefined;
-  db.prepare('DELETE FROM renders WHERE id = ?').run(id);
+  db.prepare("DELETE FROM renders WHERE id = ?").run(id);
   return existing;
 }

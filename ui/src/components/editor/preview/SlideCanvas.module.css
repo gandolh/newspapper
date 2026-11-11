@@ -37,22 +37,22 @@
   background: rgba(245, 217, 122, 0.28);
 }
 
-.zoneActive[data-edge='top'] {
+.zoneActive[data-edge="top"] {
   box-shadow: inset 0 3px 0 0 var(--graphite);
 }
 
-.zoneActive[data-edge='bottom'] {
+.zoneActive[data-edge="bottom"] {
   box-shadow: inset 0 -3px 0 0 var(--graphite);
 }
 
-.zoneActive[data-edge='left'] {
+.zoneActive[data-edge="left"] {
   box-shadow: inset 3px 0 0 0 var(--graphite);
 }
 
-.zoneActive[data-edge='right'] {
+.zoneActive[data-edge="right"] {
   box-shadow: inset -3px 0 0 0 var(--graphite);
 }
 
-.zoneActive[data-edge='all'] {
+.zoneActive[data-edge="all"] {
   box-shadow: inset 0 0 0 3px var(--graphite);
 }

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -16,11 +16,11 @@ import {
   TissueCorner,
   ToastProvider,
   useToast,
-} from '../ui';
-import { api, sse } from '@/lib/api';
-import { withBase } from '@/lib/base';
-import type { PostStatus, PostSummary } from '@/lib/types';
-import styles from './PostsIsland.module.css';
+} from "../ui";
+import { api, sse } from "@/lib/api";
+import { withBase } from "@/lib/base";
+import type { PostStatus, PostSummary } from "@/lib/types";
+import styles from "./PostsIsland.module.css";
 
 /**
  * The editor URL for a post. A plain `<a>`, not the router's `<Link>`: the
@@ -44,24 +44,24 @@ interface RenderSummary {
   thumb: string | null;
 }
 
-type StatusFilter = 'all' | PostStatus;
+type StatusFilter = "all" | PostStatus;
 
 /** The keyword row's "no filter" chip. Not a keyword — `null` on the wire. */
-const ALL_KEYWORDS = '\u0000all';
+const ALL_KEYWORDS = "\u0000all";
 
 const STATUS_OPTIONS = [
-  { value: 'all', label: 'All posts' },
-  { value: 'draft', label: 'Drafts' },
-  { value: 'published', label: 'Published' },
+  { value: "all", label: "All posts" },
+  { value: "draft", label: "Drafts" },
+  { value: "published", label: "Published" },
 ];
 
 function formatDate(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
   return d.toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
+    year: "numeric",
+    month: "short",
+    day: "numeric",
   });
 }
 
@@ -72,8 +72,8 @@ function PostsPage() {
   const [renders, setRenders] = useState<Map<number, RenderSummary>>(new Map());
   const [loading, setLoading] = useState(true);
 
-  const [status, setStatus] = useState<StatusFilter>('all');
-  const [search, setSearch] = useState('');
+  const [status, setStatus] = useState<StatusFilter>("all");
+  const [search, setSearch] = useState("");
   const [keyword, setKeyword] = useState<string | null>(null);
 
   const [renderingId, setRenderingId] = useState<number | null>(null);
@@ -91,19 +91,19 @@ function PostsPage() {
   const load = useCallback(async () => {
     try {
       const params = new URLSearchParams();
-      if (status !== 'all') params.set('status', status);
-      if (search.trim()) params.set('search', search.trim());
-      if (keyword) params.set('keyword', keyword);
+      if (status !== "all") params.set("status", status);
+      if (search.trim()) params.set("search", search.trim());
+      if (keyword) params.set("keyword", keyword);
       const qs = params.toString();
 
       const [postList, renderList] = await Promise.all([
-        api<PostSummary[]>(`/api/posts${qs ? `?${qs}` : ''}`),
-        api<RenderSummary[]>('/api/renders').catch(() => [] as RenderSummary[]),
+        api<PostSummary[]>(`/api/posts${qs ? `?${qs}` : ""}`),
+        api<RenderSummary[]>("/api/renders").catch(() => [] as RenderSummary[]),
       ]);
       setPosts(postList);
       setRenders(new Map(renderList.map((r) => [r.postId, r])));
     } catch (err) {
-      addToast((err as Error).message, 'error');
+      addToast((err as Error).message, "error");
     } finally {
       setLoading(false);
     }
@@ -135,14 +135,14 @@ function PostsPage() {
         {
           signal: abort.signal,
           onEvent: (event, data) => {
-            if (event === 'progress') setRenderProgress(data as { done: number; total: number });
+            if (event === "progress") setRenderProgress(data as { done: number; total: number });
           },
         },
       );
-      addToast(`Rendered “${post.title}”`, 'success');
+      addToast(`Rendered “${post.title}”`, "success");
       await load();
     } catch (err) {
-      addToast((err as Error).message, 'error');
+      addToast((err as Error).message, "error");
     } finally {
       setRenderingId(null);
       setRenderProgress(null);
@@ -153,11 +153,11 @@ function PostsPage() {
   async function handlePublish(post: PostSummary) {
     setBusyId(post.id);
     try {
-      await api(`/api/posts/${post.id}/publish`, { method: 'POST' });
-      addToast(`Published “${post.title}”`, 'success');
+      await api(`/api/posts/${post.id}/publish`, { method: "POST" });
+      addToast(`Published “${post.title}”`, "success");
       await load();
     } catch (err) {
-      addToast((err as Error).message, 'error');
+      addToast((err as Error).message, "error");
     } finally {
       setBusyId(null);
       setConfirmPublish(null);
@@ -168,13 +168,13 @@ function PostsPage() {
     setBusyId(post.id);
     try {
       await api(`/api/posts/${post.id}/status`, {
-        method: 'PUT',
-        json: { status: 'draft' },
+        method: "PUT",
+        json: { status: "draft" },
       });
-      addToast(`“${post.title}” is a draft again`, 'success');
+      addToast(`“${post.title}” is a draft again`, "success");
       await load();
     } catch (err) {
-      addToast((err as Error).message, 'error');
+      addToast((err as Error).message, "error");
     } finally {
       setBusyId(null);
     }
@@ -183,11 +183,11 @@ function PostsPage() {
   async function handleDelete(post: PostSummary) {
     setBusyId(post.id);
     try {
-      await api(`/api/posts/${post.id}`, { method: 'DELETE' });
-      addToast(`Deleted “${post.title}”`, 'success');
+      await api(`/api/posts/${post.id}`, { method: "DELETE" });
+      addToast(`Deleted “${post.title}”`, "success");
       await load();
     } catch (err) {
-      addToast((err as Error).message, 'error');
+      addToast((err as Error).message, "error");
     } finally {
       setBusyId(null);
       setConfirmDelete(null);
@@ -199,7 +199,7 @@ function PostsPage() {
       <PageHeader
         title="Posts"
         subtitle="Everything you have written. Open one to keep editing, or render it out."
-        actions={<Button onClick={() => window.location.assign(withBase('/'))}>New post</Button>}
+        actions={<Button onClick={() => window.location.assign(withBase("/"))}>New post</Button>}
       />
 
       <div className={styles.filters}>
@@ -224,10 +224,7 @@ function PostsPage() {
           ariaLabel="Filter by keyword"
           wrap
           pad="hair"
-          options={[
-            { value: ALL_KEYWORDS, label: 'All keywords' },
-            ...allKeywords.map((k) => ({ value: k })),
-          ]}
+          options={[{ value: ALL_KEYWORDS, label: "All keywords" }, ...allKeywords.map((k) => ({ value: k }))]}
           value={keyword ?? ALL_KEYWORDS}
           onValueChange={(v) => setKeyword(v === ALL_KEYWORDS || v === keyword ? null : v)}
         />
@@ -241,13 +238,13 @@ function PostsPage() {
         </div>
       ) : posts.length === 0 ? (
         <EmptyState
-          title={search || keyword || status !== 'all' ? 'Nothing matches' : 'No posts yet'}
+          title={search || keyword || status !== "all" ? "Nothing matches" : "No posts yet"}
           hint={
-            search || keyword || status !== 'all'
-              ? 'Try a wider filter.'
-              : 'Start writing and the first save lands here.'
+            search || keyword || status !== "all"
+              ? "Try a wider filter."
+              : "Start writing and the first save lands here."
           }
-          action={<Button onClick={() => window.location.assign(withBase('/'))}>New post</Button>}
+          action={<Button onClick={() => window.location.assign(withBase("/"))}>New post</Button>}
         />
       ) : (
         <ul className={styles.list} role="list">
@@ -262,13 +259,8 @@ function PostsPage() {
             return (
               <li key={post.id}>
                 <Card className={styles.board}>
-                  {post.status !== 'published' && <TissueCorner />}
-                  <a
-                    className={styles.thumbLink}
-                    href={postHref(post.id)}
-                    aria-hidden="true"
-                    tabIndex={-1}
-                  >
+                  {post.status !== "published" && <TissueCorner />}
+                  <a className={styles.thumbLink} href={postHref(post.id)} aria-hidden="true" tabIndex={-1}>
                     {thumb ? (
                       <img className={styles.thumb} src={withBase(thumb)} alt="" loading="lazy" />
                     ) : (
@@ -282,19 +274,15 @@ function PostsPage() {
                       <a className={styles.title} href={postHref(post.id)}>
                         {post.title}
                       </a>
-                      {post.status === 'published' ? <Stamp>Published</Stamp> : <Mark>Draft</Mark>}
-                      {rendered ? (
-                        <Mark bare>{render?.slideCount} slides</Mark>
-                      ) : (
-                        <Mark bare>Not rendered</Mark>
-                      )}
+                      {post.status === "published" ? <Stamp>Published</Stamp> : <Mark>Draft</Mark>}
+                      {rendered ? <Mark bare>{render?.slideCount} slides</Mark> : <Mark bare>Not rendered</Mark>}
                     </div>
 
                     {post.description && <p className={styles.description}>{post.description}</p>}
 
                     <p className={styles.dates}>
                       Updated {formatDate(post.updatedAt)}
-                      {post.publishedAt ? ` · published ${formatDate(post.publishedAt)}` : ''}
+                      {post.publishedAt ? ` · published ${formatDate(post.publishedAt)}` : ""}
                     </p>
 
                     {post.keywords.length > 0 && (
@@ -316,7 +304,7 @@ function PostsPage() {
                           label={
                             renderProgress
                               ? `Rendering slide ${renderProgress.done} of ${renderProgress.total}`
-                              : 'Starting Chromium…'
+                              : "Starting Chromium…"
                           }
                         />
                       </div>
@@ -324,11 +312,7 @@ function PostsPage() {
                   </div>
 
                   <div className={styles.actions}>
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      onClick={() => window.location.assign(postHref(post.id))}
-                    >
+                    <Button size="sm" variant="secondary" onClick={() => window.location.assign(postHref(post.id))}>
                       Open
                     </Button>
                     <Button
@@ -344,28 +328,16 @@ function PostsPage() {
                       size="sm"
                       variant="secondary"
                       disabled={!rendered}
-                      onClick={() =>
-                        window.location.assign(withBase(`/api/posts/${post.id}/export.zip`))
-                      }
+                      onClick={() => window.location.assign(withBase(`/api/posts/${post.id}/export.zip`))}
                     >
                       Export ZIP
                     </Button>
-                    {post.status === 'published' ? (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        loading={busy}
-                        onClick={() => void handleUnpublish(post)}
-                      >
+                    {post.status === "published" ? (
+                      <Button size="sm" variant="ghost" loading={busy} onClick={() => void handleUnpublish(post)}>
                         Unpublish
                       </Button>
                     ) : (
-                      <Button
-                        size="sm"
-                        disabled={!rendered}
-                        loading={busy}
-                        onClick={() => setConfirmPublish(post)}
-                      >
+                      <Button size="sm" disabled={!rendered} loading={busy} onClick={() => setConfirmPublish(post)}>
                         Publish
                       </Button>
                     )}
@@ -388,7 +360,7 @@ function PostsPage() {
         message={
           confirmPublish
             ? `“${confirmPublish.title}” will be marked published and its slides re-encoded at publish quality. This is not automatic and it does not post anywhere — it is the record that you are done.`
-            : ''
+            : ""
         }
         confirmLabel="Publish"
         variant="primary"
@@ -403,7 +375,7 @@ function PostsPage() {
         message={
           confirmDelete
             ? `“${confirmDelete.title}” and its render records go for good. The markup is not recoverable.`
-            : ''
+            : ""
         }
         confirmLabel="Delete"
         loading={busyId !== null}

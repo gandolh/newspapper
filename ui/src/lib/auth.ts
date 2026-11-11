@@ -11,10 +11,10 @@
  * at import, and removes them, which is why this runs at startup rather than on
  * the login page's first render.
  */
-import { configureAuth } from '../../vendor/ward/ward-auth-react.js';
-import { withBase } from './base';
+import { configureAuth } from "../../vendor/ward/ward-auth-react.js";
+import { withBase } from "./base";
 
-configureAuth({ basePath: withBase('/api/auth') });
+configureAuth({ basePath: withBase("/api/auth") });
 
 export {
   useChangePassword,
@@ -26,5 +26,5 @@ export {
   useWardSignIn,
   useWardSignOut,
   useWardUnlink,
-} from '../../vendor/ward/ward-auth-react.js';
-export type { AuthError } from '../../vendor/ward/ward-auth-react.js';
+} from "../../vendor/ward/ward-auth-react.js";
+export type { AuthError } from "../../vendor/ward/ward-auth-react.js";

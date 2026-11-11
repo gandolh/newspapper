@@ -4,10 +4,6 @@
    45° hatch, because the hatch already means "held out" and this is not that. */
 .skeleton {
   background-color: var(--board);
-  background-image: repeating-linear-gradient(
-    to bottom,
-    transparent 0 22px,
-    var(--hairline) 22px 23px
-  );
+  background-image: repeating-linear-gradient(to bottom, transparent 0 22px, var(--hairline) 22px 23px);
   box-shadow: 0 0 0 1px var(--hairline);
 }

@@ -9,17 +9,17 @@
  * render will centre.
  */
 
-import { allowedValues, type WzdDocument, type WzdElement } from '@newspapper/core/wizard';
-import { ancestorPaths, elementAtPath, type WzdPath } from './paths.js';
+import { allowedValues, type WzdDocument, type WzdElement } from "@newspapper/core/wizard";
+import { ancestorPaths, elementAtPath, type WzdPath } from "./paths.js";
 
 /** The alignment the compiler will resolve for the node at `path`. */
 export function inheritedAlign(doc: WzdDocument, path: WzdPath): string {
-  let align = 'left';
+  let align = "left";
   for (const candidate of ancestorPaths(path)) {
     const el = elementAtPath(doc, candidate);
     if (!el) continue;
-    const values = allowedValues(el.type, 'align');
-    const written = el.props['align'];
+    const values = allowedValues(el.type, "align");
+    const written = el.props["align"];
     if (values && written !== undefined && values.includes(written)) align = written;
   }
   return align;
@@ -28,7 +28,7 @@ export function inheritedAlign(doc: WzdDocument, path: WzdPath): string {
 /** An element's own text, as the content field shows it. */
 export function textOf(el: WzdElement): string {
   return el.children
-    .filter((child) => child.kind === 'text')
+    .filter((child) => child.kind === "text")
     .map((child) => (child as { value: string }).value)
-    .join(' ');
+    .join(" ");
 }

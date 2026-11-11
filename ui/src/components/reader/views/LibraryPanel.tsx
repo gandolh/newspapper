@@ -10,9 +10,9 @@
  * It renders inside `ReaderIsland`'s `ToastProvider` and carries none of its
  * own.
  */
-import { useState, useEffect, useCallback } from 'react';
-import { api } from '@/lib/api';
-import type { Article, ArticleSummary, Source } from '@/lib/types';
+import { useState, useEffect, useCallback } from "react";
+import { api } from "@/lib/api";
+import type { Article, ArticleSummary, Source } from "@/lib/types";
 import {
   Button,
   Card,
@@ -25,16 +25,16 @@ import {
   Textarea,
   useToast,
   ConfirmDialog,
-} from '../../ui';
-import { excerpt, formatDate } from '../format';
-import styles from './Clippings.module.css';
+} from "../../ui";
+import { excerpt, formatDate } from "../format";
+import styles from "./Clippings.module.css";
 
 export default function LibraryPanel() {
   const { addToast } = useToast();
   const [articles, setArticles] = useState<ArticleSummary[]>([]);
   const [sources, setSources] = useState<Source[]>([]);
-  const [sourceFilter, setSourceFilter] = useState('');
-  const [search, setSearch] = useState('');
+  const [sourceFilter, setSourceFilter] = useState("");
+  const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<ArticleSummary | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -45,19 +45,19 @@ export default function LibraryPanel() {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      if (sourceFilter) params.set('sourceId', sourceFilter);
-      if (search.trim()) params.set('search', search.trim());
+      if (sourceFilter) params.set("sourceId", sourceFilter);
+      if (search.trim()) params.set("search", search.trim());
       const data = await api<ArticleSummary[]>(`/api/articles?${params.toString()}`);
       setArticles(data);
     } catch {
-      addToast('Failed to load the library', 'error');
+      addToast("Failed to load the library", "error");
     } finally {
       setLoading(false);
     }
   }, [sourceFilter, search, addToast]);
 
   useEffect(() => {
-    api<Source[]>('/api/sources')
+    api<Source[]>("/api/sources")
       .then(setSources)
       .catch(() => undefined);
   }, []);
@@ -75,12 +75,12 @@ export default function LibraryPanel() {
     if (!deleteTarget) return;
     setDeleteLoading(true);
     try {
-      await api(`/api/articles/${deleteTarget.id}`, { method: 'DELETE' });
+      await api(`/api/articles/${deleteTarget.id}`, { method: "DELETE" });
       setArticles((prev) => prev.filter((a) => a.id !== deleteTarget.id));
-      addToast('Deleted', 'success');
+      addToast("Deleted", "success");
       setDeleteTarget(null);
     } catch (err) {
-      addToast((err as Error).message, 'error');
+      addToast((err as Error).message, "error");
     } finally {
       setDeleteLoading(false);
     }
@@ -92,25 +92,20 @@ export default function LibraryPanel() {
     setSavingNote(true);
     try {
       const updated = await api<Article>(`/api/articles/${editing.id}`, {
-        method: 'PATCH',
+        method: "PATCH",
         json: { note: editing.text.trim() },
       });
-      setArticles((prev) =>
-        prev.map((a) => (a.id === updated.id ? { ...a, note: updated.note } : a)),
-      );
+      setArticles((prev) => prev.map((a) => (a.id === updated.id ? { ...a, note: updated.note } : a)));
       setEditing(null);
-      addToast(updated.note ? 'Note saved' : 'Note cleared', 'success');
+      addToast(updated.note ? "Note saved" : "Note cleared", "success");
     } catch (err) {
-      addToast((err as Error).message, 'error');
+      addToast((err as Error).message, "error");
     } finally {
       setSavingNote(false);
     }
   }
 
-  const sourceOptions = [
-    { value: '', label: 'All sources' },
-    ...sources.map((s) => ({ value: s.id, label: s.name })),
-  ];
+  const sourceOptions = [{ value: "", label: "All sources" }, ...sources.map((s) => ({ value: s.id, label: s.name }))];
 
   return (
     <div className={styles.panel}>
@@ -143,7 +138,7 @@ export default function LibraryPanel() {
           {articles.map((article) => (
             <Card key={article.id} padding="sm" className={styles.resultCard}>
               <div className={styles.resultMeta}>
-                <Mark>{article.sourceName || 'Manual'}</Mark>
+                <Mark>{article.sourceName || "Manual"}</Mark>
                 <span className={styles.metaText}>{formatDate(article.publishedAt)}</span>
                 {article.url && (
                   <a
@@ -158,9 +153,7 @@ export default function LibraryPanel() {
                 )}
               </div>
               <div className={styles.resultTitle}>{article.title}</div>
-              {article.excerpt && (
-                <p className={styles.resultExcerpt}>{excerpt(article.excerpt)}</p>
-              )}
+              {article.excerpt && <p className={styles.resultExcerpt}>{excerpt(article.excerpt)}</p>}
 
               {editing?.id === article.id ? (
                 <form className={styles.noteForm} onSubmit={handleSaveNote}>
@@ -174,8 +167,8 @@ export default function LibraryPanel() {
                     rows={2}
                     onChange={(e) => setEditing({ id: article.id, text: e.target.value })}
                     onKeyDown={(e) => {
-                      if (e.key === 'Escape') setEditing(null);
-                      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                      if (e.key === "Escape") setEditing(null);
+                      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
                         e.preventDefault();
                         e.currentTarget.form?.requestSubmit();
                       }
@@ -210,7 +203,7 @@ export default function LibraryPanel() {
                       variant="ghost"
                       onClick={() => setEditing({ id: article.id, text: article.note })}
                     >
-                      {article.note ? 'Edit note' : 'Add note'}
+                      {article.note ? "Edit note" : "Add note"}
                     </Button>
                     <Button size="sm" variant="danger" onClick={() => setDeleteTarget(article)}>
                       Delete

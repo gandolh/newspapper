@@ -1,6 +1,6 @@
-import { Component, type ErrorInfo, type ReactNode } from 'react';
-import { EmptyState } from './ui';
-import { withBase } from '@/lib/base';
+import { Component, type ErrorInfo, type ReactNode } from "react";
+import { EmptyState } from "./ui";
+import { withBase } from "@/lib/base";
 
 interface Props {
   children: ReactNode;
@@ -31,7 +31,7 @@ export default class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
-    console.error('Editor crashed', error, info.componentStack);
+    console.error("Editor crashed", error, info.componentStack);
   }
 
   render(): ReactNode {
@@ -41,11 +41,7 @@ export default class ErrorBoundary extends Component<Props, State> {
       <EmptyState
         title="This page hit an error"
         hint={`Something in it could not be shown: ${error.message}. Your saved posts are untouched.`}
-        action={
-          <a href={withBase(this.props.backHref ?? '/posts')}>
-            {this.props.backLabel ?? 'Back to your posts'}
-          </a>
-        }
+        action={<a href={withBase(this.props.backHref ?? "/posts")}>{this.props.backLabel ?? "Back to your posts"}</a>}
       />
     );
   }

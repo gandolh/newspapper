@@ -12,14 +12,14 @@
  * as no image at all).
  */
 
-import type { TNode, TStyle } from '../types.js';
-import { resolveUploadSrc } from '../uploads/index.js';
+import type { TNode, TStyle } from "../types.js";
+import { resolveUploadSrc } from "../uploads/index.js";
 
 const CSS_URL = /^url\((['"]?)(.*)\1\)$/;
 
 function resolveBackgroundImage(style: TStyle | undefined, baseUrl: string): TStyle | undefined {
-  const raw = style?.['backgroundImage'];
-  if (typeof raw !== 'string') return style;
+  const raw = style?.["backgroundImage"];
+  if (typeof raw !== "string") return style;
 
   const match = CSS_URL.exec(raw);
   if (!match) return style;
@@ -27,25 +27,25 @@ function resolveBackgroundImage(style: TStyle | undefined, baseUrl: string): TSt
   const resolved = resolveUploadSrc(match[2], baseUrl);
   const { backgroundImage: _drop, ...rest } = style as Record<string, string | number>;
   if (!resolved) return rest;
-  return { ...rest, backgroundImage: `url('${resolved.replace(/'/g, '%27')}')` };
+  return { ...rest, backgroundImage: `url('${resolved.replace(/'/g, "%27")}')` };
 }
 
 /** Resolve every `<Image>` reference in a compiled slide tree, recursively. */
 export function resolveImageUrls(node: TNode, baseUrl: string): TNode {
   switch (node.kind) {
-    case 'box':
+    case "box":
       return {
         ...node,
         style: resolveBackgroundImage(node.style, baseUrl),
         children: node.children?.map((child) => resolveImageUrls(child, baseUrl)),
       };
-    case 'repeat':
+    case "repeat":
       return {
         ...node,
         style: resolveBackgroundImage(node.style, baseUrl),
         children: node.children.map((child) => resolveImageUrls(child, baseUrl)),
       };
-    case 'text':
+    case "text":
       return node;
   }
 }

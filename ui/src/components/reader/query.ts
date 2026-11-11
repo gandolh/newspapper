@@ -4,17 +4,16 @@
  * The selection lives in component state, not in the URL: `router.tsx` knows
  * only the pathname, and extending it was left out of the Reader's first cut.
  */
-import type { ReaderCounts, Source } from '@/lib/types';
+import type { ReaderCounts, Source } from "@/lib/types";
 
 /** Unread only, or everything stored. */
-export type ReaderScope = 'unread' | 'all';
+export type ReaderScope = "unread" | "all";
 
 /**
  * A narrowing of the list to one source or one category. `category: null` is
  * the uncategorized group — a real selection, distinct from no narrowing.
  */
-export type Narrow =
-  { kind: 'source'; sourceId: string } | { kind: 'category'; category: string | null } | null;
+export type Narrow = { kind: "source"; sourceId: string } | { kind: "category"; category: string | null } | null;
 
 /**
  * `GET /api/reader/items` for a selection.
@@ -24,32 +23,27 @@ export type Narrow =
  * is set only for a category narrowing, and an uncategorized one sends it
  * blank on purpose. `scope` is always sent: absent would mean "all".
  */
-export function itemsPath(opts: {
-  scope: ReaderScope;
-  narrow: Narrow;
-  q: string;
-  cursor?: string | null;
-}): string {
+export function itemsPath(opts: { scope: ReaderScope; narrow: Narrow; q: string; cursor?: string | null }): string {
   const params = new URLSearchParams();
-  params.set('scope', opts.scope);
-  if (opts.narrow?.kind === 'source') params.set('sourceId', opts.narrow.sourceId);
-  if (opts.narrow?.kind === 'category') params.set('category', opts.narrow.category ?? '');
+  params.set("scope", opts.scope);
+  if (opts.narrow?.kind === "source") params.set("sourceId", opts.narrow.sourceId);
+  if (opts.narrow?.kind === "category") params.set("category", opts.narrow.category ?? "");
   const q = opts.q.trim();
-  if (q) params.set('q', q);
-  if (opts.cursor) params.set('cursor', opts.cursor);
+  if (q) params.set("q", q);
+  if (opts.cursor) params.set("cursor", opts.cursor);
   return `/api/reader/items?${params.toString()}`;
 }
 
 /** Two narrowings are the same selection. */
 export function sameNarrow(a: Narrow, b: Narrow): boolean {
   if (a === null || b === null) return a === b;
-  if (a.kind === 'source' && b.kind === 'source') return a.sourceId === b.sourceId;
-  if (a.kind === 'category' && b.kind === 'category') return a.category === b.category;
+  if (a.kind === "source" && b.kind === "source") return a.sourceId === b.sourceId;
+  if (a.kind === "category" && b.kind === "category") return a.category === b.category;
   return false;
 }
 
 /** A blank category is no category. */
-export function categoryOf(source: Pick<Source, 'category'>): string | null {
+export function categoryOf(source: Pick<Source, "category">): string | null {
   const c = source.category?.trim();
   return c ? c : null;
 }
@@ -84,7 +78,7 @@ export function groupSources(sources: Source[]): SourceGroup[] {
 /** Unread items under a narrowing (or everywhere, for `null`). */
 export function unreadIn(counts: ReaderCounts, narrow: Narrow, sources: Source[]): number {
   if (narrow === null) return counts.unread;
-  if (narrow.kind === 'source') return counts.unreadBySource[narrow.sourceId] ?? 0;
+  if (narrow.kind === "source") return counts.unreadBySource[narrow.sourceId] ?? 0;
   return sources
     .filter((s) => categoryOf(s) === narrow.category)
     .reduce((sum, s) => sum + (counts.unreadBySource[s.id] ?? 0), 0);

@@ -10,9 +10,9 @@
  * time (see `core/src/uploads`).
  */
 
-import sharp from 'sharp';
-import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import sharp from "sharp";
+import { readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 
 export const PUBLISH_JPEG_QUALITY = 85;
 
@@ -26,10 +26,7 @@ export function slideFilesIn(dir: string): string[] {
 }
 
 /** Re-encode one JPEG file in place at the given quality. */
-export async function optimizeSlideFile(
-  path: string,
-  quality: number = PUBLISH_JPEG_QUALITY,
-): Promise<void> {
+export async function optimizeSlideFile(path: string, quality: number = PUBLISH_JPEG_QUALITY): Promise<void> {
   const input = readFileSync(path);
   const output = await sharp(input).jpeg({ quality, mozjpeg: true }).toBuffer();
   writeFileSync(path, output);
@@ -40,10 +37,7 @@ export async function optimizeSlideFile(
  * files touched. Callers are responsible for not calling this twice on the
  * same render — see `publishPost`, which guards on the `optimized` flag.
  */
-export async function optimizeOutputDir(
-  dir: string,
-  quality: number = PUBLISH_JPEG_QUALITY,
-): Promise<number> {
+export async function optimizeOutputDir(dir: string, quality: number = PUBLISH_JPEG_QUALITY): Promise<number> {
   const files = slideFilesIn(dir);
   for (const name of files) {
     await optimizeSlideFile(join(dir, name), quality);

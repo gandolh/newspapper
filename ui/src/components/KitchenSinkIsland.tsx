@@ -7,7 +7,7 @@
  * QA, not a page of the product.
  */
 
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Button,
   Card,
@@ -32,15 +32,15 @@ import {
   ToastProvider,
   useToast,
   WAX,
-} from './ui';
-import styles from './KitchenSinkIsland.module.css';
+} from "./ui";
+import styles from "./KitchenSinkIsland.module.css";
 
-const SIZE_SCALE = ['xs', 'sm', 'md', 'lg', 'xl'].map((value) => ({ value }));
+const SIZE_SCALE = ["xs", "sm", "md", "lg", "xl"].map((value) => ({ value }));
 
 const SELECT_OPTIONS = [
-  { value: 'warm-industrial-1', label: 'warm-industrial-1' },
-  { value: 'warm-industrial-2', label: 'warm-industrial-2' },
-  { value: 'warm-industrial-3', label: 'warm-industrial-3' },
+  { value: "warm-industrial-1", label: "warm-industrial-1" },
+  { value: "warm-industrial-2", label: "warm-industrial-2" },
+  { value: "warm-industrial-3", label: "warm-industrial-3" },
 ];
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -56,13 +56,13 @@ function ToastDemo() {
   const { addToast } = useToast();
   return (
     <div className={styles.row}>
-      <Button size="sm" variant="secondary" onClick={() => addToast('Post saved.', 'success')}>
+      <Button size="sm" variant="secondary" onClick={() => addToast("Post saved.", "success")}>
         Toast done
       </Button>
-      <Button size="sm" variant="secondary" onClick={() => addToast('Render failed.', 'error')}>
+      <Button size="sm" variant="secondary" onClick={() => addToast("Render failed.", "error")}>
         Toast failed
       </Button>
-      <Button size="sm" variant="ghost" onClick={() => addToast('Scraping articles…', 'info')}>
+      <Button size="sm" variant="ghost" onClick={() => addToast("Scraping articles…", "info")}>
         Toast note
       </Button>
     </div>
@@ -74,8 +74,8 @@ export default function KitchenSinkIsland() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [progress, setProgress] = useState(40);
   const [toggleOn, setToggleOn] = useState(false);
-  const [theme, setTheme] = useState('warm-industrial-1');
-  const [size, setSize] = useState('md');
+  const [theme, setTheme] = useState("warm-industrial-1");
+  const [size, setSize] = useState("md");
 
   return (
     <ToastProvider>
@@ -86,9 +86,7 @@ export default function KitchenSinkIsland() {
         />
 
         <Section title="Marks">
-          <p className={styles.note}>
-            One mark per idea. Rubylith is the only way this app says “held out”.
-          </p>
+          <p className={styles.note}>One mark per idea. Rubylith is the only way this app says “held out”.</p>
           <div className={styles.row}>
             <Mark>Draft</Mark>
             <Mark tone="ink">3 slides</Mark>
@@ -120,9 +118,7 @@ export default function KitchenSinkIsland() {
               <RegisterTargets />
             </span>
           </div>
-          <Finding where="WZD201 · line 14, col 6">
-            Heading runs 3 characters past the measure at xl.
-          </Finding>
+          <Finding where="WZD201 · line 14, col 6">Heading runs 3 characters past the measure at xl.</Finding>
         </Section>
 
         <Section title="Buttons">
@@ -160,7 +156,7 @@ export default function KitchenSinkIsland() {
             <ChipRow
               label="align"
               hint="Held out — the markup does not parse."
-              options={[{ value: 'left' }, { value: 'center' }, { value: 'right' }]}
+              options={[{ value: "left" }, { value: "center" }, { value: "right" }]}
               value="center"
               equal
               disabled
@@ -181,18 +177,10 @@ export default function KitchenSinkIsland() {
             <ProgressBar value={progress} label="Rendering slides" showPercent />
             <ProgressBar value={30} variant="error" label="Failed at slide 2" showPercent />
             <div className={styles.row}>
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={() => setProgress((p) => Math.max(0, p - 10))}
-              >
+              <Button size="sm" variant="secondary" onClick={() => setProgress((p) => Math.max(0, p - 10))}>
                 −10
               </Button>
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={() => setProgress((p) => Math.min(100, p + 10))}
-              >
+              <Button size="sm" variant="secondary" onClick={() => setProgress((p) => Math.min(100, p + 10))}>
                 +10
               </Button>
             </div>
@@ -212,8 +200,8 @@ export default function KitchenSinkIsland() {
           <ToastDemo />
           <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Example modal">
             <p className={styles.note}>
-              A modal has to pick one of the two shadows. It is a slip waxed over the board, so it
-              takes the hard short one.
+              A modal has to pick one of the two shadows. It is a slip waxed over the board, so it takes the hard short
+              one.
             </p>
             <Button onClick={() => setModalOpen(false)}>Close</Button>
           </Modal>

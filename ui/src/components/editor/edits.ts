@@ -24,8 +24,8 @@ import {
   type WzdLoc,
   type WzdNode,
   type WzdText,
-} from '@newspapper/core/wizard';
-import { childrenAt, elementAtPath, isAncestorPath, type WzdPath } from './paths.js';
+} from "@newspapper/core/wizard";
+import { childrenAt, elementAtPath, isAncestorPath, type WzdPath } from "./paths.js";
 
 const ZERO: WzdLoc = {
   start: { offset: 0, line: 1, column: 1 },
@@ -37,7 +37,7 @@ const ZERO: WzdLoc = {
  * arriving from an input is flattened before it reaches the tree.
  */
 export function sanitizeText(value: string): string {
-  return value.replace(/</g, '').replace(/\s+/g, ' ').trim();
+  return value.replace(/</g, "").replace(/\s+/g, " ").trim();
 }
 
 /**
@@ -45,7 +45,7 @@ export function sanitizeText(value: string): string {
  * written in `.wzd` at all, so the double quotes give way.
  */
 export function sanitizeAttrValue(value: string): string {
-  const flat = value.replace(/\s+/g, ' ').trim();
+  const flat = value.replace(/\s+/g, " ").trim();
   return flat.includes('"') && flat.includes("'") ? flat.replace(/"/g, "'") : flat;
 }
 
@@ -55,7 +55,7 @@ function attr(name: string, value: string): WzdAttribute {
 
 function text(value: string): WzdText {
   return {
-    kind: 'text',
+    kind: "text",
     value: sanitizeText(value),
     raw: value,
     blankLineBefore: false,
@@ -63,14 +63,10 @@ function text(value: string): WzdText {
   };
 }
 
-export function makeElement(
-  type: string,
-  props: Record<string, string> = {},
-  children: WzdNode[] = [],
-): WzdElement {
+export function makeElement(type: string, props: Record<string, string> = {}, children: WzdNode[] = []): WzdElement {
   const entries = Object.entries(props).map(([k, v]) => [k, sanitizeAttrValue(v)] as const);
   return {
-    kind: 'element',
+    kind: "element",
     type,
     props: Object.fromEntries(entries),
     attributes: entries.map(([k, v]) => attr(k, v)),
@@ -87,38 +83,36 @@ export function makeElement(
 /** The element a palette drop inserts — enough content to be visible at once. */
 export function starterElement(name: string): WzdElement {
   switch (name) {
-    case 'Slide':
-      return makeElement('Slide', {}, [makeElement('Heading', {}, [text('New slide')])]);
-    case 'Stack':
-      return makeElement('Stack', {}, [makeElement('Text', {}, [text('Stacked copy')])]);
-    case 'Row':
-      return makeElement('Row', {}, [
-        makeElement('Text', {}, [text('Left column')]),
-        makeElement('Text', {}, [text('Right column')]),
+    case "Slide":
+      return makeElement("Slide", {}, [makeElement("Heading", {}, [text("New slide")])]);
+    case "Stack":
+      return makeElement("Stack", {}, [makeElement("Text", {}, [text("Stacked copy")])]);
+    case "Row":
+      return makeElement("Row", {}, [
+        makeElement("Text", {}, [text("Left column")]),
+        makeElement("Text", {}, [text("Right column")]),
       ]);
-    case 'List':
-      return makeElement('List', {}, [
-        makeElement('Item', {}, [text('First point')]),
-        makeElement('Item', {}, [text('Second point')]),
+    case "List":
+      return makeElement("List", {}, [
+        makeElement("Item", {}, [text("First point")]),
+        makeElement("Item", {}, [text("Second point")]),
       ]);
-    case 'Item':
-      return makeElement('Item', {}, [text('Another point')]);
-    case 'Quote':
-      return makeElement('Quote', { by: 'Someone worth quoting' }, [
-        text('The line you want people to remember.'),
-      ]);
-    case 'Stat':
-      return makeElement('Stat', { label: 'What it counts' }, [text('42')]);
-    case 'Image':
-      return makeElement('Image', { src: '' });
-    case 'Heading':
-      return makeElement('Heading', {}, [text('A heading')]);
-    case 'Text':
-      return makeElement('Text', {}, [text('A paragraph of body copy.')]);
-    case 'Kicker':
-      return makeElement('Kicker', {}, [text('Kicker')]);
-    case 'Source':
-      return makeElement('Source', {}, [text('Source name')]);
+    case "Item":
+      return makeElement("Item", {}, [text("Another point")]);
+    case "Quote":
+      return makeElement("Quote", { by: "Someone worth quoting" }, [text("The line you want people to remember.")]);
+    case "Stat":
+      return makeElement("Stat", { label: "What it counts" }, [text("42")]);
+    case "Image":
+      return makeElement("Image", { src: "" });
+    case "Heading":
+      return makeElement("Heading", {}, [text("A heading")]);
+    case "Text":
+      return makeElement("Text", {}, [text("A paragraph of body copy.")]);
+    case "Kicker":
+      return makeElement("Kicker", {}, [text("Kicker")]);
+    case "Source":
+      return makeElement("Source", {}, [text("Source name")]);
     default:
       return makeElement(name);
   }
@@ -172,7 +166,7 @@ export function setProp(source: string, path: WzdPath, name: string, value: stri
   return applyEdit(source, (doc) => {
     const el = elementAtPath(doc, path);
     if (!el) return false;
-    writeProp(el, name, value === null || value === '' ? null : value);
+    writeProp(el, name, value === null || value === "" ? null : value);
     return true;
   });
 }
@@ -197,12 +191,7 @@ export function setTextContent(source: string, path: WzdPath, value: string): st
 // ---------------------------------------------------------------------------
 
 /** Insert `node` as child `index` of the element at `parentPath`. */
-export function insertNode(
-  source: string,
-  parentPath: WzdPath,
-  index: number,
-  node: WzdNode,
-): string {
+export function insertNode(source: string, parentPath: WzdPath, index: number, node: WzdNode): string {
   return applyEdit(source, (doc) => {
     const siblings = childrenAt(doc, parentPath);
     if (!siblings) return false;
@@ -250,12 +239,7 @@ export function duplicateNode(source: string, path: WzdPath): string {
  * Move a node into a slot. `toIndex` is a slot between the target's existing
  * children — the only kind of drop this editor has, because the layout is flow.
  */
-export function moveNode(
-  source: string,
-  from: WzdPath,
-  toParent: WzdPath,
-  toIndex: number,
-): string {
+export function moveNode(source: string, from: WzdPath, toParent: WzdPath, toIndex: number): string {
   if (!from.length) return source;
   if (isAncestorPath(from, toParent) || from.join() === toParent.join()) return source;
   return applyEdit(source, (doc) => {
@@ -288,7 +272,7 @@ export function nudgeNode(source: string, path: WzdPath, delta: -1 | 1): string 
 // ---------------------------------------------------------------------------
 
 function headElement(doc: WzdDocument): WzdElement | null {
-  const found = doc.children.find((n) => isElement(n) && n.type === 'head');
+  const found = doc.children.find((n) => isElement(n) && n.type === "head");
   return found ? (found as WzdElement) : null;
 }
 
@@ -299,7 +283,7 @@ export function setHeadField(source: string, field: string, value: string): stri
     let head = headElement(doc);
     if (!head) {
       if (!clean) return false;
-      head = makeElement('head');
+      head = makeElement("head");
       doc.children.unshift(head);
     }
     const existing = head.children.findIndex((n) => isElement(n) && n.type === field);

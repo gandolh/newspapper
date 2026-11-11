@@ -16,32 +16,24 @@
  * being up. Anything not found on disk falls through to the network unchanged.
  */
 
-import { existsSync, readFileSync } from 'node:fs';
-import { resolve, sep, extname } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import type { BrowserContext } from 'playwright';
+import { existsSync, readFileSync } from "node:fs";
+import { resolve, sep, extname } from "node:path";
+import { fileURLToPath } from "node:url";
+import type { BrowserContext } from "playwright";
 
 /** `<repo>/assets/fonts` — four levels up from core/src/render/fonts.ts. */
-export const FONT_DIR: string = resolve(
-  fileURLToPath(import.meta.url),
-  '..',
-  '..',
-  '..',
-  '..',
-  'assets',
-  'fonts',
-);
+export const FONT_DIR: string = resolve(fileURLToPath(import.meta.url), "..", "..", "..", "..", "assets", "fonts");
 
 /** Requests routed to the local font directory. */
-export const FONT_ROUTE_GLOB = '**/assets/fonts/*';
+export const FONT_ROUTE_GLOB = "**/assets/fonts/*";
 
 const SAFE_NAME = /^[A-Za-z0-9._-]+\.(?:ttf|otf|woff2?)$/;
 
 const CONTENT_TYPES: Record<string, string> = {
-  '.ttf': 'font/ttf',
-  '.otf': 'font/otf',
-  '.woff': 'font/woff',
-  '.woff2': 'font/woff2',
+  ".ttf": "font/ttf",
+  ".otf": "font/otf",
+  ".woff": "font/woff",
+  ".woff2": "font/woff2",
 };
 
 /**
@@ -56,7 +48,7 @@ export function localFontPath(url: string): string | null {
   } catch {
     return null;
   }
-  const name = decodeURIComponent(pathname.split('/').pop() ?? '');
+  const name = decodeURIComponent(pathname.split("/").pop() ?? "");
   if (!SAFE_NAME.test(name)) return null;
 
   const file = resolve(FONT_DIR, name);
@@ -92,8 +84,8 @@ export async function installFontRoute(ctx: BrowserContext): Promise<void> {
     }
     await route.fulfill({
       status: 200,
-      contentType: CONTENT_TYPES[extname(file).toLowerCase()] ?? 'application/octet-stream',
-      headers: { 'access-control-allow-origin': '*' },
+      contentType: CONTENT_TYPES[extname(file).toLowerCase()] ?? "application/octet-stream",
+      headers: { "access-control-allow-origin": "*" },
       body: readFont(file),
     });
   });

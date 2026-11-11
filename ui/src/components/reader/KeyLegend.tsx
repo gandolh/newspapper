@@ -1,9 +1,9 @@
 /**
  * The `?` legend: every Reader key, in the existing `Modal`.
  */
-import { Modal } from '../ui';
-import { READER_KEYS } from './keys';
-import styles from './KeyLegend.module.css';
+import { Modal } from "../ui";
+import { READER_KEYS } from "./keys";
+import styles from "./KeyLegend.module.css";
 
 export default function KeyLegend({ open, onClose }: { open: boolean; onClose: () => void }) {
   return (
@@ -23,9 +23,7 @@ export default function KeyLegend({ open, onClose }: { open: boolean; onClose: (
           </div>
         ))}
       </dl>
-      <p className={styles.footnote}>
-        Keys do nothing while you are typing in a field. Esc leaves the filter.
-      </p>
+      <p className={styles.footnote}>Keys do nothing while you are typing in a field. Esc leaves the filter.</p>
     </Modal>
   );
 }

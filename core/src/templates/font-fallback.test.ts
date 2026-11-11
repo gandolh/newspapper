@@ -23,53 +23,53 @@
  * nothing ran" is the failure mode this file exists to avoid.
  */
 
-import { describe, it, expect, afterAll } from 'vitest';
+import { describe, it, expect, afterAll } from "vitest";
 
-import { listThemes, loadTheme } from '../themes/index.js';
-import { WZD_SAMPLES } from '../wizard/samples.js';
-import { compileSource } from '../wizard/compile.js';
-import { renderTemplate, resolveStyle, withFallbackFamily } from './interpreter.js';
-import type { Theme, TNode } from '../types.js';
-import { htmlToPng } from '../render/screenshot.js';
-import { probeChromium } from '../render/test-support/chromium.js';
+import { listThemes, loadTheme } from "../themes/index.js";
+import { WZD_SAMPLES } from "../wizard/samples.js";
+import { compileSource } from "../wizard/compile.js";
+import { renderTemplate, resolveStyle, withFallbackFamily } from "./interpreter.js";
+import type { Theme, TNode } from "../types.js";
+import { htmlToPng } from "../render/screenshot.js";
+import { probeChromium } from "../render/test-support/chromium.js";
 
 // ---------------------------------------------------------------------------
 // CSS generic families — the vocabulary a complete stack ends in
 // ---------------------------------------------------------------------------
 
 const GENERICS = new Set([
-  'serif',
-  'sans-serif',
-  'monospace',
-  'cursive',
-  'fantasy',
-  'system-ui',
-  'ui-serif',
-  'ui-sans-serif',
-  'ui-monospace',
-  'ui-rounded',
-  'math',
-  'emoji',
-  'fangsong',
+  "serif",
+  "sans-serif",
+  "monospace",
+  "cursive",
+  "fantasy",
+  "system-ui",
+  "ui-serif",
+  "ui-sans-serif",
+  "ui-monospace",
+  "ui-rounded",
+  "math",
+  "emoji",
+  "fangsong",
 ]);
 
 /** The generics that are actually sans. A slide of text must not land on serif. */
-const SANS_GENERICS = new Set(['sans-serif', 'ui-sans-serif', 'system-ui', 'ui-rounded']);
+const SANS_GENERICS = new Set(["sans-serif", "ui-sans-serif", "system-ui", "ui-rounded"]);
 
 function families(decl: string): string[] {
   return decl
-    .split(',')
+    .split(",")
     .map((s) => s.trim())
-    .filter((s) => s !== '');
+    .filter((s) => s !== "");
 }
 
 function bare(name: string): string {
-  return name.replace(/^(['"])(.*)\1$/, '$2').toLowerCase();
+  return name.replace(/^(['"])(.*)\1$/, "$2").toLowerCase();
 }
 
 function lastFamily(decl: string): string {
   const list = families(decl);
-  return bare(list[list.length - 1] ?? '');
+  return bare(list[list.length - 1] ?? "");
 }
 
 /**
@@ -78,8 +78,8 @@ function lastFamily(decl: string): string {
  * fallback stack would be meaningless.
  */
 function declaredFamilies(html: string): string[] {
-  const withoutFaces = html.replace(/@font-face\{[^}]*\}/g, '');
-  return [...withoutFaces.matchAll(/font-family:([^;"}]*)/g)].map((m) => (m[1] ?? '').trim());
+  const withoutFaces = html.replace(/@font-face\{[^}]*\}/g, "");
+  return [...withoutFaces.matchAll(/font-family:([^;"}]*)/g)].map((m) => (m[1] ?? "").trim());
 }
 
 // ---------------------------------------------------------------------------
@@ -88,31 +88,28 @@ function declaredFamilies(html: string): string[] {
 
 const themeNames = listThemes();
 
-describe('no emitted font-family is a bare family name', () => {
-  it('there is at least one theme on disk to check', () => {
-    expect(
-      themeNames.length,
-      'assets/design-systems is empty — this guard checked nothing',
-    ).toBeGreaterThan(0);
+describe("no emitted font-family is a bare family name", () => {
+  it("there is at least one theme on disk to check", () => {
+    expect(themeNames.length, "assets/design-systems is empty — this guard checked nothing").toBeGreaterThan(0);
   });
 
   for (const name of themeNames) {
     describe(name, () => {
       const theme = loadTheme(name);
 
-      it('every typography token resolves to a stack ending in a generic', () => {
+      it("every typography token resolves to a stack ending in a generic", () => {
         const tokens = Object.keys(theme.typography);
         expect(tokens.length, `theme "${name}" declares no typography tokens`).toBeGreaterThan(0);
 
         for (const token of tokens) {
-          const declared = theme.typography[token]?.fontFamily ?? '';
-          const emitted = resolveStyle({ typography: token }, theme)['font-family'] ?? '';
+          const declared = theme.typography[token]?.fontFamily ?? "";
+          const emitted = resolveStyle({ typography: token }, theme)["font-family"] ?? "";
           const list = families(emitted);
 
           expect(
             list.length,
             `${name}/${token}: font-family "${emitted}" is a bare family — when it fails ` +
-              'to load the slide falls back to the default serif',
+              "to load the slide falls back to the default serif",
           ).toBeGreaterThan(1);
 
           expect(
@@ -132,7 +129,7 @@ describe('no emitted font-family is a bare family name', () => {
         }
       });
 
-      it('no rendered slide carries a bare font-family', () => {
+      it("no rendered slide carries a bare font-family", () => {
         let checked = 0;
         for (const sample of WZD_SAMPLES) {
           const { slides } = compileSource(sample.source, theme);
@@ -140,7 +137,7 @@ describe('no emitted font-family is a bare family name', () => {
             const html = renderTemplate(slide, {}, theme, {
               index: i + 1,
               total: slides.length,
-              fontBaseUrl: '/assets/fonts',
+              fontBaseUrl: "/assets/fonts",
             });
             for (const decl of declaredFamilies(html)) {
               checked++;
@@ -158,27 +155,27 @@ describe('no emitted font-family is a bare family name', () => {
   }
 });
 
-describe('withFallbackFamily', () => {
-  it('appends a sans tail to a bare named family', () => {
-    expect(withFallbackFamily('Inter')).toBe('Inter,sans-serif');
+describe("withFallbackFamily", () => {
+  it("appends a sans tail to a bare named family", () => {
+    expect(withFallbackFamily("Inter")).toBe("Inter,sans-serif");
   });
 
-  it('passes the authored family through verbatim, quotes and all', () => {
-    expect(withFallbackFamily('Times New Roman')).toBe('Times New Roman,sans-serif');
+  it("passes the authored family through verbatim, quotes and all", () => {
+    expect(withFallbackFamily("Times New Roman")).toBe("Times New Roman,sans-serif");
     expect(withFallbackFamily("'Inter'")).toBe("'Inter',sans-serif");
   });
 
-  it('leaves a stack that already ends in a generic alone', () => {
+  it("leaves a stack that already ends in a generic alone", () => {
     expect(withFallbackFamily("'Playfair Display', serif")).toBe("'Playfair Display',serif");
-    expect(withFallbackFamily('monospace')).toBe('monospace');
+    expect(withFallbackFamily("monospace")).toBe("monospace");
   });
 
-  it('keeps every family in a multi-family stack, in order', () => {
-    expect(withFallbackFamily('Inter, Helvetica')).toBe('Inter,Helvetica,sans-serif');
+  it("keeps every family in a multi-family stack, in order", () => {
+    expect(withFallbackFamily("Inter, Helvetica")).toBe("Inter,Helvetica,sans-serif");
   });
 
-  it('degrades an empty declaration to the generic rather than emitting nothing', () => {
-    expect(withFallbackFamily('  ')).toBe('sans-serif');
+  it("degrades an empty declaration to the generic rather than emitting nothing", () => {
+    expect(withFallbackFamily("  ")).toBe("sans-serif");
   });
 });
 
@@ -186,10 +183,7 @@ describe('withFallbackFamily', () => {
 // 2. Pixel — the fallback is a sans, proved by rendering it
 // ---------------------------------------------------------------------------
 
-const chromium = await probeChromium(
-  'font-fallback.test',
-  'that the fallback stack renders as a sans',
-);
+const chromium = await probeChromium("font-fallback.test", "that the fallback stack renders as a sans");
 
 afterAll(() => chromium.close());
 
@@ -197,38 +191,38 @@ afterAll(() => chromium.close());
 function themeWithFamily(fontFamily: string): Theme {
   return {
     name: `fallback-${fontFamily}`,
-    colors: { surface: '#ffffff', 'on-surface': '#000000' },
+    colors: { surface: "#ffffff", "on-surface": "#000000" },
     typography: {
-      display: { fontFamily, fontSize: '96px', fontWeight: '800', lineHeight: '1.1' },
-      'body-md': { fontFamily, fontSize: '48px', fontWeight: '400', lineHeight: '1.4' },
+      display: { fontFamily, fontSize: "96px", fontWeight: "800", lineHeight: "1.1" },
+      "body-md": { fontFamily, fontSize: "48px", fontWeight: "400", lineHeight: "1.4" },
     },
-    rounded: { md: '0.75rem' },
-    spacing: { md: '24px' },
-    shapes: { borderRadius: '0.5rem', borderWidth: '2px' },
+    rounded: { md: "0.75rem" },
+    spacing: { md: "24px" },
+    shapes: { borderRadius: "0.5rem", borderWidth: "2px" },
   };
 }
 
 const slide: TNode = {
-  kind: 'box',
+  kind: "box",
   style: {
-    width: '1080px',
-    height: '1080px',
-    background: '$color.surface',
-    padding: '$spacing.md',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '$spacing.md',
+    width: "1080px",
+    height: "1080px",
+    background: "$color.surface",
+    padding: "$spacing.md",
+    display: "flex",
+    flexDirection: "column",
+    gap: "$spacing.md",
   },
   children: [
     {
-      kind: 'text',
-      style: { typography: 'display', color: '$color.on-surface' },
-      text: 'Handgloves 0123',
+      kind: "text",
+      style: { typography: "display", color: "$color.on-surface" },
+      text: "Handgloves 0123",
     },
     {
-      kind: 'text',
-      style: { typography: 'body-md', color: '$color.on-surface' },
-      text: 'The quick brown fox jumps over the lazy dog.',
+      kind: "text",
+      style: { typography: "body-md", color: "$color.on-surface" },
+      text: "The quick brown fox jumps over the lazy dog.",
     },
   ],
 };
@@ -239,41 +233,38 @@ function html(fontFamily: string): string {
     total: 1,
     // A path no font is served from: the family under test is the only thing
     // deciding these pixels.
-    fontBaseUrl: '/assets/fonts',
+    fontBaseUrl: "/assets/fonts",
   });
 }
 
-describe('the fallback a missing face lands on is a sans', () => {
-  it('renders as sans-serif, not as the browser default serif', async (ctx) => {
+describe("the fallback a missing face lands on is a sans", () => {
+  it("renders as sans-serif, not as the browser default serif", async (ctx) => {
     if (!chromium.orSkip((note) => ctx.skip(note))) return;
 
     // Nothing on the machine may answer to this name, so the stack's tail is
     // what draws the text.
-    const missing = await htmlToPng(html('NoSuchFaceOnThisMachine'));
-    const sans = await htmlToPng(html('sans-serif'));
-    const sansAgain = await htmlToPng(html('sans-serif'));
-    const serif = await htmlToPng(html('serif'));
+    const missing = await htmlToPng(html("NoSuchFaceOnThisMachine"));
+    const sans = await htmlToPng(html("sans-serif"));
+    const sansAgain = await htmlToPng(html("sans-serif"));
+    const serif = await htmlToPng(html("serif"));
 
     expect(
       sans.equals(sansAgain),
-      'two renders of the same slide differ — the comparisons below are noise, not signal',
+      "two renders of the same slide differ — the comparisons below are noise, not signal",
     ).toBe(true);
 
     expect(
       sans.equals(serif),
-      'this machine draws generic serif and generic sans-serif identically, so ' +
-        'the assertion below could not tell them apart',
+      "this machine draws generic serif and generic sans-serif identically, so " +
+        "the assertion below could not tell them apart",
     ).toBe(false);
 
     expect(
       missing.equals(serif),
-      'a slide whose face does not exist rendered identically to an explicitly ' +
-        'serif slide — the emitted font-family has no sans fallback',
+      "a slide whose face does not exist rendered identically to an explicitly " +
+        "serif slide — the emitted font-family has no sans fallback",
     ).toBe(false);
 
-    expect(
-      missing.equals(sans),
-      'a slide whose face does not exist did not render as generic sans-serif',
-    ).toBe(true);
+    expect(missing.equals(sans), "a slide whose face does not exist did not render as generic sans-serif").toBe(true);
   }, 60_000);
 });

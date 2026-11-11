@@ -7,16 +7,16 @@
  *   - zipRun
  */
 
-import { describe, it, expect, afterAll } from 'vitest';
-import { mkdtemp, rm, readdir, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
-import { tmpdir } from 'node:os';
-import { unzipSync } from 'fflate';
+import { describe, it, expect, afterAll } from "vitest";
+import { mkdtemp, rm, readdir, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { unzipSync } from "fflate";
 
-import { htmlToJpeg } from './screenshot.js';
-import { nextOutputDir, reserveOutputDir, writeRun } from './output.js';
-import { renderSlides, zipRun, THUMB_FILE } from './index.js';
-import { probeChromium } from './test-support/chromium.js';
+import { htmlToJpeg } from "./screenshot.js";
+import { nextOutputDir, reserveOutputDir, writeRun } from "./output.js";
+import { renderSlides, zipRun, THUMB_FILE } from "./index.js";
+import { probeChromium } from "./test-support/chromium.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -28,7 +28,7 @@ const JPEG_MAGIC = Buffer.from([0xff, 0xd8, 0xff]);
 function parseJpegDimensions(buf: Buffer): { width: number; height: number } {
   let offset = 2; // skip SOI (0xFFD8)
   while (offset < buf.length) {
-    if (buf[offset] !== 0xff) throw new Error('Malformed JPEG marker');
+    if (buf[offset] !== 0xff) throw new Error("Malformed JPEG marker");
     const marker = buf[offset + 1];
     // SOF0..SOF3, SOF5..SOF7, SOF9..SOF11, SOF13..SOF15 all carry dimensions
     // in the same layout; standard baseline/progressive JPEGs use C0 or C2.
@@ -40,14 +40,14 @@ function parseJpegDimensions(buf: Buffer): { width: number; height: number } {
     const length = buf.readUInt16BE(offset + 2);
     offset += 2 + length;
   }
-  throw new Error('No SOF marker found');
+  throw new Error("No SOF marker found");
 }
 
 // ---------------------------------------------------------------------------
 // Browser availability guard
 // ---------------------------------------------------------------------------
 
-const chromium = await probeChromium('render.test', 'the rendered JPEG bytes');
+const chromium = await probeChromium("render.test", "the rendered JPEG bytes");
 
 afterAll(() => chromium.close());
 
@@ -55,8 +55,8 @@ afterAll(() => chromium.close());
 // htmlToJpeg
 // ---------------------------------------------------------------------------
 
-describe('htmlToJpeg', () => {
-  it('returns a JPEG with 1080×1080 dimensions', async (ctx) => {
+describe("htmlToJpeg", () => {
+  it("returns a JPEG with 1080×1080 dimensions", async (ctx) => {
     if (!chromium.orSkip((note) => ctx.skip(note))) return;
 
     const html =
@@ -70,7 +70,7 @@ describe('htmlToJpeg', () => {
     expect(height).toBe(1080);
   });
 
-  it('respects custom dimensions', async (ctx) => {
+  it("respects custom dimensions", async (ctx) => {
     if (!chromium.orSkip((note) => ctx.skip(note))) return;
 
     const html =
@@ -83,7 +83,7 @@ describe('htmlToJpeg', () => {
     expect(height).toBe(300);
   });
 
-  it('a lower quality produces a smaller file for the same image', async (ctx) => {
+  it("a lower quality produces a smaller file for the same image", async (ctx) => {
     if (!chromium.orSkip((note) => ctx.skip(note))) return;
 
     // A busy gradient so JPEG quality actually affects size (a flat fill
@@ -91,7 +91,7 @@ describe('htmlToJpeg', () => {
     const html =
       '<html><body style="margin:0"><div style="width:600px;height:600px;' +
       'background:repeating-linear-gradient(45deg,#a2391a,#1a3ba2 3px,#2f9e44 6px,#f2b705 9px)">' +
-      '</div></body></html>';
+      "</div></body></html>";
 
     const high = await htmlToJpeg(html, { width: 600, height: 600, quality: 95 });
     const low = await htmlToJpeg(html, { width: 600, height: 600, quality: 40 });
@@ -104,91 +104,90 @@ describe('htmlToJpeg', () => {
 // nextOutputDir
 // ---------------------------------------------------------------------------
 
-describe('reserveOutputDir', () => {
-  it('two reservations with nothing written between them get distinct, existing dirs', async () => {
-    const tmpRoot = await mkdtemp(join(tmpdir(), 'rod-'));
+describe("reserveOutputDir", () => {
+  it("two reservations with nothing written between them get distinct, existing dirs", async () => {
+    const tmpRoot = await mkdtemp(join(tmpdir(), "rod-"));
     try {
-      const a = reserveOutputDir('2024-01-15', tmpRoot);
-      const b = reserveOutputDir('2024-01-15', tmpRoot);
+      const a = reserveOutputDir("2024-01-15", tmpRoot);
+      const b = reserveOutputDir("2024-01-15", tmpRoot);
       expect(a).toMatch(/2024-01-15-1$/);
       expect(b).toMatch(/2024-01-15-2$/);
-      expect((await readdir(tmpRoot)).sort()).toEqual(['2024-01-15-1', '2024-01-15-2']);
+      expect((await readdir(tmpRoot)).sort()).toEqual(["2024-01-15-1", "2024-01-15-2"]);
     } finally {
       await rm(tmpRoot, { recursive: true, force: true });
     }
   });
 
-  it('skips a number another writer took after the scan', async () => {
-    const tmpRoot = await mkdtemp(join(tmpdir(), 'rod-race-'));
+  it("skips a number another writer took after the scan", async () => {
+    const tmpRoot = await mkdtemp(join(tmpdir(), "rod-race-"));
     try {
       // `nextOutputDir` would say -1; someone creates it first.
-      expect(nextOutputDir('2024-01-15', tmpRoot)).toMatch(/-1$/);
-      const { mkdirSync } = await import('node:fs');
-      mkdirSync(join(tmpRoot, '2024-01-15-1'));
-      expect(reserveOutputDir('2024-01-15', tmpRoot)).toMatch(/2024-01-15-2$/);
+      expect(nextOutputDir("2024-01-15", tmpRoot)).toMatch(/-1$/);
+      const { mkdirSync } = await import("node:fs");
+      mkdirSync(join(tmpRoot, "2024-01-15-1"));
+      expect(reserveOutputDir("2024-01-15", tmpRoot)).toMatch(/2024-01-15-2$/);
     } finally {
       await rm(tmpRoot, { recursive: true, force: true });
     }
   });
 
-  it('two concurrent renders never share a directory', async (ctx) => {
+  it("two concurrent renders never share a directory", async (ctx) => {
     if (!chromium.orSkip((note) => ctx.skip(note))) return;
-    const tmpRoot = await mkdtemp(join(tmpdir(), 'rod-render-'));
+    const tmpRoot = await mkdtemp(join(tmpdir(), "rod-render-"));
     try {
-      const page = (text: string) =>
-        `<html><body style="margin:0;width:1080px;height:1080px">${text}</body></html>`;
+      const page = (text: string) => `<html><body style="margin:0;width:1080px;height:1080px">${text}</body></html>`;
       const [a, b] = await Promise.all([
-        renderSlides([page('A'), page('A2')], {
-          date: '2024-01-15',
-          slidesJson: { who: 'A' },
+        renderSlides([page("A"), page("A2")], {
+          date: "2024-01-15",
+          slidesJson: { who: "A" },
           outputRoot: tmpRoot,
         }),
-        renderSlides([page('B')], {
-          date: '2024-01-15',
-          slidesJson: { who: 'B' },
+        renderSlides([page("B")], {
+          date: "2024-01-15",
+          slidesJson: { who: "B" },
           outputRoot: tmpRoot,
         }),
       ]);
       expect(a.dir).not.toBe(b.dir);
-      expect((await readdir(a.dir)).filter((f) => f.startsWith('slide-'))).toHaveLength(2);
-      expect((await readdir(b.dir)).filter((f) => f.startsWith('slide-'))).toHaveLength(1);
+      expect((await readdir(a.dir)).filter((f) => f.startsWith("slide-"))).toHaveLength(2);
+      expect((await readdir(b.dir)).filter((f) => f.startsWith("slide-"))).toHaveLength(1);
     } finally {
       await rm(tmpRoot, { recursive: true, force: true });
     }
   });
 });
 
-describe('nextOutputDir', () => {
-  it('returns -1 for an empty root', async () => {
-    const tmpRoot = await mkdtemp(join(tmpdir(), 'nod-empty-'));
+describe("nextOutputDir", () => {
+  it("returns -1 for an empty root", async () => {
+    const tmpRoot = await mkdtemp(join(tmpdir(), "nod-empty-"));
     try {
-      const dir = nextOutputDir('2024-01-15', tmpRoot);
+      const dir = nextOutputDir("2024-01-15", tmpRoot);
       expect(dir).toMatch(/2024-01-15-1$/);
     } finally {
       await rm(tmpRoot, { recursive: true, force: true });
     }
   });
 
-  it('increments past existing dirs', async () => {
-    const tmpRoot = await mkdtemp(join(tmpdir(), 'nod-existing-'));
+  it("increments past existing dirs", async () => {
+    const tmpRoot = await mkdtemp(join(tmpdir(), "nod-existing-"));
     try {
       // Create two existing run dirs for the same date.
-      await import('node:fs').then(({ mkdirSync }) => {
-        mkdirSync(join(tmpRoot, '2024-01-15-1'));
-        mkdirSync(join(tmpRoot, '2024-01-15-2'));
+      await import("node:fs").then(({ mkdirSync }) => {
+        mkdirSync(join(tmpRoot, "2024-01-15-1"));
+        mkdirSync(join(tmpRoot, "2024-01-15-2"));
       });
 
-      const dir = nextOutputDir('2024-01-15', tmpRoot);
+      const dir = nextOutputDir("2024-01-15", tmpRoot);
       expect(dir).toMatch(/2024-01-15-3$/);
     } finally {
       await rm(tmpRoot, { recursive: true, force: true });
     }
   });
 
-  it('does not create the directory', async () => {
-    const tmpRoot = await mkdtemp(join(tmpdir(), 'nod-nocreate-'));
+  it("does not create the directory", async () => {
+    const tmpRoot = await mkdtemp(join(tmpdir(), "nod-nocreate-"));
     try {
-      const dir = nextOutputDir('2024-01-15', tmpRoot);
+      const dir = nextOutputDir("2024-01-15", tmpRoot);
       const entries = await readdir(tmpRoot);
       expect(entries).toHaveLength(0);
       expect(dir).toBeTruthy();
@@ -197,16 +196,16 @@ describe('nextOutputDir', () => {
     }
   });
 
-  it('ignores other dates', async () => {
-    const tmpRoot = await mkdtemp(join(tmpdir(), 'nod-other-'));
+  it("ignores other dates", async () => {
+    const tmpRoot = await mkdtemp(join(tmpdir(), "nod-other-"));
     try {
-      await import('node:fs').then(({ mkdirSync }) => {
-        mkdirSync(join(tmpRoot, '2024-01-14-1'));
-        mkdirSync(join(tmpRoot, '2024-01-14-99'));
+      await import("node:fs").then(({ mkdirSync }) => {
+        mkdirSync(join(tmpRoot, "2024-01-14-1"));
+        mkdirSync(join(tmpRoot, "2024-01-14-99"));
       });
 
       // Different date — should still start at -1.
-      const dir = nextOutputDir('2024-01-15', tmpRoot);
+      const dir = nextOutputDir("2024-01-15", tmpRoot);
       expect(dir).toMatch(/2024-01-15-1$/);
     } finally {
       await rm(tmpRoot, { recursive: true, force: true });
@@ -218,19 +217,19 @@ describe('nextOutputDir', () => {
 // writeRun
 // ---------------------------------------------------------------------------
 
-describe('writeRun', () => {
-  it('removes stale .png files already sitting in the target directory', async () => {
-    const tmpRoot = await mkdtemp(join(tmpdir(), 'write-run-stale-png-'));
+describe("writeRun", () => {
+  it("removes stale .png files already sitting in the target directory", async () => {
+    const tmpRoot = await mkdtemp(join(tmpdir(), "write-run-stale-png-"));
     try {
-      const dir = join(tmpRoot, 'run-1');
-      await import('node:fs').then(({ mkdirSync }) => mkdirSync(dir, { recursive: true }));
-      await writeFile(join(dir, '1.png'), Buffer.from('stale'));
-      await writeFile(join(dir, '2.png'), Buffer.from('stale'));
+      const dir = join(tmpRoot, "run-1");
+      await import("node:fs").then(({ mkdirSync }) => mkdirSync(dir, { recursive: true }));
+      await writeFile(join(dir, "1.png"), Buffer.from("stale"));
+      await writeFile(join(dir, "2.png"), Buffer.from("stale"));
 
-      await writeRun(dir, [{ name: 'slide-01.jpg', data: Buffer.from('jpeg-bytes') }]);
+      await writeRun(dir, [{ name: "slide-01.jpg", data: Buffer.from("jpeg-bytes") }]);
 
       const entries = await readdir(dir);
-      expect(entries).toEqual(['slide-01.jpg']);
+      expect(entries).toEqual(["slide-01.jpg"]);
     } finally {
       await rm(tmpRoot, { recursive: true, force: true });
     }
@@ -241,11 +240,11 @@ describe('writeRun', () => {
 // renderSlides
 // ---------------------------------------------------------------------------
 
-describe('renderSlides', () => {
-  it('creates slide-01.jpg, slide-02.jpg, slides.json, caption.txt and fires progress', async (ctx) => {
+describe("renderSlides", () => {
+  it("creates slide-01.jpg, slide-02.jpg, slides.json, caption.txt and fires progress", async (ctx) => {
     if (!chromium.orSkip((note) => ctx.skip(note))) return;
 
-    const tmpRoot = await mkdtemp(join(tmpdir(), 'render-slides-'));
+    const tmpRoot = await mkdtemp(join(tmpdir(), "render-slides-"));
     try {
       const red =
         '<html><body style="margin:0"><div style="width:1080px;height:1080px;background:red"></div></body></html>';
@@ -255,9 +254,9 @@ describe('renderSlides', () => {
       const progressCalls: [number, number][] = [];
 
       const result = await renderSlides([red, blue], {
-        date: '2024-01-15',
-        slidesJson: { title: 'Test post', slides: [] },
-        caption: 'Hello caption',
+        date: "2024-01-15",
+        slidesJson: { title: "Test post", slides: [] },
+        caption: "Hello caption",
         outputRoot: tmpRoot,
         onProgress: (done, total) => progressCalls.push([done, total]),
       });
@@ -270,11 +269,11 @@ describe('renderSlides', () => {
 
       // Output dir exists, with JPEGs only.
       const entries = await readdir(result.dir);
-      expect(entries).toContain('slide-01.jpg');
-      expect(entries).toContain('slide-02.jpg');
-      expect(entries).toContain('slides.json');
-      expect(entries).toContain('caption.txt');
-      expect(entries.some((n) => n.endsWith('.png'))).toBe(false);
+      expect(entries).toContain("slide-01.jpg");
+      expect(entries).toContain("slide-02.jpg");
+      expect(entries).toContain("slides.json");
+      expect(entries).toContain("caption.txt");
+      expect(entries.some((n) => n.endsWith(".png"))).toBe(false);
 
       // files array contains absolute paths in the right order.
       expect(result.files[0]).toMatch(/slide-01\.jpg$/);
@@ -284,22 +283,22 @@ describe('renderSlides', () => {
     }
   });
 
-  it('omits caption.txt when caption is not provided', async (ctx) => {
+  it("omits caption.txt when caption is not provided", async (ctx) => {
     if (!chromium.orSkip((note) => ctx.skip(note))) return;
 
-    const tmpRoot = await mkdtemp(join(tmpdir(), 'render-nocap-'));
+    const tmpRoot = await mkdtemp(join(tmpdir(), "render-nocap-"));
     try {
       const html =
         '<html><body style="margin:0"><div style="width:1080px;height:1080px;background:green"></div></body></html>';
 
       const result = await renderSlides([html], {
-        date: '2024-01-16',
+        date: "2024-01-16",
         slidesJson: {},
         outputRoot: tmpRoot,
       });
 
       const entries = await readdir(result.dir);
-      expect(entries).not.toContain('caption.txt');
+      expect(entries).not.toContain("caption.txt");
     } finally {
       await rm(tmpRoot, { recursive: true, force: true });
     }
@@ -310,19 +309,19 @@ describe('renderSlides', () => {
 // zipRun
 // ---------------------------------------------------------------------------
 
-describe('zipRun', () => {
-  it('round-trips file names through a ZIP archive', async (ctx) => {
+describe("zipRun", () => {
+  it("round-trips file names through a ZIP archive", async (ctx) => {
     if (!chromium.orSkip((note) => ctx.skip(note))) return;
 
-    const tmpRoot = await mkdtemp(join(tmpdir(), 'zip-run-'));
+    const tmpRoot = await mkdtemp(join(tmpdir(), "zip-run-"));
     try {
       const html =
         '<html><body style="margin:0"><div style="width:1080px;height:1080px;background:#333"></div></body></html>';
 
       const { dir } = await renderSlides([html], {
-        date: '2024-01-17',
+        date: "2024-01-17",
         slidesJson: { test: true },
-        caption: 'zip test',
+        caption: "zip test",
         outputRoot: tmpRoot,
       });
 
@@ -332,46 +331,46 @@ describe('zipRun', () => {
       const unzipped = unzipSync(new Uint8Array(zipBuf));
       const names = Object.keys(unzipped).sort();
 
-      expect(names).toContain('slide-01.jpg');
-      expect(names).toContain('slides.json');
-      expect(names).toContain('caption.txt');
+      expect(names).toContain("slide-01.jpg");
+      expect(names).toContain("slides.json");
+      expect(names).toContain("caption.txt");
     } finally {
       await rm(tmpRoot, { recursive: true, force: true });
     }
   });
 });
 
-describe('the grid thumbnail', () => {
-  it('a render writes a 220 px thumb.jpg, far smaller than the slide, and the export leaves it out', async (ctx) => {
+describe("the grid thumbnail", () => {
+  it("a render writes a 220 px thumb.jpg, far smaller than the slide, and the export leaves it out", async (ctx) => {
     if (!chromium.orSkip((note) => ctx.skip(note))) return;
-    const tmpRoot = await mkdtemp(join(tmpdir(), 'thumb-'));
+    const tmpRoot = await mkdtemp(join(tmpdir(), "thumb-"));
     try {
       const noisy = Array.from(
         { length: 400 },
         (_, i) =>
           `<div style="position:absolute;left:${(i * 37) % 1080}px;top:${(i * 53) % 1080}px;width:60px;height:60px;background:hsl(${i * 47},70%,50%)"></div>`,
-      ).join('');
+      ).join("");
       const run = await renderSlides(
         [`<html><body style="margin:0;width:1080px;height:1080px">${noisy}</body></html>`],
         {
-          date: '2024-02-02',
+          date: "2024-02-02",
           slidesJson: {},
           outputRoot: tmpRoot,
         },
       );
       expect(run.thumb).toBe(join(run.dir, THUMB_FILE));
-      const sharp = (await import('sharp')).default;
+      const sharp = (await import("sharp")).default;
       const meta = await sharp(run.thumb!).metadata();
       expect([meta.width, meta.height]).toEqual([220, 220]);
-      const { statSync } = await import('node:fs');
-      const slideBytes = statSync(join(run.dir, 'slide-01.jpg')).size;
+      const { statSync } = await import("node:fs");
+      const slideBytes = statSync(join(run.dir, "slide-01.jpg")).size;
       const thumbBytes = statSync(run.thumb!).size;
       expect(thumbBytes * 5).toBeLessThan(slideBytes);
       // Not in the run's file list, and not in the export.
       expect(run.files.some((f) => f.endsWith(THUMB_FILE))).toBe(false);
       const names = Object.keys(unzipSync(new Uint8Array(await zipRun(run.dir))));
       expect(names).not.toContain(THUMB_FILE);
-      expect(names).toContain('slide-01.jpg');
+      expect(names).toContain("slide-01.jpg");
       process.stderr.write(`[thumb] slide-01 ${slideBytes} bytes, thumb ${thumbBytes} bytes\n`);
     } finally {
       await rm(tmpRoot, { recursive: true, force: true });

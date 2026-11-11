@@ -1,6 +1,6 @@
-import { createRoot } from 'react-dom/client';
-import Routes from './routes';
-import './styles/global.css';
+import { createRoot } from "react-dom/client";
+import Routes from "./routes";
+import "./styles/global.css";
 
 /**
  * The single entry point. Astro mounted five separate `client:load` islands
@@ -12,7 +12,7 @@ import './styles/global.css';
  * change. It is worth doing on its own, once the effects it would flag are
  * settled.
  */
-const root = document.getElementById('root');
-if (!root) throw new Error('#root is missing from index.html');
+const root = document.getElementById("root");
+if (!root) throw new Error("#root is missing from index.html");
 
 createRoot(root).render(<Routes />);

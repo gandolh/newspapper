@@ -1,8 +1,8 @@
-import type { DB } from './db.js';
-import type { Article, FeedItem, FeedItemPage, FeedItemSummary, ReaderCounts } from '../types.js';
-import { stripHtml } from '../scrape/body.js';
-import { saveArticle } from './articles.js';
-import { normalizeCategory } from './sources.js';
+import type { DB } from "./db.js";
+import type { Article, FeedItem, FeedItemPage, FeedItemSummary, ReaderCounts } from "../types.js";
+import { stripHtml } from "../scrape/body.js";
+import { saveArticle } from "./articles.js";
+import { normalizeCategory } from "./sources.js";
 
 /*
  * The Reader's stored items (schema v6). An item is a feed entry
@@ -37,12 +37,12 @@ export const MAX_PAGE_SIZE = 200;
 /** Cut `html` to at most `maxBytes` of UTF-8, never inside a character. The
  * markup may end mid-tag; the UI's sanitizer closes what it keeps. */
 export function capUtf8(html: string, maxBytes: number = MAX_CONTENT_HTML_BYTES): string {
-  const bytes = Buffer.from(html, 'utf8');
+  const bytes = Buffer.from(html, "utf8");
   if (bytes.byteLength <= maxBytes) return html;
   let end = maxBytes;
   // Back off continuation bytes (10xxxxxx) to the start of a character.
   while (end > 0 && (bytes[end]! & 0xc0) === 0x80) end -= 1;
-  return bytes.subarray(0, end).toString('utf8');
+  return bytes.subarray(0, end).toString("utf8");
 }
 
 /** Only absolute http(s) links are stored: the URL becomes an `href` in the
@@ -50,7 +50,7 @@ export function capUtf8(html: string, maxBytes: number = MAX_CONTENT_HTML_BYTES)
 function isHttpUrl(raw: string): boolean {
   try {
     const { protocol } = new URL(raw);
-    return protocol === 'http:' || protocol === 'https:';
+    return protocol === "http:" || protocol === "https:";
   } catch {
     return false;
   }
@@ -71,12 +71,7 @@ function sortAtFor(publishedAt: string | null, fetchedAt: string): string {
  * and the first fetch time survive every refresh. Items without an absolute
  * http(s) link are skipped. Returns how many rows were inserted.
  */
-export function insertFeedItems(
-  db: DB,
-  sourceId: string,
-  items: readonly NewFeedItem[],
-  fetchedAt: string,
-): number {
+export function insertFeedItems(db: DB, sourceId: string, items: readonly NewFeedItem[], fetchedAt: string): number {
   const insert = db.prepare(
     `INSERT INTO feed_items
        (source_id, guid, title, url, author, content_html, content_text,
@@ -89,13 +84,13 @@ export function insertFeedItems(
   let inserted = 0;
   db.transaction(() => {
     for (const item of items) {
-      if (typeof item.url !== 'string' || !isHttpUrl(item.url)) continue;
-      const html = capUtf8(item.contentHtml ?? '');
+      if (typeof item.url !== "string" || !isHttpUrl(item.url)) continue;
+      const html = capUtf8(item.contentHtml ?? "");
       const publishedAt = item.publishedAt ?? null;
       const r = insert.run({
         source_id: sourceId,
         guid: item.url,
-        title: typeof item.title === 'string' ? item.title : '',
+        title: typeof item.title === "string" ? item.title : "",
         url: item.url,
         author: item.author ?? null,
         content_html: html,
@@ -121,8 +116,8 @@ const withLower = new WeakSet<DB>();
 
 function ensureLower(db: DB): void {
   if (withLower.has(db)) return;
-  db.function('np_lower', { deterministic: true }, (value: unknown) =>
-    typeof value === 'string' ? value.toLowerCase() : value,
+  db.function("np_lower", { deterministic: true }, (value: unknown) =>
+    typeof value === "string" ? value.toLowerCase() : value,
   );
   withLower.add(db);
 }
@@ -132,14 +127,14 @@ function ensureLower(db: DB): void {
 export function filterTerms(q: string | undefined): string[] {
   if (!q) return [];
   return q
-    .split(',')
+    .split(",")
     .map((t) => t.trim().toLowerCase())
     .filter(Boolean);
 }
 
 // ---- Listing ----
 
-export type FeedItemScope = 'unread' | 'all';
+export type FeedItemScope = "unread" | "all";
 
 export interface FeedItemQuery {
   /** `unread` (only items never marked read) or `all`. Default `all`. */
@@ -162,24 +157,19 @@ export interface FeedItemQuery {
 /** A cursor that did not come from `listFeedItems`. */
 export class InvalidCursorError extends Error {
   constructor() {
-    super('Invalid cursor');
-    this.name = 'InvalidCursorError';
+    super("Invalid cursor");
+    this.name = "InvalidCursorError";
   }
 }
 
 function encodeCursor(sortAt: string, id: number): string {
-  return Buffer.from(JSON.stringify([sortAt, id]), 'utf8').toString('base64url');
+  return Buffer.from(JSON.stringify([sortAt, id]), "utf8").toString("base64url");
 }
 
 function decodeCursor(cursor: string): { sortAt: string; id: number } {
   try {
-    const parsed: unknown = JSON.parse(Buffer.from(cursor, 'base64url').toString('utf8'));
-    if (
-      Array.isArray(parsed) &&
-      parsed.length === 2 &&
-      typeof parsed[0] === 'string' &&
-      Number.isInteger(parsed[1])
-    ) {
+    const parsed: unknown = JSON.parse(Buffer.from(cursor, "base64url").toString("utf8"));
+    if (Array.isArray(parsed) && parsed.length === 2 && typeof parsed[0] === "string" && Number.isInteger(parsed[1])) {
       return { sortAt: parsed[0], id: parsed[1] as number };
     }
   } catch {
@@ -195,16 +185,16 @@ function scopeClauses(
   filter: { sourceId?: string; category?: string | null },
 ): void {
   if (filter.sourceId !== undefined) {
-    where.push('fi.source_id = @sourceId');
-    params['sourceId'] = filter.sourceId;
+    where.push("fi.source_id = @sourceId");
+    params["sourceId"] = filter.sourceId;
   }
   if (filter.category !== undefined) {
     const category = normalizeCategory(filter.category);
     if (category === null) {
-      where.push('fi.source_id IN (SELECT id FROM sources WHERE category IS NULL)');
+      where.push("fi.source_id IN (SELECT id FROM sources WHERE category IS NULL)");
     } else {
-      where.push('fi.source_id IN (SELECT id FROM sources WHERE category = @category)');
-      params['category'] = category;
+      where.push("fi.source_id IN (SELECT id FROM sources WHERE category = @category)");
+      params["category"] = category;
     }
   }
 }
@@ -228,7 +218,7 @@ interface SummaryRow {
 /** At most `EXCERPT_MAX_CHARS` UTF-16 units, cut on a character boundary. */
 function excerptOf(text: string): string {
   if (text.length <= EXCERPT_MAX_CHARS) return text;
-  let out = '';
+  let out = "";
   for (const ch of text) {
     if (out.length + ch.length > EXCERPT_MAX_CHARS - 1) break;
     out += ch;
@@ -267,7 +257,7 @@ export function listFeedItems(db: DB, query: FeedItemQuery = {}): FeedItemPage {
   const where: string[] = [];
   const params: Record<string, unknown> = {};
 
-  if (query.scope === 'unread') where.push('fi.read_at IS NULL');
+  if (query.scope === "unread") where.push("fi.read_at IS NULL");
   scopeClauses(where, params, query);
 
   const terms = filterTerms(query.q);
@@ -279,18 +269,18 @@ export function listFeedItems(db: DB, query: FeedItemQuery = {}): FeedItemPage {
       params[`term${i}`] = term;
       return `instr(np_lower(fi.title), @term${i}) > 0 OR instr(np_lower(fi.content_text), @term${i}) > 0`;
     });
-    where.push(`(${ors.join(' OR ')})`);
+    where.push(`(${ors.join(" OR ")})`);
   }
 
   if (query.cursor) {
     const cursor = decodeCursor(query.cursor);
-    where.push('(fi.sort_at, fi.id) < (@cursorSortAt, @cursorId)');
-    params['cursorSortAt'] = cursor.sortAt;
-    params['cursorId'] = cursor.id;
+    where.push("(fi.sort_at, fi.id) < (@cursorSortAt, @cursorId)");
+    params["cursorSortAt"] = cursor.sortAt;
+    params["cursorId"] = cursor.id;
   }
 
   const limit = clampLimit(query.limit);
-  params['limitPlusOne'] = limit + 1;
+  params["limitPlusOne"] = limit + 1;
 
   const rows = db
     .prepare(
@@ -300,7 +290,7 @@ export function listFeedItems(db: DB, query: FeedItemQuery = {}): FeedItemPage {
               ${SAVED_SQL} AS saved
          FROM feed_items fi
          JOIN sources s ON s.id = fi.source_id
-        ${where.length ? `WHERE ${where.join(' AND ')}` : ''}
+        ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
         ORDER BY fi.sort_at DESC, fi.id DESC
         LIMIT @limitPlusOne`,
     )
@@ -315,7 +305,7 @@ export function listFeedItems(db: DB, query: FeedItemQuery = {}): FeedItemPage {
   };
 }
 
-interface ItemRow extends Omit<SummaryRow, 'excerpt_head'> {
+interface ItemRow extends Omit<SummaryRow, "excerpt_head"> {
   guid: string;
   content_html: string;
   content_text: string;
@@ -363,17 +353,10 @@ export function getFeedItem(db: DB, id: number): FeedItem | undefined {
 
 /** Mark one item read or unread. Marking a read item read keeps its first
  * `read_at`. Returns `false` if there is no such item. */
-export function setFeedItemRead(
-  db: DB,
-  id: number,
-  read: boolean,
-  now: Date = new Date(),
-): boolean {
+export function setFeedItemRead(db: DB, id: number, read: boolean, now: Date = new Date()): boolean {
   const r = read
-    ? db
-        .prepare('UPDATE feed_items SET read_at = COALESCE(read_at, ?) WHERE id = ?')
-        .run(now.toISOString(), id)
-    : db.prepare('UPDATE feed_items SET read_at = NULL WHERE id = ?').run(id);
+    ? db.prepare("UPDATE feed_items SET read_at = COALESCE(read_at, ?) WHERE id = ?").run(now.toISOString(), id)
+    : db.prepare("UPDATE feed_items SET read_at = NULL WHERE id = ?").run(id);
   return r.changes > 0;
 }
 
@@ -389,12 +372,10 @@ export interface MarkReadScope {
 /** Mark every unread item with `id <= upToId` read, within a source or a
  * category when given. Returns how many items changed. */
 export function markFeedItemsRead(db: DB, scope: MarkReadScope, now: Date = new Date()): number {
-  const where = ['fi.read_at IS NULL', 'fi.id <= @upToId'];
+  const where = ["fi.read_at IS NULL", "fi.id <= @upToId"];
   const params: Record<string, unknown> = { upToId: scope.upToId, now: now.toISOString() };
   scopeClauses(where, params, scope);
-  const r = db
-    .prepare(`UPDATE feed_items AS fi SET read_at = @now WHERE ${where.join(' AND ')}`)
-    .run(params);
+  const r = db.prepare(`UPDATE feed_items AS fi SET read_at = @now WHERE ${where.join(" AND ")}`).run(params);
   return r.changes;
 }
 
@@ -409,7 +390,7 @@ export function getReaderCounts(db: DB): ReaderCounts {
         GROUP BY s.id`,
     )
     .all() as Array<{ id: string; n: number }>;
-  const all = db.prepare('SELECT COUNT(*) AS n FROM feed_items').get() as { n: number };
+  const all = db.prepare("SELECT COUNT(*) AS n FROM feed_items").get() as { n: number };
   const unreadBySource: Record<string, number> = {};
   let unread = 0;
   for (const row of perSource) {
@@ -466,11 +447,7 @@ export function purgeFeedItems(db: DB, opts: PurgeOptions): number {
  * returns the existing article unchanged (edit its note with
  * `updateArticleNote`). `undefined` if there is no such item.
  */
-export function saveFeedItemToLibrary(
-  db: DB,
-  id: number,
-  opts: { note?: string } = {},
-): Article | undefined {
+export function saveFeedItemToLibrary(db: DB, id: number, opts: { note?: string } = {}): Article | undefined {
   const item = getFeedItem(db, id);
   if (!item) return undefined;
   return saveArticle(db, {

@@ -27,7 +27,7 @@ export interface WzdAttribute {
 }
 
 export interface WzdElement {
-  kind: 'element';
+  kind: "element";
   /** Tag name as written. Lowercase = document structure, Capitalized = component. */
   type: string;
   /** Flattened `name -> value`, first occurrence wins. Insertion order = source order. */
@@ -49,7 +49,7 @@ export interface WzdElement {
 }
 
 export interface WzdText {
-  kind: 'text';
+  kind: "text";
   /** Whitespace-collapsed, trimmed. This is what the compiler renders. */
   value: string;
   /** The exact source slice covered by `loc`. */
@@ -59,7 +59,7 @@ export interface WzdText {
 }
 
 export interface WzdComment {
-  kind: 'comment';
+  kind: "comment";
   /** Whitespace-collapsed, trimmed comment body. */
   value: string;
   raw: string;
@@ -70,7 +70,7 @@ export interface WzdComment {
 export type WzdNode = WzdElement | WzdText | WzdComment;
 
 export interface WzdDocument {
-  kind: 'document';
+  kind: "document";
   /** `<head>` metadata as `field -> text`, e.g. `{ title: 'Budget', date: '2026-08-27' }`. */
   head: Record<string, string>;
   /** Children of `<body>`; empty when there is no `<body>`. */
@@ -82,18 +82,18 @@ export interface WzdDocument {
   loc: WzdLoc;
 }
 
-export const WZD_DOCUMENT_PARENT = '#document';
+export const WZD_DOCUMENT_PARENT = "#document";
 
 export function isElement(node: WzdNode): node is WzdElement {
-  return node.kind === 'element';
+  return node.kind === "element";
 }
 
 export function isText(node: WzdNode): node is WzdText {
-  return node.kind === 'text';
+  return node.kind === "text";
 }
 
 export function isComment(node: WzdNode): node is WzdComment {
-  return node.kind === 'comment';
+  return node.kind === "comment";
 }
 
 export function elementChildren(node: WzdElement): WzdElement[] {
@@ -103,10 +103,10 @@ export function elementChildren(node: WzdElement): WzdElement[] {
 export function textContent(node: WzdElement): string {
   const parts: string[] = [];
   for (const child of node.children) {
-    if (child.kind === 'text') parts.push(child.value);
-    else if (child.kind === 'element') parts.push(textContent(child));
+    if (child.kind === "text") parts.push(child.value);
+    else if (child.kind === "element") parts.push(textContent(child));
   }
-  return parts.join(' ').replace(/\s+/g, ' ').trim();
+  return parts.join(" ").replace(/\s+/g, " ").trim();
 }
 
 export interface WzdVisitorContext {
@@ -119,11 +119,8 @@ export interface WzdVisitorContext {
 }
 
 /** Depth-first pre-order walk over a document or a subtree. */
-export function walk(
-  root: WzdDocument | WzdNode,
-  visit: (node: WzdNode, ctx: WzdVisitorContext) => void,
-): void {
-  const top = root.kind === 'document' ? root.children : [root];
+export function walk(root: WzdDocument | WzdNode, visit: (node: WzdNode, ctx: WzdVisitorContext) => void): void {
+  const top = root.kind === "document" ? root.children : [root];
   const ancestors: WzdElement[] = [];
   const step = (nodes: WzdNode[]): void => {
     nodes.forEach((node, index) => {
@@ -132,7 +129,7 @@ export function walk(
         parent: ancestors.length ? ancestors[ancestors.length - 1] : null,
         index,
       });
-      if (node.kind === 'element') {
+      if (node.kind === "element") {
         ancestors.push(node);
         step(node.children);
         ancestors.pop();

@@ -24,4 +24,4 @@
  * (`WARD_OIDC_ISSUER`, `WARD_OIDC_CLIENT_ID`, `WARD_OIDC_CLIENT_KEY`,
  * `WARD_OIDC_REDIRECT_URI`, `WARD_OIDC_POST_LOGOUT_REDIRECT_URI`, `PUBLIC_ORIGIN`).
  */
-import 'dotenv/config';
+import "dotenv/config";

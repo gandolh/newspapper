@@ -1,7 +1,7 @@
-import { Link } from '@/router';
-import { useLogout, useSession } from '@/lib/auth';
-import { withBase } from '@/lib/base';
-import styles from './SessionMenu.module.css';
+import { Link } from "@/router";
+import { useLogout, useSession } from "@/lib/auth";
+import { withBase } from "@/lib/base";
+import styles from "./SessionMenu.module.css";
 
 /**
  * Who is signed in, and the way out — the tray's session compartment.
@@ -19,9 +19,9 @@ export default function SessionMenu() {
   const session = useSession();
   const { logout, pending } = useLogout();
 
-  if (session.status !== 'signed_in') {
+  if (session.status !== "signed_in") {
     // Nothing until the probe answers: no flash of "Sign in" on a signed-in page.
-    if (session.status === 'loading') return null;
+    if (session.status === "loading") return null;
     return (
       <span className={styles.session}>
         <Link className={styles.signIn} href="/login">
@@ -32,7 +32,7 @@ export default function SessionMenu() {
   }
 
   async function signOut() {
-    if (await logout()) window.location.assign(withBase('/login'));
+    if (await logout()) window.location.assign(withBase("/login"));
   }
 
   return (

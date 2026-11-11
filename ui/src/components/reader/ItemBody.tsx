@@ -10,23 +10,23 @@
  * content that was all iframe and script — renders `empty`, which the pane
  * fills with the way to the original.
  */
-import { useMemo, type ReactNode } from 'react';
-import type { FeedItem } from '@/lib/types';
-import { sanitizeItemHtml, textParagraphs } from './sanitize';
-import styles from './ItemBody.module.css';
+import { useMemo, type ReactNode } from "react";
+import type { FeedItem } from "@/lib/types";
+import { sanitizeItemHtml, textParagraphs } from "./sanitize";
+import styles from "./ItemBody.module.css";
 
 /** Sanitized markup with no words and no picture in it. Read off markup the
  * sanitizer already produced, so a regex is only ever deciding a boolean. */
 function isBlank(html: string): boolean {
   if (/<img\s/i.test(html)) return false;
-  return html.replace(/<[^>]*>/g, '').replace(/&nbsp;|\s/g, '') === '';
+  return html.replace(/<[^>]*>/g, "").replace(/&nbsp;|\s/g, "") === "";
 }
 
 export default function ItemBody({
   item,
   empty,
 }: {
-  item: Pick<FeedItem, 'contentHtml' | 'contentText'>;
+  item: Pick<FeedItem, "contentHtml" | "contentText">;
   empty: ReactNode;
 }) {
   // The `{ __html }` object is memoized, not just the string: React 19 rewrites

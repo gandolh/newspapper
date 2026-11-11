@@ -13,14 +13,14 @@
  * with the rest of `src/` (only `*.test.ts` is excluded), where nothing loads
  * it; it lives beside the code it fakes so the two drift loudly.
  */
-import { generateKeyPairSync } from 'node:crypto';
-import type { FastifyInstance } from 'fastify';
+import { generateKeyPairSync } from "node:crypto";
+import type { FastifyInstance } from "fastify";
 
-import { createWardClient, type WardClient } from '../../vendor/ward/ward-auth.js';
-import { SESSION_COOKIE } from './config.js';
+import { createWardClient, type WardClient } from "../../vendor/ward/ward-auth.js";
+import { SESSION_COOKIE } from "./config.js";
 
-export const TEST_ISSUER = 'http://localhost:8792/ward-api/oidc';
-export const TEST_REDIRECT = 'http://localhost:4321/newspapper/api/auth/ward/callback';
+export const TEST_ISSUER = "http://localhost:8792/ward-api/oidc";
+export const TEST_REDIRECT = "http://localhost:4321/newspapper/api/auth/ward/callback";
 
 let counter = 0;
 
@@ -35,8 +35,8 @@ export async function signInCookie(
   counter += 1;
   const user = await app.accounts.createUser({
     username: options.username ?? `tester${counter}`,
-    password: options.password === undefined ? 'a long enough password' : options.password,
-    role: options.role ?? 'editor',
+    password: options.password === undefined ? "a long enough password" : options.password,
+    role: options.role ?? "editor",
   });
   const { token } = await app.accounts.startSession(user.id);
   return { cookies: { [SESSION_COOKIE]: token }, token, user };
@@ -45,12 +45,12 @@ export async function signInCookie(
 function json(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'content-type': 'application/json' },
+    headers: { "content-type": "application/json" },
   });
 }
 
 /** What the fake Ward answers `POST /session-status` with. */
-export type SessionStatusAnswer = 'active' | 'ended' | 'down' | 'refused';
+export type SessionStatusAnswer = "active" | "ended" | "down" | "refused";
 
 export interface FakeWard {
   client: WardClient;
@@ -67,40 +67,40 @@ export interface FakeWard {
  * provider document and `/session-status` returns what `setStatus` says.
  */
 export async function createFakeWard(): Promise<FakeWard> {
-  const { privateKey } = generateKeyPairSync('ed25519');
-  const jwk = privateKey.export({ format: 'jwk' }) as Record<string, string>;
+  const { privateKey } = generateKeyPairSync("ed25519");
+  const jwk = privateKey.export({ format: "jwk" }) as Record<string, string>;
   const clientKey = Buffer.from(
-    JSON.stringify({ kty: 'OKP', crv: 'Ed25519', x: jwk['x'], d: jwk['d'], kid: 'k1', use: 'sig' }),
-  ).toString('base64url');
+    JSON.stringify({ kty: "OKP", crv: "Ed25519", x: jwk["x"], d: jwk["d"], kid: "k1", use: "sig" }),
+  ).toString("base64url");
 
-  let status: SessionStatusAnswer = 'active';
+  let status: SessionStatusAnswer = "active";
   let clock = 1_000_000;
   const calls: string[] = [];
 
   const fake = async (input: string | URL | Request): Promise<Response> => {
     const url = String(input instanceof Request ? input.url : input);
     calls.push(url);
-    if (url.endsWith('/.well-known/openid-configuration')) {
+    if (url.endsWith("/.well-known/openid-configuration")) {
       return json(200, {
         issuer: TEST_ISSUER,
         authorization_endpoint: `${TEST_ISSUER}/auth`,
         token_endpoint: `${TEST_ISSUER}/token`,
         jwks_uri: `${TEST_ISSUER}/jwks`,
         end_session_endpoint: `${TEST_ISSUER}/session/end`,
-        id_token_signing_alg_values_supported: ['EdDSA'],
+        id_token_signing_alg_values_supported: ["EdDSA"],
       });
     }
-    if (url.endsWith('/session-status')) {
-      if (status === 'down') throw new TypeError('fetch failed');
-      if (status === 'refused') return json(401, { error: 'invalid_client' });
-      return json(200, status === 'active' ? { active: true, role: 'editor' } : { active: false });
+    if (url.endsWith("/session-status")) {
+      if (status === "down") throw new TypeError("fetch failed");
+      if (status === "refused") return json(401, { error: "invalid_client" });
+      return json(200, status === "active" ? { active: true, role: "editor" } : { active: false });
     }
-    return json(404, { error: 'not_found' });
+    return json(404, { error: "not_found" });
   };
 
   const client = await createWardClient({
     issuer: TEST_ISSUER,
-    clientId: 'newspapper',
+    clientId: "newspapper",
     clientKey,
     redirectUri: TEST_REDIRECT,
     fetch: fake as typeof fetch,

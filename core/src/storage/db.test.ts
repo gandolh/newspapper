@@ -1,14 +1,14 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { mkdtempSync, rmSync, existsSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
-import Database from 'better-sqlite3';
-import { getDb, migrate } from './db.js';
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { mkdtempSync, rmSync, existsSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import Database from "better-sqlite3";
+import { getDb, migrate } from "./db.js";
 
 let tmpDir: string;
 
 beforeEach(() => {
-  tmpDir = mkdtempSync(join(tmpdir(), 'np-db-test-'));
+  tmpDir = mkdtempSync(join(tmpdir(), "np-db-test-"));
 });
 
 afterEach(() => {
@@ -20,142 +20,133 @@ function columns(db: ReturnType<typeof getDb>, table: string): string[] {
 }
 
 function tableNames(db: ReturnType<typeof getDb>): string[] {
-  return (
-    db.prepare("SELECT name FROM sqlite_master WHERE type='table'").all() as Array<{ name: string }>
-  ).map((r) => r.name);
+  return (db.prepare("SELECT name FROM sqlite_master WHERE type='table'").all() as Array<{ name: string }>).map(
+    (r) => r.name,
+  );
 }
 
 function indexNames(db: ReturnType<typeof getDb>): string[] {
-  return (
-    db.prepare("SELECT name FROM sqlite_master WHERE type='index'").all() as Array<{ name: string }>
-  ).map((r) => r.name);
+  return (db.prepare("SELECT name FROM sqlite_master WHERE type='index'").all() as Array<{ name: string }>).map(
+    (r) => r.name,
+  );
 }
 
-describe('getDb — fresh install', () => {
-  it('sets user_version to 6', () => {
-    const db = getDb(join(tmpDir, 'fresh.db'));
-    const ver = db.pragma('user_version', { simple: true }) as number;
+describe("getDb — fresh install", () => {
+  it("sets user_version to 6", () => {
+    const db = getDb(join(tmpDir, "fresh.db"));
+    const ver = db.pragma("user_version", { simple: true }) as number;
     db.close();
     expect(ver).toBe(6);
   });
 
-  it('defaults posts.theme to the renamed theme', () => {
-    const db = getDb(join(tmpDir, 'fresh.db'));
+  it("defaults posts.theme to the renamed theme", () => {
+    const db = getDb(join(tmpDir, "fresh.db"));
     const now = new Date().toISOString();
     db.prepare(`INSERT INTO posts (title, markup, created_at, updated_at) VALUES (?, ?, ?, ?)`).run(
-      'T',
-      '<head></head><body></body>',
+      "T",
+      "<head></head><body></body>",
       now,
       now,
     );
-    const row = db.prepare('SELECT theme FROM posts').get() as { theme: string };
+    const row = db.prepare("SELECT theme FROM posts").get() as { theme: string };
     db.close();
-    expect(row.theme).toBe('warm-industrial-1');
+    expect(row.theme).toBe("warm-industrial-1");
   });
 
-  it('creates every v3 table', () => {
-    const db = getDb(join(tmpDir, 'fresh.db'));
+  it("creates every v3 table", () => {
+    const db = getDb(join(tmpDir, "fresh.db"));
     const tables = tableNames(db);
     db.close();
-    for (const t of [
-      'posts',
-      'keywords',
-      'post_keywords',
-      'renders',
-      'sources',
-      'articles',
-      'uploads',
-      'settings',
-    ]) {
+    for (const t of ["posts", "keywords", "post_keywords", "renders", "sources", "articles", "uploads", "settings"]) {
       expect(tables).toContain(t);
     }
   });
 
-  it('creates posts with the authored-document columns and no payload', () => {
-    const db = getDb(join(tmpDir, 'fresh.db'));
-    const cols = columns(db, 'posts');
+  it("creates posts with the authored-document columns and no payload", () => {
+    const db = getDb(join(tmpDir, "fresh.db"));
+    const cols = columns(db, "posts");
     db.close();
     expect(cols).toEqual([
-      'id',
-      'title',
-      'description',
-      'markup',
-      'theme',
-      'status',
-      'created_at',
-      'updated_at',
-      'published_at',
+      "id",
+      "title",
+      "description",
+      "markup",
+      "theme",
+      "status",
+      "created_at",
+      "updated_at",
+      "published_at",
     ]);
-    expect(cols).not.toContain('payload');
-    expect(cols).not.toContain('output_dir');
-    expect(cols).not.toContain('date');
+    expect(cols).not.toContain("payload");
+    expect(cols).not.toContain("output_dir");
+    expect(cols).not.toContain("date");
   });
 
-  it('creates articles with guid, saved_at and the denormalized source name', () => {
-    const db = getDb(join(tmpDir, 'fresh.db'));
-    const cols = columns(db, 'articles');
+  it("creates articles with guid, saved_at and the denormalized source name", () => {
+    const db = getDb(join(tmpDir, "fresh.db"));
+    const cols = columns(db, "articles");
     db.close();
     expect(cols).toEqual([
-      'id',
-      'source_id',
-      'source_name',
-      'guid',
-      'title',
-      'url',
-      'body',
-      'published_at',
-      'saved_at',
-      'note',
+      "id",
+      "source_id",
+      "source_name",
+      "guid",
+      "title",
+      "url",
+      "body",
+      "published_at",
+      "saved_at",
+      "note",
     ]);
   });
 
-  it('creates feed_items, the Reader columns on sources, and their indexes (v6)', () => {
-    const db = getDb(join(tmpDir, 'fresh.db'));
-    const items = columns(db, 'feed_items');
-    const sources = columns(db, 'sources');
+  it("creates feed_items, the Reader columns on sources, and their indexes (v6)", () => {
+    const db = getDb(join(tmpDir, "fresh.db"));
+    const items = columns(db, "feed_items");
+    const sources = columns(db, "sources");
     const idx = indexNames(db);
     db.close();
     expect(items).toEqual([
-      'id',
-      'source_id',
-      'guid',
-      'title',
-      'url',
-      'author',
-      'content_html',
-      'content_text',
-      'published_at',
-      'fetched_at',
-      'sort_at',
-      'read_at',
+      "id",
+      "source_id",
+      "guid",
+      "title",
+      "url",
+      "author",
+      "content_html",
+      "content_text",
+      "published_at",
+      "fetched_at",
+      "sort_at",
+      "read_at",
     ]);
     expect(sources).toEqual([
-      'id',
-      'name',
-      'rss_url',
-      'enabled',
-      'created_at',
-      'category',
-      'etag',
-      'last_modified',
-      'last_fetched_at',
-      'last_error',
+      "id",
+      "name",
+      "rss_url",
+      "enabled",
+      "created_at",
+      "category",
+      "etag",
+      "last_modified",
+      "last_fetched_at",
+      "last_error",
     ]);
-    expect(idx).toContain('idx_feed_items_sort');
-    expect(idx).toContain('idx_feed_items_source_read');
+    expect(idx).toContain("idx_feed_items_sort");
+    expect(idx).toContain("idx_feed_items_source_read");
   });
 
-  it('creates the listing indexes named in the schema', () => {
-    const db = getDb(join(tmpDir, 'fresh.db'));
+  it("creates the listing indexes named in the schema", () => {
+    const db = getDb(join(tmpDir, "fresh.db"));
     const idx = indexNames(db);
     db.close();
-    expect(idx).toContain('idx_posts_status_updated_at');
-    expect(idx).toContain('idx_articles_saved_at');
-    expect(idx).toContain('idx_post_keywords_keyword_id');
+    expect(idx).toContain("idx_posts_status_updated_at");
+    expect(idx).toContain("idx_articles_saved_at");
+    expect(idx).toContain("idx_post_keywords_keyword_id");
   });
 
-  it('enforces the posts.status CHECK constraint', () => {
-    const db = getDb(join(tmpDir, 'fresh.db'));
+  it("enforces the posts.status CHECK constraint", () => {
+    const db = getDb(join(tmpDir, "fresh.db"));
     const now = new Date().toISOString();
     const insert = () =>
       db
@@ -163,56 +154,56 @@ describe('getDb — fresh install', () => {
           `INSERT INTO posts (title, markup, theme, status, created_at, updated_at)
            VALUES (?, ?, ?, ?, ?, ?)`,
         )
-        .run('T', '<head></head><body></body>', 'warm-industrial-1', 'rendered', now, now);
+        .run("T", "<head></head><body></body>", "warm-industrial-1", "rendered", now, now);
     expect(insert).toThrow(/CHECK constraint failed/);
     db.close();
   });
 
-  it('enforces foreign keys', () => {
-    const db = getDb(join(tmpDir, 'fresh.db'));
-    expect(db.pragma('foreign_keys', { simple: true })).toBe(1);
+  it("enforces foreign keys", () => {
+    const db = getDb(join(tmpDir, "fresh.db"));
+    expect(db.pragma("foreign_keys", { simple: true })).toBe(1);
     const orphan = () =>
       db
         .prepare(
           `INSERT INTO renders (post_id, output_dir, slide_count, created_at)
            VALUES (?, ?, ?, ?)`,
         )
-        .run(9999, '/tmp/nope', 1, new Date().toISOString());
+        .run(9999, "/tmp/nope", 1, new Date().toISOString());
     expect(orphan).toThrow(/FOREIGN KEY constraint failed/);
     db.close();
   });
 
-  it('does not seed sources from data/sources.json into a non-default DB', () => {
-    const db = getDb(join(tmpDir, 'fresh.db'));
-    const row = db.prepare('SELECT COUNT(*) AS n FROM sources').get() as { n: number };
+  it("does not seed sources from data/sources.json into a non-default DB", () => {
+    const db = getDb(join(tmpDir, "fresh.db"));
+    const row = db.prepare("SELECT COUNT(*) AS n FROM sources").get() as { n: number };
     db.close();
     expect(row.n).toBe(0);
   });
 });
 
-describe('migrate — idempotence', () => {
-  it('re-running migrate on a current DB changes nothing', () => {
-    const dbPath = join(tmpDir, 'again.db');
+describe("migrate — idempotence", () => {
+  it("re-running migrate on a current DB changes nothing", () => {
+    const dbPath = join(tmpDir, "again.db");
     const db = getDb(dbPath);
     const now = new Date().toISOString();
     db.prepare(
       `INSERT INTO posts (title, markup, theme, status, created_at, updated_at)
        VALUES (?, ?, ?, 'draft', ?, ?)`,
-    ).run('Kept', '<head></head><body></body>', 'warm-industrial-1', now, now);
+    ).run("Kept", "<head></head><body></body>", "warm-industrial-1", now, now);
 
     migrate(db);
     migrate(db);
 
-    const ver = db.pragma('user_version', { simple: true }) as number;
-    const rows = db.prepare('SELECT title FROM posts').all() as Array<{ title: string }>;
+    const ver = db.pragma("user_version", { simple: true }) as number;
+    const rows = db.prepare("SELECT title FROM posts").all() as Array<{ title: string }>;
     db.close();
     expect(ver).toBe(6);
     expect(rows).toHaveLength(1);
-    expect(rows[0].title).toBe('Kept');
+    expect(rows[0].title).toBe("Kept");
   });
 });
 
-describe('migrate — v3 → v4 (the warm-industrial rename)', () => {
+describe("migrate — v3 → v4 (the warm-industrial rename)", () => {
   /** A v3 DB, built from the schema as it shipped: legacy theme default and all. */
   function buildV3Db(dbPath: string) {
     const db = new Database(dbPath);
@@ -248,23 +239,21 @@ describe('migrate — v3 → v4 (the warm-industrial rename)', () => {
       );
       CREATE TABLE settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
     `);
-    const now = '2026-08-01T00:00:00.000Z';
+    const now = "2026-08-01T00:00:00.000Z";
     const post = db.prepare(
       `INSERT INTO posts (title, markup, theme, status, created_at, updated_at)
        VALUES (?, ?, ?, 'draft', ?, ?)`,
     );
-    post.run('Legacy', '<head></head><body></body>', 'warm-industrial', now, now);
-    post.run('Already moved', '<head></head><body></body>', 'warm-industrial-2', now, now);
+    post.run("Legacy", "<head></head><body></body>", "warm-industrial", now, now);
+    post.run("Already moved", "<head></head><body></body>", "warm-industrial-2", now, now);
     db.prepare(`INSERT INTO keywords (id, name) VALUES (1, 'news')`).run();
     db.prepare(`INSERT INTO post_keywords (post_id, keyword_id) VALUES (1, 1)`).run();
-    db.prepare(
-      `INSERT INTO renders (post_id, output_dir, slide_count, created_at) VALUES (1, ?, 3, ?)`,
-    ).run('/output/2026-08-01-1', now);
-    db.prepare(`INSERT INTO settings (key, value) VALUES (?, ?)`).run(
-      'defaultTheme',
-      'warm-industrial',
+    db.prepare(`INSERT INTO renders (post_id, output_dir, slide_count, created_at) VALUES (1, ?, 3, ?)`).run(
+      "/output/2026-08-01-1",
+      now,
     );
-    db.pragma('user_version = 3');
+    db.prepare(`INSERT INTO settings (key, value) VALUES (?, ?)`).run("defaultTheme", "warm-industrial");
+    db.pragma("user_version = 3");
     db.close();
   }
 
@@ -275,11 +264,11 @@ describe('migrate — v3 → v4 (the warm-industrial rename)', () => {
    * there: SQLite re-checks views on RENAME, and this one names a table the
    * DROP just removed. Inside the step's transaction that must roll back.
    */
-  it('an interrupted rebuild rolls back to an intact, re-migratable v3', () => {
-    const dbPath = join(tmpDir, 'v3.db');
+  it("an interrupted rebuild rolls back to an intact, re-migratable v3", () => {
+    const dbPath = join(tmpDir, "v3.db");
     buildV3Db(dbPath);
     const raw = new Database(dbPath);
-    raw.exec('CREATE VIEW post_titles AS SELECT title FROM posts');
+    raw.exec("CREATE VIEW post_titles AS SELECT title FROM posts");
     raw.close();
 
     expect(() => getDb(dbPath)).toThrow(/post_titles/);
@@ -290,58 +279,58 @@ describe('migrate — v3 → v4 (the warm-industrial rename)', () => {
         name: string;
       }>
     ).map((r) => r.name);
-    const titles = after.prepare('SELECT title FROM posts ORDER BY id').all();
-    const version = after.pragma('user_version', { simple: true });
-    expect(tables).toContain('posts');
-    expect(tables).not.toContain('posts_migrating');
-    expect(titles).toEqual([{ title: 'Legacy' }, { title: 'Already moved' }]);
+    const titles = after.prepare("SELECT title FROM posts ORDER BY id").all();
+    const version = after.pragma("user_version", { simple: true });
+    expect(tables).toContain("posts");
+    expect(tables).not.toContain("posts_migrating");
+    expect(titles).toEqual([{ title: "Legacy" }, { title: "Already moved" }]);
     expect(version).toBe(3);
     // Fix the cause and it migrates, rows and child rows intact.
-    after.exec('DROP VIEW post_titles');
+    after.exec("DROP VIEW post_titles");
     after.close();
     const db = getDb(dbPath);
-    expect(db.pragma('user_version', { simple: true })).toBe(6);
-    expect(db.prepare('SELECT COUNT(*) AS n FROM posts').get()).toEqual({ n: 2 });
-    expect(db.prepare('SELECT COUNT(*) AS n FROM renders').get()).toEqual({ n: 1 });
+    expect(db.pragma("user_version", { simple: true })).toBe(6);
+    expect(db.prepare("SELECT COUNT(*) AS n FROM posts").get()).toEqual({ n: 2 });
+    expect(db.prepare("SELECT COUNT(*) AS n FROM renders").get()).toEqual({ n: 1 });
     db.close();
   });
 
-  it('rewrites stored rows and leaves the other family members alone', () => {
-    const dbPath = join(tmpDir, 'v3.db');
+  it("rewrites stored rows and leaves the other family members alone", () => {
+    const dbPath = join(tmpDir, "v3.db");
     buildV3Db(dbPath);
     const db = getDb(dbPath);
-    const rows = db.prepare('SELECT title, theme FROM posts ORDER BY id').all() as Array<{
+    const rows = db.prepare("SELECT title, theme FROM posts ORDER BY id").all() as Array<{
       title: string;
       theme: string;
     }>;
-    const ver = db.pragma('user_version', { simple: true }) as number;
+    const ver = db.pragma("user_version", { simple: true }) as number;
     db.close();
     expect(ver).toBe(6);
     expect(rows).toEqual([
-      { title: 'Legacy', theme: 'warm-industrial-1' },
-      { title: 'Already moved', theme: 'warm-industrial-2' },
+      { title: "Legacy", theme: "warm-industrial-1" },
+      { title: "Already moved", theme: "warm-industrial-2" },
     ]);
   });
 
-  it('rewrites the defaultTheme setting', () => {
-    const dbPath = join(tmpDir, 'v3.db');
+  it("rewrites the defaultTheme setting", () => {
+    const dbPath = join(tmpDir, "v3.db");
     buildV3Db(dbPath);
     const db = getDb(dbPath);
-    const row = db.prepare('SELECT value FROM settings WHERE key = ?').get('defaultTheme') as {
+    const row = db.prepare("SELECT value FROM settings WHERE key = ?").get("defaultTheme") as {
       value: string;
     };
     db.close();
-    expect(row.value).toBe('warm-industrial-1');
+    expect(row.value).toBe("warm-industrial-1");
   });
 
-  it('rewrites the posts.theme column default', () => {
-    const dbPath = join(tmpDir, 'v3.db');
+  it("rewrites the posts.theme column default", () => {
+    const dbPath = join(tmpDir, "v3.db");
     buildV3Db(dbPath);
     const db = getDb(dbPath);
     const now = new Date().toISOString();
     db.prepare(`INSERT INTO posts (title, markup, created_at, updated_at) VALUES (?, ?, ?, ?)`).run(
-      'Fresh',
-      '<head></head><body></body>',
+      "Fresh",
+      "<head></head><body></body>",
       now,
       now,
     );
@@ -349,63 +338,61 @@ describe('migrate — v3 → v4 (the warm-industrial rename)', () => {
       theme: string;
     };
     db.close();
-    expect(row.theme).toBe('warm-industrial-1');
+    expect(row.theme).toBe("warm-industrial-1");
   });
 
-  it('keeps the child rows the table rebuild could have cascaded away', () => {
-    const dbPath = join(tmpDir, 'v3.db');
+  it("keeps the child rows the table rebuild could have cascaded away", () => {
+    const dbPath = join(tmpDir, "v3.db");
     buildV3Db(dbPath);
     const db = getDb(dbPath);
-    const keywords = db.prepare('SELECT COUNT(*) AS n FROM post_keywords').get() as { n: number };
-    const renders = db.prepare('SELECT COUNT(*) AS n FROM renders').get() as { n: number };
-    const violations = db.pragma('foreign_key_check') as unknown[];
+    const keywords = db.prepare("SELECT COUNT(*) AS n FROM post_keywords").get() as { n: number };
+    const renders = db.prepare("SELECT COUNT(*) AS n FROM renders").get() as { n: number };
+    const violations = db.pragma("foreign_key_check") as unknown[];
     const idx = indexNames(db);
-    const fk = db.pragma('foreign_keys', { simple: true });
+    const fk = db.pragma("foreign_keys", { simple: true });
     db.close();
     expect(keywords.n).toBe(1);
     expect(renders.n).toBe(1);
     expect(violations).toEqual([]);
-    expect(idx).toContain('idx_posts_status_updated_at');
+    expect(idx).toContain("idx_posts_status_updated_at");
     expect(fk).toBe(1);
   });
 
-  it('still enforces the status CHECK on the rebuilt table', () => {
-    const dbPath = join(tmpDir, 'v3.db');
+  it("still enforces the status CHECK on the rebuilt table", () => {
+    const dbPath = join(tmpDir, "v3.db");
     buildV3Db(dbPath);
     const db = getDb(dbPath);
     const now = new Date().toISOString();
     const insert = () =>
       db
-        .prepare(
-          `INSERT INTO posts (title, markup, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?)`,
-        )
-        .run('Bad', '<head></head><body></body>', 'rendered', now, now);
+        .prepare(`INSERT INTO posts (title, markup, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?)`)
+        .run("Bad", "<head></head><body></body>", "rendered", now, now);
     expect(insert).toThrow(/CHECK constraint failed/);
     db.close();
   });
 
-  it('is a no-op when run again — including on a DB that never held the old value', () => {
-    const dbPath = join(tmpDir, 'v3.db');
+  it("is a no-op when run again — including on a DB that never held the old value", () => {
+    const dbPath = join(tmpDir, "v3.db");
     buildV3Db(dbPath);
     const first = getDb(dbPath);
     const before = first.prepare(`SELECT sql FROM sqlite_master WHERE name = 'posts'`).get();
     migrate(first);
     migrate(first);
     const after = first.prepare(`SELECT sql FROM sqlite_master WHERE name = 'posts'`).get();
-    const rows = first.prepare('SELECT COUNT(*) AS n FROM posts').get() as { n: number };
+    const rows = first.prepare("SELECT COUNT(*) AS n FROM posts").get() as { n: number };
     first.close();
     expect(after).toEqual(before);
     expect(rows.n).toBe(2);
 
-    const fresh = getDb(join(tmpDir, 'never-legacy.db'));
+    const fresh = getDb(join(tmpDir, "never-legacy.db"));
     migrate(fresh);
-    const ver = fresh.pragma('user_version', { simple: true }) as number;
+    const ver = fresh.pragma("user_version", { simple: true }) as number;
     fresh.close();
     expect(ver).toBe(6);
   });
 });
 
-describe('migrate — v2 schema (payload posts) with existing rows', () => {
+describe("migrate — v2 schema (payload posts) with existing rows", () => {
   function buildV2Db(dbPath: string) {
     const db = new Database(dbPath);
     db.exec(`
@@ -439,98 +426,95 @@ describe('migrate — v2 schema (payload posts) with existing rows', () => {
       `INSERT INTO posts (date, title, theme, payload, status, output_dir, created_at, updated_at)
        VALUES (?, ?, ?, ?, 'rendered', ?, ?, ?)`,
     ).run(
-      '2026-06-10',
-      'Old post',
-      'warm-industrial',
+      "2026-06-10",
+      "Old post",
+      "warm-industrial",
       '{"date":"2026-06-10","title":"Old post","theme":"warm-industrial","slides":[]}',
-      '/output/2026-06-10-1',
-      '2026-06-10T00:00:00.000Z',
-      '2026-06-10T00:00:00.000Z',
+      "/output/2026-06-10-1",
+      "2026-06-10T00:00:00.000Z",
+      "2026-06-10T00:00:00.000Z",
     );
     db.prepare(
       `INSERT INTO articles (source_id, source_name, title, url, published_at, body, created_at)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
     ).run(
-      'bbc',
-      'BBC News',
-      'Old article',
-      'https://bbc.co.uk/1',
-      '2026-06-10T09:00:00.000Z',
-      'body',
-      '2026-06-10T09:00:00.000Z',
+      "bbc",
+      "BBC News",
+      "Old article",
+      "https://bbc.co.uk/1",
+      "2026-06-10T09:00:00.000Z",
+      "body",
+      "2026-06-10T09:00:00.000Z",
     );
-    db.prepare(`INSERT INTO settings (key, value) VALUES (?, ?)`).run(
-      'defaultTheme',
-      'warm-industrial',
-    );
-    db.pragma('user_version = 2');
+    db.prepare(`INSERT INTO settings (key, value) VALUES (?, ?)`).run("defaultTheme", "warm-industrial");
+    db.pragma("user_version = 2");
     db.close();
   }
 
-  it('migrates to the current version without throwing', () => {
-    const dbPath = join(tmpDir, 'v2.db');
+  it("migrates to the current version without throwing", () => {
+    const dbPath = join(tmpDir, "v2.db");
     buildV2Db(dbPath);
     const db = getDb(dbPath);
-    const ver = db.pragma('user_version', { simple: true }) as number;
+    const ver = db.pragma("user_version", { simple: true }) as number;
     db.close();
     expect(ver).toBe(6);
   });
 
-  it('drops every payload post — they carry no markup to derive from', () => {
-    const dbPath = join(tmpDir, 'v2.db');
+  it("drops every payload post — they carry no markup to derive from", () => {
+    const dbPath = join(tmpDir, "v2.db");
     buildV2Db(dbPath);
     const db = getDb(dbPath);
-    const cols = columns(db, 'posts');
-    const row = db.prepare('SELECT COUNT(*) AS n FROM posts').get() as { n: number };
+    const cols = columns(db, "posts");
+    const row = db.prepare("SELECT COUNT(*) AS n FROM posts").get() as { n: number };
     db.close();
-    expect(cols).not.toContain('payload');
+    expect(cols).not.toContain("payload");
     expect(row.n).toBe(0);
   });
 
-  it('drops every scraped article — v3 persists only saved ones', () => {
-    const dbPath = join(tmpDir, 'v2.db');
+  it("drops every scraped article — v3 persists only saved ones", () => {
+    const dbPath = join(tmpDir, "v2.db");
     buildV2Db(dbPath);
     const db = getDb(dbPath);
-    const row = db.prepare('SELECT COUNT(*) AS n FROM articles').get() as { n: number };
+    const row = db.prepare("SELECT COUNT(*) AS n FROM articles").get() as { n: number };
     db.close();
     expect(row.n).toBe(0);
   });
 
-  it('keeps settings rows', () => {
-    const dbPath = join(tmpDir, 'v2.db');
+  it("keeps settings rows", () => {
+    const dbPath = join(tmpDir, "v2.db");
     buildV2Db(dbPath);
     const db = getDb(dbPath);
-    const row = db.prepare('SELECT value FROM settings WHERE key = ?').get('defaultTheme') as
+    const row = db.prepare("SELECT value FROM settings WHERE key = ?").get("defaultTheme") as
       { value: string } | undefined;
     db.close();
-    expect(row?.value).toBe('warm-industrial-1');
+    expect(row?.value).toBe("warm-industrial-1");
   });
 
-  it('adds the tables v3 introduced', () => {
-    const dbPath = join(tmpDir, 'v2.db');
+  it("adds the tables v3 introduced", () => {
+    const dbPath = join(tmpDir, "v2.db");
     buildV2Db(dbPath);
     const db = getDb(dbPath);
     const tables = tableNames(db);
     db.close();
-    for (const t of ['keywords', 'post_keywords', 'renders', 'sources', 'uploads']) {
+    for (const t of ["keywords", "post_keywords", "renders", "sources", "uploads"]) {
       expect(tables).toContain(t);
     }
   });
 
-  it('is safe to open twice', () => {
-    const dbPath = join(tmpDir, 'v2.db');
+  it("is safe to open twice", () => {
+    const dbPath = join(tmpDir, "v2.db");
     buildV2Db(dbPath);
     getDb(dbPath).close();
     const db = getDb(dbPath);
-    const ver = db.pragma('user_version', { simple: true }) as number;
+    const ver = db.pragma("user_version", { simple: true }) as number;
     const tables = tableNames(db);
     db.close();
     expect(ver).toBe(6);
-    expect(tables).toContain('post_keywords');
+    expect(tables).toContain("post_keywords");
   });
 });
 
-describe('migrate — v1 schema (old CLI era)', () => {
+describe("migrate — v1 schema (old CLI era)", () => {
   function buildV1Db(dbPath: string) {
     const db = new Database(dbPath);
     db.exec(`
@@ -554,34 +538,32 @@ describe('migrate — v1 schema (old CLI era)', () => {
         UNIQUE(date, run_number)
       );
     `);
-    db.prepare(
-      `INSERT INTO posts (date, run_number, payload, output_dir, created_at) VALUES (?, ?, ?, ?, ?)`,
-    ).run(
-      '2024-01-01',
+    db.prepare(`INSERT INTO posts (date, run_number, payload, output_dir, created_at) VALUES (?, ?, ?, ?, ?)`).run(
+      "2024-01-01",
       1,
       '{"date":"2024-01-01","title":"t","theme":"w","slides":[]}',
-      '/output/2024-01-01-1',
-      '2024-01-01T00:00:00.000Z',
+      "/output/2024-01-01-1",
+      "2024-01-01T00:00:00.000Z",
     );
-    db.pragma('user_version = 1');
+    db.pragma("user_version = 1");
     db.close();
   }
 
-  it('walks all the way forward to the current version in one boot', () => {
-    const dbPath = join(tmpDir, 'v1.db');
+  it("walks all the way forward to the current version in one boot", () => {
+    const dbPath = join(tmpDir, "v1.db");
     buildV1Db(dbPath);
     const db = getDb(dbPath);
-    const ver = db.pragma('user_version', { simple: true }) as number;
-    const cols = columns(db, 'posts');
-    const rows = db.prepare('SELECT COUNT(*) AS n FROM posts').get() as { n: number };
+    const ver = db.pragma("user_version", { simple: true }) as number;
+    const cols = columns(db, "posts");
+    const rows = db.prepare("SELECT COUNT(*) AS n FROM posts").get() as { n: number };
     db.close();
     expect(ver).toBe(6);
-    expect(cols).toContain('markup');
+    expect(cols).toContain("markup");
     expect(rows.n).toBe(0);
   });
 });
 
-describe('migrate — v5 → v6 (the Reader)', () => {
+describe("migrate — v5 → v6 (the Reader)", () => {
   /** A v5 DB, built from the schema as it shipped, with a source and a saved article. */
   function buildV5Db(dbPath: string) {
     const db = new Database(dbPath);
@@ -650,56 +632,55 @@ describe('migrate — v5 → v6 (the Reader)', () => {
       );
       CREATE TABLE settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
     `);
-    const now = '2026-10-01T00:00:00.000Z';
-    db.prepare(
-      `INSERT INTO sources (id, name, rss_url, enabled, created_at) VALUES (?, ?, ?, ?, ?)`,
-    ).run('bbc', 'BBC News', 'https://bbc.co.uk/rss', 1, now);
-    db.prepare(
-      `INSERT INTO sources (id, name, rss_url, enabled, created_at) VALUES (?, ?, ?, ?, ?)`,
-    ).run('hn', 'Hacker News', 'https://news.ycombinator.com/rss', 0, now);
+    const now = "2026-10-01T00:00:00.000Z";
+    db.prepare(`INSERT INTO sources (id, name, rss_url, enabled, created_at) VALUES (?, ?, ?, ?, ?)`).run(
+      "bbc",
+      "BBC News",
+      "https://bbc.co.uk/rss",
+      1,
+      now,
+    );
+    db.prepare(`INSERT INTO sources (id, name, rss_url, enabled, created_at) VALUES (?, ?, ?, ?, ?)`).run(
+      "hn",
+      "Hacker News",
+      "https://news.ycombinator.com/rss",
+      0,
+      now,
+    );
     db.prepare(
       `INSERT INTO articles (source_id, source_name, guid, title, url, body, published_at, saved_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-    ).run(
-      'bbc',
-      'BBC News',
-      'https://bbc.co.uk/1',
-      'Budget day',
-      'https://bbc.co.uk/1',
-      'about tax',
-      now,
-      now,
-    );
+    ).run("bbc", "BBC News", "https://bbc.co.uk/1", "Budget day", "https://bbc.co.uk/1", "about tax", now, now);
     db.prepare(`INSERT INTO posts (title, markup, created_at, updated_at) VALUES (?, ?, ?, ?)`).run(
-      'Kept post',
-      '<head></head><body></body>',
+      "Kept post",
+      "<head></head><body></body>",
       now,
       now,
     );
-    db.pragma('user_version = 5');
+    db.pragma("user_version = 5");
     db.close();
   }
 
-  it('migrates to v6 with sources, articles and posts intact', () => {
-    const dbPath = join(tmpDir, 'v5.db');
+  it("migrates to v6 with sources, articles and posts intact", () => {
+    const dbPath = join(tmpDir, "v5.db");
     buildV5Db(dbPath);
     const db = getDb(dbPath);
-    const ver = db.pragma('user_version', { simple: true });
-    const sources = db.prepare('SELECT * FROM sources ORDER BY id').all();
-    const articles = db.prepare('SELECT * FROM articles').all();
-    const posts = db.prepare('SELECT title FROM posts').all();
-    const items = db.prepare('SELECT COUNT(*) AS n FROM feed_items').get();
-    const violations = db.pragma('foreign_key_check');
+    const ver = db.pragma("user_version", { simple: true });
+    const sources = db.prepare("SELECT * FROM sources ORDER BY id").all();
+    const articles = db.prepare("SELECT * FROM articles").all();
+    const posts = db.prepare("SELECT title FROM posts").all();
+    const items = db.prepare("SELECT COUNT(*) AS n FROM feed_items").get();
+    const violations = db.pragma("foreign_key_check");
     db.close();
 
     expect(ver).toBe(6);
     expect(sources).toEqual([
       {
-        id: 'bbc',
-        name: 'BBC News',
-        rss_url: 'https://bbc.co.uk/rss',
+        id: "bbc",
+        name: "BBC News",
+        rss_url: "https://bbc.co.uk/rss",
         enabled: 1,
-        created_at: '2026-10-01T00:00:00.000Z',
+        created_at: "2026-10-01T00:00:00.000Z",
         category: null,
         etag: null,
         last_modified: null,
@@ -707,11 +688,11 @@ describe('migrate — v5 → v6 (the Reader)', () => {
         last_error: null,
       },
       {
-        id: 'hn',
-        name: 'Hacker News',
-        rss_url: 'https://news.ycombinator.com/rss',
+        id: "hn",
+        name: "Hacker News",
+        rss_url: "https://news.ycombinator.com/rss",
         enabled: 0,
-        created_at: '2026-10-01T00:00:00.000Z',
+        created_at: "2026-10-01T00:00:00.000Z",
         category: null,
         etag: null,
         last_modified: null,
@@ -722,28 +703,28 @@ describe('migrate — v5 → v6 (the Reader)', () => {
     expect(articles).toEqual([
       {
         id: 1,
-        source_id: 'bbc',
-        source_name: 'BBC News',
-        guid: 'https://bbc.co.uk/1',
-        title: 'Budget day',
-        url: 'https://bbc.co.uk/1',
-        body: 'about tax',
-        published_at: '2026-10-01T00:00:00.000Z',
-        saved_at: '2026-10-01T00:00:00.000Z',
-        note: '',
+        source_id: "bbc",
+        source_name: "BBC News",
+        guid: "https://bbc.co.uk/1",
+        title: "Budget day",
+        url: "https://bbc.co.uk/1",
+        body: "about tax",
+        published_at: "2026-10-01T00:00:00.000Z",
+        saved_at: "2026-10-01T00:00:00.000Z",
+        note: "",
       },
     ]);
-    expect(posts).toEqual([{ title: 'Kept post' }]);
+    expect(posts).toEqual([{ title: "Kept post" }]);
     expect(items).toEqual({ n: 0 });
     expect(violations).toEqual([]);
   });
 
-  it('leaves the migrated tables shaped exactly like a fresh v6 DB', () => {
-    const dbPath = join(tmpDir, 'v5.db');
+  it("leaves the migrated tables shaped exactly like a fresh v6 DB", () => {
+    const dbPath = join(tmpDir, "v5.db");
     buildV5Db(dbPath);
     const migrated = getDb(dbPath);
-    const fresh = getDb(join(tmpDir, 'fresh.db'));
-    for (const table of ['sources', 'articles', 'feed_items']) {
+    const fresh = getDb(join(tmpDir, "fresh.db"));
+    for (const table of ["sources", "articles", "feed_items"]) {
       expect(migrated.pragma(`table_info(${table})`)).toEqual(fresh.pragma(`table_info(${table})`));
     }
     expect(indexNames(migrated).sort()).toEqual(indexNames(fresh).sort());
@@ -751,52 +732,48 @@ describe('migrate — v5 → v6 (the Reader)', () => {
     fresh.close();
   });
 
-  it('a failing step rolls back to an intact, re-migratable v5', () => {
-    const dbPath = join(tmpDir, 'v5.db');
+  it("a failing step rolls back to an intact, re-migratable v5", () => {
+    const dbPath = join(tmpDir, "v5.db");
     buildV5Db(dbPath);
     // A stray feed_items without sort_at: CREATE TABLE IF NOT EXISTS skips it,
     // and the sort index then fails, after the step's ALTERs have run.
     const raw = new Database(dbPath);
-    raw.exec('CREATE TABLE feed_items (id INTEGER PRIMARY KEY, source_id TEXT)');
+    raw.exec("CREATE TABLE feed_items (id INTEGER PRIMARY KEY, source_id TEXT)");
     raw.close();
 
     expect(() => getDb(dbPath)).toThrow(/sort_at/);
 
     const after = new Database(dbPath);
-    expect(after.pragma('user_version', { simple: true })).toBe(5);
-    const sourceCols = (after.pragma('table_info(sources)') as Array<{ name: string }>).map(
-      (c) => c.name,
-    );
-    const articleCols = (after.pragma('table_info(articles)') as Array<{ name: string }>).map(
-      (c) => c.name,
-    );
-    expect(sourceCols).not.toContain('category');
-    expect(articleCols).not.toContain('note');
-    expect(after.prepare('SELECT COUNT(*) AS n FROM articles').get()).toEqual({ n: 1 });
+    expect(after.pragma("user_version", { simple: true })).toBe(5);
+    const sourceCols = (after.pragma("table_info(sources)") as Array<{ name: string }>).map((c) => c.name);
+    const articleCols = (after.pragma("table_info(articles)") as Array<{ name: string }>).map((c) => c.name);
+    expect(sourceCols).not.toContain("category");
+    expect(articleCols).not.toContain("note");
+    expect(after.prepare("SELECT COUNT(*) AS n FROM articles").get()).toEqual({ n: 1 });
 
     // Fix the cause and it migrates.
-    after.exec('DROP TABLE feed_items');
+    after.exec("DROP TABLE feed_items");
     after.close();
     const db = getDb(dbPath);
-    expect(db.pragma('user_version', { simple: true })).toBe(6);
-    expect(columns(db, 'sources')).toContain('category');
-    expect(db.prepare('SELECT note FROM articles').get()).toEqual({ note: '' });
+    expect(db.pragma("user_version", { simple: true })).toBe(6);
+    expect(columns(db, "sources")).toContain("category");
+    expect(db.prepare("SELECT note FROM articles").get()).toEqual({ note: "" });
     db.close();
   });
 });
 
-describe('default db path', () => {
-  const original = process.env['NEWSPAPPER_DB_PATH'];
+describe("default db path", () => {
+  const original = process.env["NEWSPAPPER_DB_PATH"];
 
   afterEach(() => {
-    if (original === undefined) delete process.env['NEWSPAPPER_DB_PATH'];
-    else process.env['NEWSPAPPER_DB_PATH'] = original;
+    if (original === undefined) delete process.env["NEWSPAPPER_DB_PATH"];
+    else process.env["NEWSPAPPER_DB_PATH"] = original;
   });
 
-  it('opens NEWSPAPPER_DB_PATH rather than the repo database', () => {
-    const dir = mkdtempSync(join(tmpdir(), 'newspapper-dbpath-'));
-    const target = join(dir, 'override.db');
-    process.env['NEWSPAPPER_DB_PATH'] = target;
+  it("opens NEWSPAPPER_DB_PATH rather than the repo database", () => {
+    const dir = mkdtempSync(join(tmpdir(), "newspapper-dbpath-"));
+    const target = join(dir, "override.db");
+    process.env["NEWSPAPPER_DB_PATH"] = target;
 
     const db = getDb();
     db.close();

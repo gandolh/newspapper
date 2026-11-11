@@ -7,11 +7,11 @@
  * from the catalogue; nothing here restates what a component is or takes.
  */
 
-import { useMemo } from 'react';
-import { useDrag } from '@use-gesture/react';
-import { WZD_COMPONENTS, type WzdComponentSpec } from '@newspapper/core/wizard';
-import { Button, HATCH } from '../ui';
-import styles from './PalettePane.module.css';
+import { useMemo } from "react";
+import { useDrag } from "@use-gesture/react";
+import { WZD_COMPONENTS, type WzdComponentSpec } from "@newspapper/core/wizard";
+import { Button, HATCH } from "../ui";
+import styles from "./PalettePane.module.css";
 
 /**
  * Each component renders as the thing it produces (The Showing Rule): a
@@ -20,27 +20,27 @@ import styles from './PalettePane.module.css';
  * its own, so it shows its shape instead.
  */
 const SHOWING: Record<string, string> = {
-  Heading: 'showHeading',
-  Text: 'showText',
-  List: 'showList',
-  Item: 'showList',
-  Quote: 'showQuote',
-  Stat: 'showStat',
-  Kicker: 'showKicker',
-  Source: 'showSource',
-  PageCounter: 'showCounter',
-  Image: 'showSchematic',
-  Stack: 'showSchematic',
-  Row: 'showSchematic',
-  Divider: 'showSchematic',
-  Spacer: 'showSchematic',
+  Heading: "showHeading",
+  Text: "showText",
+  List: "showList",
+  Item: "showList",
+  Quote: "showQuote",
+  Stat: "showStat",
+  Kicker: "showKicker",
+  Source: "showSource",
+  PageCounter: "showCounter",
+  Image: "showSchematic",
+  Stack: "showSchematic",
+  Row: "showSchematic",
+  Divider: "showSchematic",
+  Spacer: "showSchematic",
 };
 
 const GROUP_LABELS: Record<string, string> = {
-  structure: 'Structure',
-  content: 'Content',
-  accent: 'Accents',
-  generated: 'Generated',
+  structure: "Structure",
+  content: "Content",
+  accent: "Accents",
+  generated: "Generated",
 };
 
 export interface PalettePaneProps {
@@ -94,17 +94,17 @@ function PaletteItem({
         disabled={disabled}
         className={[
           styles.item,
-          styles[SHOWING[spec.name] ?? 'showText'],
-          dragging ? styles.itemDragging : '',
+          styles[SHOWING[spec.name] ?? "showText"],
+          dragging ? styles.itemDragging : "",
           // Nowhere to put it: the same rubylith idea the rest of the app
           // uses for "held out", drawn as the 45° hatch at this scale.
-          disabled ? `${styles.itemHeldOut} ${HATCH}` : '',
+          disabled ? `${styles.itemHeldOut} ${HATCH}` : "",
         ]
           .filter(Boolean)
-          .join(' ')}
+          .join(" ")}
         title={spec.description}
         onKeyDown={(event) => {
-          if (event.key === 'Enter' || event.key === ' ') {
+          if (event.key === "Enter" || event.key === " ") {
             event.preventDefault();
             if (!disabled) onInsert(spec.name);
           }
@@ -129,7 +129,7 @@ export default function PalettePane({
     const out = new Map<string, WzdComponentSpec[]>();
     for (const spec of Object.values(WZD_COMPONENTS)) {
       // `Slide` is added with the slide controls, not dropped into one.
-      if (spec.role !== 'component' || spec.name === 'Slide') continue;
+      if (spec.role !== "component" || spec.name === "Slide") continue;
       const list = out.get(spec.group) ?? [];
       list.push(spec);
       out.set(spec.group, list);
@@ -140,9 +140,7 @@ export default function PalettePane({
   return (
     <div className={styles.palette}>
       <p className={styles.hint}>
-        {disabled
-          ? 'Fix the markup before adding components.'
-          : 'Drag into a slot, or click to add to the selection.'}
+        {disabled ? "Fix the markup before adding components." : "Drag into a slot, or click to add to the selection."}
       </p>
       {groups.map(([group, specs]) => (
         <section key={group} className={styles.group}>

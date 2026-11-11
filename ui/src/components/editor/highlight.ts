@@ -10,8 +10,7 @@
  * lets diagnostics be sliced into them.
  */
 
-export type WzdTokenKind =
-  'text' | 'punct' | 'component' | 'structure' | 'attr' | 'value' | 'comment' | 'binding';
+export type WzdTokenKind = "text" | "punct" | "component" | "structure" | "attr" | "value" | "comment" | "binding";
 
 export interface WzdToken {
   start: number;
@@ -39,11 +38,11 @@ class Tokenizer {
     let match: RegExpExecArray | null;
     while ((match = binding.exec(slice)) !== null) {
       const at = this.pending + match.index;
-      if (at > cursor) this.out.push({ start: cursor, end: at, kind: 'text' });
-      this.out.push({ start: at, end: at + match[0].length, kind: 'binding' });
+      if (at > cursor) this.out.push({ start: cursor, end: at, kind: "text" });
+      this.out.push({ start: at, end: at + match[0].length, kind: "binding" });
       cursor = at + match[0].length;
     }
-    if (cursor < upTo) this.out.push({ start: cursor, end: upTo, kind: 'text' });
+    if (cursor < upTo) this.out.push({ start: cursor, end: upTo, kind: "text" });
     this.pending = -1;
   }
 
@@ -64,31 +63,31 @@ class Tokenizer {
   private tag(from: number): number {
     const src = this.src;
     let i = from + 1;
-    const closing = src[i] === '/';
+    const closing = src[i] === "/";
     if (closing) i += 1;
-    this.push(from, i, 'punct');
+    this.push(from, i, "punct");
 
     const nameEnd = this.name(i);
     if (nameEnd > i) {
       const first = src[i];
-      this.push(i, nameEnd, first === first.toUpperCase() ? 'component' : 'structure');
+      this.push(i, nameEnd, first === first.toUpperCase() ? "component" : "structure");
     }
     i = nameEnd;
 
-    while (i < src.length && src[i] !== '>') {
+    while (i < src.length && src[i] !== ">") {
       const ch = src[i];
       if (/\s/.test(ch)) {
-        this.push(i, i + 1, 'text');
+        this.push(i, i + 1, "text");
         i += 1;
         continue;
       }
-      if (ch === '/') {
-        this.push(i, i + 1, 'punct');
+      if (ch === "/") {
+        this.push(i, i + 1, "punct");
         i += 1;
         continue;
       }
-      if (ch === '=') {
-        this.push(i, i + 1, 'punct');
+      if (ch === "=") {
+        this.push(i, i + 1, "punct");
         i += 1;
         continue;
       }
@@ -96,21 +95,21 @@ class Tokenizer {
         let j = i + 1;
         while (j < src.length && src[j] !== ch) j += 1;
         j = Math.min(j + 1, src.length);
-        this.push(i, j, 'value');
+        this.push(i, j, "value");
         i = j;
         continue;
       }
       const end = this.name(i);
       if (end > i) {
-        this.push(i, end, 'attr');
+        this.push(i, end, "attr");
         i = end;
         continue;
       }
-      this.push(i, i + 1, 'text');
+      this.push(i, i + 1, "text");
       i += 1;
     }
     if (i < src.length) {
-      this.push(i, i + 1, 'punct');
+      this.push(i, i + 1, "punct");
       i += 1;
     }
     return i;
@@ -120,17 +119,17 @@ class Tokenizer {
     const src = this.src;
     let i = 0;
     while (i < src.length) {
-      if (src[i] === '<') {
-        if (src.startsWith('<!--', i)) {
+      if (src[i] === "<") {
+        if (src.startsWith("<!--", i)) {
           this.flushText(i);
-          const close = src.indexOf('-->', i + 4);
+          const close = src.indexOf("-->", i + 4);
           const end = close < 0 ? src.length : close + 3;
-          this.push(i, end, 'comment');
+          this.push(i, end, "comment");
           i = end;
           continue;
         }
         const after = src[i + 1];
-        if (after === '/' || (after !== undefined && NAME_START.test(after))) {
+        if (after === "/" || (after !== undefined && NAME_START.test(after))) {
           this.flushText(i);
           i = this.tag(i);
           continue;
@@ -164,11 +163,7 @@ export interface WzdRangeMark {
  * complete set of marks covering it. Zero-width marks are widened by one
  * character so a diagnostic pointing at an insertion point is still visible.
  */
-export function decorate(
-  tokens: readonly WzdToken[],
-  marks: readonly WzdRangeMark[],
-  length: number,
-): WzdSpan[] {
+export function decorate(tokens: readonly WzdToken[], marks: readonly WzdRangeMark[], length: number): WzdSpan[] {
   if (!marks.length) return tokens.map((t) => ({ ...t, marks: [] }));
 
   const widened = marks.map((m) => ({

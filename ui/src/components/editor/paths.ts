@@ -7,12 +7,7 @@
  * `pathAtOffset` for cursor → node, `elementAtPath` for node → source range.
  */
 
-import {
-  isElement,
-  type WzdDocument,
-  type WzdElement,
-  type WzdNode,
-} from '@newspapper/core/wizard';
+import { isElement, type WzdDocument, type WzdElement, type WzdNode } from "@newspapper/core/wizard";
 
 export type WzdPath = readonly number[];
 
@@ -35,7 +30,7 @@ export function childrenAt(doc: WzdDocument, path: WzdPath): WzdNode[] | null {
   let nodes: WzdNode[] = doc.children;
   for (const index of path) {
     const node = nodes[index];
-    if (!node || node.kind !== 'element') return null;
+    if (!node || node.kind !== "element") return null;
     nodes = node.children;
   }
   return nodes;
@@ -57,7 +52,7 @@ function search(nodes: readonly WzdNode[], offset: number, prefix: number[]): nu
     const node = nodes[i];
     if (offset < node.loc.start.offset || offset >= node.loc.end.offset) continue;
     const here = [...prefix, i];
-    if (node.kind === 'element') {
+    if (node.kind === "element") {
       const deeper = search(node.children, offset, here);
       if (deeper) return deeper;
     }
@@ -102,25 +97,25 @@ export function slidePathFor(doc: WzdDocument, path: WzdPath | null): WzdPath | 
   if (!path) return null;
   for (const candidate of ancestorPaths(path)) {
     const el = elementAtPath(doc, candidate);
-    if (el?.type === 'Slide') return candidate;
+    if (el?.type === "Slide") return candidate;
   }
   return null;
 }
 
 /** Paths of the `<Slide>` elements, in document order. */
 export function slidePaths(doc: WzdDocument): WzdPath[] {
-  const bodyIndex = doc.children.findIndex((n) => isElement(n) && n.type === 'body');
+  const bodyIndex = doc.children.findIndex((n) => isElement(n) && n.type === "body");
   if (bodyIndex < 0) return [];
   const body = doc.children[bodyIndex] as WzdElement;
   const out: WzdPath[] = [];
   body.children.forEach((child, i) => {
-    if (isElement(child) && child.type === 'Slide') out.push([bodyIndex, i]);
+    if (isElement(child) && child.type === "Slide") out.push([bodyIndex, i]);
   });
   return out;
 }
 
 /** The path of `<body>`, or null when the document has none. */
 export function bodyPath(doc: WzdDocument): WzdPath | null {
-  const index = doc.children.findIndex((n) => isElement(n) && n.type === 'body');
+  const index = doc.children.findIndex((n) => isElement(n) && n.type === "body");
   return index < 0 ? null : [index];
 }

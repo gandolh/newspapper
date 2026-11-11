@@ -20,7 +20,7 @@
  * props keep their field.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from "react";
 import {
   allowedValues,
   getComponentSpec,
@@ -28,20 +28,20 @@ import {
   resolveProps,
   WZD_HEAD_FIELDS,
   type WzdDocument,
-} from '@newspapper/core/wizard';
-import { Button, ChipRow, EmptyState, Input, Textarea } from '../ui';
-import { ancestorPaths, elementAtPath, type WzdPath } from './paths.js';
-import { inheritedAlign, textOf } from './props.js';
-import { hinge } from '@/lib/motion';
-import styles from './InspectorPane.module.css';
+} from "@newspapper/core/wizard";
+import { Button, ChipRow, EmptyState, Input, Textarea } from "../ui";
+import { ancestorPaths, elementAtPath, type WzdPath } from "./paths.js";
+import { inheritedAlign, textOf } from "./props.js";
+import { hinge } from "@/lib/motion";
+import styles from "./InspectorPane.module.css";
 
 const HEAD_LABELS: Record<string, string> = {
-  title: 'Title',
-  description: 'Description',
-  keywords: 'Keywords',
-  date: 'Date',
-  caption: 'Caption',
-  hashtags: 'Hashtags',
+  title: "Title",
+  description: "Description",
+  keywords: "Keywords",
+  date: "Date",
+  caption: "Caption",
+  hashtags: "Hashtags",
 };
 
 /**
@@ -105,7 +105,7 @@ function DraftField({
       onChange={(event) => setDraft(event.target.value)}
       onBlur={commit}
       onKeyDown={(event) => {
-        if (event.key === 'Enter') {
+        if (event.key === "Enter") {
           event.preventDefault();
           event.currentTarget.blur();
         }
@@ -145,7 +145,7 @@ export default function InspectorPane(props: InspectorPaneProps) {
   } = props;
 
   const sheetRef = useRef<HTMLDivElement>(null);
-  const pathKey = selectedPath ? selectedPath.join('.') : '';
+  const pathKey = selectedPath ? selectedPath.join(".") : "";
   useEffect(() => {
     if (pathKey) hinge(sheetRef.current);
   }, [pathKey]);
@@ -161,16 +161,16 @@ export default function InspectorPane(props: InspectorPaneProps) {
       <section className={styles.section}>
         <h3 className={styles.sectionTitle}>Post</h3>
         <p className={styles.sectionHint}>
-          The <code>&lt;head&gt;</code> block. Title, description and keywords also drive the saved
-          post's index columns.
+          The <code>&lt;head&gt;</code> block. Title, description and keywords also drive the saved post's index
+          columns.
         </p>
         {WZD_HEAD_FIELDS.map((field) => (
           <DraftField
             key={field}
             label={HEAD_LABELS[field] ?? field}
-            value={doc?.head[field] ?? ''}
+            value={doc?.head[field] ?? ""}
             disabled={disabled}
-            multiline={field === 'caption' || field === 'description'}
+            multiline={field === "caption" || field === "description"}
             onCommit={(next) => onSetHead(field, next)}
           />
         ))}
@@ -194,7 +194,7 @@ export default function InspectorPane(props: InspectorPaneProps) {
                 if (!node) return null;
                 return (
                   <Button
-                    key={path.join('.')}
+                    key={path.join(".")}
                     variant="ghost"
                     size="sm"
                     className={styles.crumb}
@@ -212,41 +212,21 @@ export default function InspectorPane(props: InspectorPaneProps) {
             </div>
 
             <div className={styles.actions}>
-              <Button
-                variant="ghost"
-                size="sm"
-                disabled={disabled}
-                onClick={() => onNudge(selectedPath, -1)}
-              >
+              <Button variant="ghost" size="sm" disabled={disabled} onClick={() => onNudge(selectedPath, -1)}>
                 Move up
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                disabled={disabled}
-                onClick={() => onNudge(selectedPath, 1)}
-              >
+              <Button variant="ghost" size="sm" disabled={disabled} onClick={() => onNudge(selectedPath, 1)}>
                 Move down
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                disabled={disabled}
-                onClick={() => onDuplicate(selectedPath)}
-              >
+              <Button variant="ghost" size="sm" disabled={disabled} onClick={() => onDuplicate(selectedPath)}>
                 Duplicate
               </Button>
-              <Button
-                variant="danger"
-                size="sm"
-                disabled={disabled}
-                onClick={() => onRemove(selectedPath)}
-              >
+              <Button variant="danger" size="sm" disabled={disabled} onClick={() => onRemove(selectedPath)}>
                 Delete
               </Button>
             </div>
 
-            {spec?.children === 'text' && (
+            {spec?.children === "text" && (
               <DraftField
                 label="Content"
                 value={textOf(element)}
@@ -261,15 +241,15 @@ export default function InspectorPane(props: InspectorPaneProps) {
               const written = element.props[propSpec.name];
               const isSet = written !== undefined;
 
-              if (propSpec.kind === 'enum') {
+              if (propSpec.kind === "enum") {
                 const values = allowedValues(element.type, propSpec.name) ?? [];
                 // `align` is the one prop the compiler inherits; the rest fall
                 // back to the catalogue default when they are not written.
-                const inherits = propSpec.name === 'align';
+                const inherits = propSpec.name === "align";
                 const effective =
                   inherits && !isSet
                     ? inheritedAlign(doc as WzdDocument, selectedPath)
-                    : (resolved[propSpec.name] ?? propSpec.default ?? '');
+                    : (resolved[propSpec.name] ?? propSpec.default ?? "");
                 return (
                   <div className={styles.prop} key={propSpec.name}>
                     <ChipRow
@@ -277,7 +257,7 @@ export default function InspectorPane(props: InspectorPaneProps) {
                       hint={
                         isSet
                           ? propSpec.description
-                          : `${propSpec.description} ${inherits ? 'Inherited' : 'Default'}: ${effective}.`
+                          : `${propSpec.description} ${inherits ? "Inherited" : "Default"}: ${effective}.`
                       }
                       options={values.map((value) => ({ value }))}
                       value={effective}
@@ -299,14 +279,14 @@ export default function InspectorPane(props: InspectorPaneProps) {
                 );
               }
 
-              if (element.type === 'Image' && propSpec.name === 'src') {
+              if (element.type === "Image" && propSpec.name === "src") {
                 return (
                   <div className={styles.prop} key={propSpec.name}>
                     <Input
                       label="src"
-                      value={written ?? ''}
+                      value={written ?? ""}
                       readOnly
-                      hint={written ? 'The upload this references.' : 'No image chosen yet.'}
+                      hint={written ? "The upload this references." : "No image chosen yet."}
                     />
                     <Button
                       variant="secondary"
@@ -324,8 +304,8 @@ export default function InspectorPane(props: InspectorPaneProps) {
               return (
                 <DraftField
                   key={propSpec.name}
-                  label={propSpec.name + (propSpec.required ? ' (required)' : '')}
-                  value={written ?? ''}
+                  label={propSpec.name + (propSpec.required ? " (required)" : "")}
+                  value={written ?? ""}
                   hint={propSpec.description}
                   disabled={disabled}
                   onCommit={(next) => onSetProp(selectedPath, propSpec.name, next)}

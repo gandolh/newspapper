@@ -73,8 +73,8 @@
 /* Attribute selectors, not a modifier class: (0,2,0) out-ranks `:hover` at
    (0,1,1) on its own, so the active chip cannot go graphite-on-graphite the
    moment you point at it. */
-.chip[aria-pressed='true'],
-.chip[aria-selected='true'] {
+.chip[aria-pressed="true"],
+.chip[aria-selected="true"] {
   background: var(--graphite);
   border-color: var(--graphite);
   color: var(--board);
@@ -87,7 +87,7 @@
   pointer-events: none;
 }
 
-.chip:disabled:not([aria-pressed='true']):not([aria-selected='true']) {
+.chip:disabled:not([aria-pressed="true"]):not([aria-selected="true"]) {
   background: var(--board);
   color: var(--graphite-soft);
   border-color: var(--tick);

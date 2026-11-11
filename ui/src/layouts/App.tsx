@@ -6,26 +6,24 @@
  * existed to keep the tray mounted across a navigation, and in an SPA the
  * tray is simply never unmounted.
  */
-import { useEffect, type ReactNode } from 'react';
-import Sidebar from '../components/Sidebar';
-import styles from './App.module.css';
+import { useEffect, type ReactNode } from "react";
+import Sidebar from "../components/Sidebar";
+import styles from "./App.module.css";
 
 export default function App({
-  title = 'newspapper',
-  width = 'default',
+  title = "newspapper",
+  width = "default",
   children,
 }: {
   title?: string;
-  width?: 'default' | 'fluid';
+  width?: "default" | "fluid";
   children: ReactNode;
 }) {
   useEffect(() => {
     document.title = `${title} — newspapper`;
   }, [title]);
 
-  const sheet = [styles.sheet, width === 'fluid' ? styles['sheet--fluid'] : '']
-    .filter(Boolean)
-    .join(' ');
+  const sheet = [styles.sheet, width === "fluid" ? styles["sheet--fluid"] : ""].filter(Boolean).join(" ");
 
   return (
     <div className={styles.board}>

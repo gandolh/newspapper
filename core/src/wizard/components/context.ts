@@ -5,11 +5,11 @@
  * Browser-safe: no Node APIs.
  */
 
-import type { TNode, TStyle, Theme } from '../../types.js';
-import type { WzdElement, WzdNode } from '../ast.js';
-import { getComponentSpec } from '../catalogue.js';
-import { resolveBindings } from '../bindings.js';
-import { WZD_TEXT_ALIGN, type WzdAlign, type WzdEmphasis, type WzdSize } from './style.js';
+import type { TNode, TStyle, Theme } from "../../types.js";
+import type { WzdElement, WzdNode } from "../ast.js";
+import { getComponentSpec } from "../catalogue.js";
+import { resolveBindings } from "../bindings.js";
+import { WZD_TEXT_ALIGN, type WzdAlign, type WzdEmphasis, type WzdSize } from "./style.js";
 
 export interface WzdRenderContext {
   theme: Theme;
@@ -33,12 +33,12 @@ export type WzdComponentRenderer = (el: WzdElement, ctx: WzdRenderContext) => TN
 
 function specValues(type: string, prop: string): readonly string[] | null {
   const spec = getComponentSpec(type)?.props[prop];
-  if (!spec || spec.kind !== 'enum') return null;
+  if (!spec || spec.kind !== "enum") return null;
   return spec.values ?? null;
 }
 
 function specDefault(type: string, prop: string): string {
-  return getComponentSpec(type)?.props[prop]?.default ?? '';
+  return getComponentSpec(type)?.props[prop]?.default ?? "";
 }
 
 /** An enum prop as written, or the catalogue default when absent or invalid. */
@@ -59,7 +59,7 @@ export function resolveProps(el: WzdElement): Record<string, string> {
   if (!spec) return {};
   const resolved: Record<string, string> = {};
   for (const propSpec of Object.values(spec.props)) {
-    if (propSpec.kind === 'enum') {
+    if (propSpec.kind === "enum") {
       resolved[propSpec.name] = enumProp(el, propSpec.name);
       continue;
     }
@@ -71,11 +71,11 @@ export function resolveProps(el: WzdElement): Record<string, string> {
 }
 
 export function sizeOf(el: WzdElement): WzdSize {
-  return enumProp(el, 'size') as WzdSize;
+  return enumProp(el, "size") as WzdSize;
 }
 
 export function emphasisOf(el: WzdElement): WzdEmphasis {
-  return enumProp(el, 'emphasis') as WzdEmphasis;
+  return enumProp(el, "emphasis") as WzdEmphasis;
 }
 
 /**
@@ -84,8 +84,8 @@ export function emphasisOf(el: WzdElement): WzdEmphasis {
  * without every child restating it.
  */
 export function alignOf(el: WzdElement, ctx: WzdRenderContext): WzdAlign {
-  const values = specValues(el.type, 'align');
-  const written = el.props['align'];
+  const values = specValues(el.type, "align");
+  const written = el.props["align"];
   if (values && written !== undefined && values.includes(written)) return written as WzdAlign;
   return ctx.align;
 }
@@ -98,9 +98,9 @@ export function textAlign(align: WzdAlign): string {
 export function contentOf(el: WzdElement, ctx: WzdRenderContext): string {
   const parts: string[] = [];
   for (const child of el.children) {
-    if (child.kind === 'text' && child.value) parts.push(child.value);
+    if (child.kind === "text" && child.value) parts.push(child.value);
   }
-  return resolveBindings(parts.join(' '), ctx.head);
+  return resolveBindings(parts.join(" "), ctx.head);
 }
 
 /**
@@ -108,13 +108,13 @@ export function contentOf(el: WzdElement, ctx: WzdRenderContext): string {
  * escaping. `<` cannot occur in `.wzd` text, but `&` and `>` can.
  */
 export function escapeText(text: string): string {
-  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 export function textNode(text: string, style: TStyle): TNode {
-  return { kind: 'text', text: escapeText(text), style };
+  return { kind: "text", text: escapeText(text), style };
 }
 
 export function boxNode(style: TStyle, children: TNode[]): TNode {
-  return { kind: 'box', style, children };
+  return { kind: "box", style, children };
 }

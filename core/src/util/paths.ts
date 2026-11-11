@@ -1,6 +1,6 @@
-import { existsSync, mkdirSync, readdirSync } from 'node:fs';
-import { dirname, isAbsolute, join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { existsSync, mkdirSync, readdirSync } from "node:fs";
+import { dirname, isAbsolute, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 /**
  * Where everything lives, from one place.
@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
  * the render route string-slices output paths by it. Now only this file knows
  * its own depth. ESM, from `import.meta.url`, never `process.cwd()`.
  */
-const REPO_ROOT = resolve(fileURLToPath(new URL('../../..', import.meta.url)));
+const REPO_ROOT = resolve(fileURLToPath(new URL("../../..", import.meta.url)));
 
 export function repoRoot(): string {
   return REPO_ROOT;
@@ -32,36 +32,36 @@ function fromEnv(name: string): string | null {
  * the container.
  */
 export function outputRoot(): string {
-  return fromEnv('OUTPUT_DIR') ?? resolve(REPO_ROOT, 'output');
+  return fromEnv("OUTPUT_DIR") ?? resolve(REPO_ROOT, "output");
 }
 
 /** The upload store. `UPLOADS_DIR` overrides it. */
 export function uploadsRoot(): string {
-  return fromEnv('UPLOADS_DIR') ?? resolve(REPO_ROOT, 'uploads');
+  return fromEnv("UPLOADS_DIR") ?? resolve(REPO_ROOT, "uploads");
 }
 
 /** The SQLite file. `NEWSPAPPER_DB_PATH` overrides it, and tests must set it. */
 export function dbPath(): string {
-  const override = process.env['NEWSPAPPER_DB_PATH'];
-  if (override !== undefined && override !== '') return resolve(override);
-  return resolve(REPO_ROOT, 'data', 'newspapper.db');
+  const override = process.env["NEWSPAPPER_DB_PATH"];
+  if (override !== undefined && override !== "") return resolve(override);
+  return resolve(REPO_ROOT, "data", "newspapper.db");
 }
 
 /** The v2 sources list, read once to seed the `sources` table. */
 export function sourcesSeedPath(): string {
-  return resolve(REPO_ROOT, 'data', 'sources.json');
+  return resolve(REPO_ROOT, "data", "sources.json");
 }
 
 export function fontsDir(): string {
-  return resolve(REPO_ROOT, 'assets', 'fonts');
+  return resolve(REPO_ROOT, "assets", "fonts");
 }
 
 export function designSystemsDir(): string {
-  return resolve(REPO_ROOT, 'assets', 'design-systems');
+  return resolve(REPO_ROOT, "assets", "design-systems");
 }
 
 export function uiDistDir(): string {
-  return resolve(REPO_ROOT, 'ui', 'dist');
+  return resolve(REPO_ROOT, "ui", "dist");
 }
 
 export function ensureDir(path: string): void {
@@ -75,15 +75,12 @@ export function ensureParent(path: string): void {
 export function todayLocal(): string {
   const d = new Date();
   const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
 }
 
-export function nextOutputDir(
-  outputRoot: string,
-  date: string,
-): { dir: string; runNumber: number } {
+export function nextOutputDir(outputRoot: string, date: string): { dir: string; runNumber: number } {
   ensureDir(outputRoot);
   const prefix = `${date}-`;
   const existing = readdirSync(outputRoot)

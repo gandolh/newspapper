@@ -6,25 +6,25 @@
  * than eyeballed.
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const animate = vi.fn();
 const set = vi.fn();
 
-vi.mock('animejs', () => ({
+vi.mock("animejs", () => ({
   animate: (...args: unknown[]) => animate(...args),
   utils: { set: (...args: unknown[]) => set(...args) },
 }));
 
-const { compile, hinge, prefersReducedMotion } = await import('./motion.js');
+const { compile, hinge, prefersReducedMotion } = await import("./motion.js");
 
 /** A stand-in for the element each moment is handed; nothing reads it. */
 const element = {} as unknown as HTMLElement;
 
 function withReducedMotion(reduce: boolean): void {
-  vi.stubGlobal('window', {
+  vi.stubGlobal("window", {
     matchMedia: (query: string) => ({
-      matches: reduce && query.includes('prefers-reduced-motion'),
+      matches: reduce && query.includes("prefers-reduced-motion"),
     }),
   });
 }
@@ -38,8 +38,8 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe('the authored moments', () => {
-  it('animates the compile and the hinge when motion is welcome', () => {
+describe("the authored moments", () => {
+  it("animates the compile and the hinge when motion is welcome", () => {
     withReducedMotion(false);
     expect(prefersReducedMotion()).toBe(false);
 
@@ -50,7 +50,7 @@ describe('the authored moments', () => {
     expect(set).not.toHaveBeenCalled();
   });
 
-  it('jumps straight to the end state under prefers-reduced-motion', () => {
+  it("jumps straight to the end state under prefers-reduced-motion", () => {
     withReducedMotion(true);
     expect(prefersReducedMotion()).toBe(true);
 
@@ -65,7 +65,7 @@ describe('the authored moments', () => {
     expect(set).toHaveBeenNthCalledWith(2, element, { rotateX: 0, opacity: 1 });
   });
 
-  it('does nothing at all when the surface is not mounted', () => {
+  it("does nothing at all when the surface is not mounted", () => {
     withReducedMotion(false);
 
     compile(null);

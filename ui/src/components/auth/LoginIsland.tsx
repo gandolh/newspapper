@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { Button, Card, Input } from '../ui';
-import { useLogin, useSession, useWardSignIn } from '@/lib/auth';
-import { nextFromSearch, withBase } from '@/lib/base';
-import { Redirect } from '@/router';
-import { authMessage, reasonMessage } from './messages';
-import styles from './LoginIsland.module.css';
+import { useState } from "react";
+import { Button, Card, Input } from "../ui";
+import { useLogin, useSession, useWardSignIn } from "@/lib/auth";
+import { nextFromSearch, withBase } from "@/lib/base";
+import { Redirect } from "@/router";
+import { authMessage, reasonMessage } from "./messages";
+import styles from "./LoginIsland.module.css";
 
 /**
  * The sign-in form, and "Sign in with Ward" when the server has Ward
@@ -29,23 +29,21 @@ export default function LoginIsland() {
   const { login, pending, error } = useLogin();
   const ward = useWardSignIn();
 
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [next] = useState(() => nextFromSearch(window.location.search));
-  const [reason] = useState(() => new URLSearchParams(window.location.search).get('reason'));
+  const [reason] = useState(() => new URLSearchParams(window.location.search).get("reason"));
 
-  if (session.status === 'signed_in') return <Redirect to={next} />;
+  if (session.status === "signed_in") return <Redirect to={next} />;
 
-  const notice =
-    reasonMessage(session.status === 'signed_out' ? session.reason : undefined) ??
-    reasonMessage(reason);
-  const wardEnabled = session.status === 'signed_out' && session.ward.enabled;
+  const notice = reasonMessage(session.status === "signed_out" ? session.reason : undefined) ?? reasonMessage(reason);
+  const wardEnabled = session.status === "signed_out" && session.ward.enabled;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     ward.reset();
     const ok = await login(username, password);
-    if (!ok) setPassword('');
+    if (!ok) setPassword("");
   }
 
   return (
@@ -61,7 +59,7 @@ export default function LoginIsland() {
               {authMessage((error ?? ward.error)!)}
             </p>
           )}
-          {session.status === 'error' && (
+          {session.status === "error" && (
             <p className={styles.error} role="alert">
               Could not check whether you are signed in. Reload to try again.
             </p>

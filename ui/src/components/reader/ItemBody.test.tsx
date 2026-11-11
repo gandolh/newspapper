@@ -12,13 +12,13 @@
  * under happy-dom DOMPurify mangles even clean markup (`<p>a</p><p>b</p>` comes
  * back as `a<p>b</p>`); sanitize.test.ts covers it in Chromium.
  */
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import { act } from 'react';
-import { createRoot, type Root } from 'react-dom/client';
-import ItemBody from './ItemBody';
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { act } from "react";
+import { createRoot, type Root } from "react-dom/client";
+import ItemBody from "./ItemBody";
 
-vi.mock('./sanitize', () => ({
-  sanitizeItemHtml: (html: string | null) => html ?? '',
+vi.mock("./sanitize", () => ({
+  sanitizeItemHtml: (html: string | null) => html ?? "",
   textParagraphs: () => [],
 }));
 
@@ -34,25 +34,21 @@ afterEach(() => {
   host = null;
 });
 
-describe('ItemBody', () => {
-  it('keeps the same text nodes when the pane re-renders', () => {
-    host = document.createElement('div');
+describe("ItemBody", () => {
+  it("keeps the same text nodes when the pane re-renders", () => {
+    host = document.createElement("div");
     document.body.append(host);
     root = createRoot(host);
-    const html = '<p>First paragraph of the item.</p><p>Second.</p>';
+    const html = "<p>First paragraph of the item.</p><p>Second.</p>";
 
-    act(() =>
-      root!.render(<ItemBody item={{ contentHtml: html, contentText: '' }} empty={null} />),
-    );
-    const text = host.querySelector('p')!.firstChild;
-    expect(text?.textContent).toBe('First paragraph of the item.');
+    act(() => root!.render(<ItemBody item={{ contentHtml: html, contentText: "" }} empty={null} />));
+    const text = host.querySelector("p")!.firstChild;
+    expect(text?.textContent).toBe("First paragraph of the item.");
 
     // A new item object with the same content, and a new `empty` element: what
     // the pane passes on every render.
-    act(() =>
-      root!.render(<ItemBody item={{ contentHtml: html, contentText: '' }} empty={<span />} />),
-    );
-    expect(host.querySelector('p')!.firstChild).toBe(text);
+    act(() => root!.render(<ItemBody item={{ contentHtml: html, contentText: "" }} empty={<span />} />));
+    expect(host.querySelector("p")!.firstChild).toBe(text);
     expect(text!.isConnected).toBe(true);
   });
 });

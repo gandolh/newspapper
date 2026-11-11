@@ -6,14 +6,14 @@
  * core barrel at '@newspapper/core').
  */
 
-import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { zipSync } from 'fflate';
-import sharp from 'sharp';
-import { DEFAULT_JPEG_QUALITY, htmlToJpeg } from './screenshot.js';
-import type { DB } from '../storage/db.js';
-import { reserveOutputDir, writeRun } from './output.js';
-import { rmSync } from 'node:fs';
+import { readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { zipSync } from "fflate";
+import sharp from "sharp";
+import { DEFAULT_JPEG_QUALITY, htmlToJpeg } from "./screenshot.js";
+import type { DB } from "../storage/db.js";
+import { reserveOutputDir, writeRun } from "./output.js";
+import { rmSync } from "node:fs";
 
 // ---- Public types ----
 
@@ -31,7 +31,7 @@ export interface RenderedRun {
  * `slide-NN.jpg`, so nothing that lists, optimizes or publishes slides sees it,
  * and the export zip leaves it out.
  */
-export const THUMB_FILE = 'thumb.jpg';
+export const THUMB_FILE = "thumb.jpg";
 
 /** 2x the grid's 104 px cell, so it is sharp on a high-DPR screen. */
 const THUMB_SIZE = 220;
@@ -41,10 +41,7 @@ const THUMB_SIZE = 220;
  * 1080x1080 `slide-01.jpg` (~150-950 KB) to show a 104 px stamp.
  */
 export async function makeThumbnail(slide: Buffer): Promise<Buffer> {
-  return sharp(slide)
-    .resize(THUMB_SIZE, THUMB_SIZE, { fit: 'cover' })
-    .jpeg({ quality: 80 })
-    .toBuffer();
+  return sharp(slide).resize(THUMB_SIZE, THUMB_SIZE, { fit: "cover" }).jpeg({ quality: 80 }).toBuffer();
 }
 
 export interface RenderSlidesOptions {
@@ -77,7 +74,7 @@ export interface RenderSlidesOptions {
 /** Zero-padded slide filename: slide-01.jpg, slide-02.jpg, … */
 function slideFileName(index: number, total: number): string {
   const width = Math.max(2, String(total).length);
-  return `slide-${String(index).padStart(width, '0')}.jpg`;
+  return `slide-${String(index).padStart(width, "0")}.jpg`;
 }
 
 /**
@@ -88,10 +85,7 @@ function slideFileName(index: number, total: number): string {
  * Slides are rendered sequentially for predictable memory usage and ordered
  * progress events.
  */
-export async function renderSlides(
-  html: string[],
-  opts: RenderSlidesOptions,
-): Promise<RenderedRun> {
+export async function renderSlides(html: string[], opts: RenderSlidesOptions): Promise<RenderedRun> {
   // Reserved (created) now, not at write time: see `reserveOutputDir`.
   const dir = reserveOutputDir(opts.date, opts.outputRoot);
   const quality = opts.quality ?? DEFAULT_JPEG_QUALITY;
@@ -111,11 +105,11 @@ export async function renderSlides(
 
   const outputFiles: { name: string; data: Buffer | string }[] = [
     ...jpegBuffers.map((buf, i) => ({ name: slideFileName(i + 1, html.length), data: buf })),
-    { name: 'slides.json', data: JSON.stringify(opts.slidesJson, null, 2) },
+    { name: "slides.json", data: JSON.stringify(opts.slidesJson, null, 2) },
   ];
 
   if (opts.caption !== undefined) {
-    outputFiles.push({ name: 'caption.txt', data: opts.caption });
+    outputFiles.push({ name: "caption.txt", data: opts.caption });
   }
 
   await writeRun(dir, outputFiles);
@@ -155,10 +149,10 @@ export async function zipRun(dir: string): Promise<Buffer> {
 
 // ---- Re-exports ----
 
-export { getBrowser, closeBrowser } from './browser.js';
-export { htmlToPng, htmlToJpeg, DEFAULT_JPEG_QUALITY } from './screenshot.js';
-export { installUploadsRoute, localUploadFile, UPLOADS_ROUTE_GLOB } from './uploads-route.js';
-export type { HtmlToPngOptions, HtmlToJpegOptions } from './screenshot.js';
-export { nextOutputDir, reserveOutputDir, writeRun } from './output.js';
-export type { OutputFile } from './output.js';
-export { resolveImageUrls } from './resolve-images.js';
+export { getBrowser, closeBrowser } from "./browser.js";
+export { htmlToPng, htmlToJpeg, DEFAULT_JPEG_QUALITY } from "./screenshot.js";
+export { installUploadsRoute, localUploadFile, UPLOADS_ROUTE_GLOB } from "./uploads-route.js";
+export type { HtmlToPngOptions, HtmlToJpegOptions } from "./screenshot.js";
+export { nextOutputDir, reserveOutputDir, writeRun } from "./output.js";
+export type { OutputFile } from "./output.js";
+export { resolveImageUrls } from "./resolve-images.js";

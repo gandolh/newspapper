@@ -10,17 +10,12 @@
  * and the wizard's own modules only — no `node:` built-ins, no filesystem.
  */
 
-import type { TNode, Theme } from '../types.js';
-import { elementChildren, type WzdDocument, type WzdElement } from './ast.js';
-import { hasErrors, type WzdDiagnostic } from './diagnostics.js';
-import { lint, type WzdLintOptions } from './lint.js';
-import { parse } from './parse.js';
-import {
-  baseContext,
-  missingThemeTokens,
-  renderSlide,
-  type WzdRenderContext,
-} from './components/index.js';
+import type { TNode, Theme } from "../types.js";
+import { elementChildren, type WzdDocument, type WzdElement } from "./ast.js";
+import { hasErrors, type WzdDiagnostic } from "./diagnostics.js";
+import { lint, type WzdLintOptions } from "./lint.js";
+import { parse } from "./parse.js";
+import { baseContext, missingThemeTokens, renderSlide, type WzdRenderContext } from "./components/index.js";
 
 export interface WzdCompileOptions {
   /** Prefix an `<Image src>` is resolved against. Default `/uploads`. */
@@ -29,8 +24,8 @@ export interface WzdCompileOptions {
   lint?: WzdLintOptions;
 }
 
-export const WZD_COMPILE_DEFAULTS: Required<Pick<WzdCompileOptions, 'uploadBaseUrl'>> = {
-  uploadBaseUrl: '/uploads',
+export const WZD_COMPILE_DEFAULTS: Required<Pick<WzdCompileOptions, "uploadBaseUrl">> = {
+  uploadBaseUrl: "/uploads",
 };
 
 export interface WzdCompileResult {
@@ -47,7 +42,7 @@ export class WzdCompileError extends Error {
 
   constructor(message: string, diagnostics: readonly WzdDiagnostic[]) {
     super(message);
-    this.name = 'WzdCompileError';
+    this.name = "WzdCompileError";
     this.diagnostics = diagnostics;
   }
 }
@@ -55,7 +50,7 @@ export class WzdCompileError extends Error {
 /** The `<Slide>` elements of a document, in order. */
 export function slideElements(doc: WzdDocument): WzdElement[] {
   if (!doc.bodyElement) return [];
-  return elementChildren(doc.bodyElement).filter((el) => el.type === 'Slide');
+  return elementChildren(doc.bodyElement).filter((el) => el.type === "Slide");
 }
 
 function contextFor(
@@ -68,8 +63,8 @@ function contextFor(
   return baseContext({
     theme,
     head: doc.head,
-    align: 'left',
-    size: 'md',
+    align: "left",
+    size: "md",
     index,
     total,
     uploadBaseUrl: options.uploadBaseUrl ?? WZD_COMPILE_DEFAULTS.uploadBaseUrl,
@@ -82,24 +77,18 @@ function contextFor(
  * nowhere to resolve stays on the slide as written. This is what a live
  * preview wants while someone is still typing.
  */
-export function compile(
-  doc: WzdDocument,
-  theme: Theme,
-  options: WzdCompileOptions = {},
-): WzdCompileResult {
+export function compile(doc: WzdDocument, theme: Theme, options: WzdCompileOptions = {}): WzdCompileResult {
   const missing = missingThemeTokens(theme);
   if (missing.length) {
     throw new WzdCompileError(
-      `Theme "${theme.name}" is missing tokens the component library needs: ${missing.join(', ')}.`,
+      `Theme "${theme.name}" is missing tokens the component library needs: ${missing.join(", ")}.`,
       [],
     );
   }
 
   const elements = slideElements(doc);
   const total = elements.length;
-  const slides = elements.map((el, i) =>
-    renderSlide(el, contextFor(doc, theme, options, i + 1, total)),
-  );
+  const slides = elements.map((el, i) => renderSlide(el, contextFor(doc, theme, options, i + 1, total)));
 
   return { slides, head: { ...doc.head }, diagnostics: lint(doc, options.lint) };
 }
@@ -109,16 +98,12 @@ export function compile(
  * ready for `renderTemplate`. Throws `WzdCompileError` when the document has
  * lint errors; warnings pass. Use `compile()` for the forgiving path.
  */
-export function compileDocument(
-  doc: WzdDocument,
-  theme: Theme,
-  options: WzdCompileOptions = {},
-): TNode[] {
+export function compileDocument(doc: WzdDocument, theme: Theme, options: WzdCompileOptions = {}): TNode[] {
   const result = compile(doc, theme, options);
   if (hasErrors(result.diagnostics)) {
-    const errors = result.diagnostics.filter((d) => d.severity === 'error');
+    const errors = result.diagnostics.filter((d) => d.severity === "error");
     throw new WzdCompileError(
-      `This document has ${errors.length} error${errors.length === 1 ? '' : 's'} and cannot be compiled: ${errors[0].message}`,
+      `This document has ${errors.length} error${errors.length === 1 ? "" : "s"} and cannot be compiled: ${errors[0].message}`,
       result.diagnostics,
     );
   }
@@ -126,11 +111,7 @@ export function compileDocument(
 }
 
 /** Parse, lint and compile in one call. Never throws on bad syntax. */
-export function compileSource(
-  source: string,
-  theme: Theme,
-  options: WzdCompileOptions = {},
-): WzdCompileResult {
+export function compileSource(source: string, theme: Theme, options: WzdCompileOptions = {}): WzdCompileResult {
   const parsed = parse(source);
   const result = compile(parsed.doc, theme, options);
   return { ...result, diagnostics: [...parsed.errors, ...result.diagnostics] };
@@ -151,8 +132,8 @@ export function compileSlide(
     baseContext({
       theme,
       head: scope.head ?? {},
-      align: 'left',
-      size: 'md',
+      align: "left",
+      size: "md",
       index: scope.index ?? 1,
       total: scope.total ?? 1,
       uploadBaseUrl: options.uploadBaseUrl ?? WZD_COMPILE_DEFAULTS.uploadBaseUrl,

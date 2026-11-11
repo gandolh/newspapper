@@ -1,5 +1,5 @@
-import { useEffect, useRef, type TextareaHTMLAttributes } from 'react';
-import styles from './Textarea.module.css';
+import { useEffect, useRef, type TextareaHTMLAttributes } from "react";
+import styles from "./Textarea.module.css";
 
 export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
@@ -13,7 +13,7 @@ export default function Textarea({
   hint,
   error,
   autoGrow = true,
-  className = '',
+  className = "",
   id,
   value,
   defaultValue,
@@ -21,11 +21,11 @@ export default function Textarea({
   ...rest
 }: TextareaProps) {
   const ref = useRef<HTMLTextAreaElement>(null);
-  const textareaId = id ?? label?.toLowerCase().replace(/\s+/g, '-');
+  const textareaId = id ?? label?.toLowerCase().replace(/\s+/g, "-");
 
   function resize() {
     if (!autoGrow || !ref.current) return;
-    ref.current.style.height = 'auto';
+    ref.current.style.height = "auto";
     ref.current.style.height = `${ref.current.scrollHeight}px`;
   }
 
@@ -33,9 +33,7 @@ export default function Textarea({
     resize();
   });
 
-  const cls = [styles.textarea, error ? styles['textarea--error'] : '', className]
-    .filter(Boolean)
-    .join(' ');
+  const cls = [styles.textarea, error ? styles["textarea--error"] : "", className].filter(Boolean).join(" ");
 
   return (
     <div className={styles.field}>

@@ -1,5 +1,5 @@
-import type { DB } from './db.js';
-import type { Upload } from '../types.js';
+import type { DB } from "./db.js";
+import type { Upload } from "../types.js";
 
 interface UploadDbRow {
   id: number;
@@ -61,26 +61,20 @@ export function createUpload(db: DB, input: NewUpload): Upload {
 }
 
 export function findUpload(db: DB, id: number): Upload | undefined {
-  const row = db.prepare('SELECT * FROM uploads WHERE id = ?').get(id) as UploadDbRow | undefined;
+  const row = db.prepare("SELECT * FROM uploads WHERE id = ?").get(id) as UploadDbRow | undefined;
   return row ? rowToUpload(row) : undefined;
 }
 
 export function listUploads(db: DB, opts: { limit?: number; offset?: number } = {}): Upload[] {
   const rows = db
-    .prepare('SELECT * FROM uploads ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?')
+    .prepare("SELECT * FROM uploads ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?")
     .all(opts.limit ?? 100, opts.offset ?? 0) as UploadDbRow[];
   return rows.map(rowToUpload);
 }
 
 /** Record the normalized derivative Sharp produced for an upload. */
-export function setUploadNormalizedPath(
-  db: DB,
-  id: number,
-  normalizedPath: string | null,
-): Upload | undefined {
-  const r = db
-    .prepare('UPDATE uploads SET normalized_path = ? WHERE id = ?')
-    .run(normalizedPath, id);
+export function setUploadNormalizedPath(db: DB, id: number, normalizedPath: string | null): Upload | undefined {
+  const r = db.prepare("UPDATE uploads SET normalized_path = ? WHERE id = ?").run(normalizedPath, id);
   if (r.changes === 0) return undefined;
   return findUpload(db, id);
 }
@@ -89,6 +83,6 @@ export function setUploadNormalizedPath(
 export function removeUpload(db: DB, id: number): Upload | undefined {
   const existing = findUpload(db, id);
   if (!existing) return undefined;
-  db.prepare('DELETE FROM uploads WHERE id = ?').run(id);
+  db.prepare("DELETE FROM uploads WHERE id = ?").run(id);
   return existing;
 }

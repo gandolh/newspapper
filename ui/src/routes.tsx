@@ -17,42 +17,42 @@
  * but in `lib/api.ts`, which sends a 401 to `/login?next=…` on the first API
  * call a page makes.
  */
-import type { ComponentType } from 'react';
-import ProofSheet from './proofSheet';
-import App from './layouts/App';
-import EditorIsland from './components/editor/EditorIsland';
-import PostsIsland from './components/posts/PostsIsland';
-import ReaderIsland from './components/reader/ReaderIsland';
-import SettingsIsland from './components/settings/SettingsIsland';
-import { Redirect, usePathname } from './router';
-import LoginPage from './pages/Login';
+import type { ComponentType } from "react";
+import ProofSheet from "./proofSheet";
+import App from "./layouts/App";
+import EditorIsland from "./components/editor/EditorIsland";
+import PostsIsland from "./components/posts/PostsIsland";
+import ReaderIsland from "./components/reader/ReaderIsland";
+import SettingsIsland from "./components/settings/SettingsIsland";
+import { Redirect, usePathname } from "./router";
+import LoginPage from "./pages/Login";
 
-type Sheet = { title: string; width?: 'default' | 'fluid'; Island: ComponentType };
+type Sheet = { title: string; width?: "default" | "fluid"; Island: ComponentType };
 
 const sheets: Record<string, Sheet> = {
-  '/': { title: 'Editor', width: 'fluid', Island: EditorIsland },
-  '/posts': { title: 'Posts', Island: PostsIsland },
+  "/": { title: "Editor", width: "fluid", Island: EditorIsland },
+  "/posts": { title: "Posts", Island: PostsIsland },
   // Fluid like the editor: three panes want the board's whole width.
-  '/reader': { title: 'Reader', width: 'fluid', Island: ReaderIsland },
-  '/settings': { title: 'Settings', Island: SettingsIsland },
+  "/reader": { title: "Reader", width: "fluid", Island: ReaderIsland },
+  "/settings": { title: "Settings", Island: SettingsIsland },
   // null in every production build — see the proofSheet plugin in vite.config.ts.
-  ...(ProofSheet ? { '/kitchen-sink': { title: 'Kitchen Sink', Island: ProofSheet } } : {}),
+  ...(ProofSheet ? { "/kitchen-sink": { title: "Kitchen Sink", Island: ProofSheet } } : {}),
 };
 
 export default function Routes() {
   const path = usePathname();
 
   // The one route outside the board: no tray, nothing that needs a session.
-  if (path === '/login') return <LoginPage />;
+  if (path === "/login") return <LoginPage />;
 
   const sheet = sheets[path];
   if (!sheet) {
     // /history became /posts on 2026-08-31. Kept so a bookmark lands somewhere
     // useful instead of 404ing; was an `astro.config.mjs` redirect entry.
-    if (path === '/history') return <Redirect to="/posts" />;
+    if (path === "/history") return <Redirect to="/posts" />;
     // /articles became the Reader on 2026-10-09: its Search, Library and
     // Sources panels are the Reader's views now. Same reason as above.
-    if (path === '/articles') return <Redirect to="/reader" />;
+    if (path === "/articles") return <Redirect to="/reader" />;
     // The static build had no 404 page either — the API's index.html fallback
     // served the editor for any unknown path. Say so in the URL bar.
     return <Redirect to="/" />;

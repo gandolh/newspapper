@@ -21,8 +21,8 @@ import {
   type WzdNode,
   type WzdPosition,
   type WzdText,
-} from './ast.js';
-import type { WzdDiagnostic } from './diagnostics.js';
+} from "./ast.js";
+import type { WzdDiagnostic } from "./diagnostics.js";
 
 export interface WzdParseResult {
   doc: WzdDocument;
@@ -39,7 +39,7 @@ export class WzdSyntaxError extends Error {
   constructor(diagnostics: WzdDiagnostic[]) {
     const first = diagnostics[0];
     super(`${first.loc.start.line}:${first.loc.start.column}: ${first.message}`);
-    this.name = 'WzdSyntaxError';
+    this.name = "WzdSyntaxError";
     this.diagnostic = first;
     this.diagnostics = diagnostics;
   }
@@ -50,7 +50,7 @@ const ATTR_NAME = /[A-Za-z_][A-Za-z0-9_-]*/y;
 
 /** Normalize line endings and strip a BOM. Offsets refer to the result. */
 export function normalizeSource(source: string): string {
-  return source.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n');
+  return source.replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n");
 }
 
 interface ChildrenResult {
@@ -108,7 +108,7 @@ class Parser {
   private tooDeep = false;
 
   private error(message: string, loc: WzdLoc): void {
-    this.errors.push({ code: 'syntax-error', severity: 'error', message, loc });
+    this.errors.push({ code: "syntax-error", severity: "error", message, loc });
   }
 
   private skipWhitespace(): void {
@@ -120,9 +120,9 @@ class Parser {
     let headElement: WzdElement | null = null;
     let bodyElement: WzdElement | null = null;
     for (const node of nodes) {
-      if (node.kind !== 'element') continue;
-      if (node.type === 'head' && !headElement) headElement = node;
-      if (node.type === 'body' && !bodyElement) bodyElement = node;
+      if (node.kind !== "element") continue;
+      if (node.type === "head" && !headElement) headElement = node;
+      if (node.type === "body" && !bodyElement) bodyElement = node;
     }
     const head: Record<string, string> = {};
     if (headElement) {
@@ -133,7 +133,7 @@ class Parser {
       }
     }
     return {
-      kind: 'document',
+      kind: "document",
       head,
       body: bodyElement ? bodyElement.children : [],
       children: nodes,
@@ -147,12 +147,12 @@ class Parser {
     const nodes: WzdNode[] = [];
     let blank = false;
     while (this.i < this.src.length) {
-      if (this.src.startsWith('<!--', this.i)) {
+      if (this.src.startsWith("<!--", this.i)) {
         nodes.push(this.parseComment(blank));
         blank = false;
         continue;
       }
-      if (this.src.startsWith('</', this.i)) {
+      if (this.src.startsWith("</", this.i)) {
         const start = this.i;
         const close = this.readClosingTag();
         if (!close) continue;
@@ -166,16 +166,16 @@ class Parser {
         this.error(`Unexpected closing tag </${close.name}> — nothing here is open.`, close.loc);
         continue;
       }
-      if (this.src[this.i] === '<') {
+      if (this.src[this.i] === "<") {
         const element = this.parseElement(blank);
         blank = false;
         if (element) nodes.push(element);
         continue;
       }
       const start = this.i;
-      while (this.i < this.src.length && this.src[this.i] !== '<') this.i++;
+      while (this.i < this.src.length && this.src[this.i] !== "<") this.i++;
       const raw = this.src.slice(start, this.i);
-      if (raw.trim() === '') {
+      if (raw.trim() === "") {
         if (countNewlines(raw) >= 2) blank = true;
         continue;
       }
@@ -184,7 +184,7 @@ class Parser {
       const from = start + lead;
       const to = this.i - tail;
       const node: WzdText = {
-        kind: 'text',
+        kind: "text",
         value: collapse(raw),
         raw: this.src.slice(from, to),
         blankLineBefore: blank || countNewlines(raw.slice(0, lead)) >= 2,
@@ -200,18 +200,18 @@ class Parser {
     const start = this.i;
     this.i += 4;
     const bodyStart = this.i;
-    const close = this.src.indexOf('-->', bodyStart);
+    const close = this.src.indexOf("-->", bodyStart);
     let bodyEnd: number;
     if (close === -1) {
       bodyEnd = this.src.length;
       this.i = this.src.length;
-      this.error('This comment is never closed — add `-->`.', this.loc(start, this.i));
+      this.error("This comment is never closed — add `-->`.", this.loc(start, this.i));
     } else {
       bodyEnd = close;
       this.i = close + 3;
     }
     return {
-      kind: 'comment',
+      kind: "comment",
       value: collapse(this.src.slice(bodyStart, bodyEnd)),
       raw: this.src.slice(bodyStart, bodyEnd),
       blankLineBefore,
@@ -225,16 +225,13 @@ class Parser {
     TAG_NAME.lastIndex = this.i;
     const match = TAG_NAME.exec(this.src);
     if (!match) {
-      this.error(
-        'Malformed closing tag — expected a tag name after `</`.',
-        this.loc(start, this.i),
-      );
+      this.error("Malformed closing tag — expected a tag name after `</`.", this.loc(start, this.i));
       return null;
     }
     const name = match[0];
     this.i += name.length;
     this.skipWhitespace();
-    if (this.src[this.i] === '>') {
+    if (this.src[this.i] === ">") {
       this.i++;
     } else {
       this.error(`Closing tag </${name}> is missing its \`>\`.`, this.loc(start, this.i));
@@ -249,7 +246,7 @@ class Parser {
     const match = TAG_NAME.exec(this.src);
     if (!match) {
       this.error(
-        'Unexpected `<`. Write a tag name after it, or remove it — `<` cannot appear in text.',
+        "Unexpected `<`. Write a tag name after it, or remove it — `<` cannot appear in text.",
         this.loc(start, start + 1),
       );
       this.i = start + 1;
@@ -272,12 +269,12 @@ class Parser {
         selfClosing = true;
         break;
       }
-      if (this.src.startsWith('/>', this.i)) {
+      if (this.src.startsWith("/>", this.i)) {
         this.i += 2;
         selfClosing = true;
         break;
       }
-      if (this.src[this.i] === '>') {
+      if (this.src[this.i] === ">") {
         this.i++;
         break;
       }
@@ -293,7 +290,7 @@ class Parser {
 
     if (selfClosing) {
       return {
-        kind: 'element',
+        kind: "element",
         type: name,
         props,
         attributes,
@@ -329,7 +326,7 @@ class Parser {
       this.error(`\`<${name}>\` is never closed — add \`</${name}>\`.`, openTagLoc);
     }
     return {
-      kind: 'element',
+      kind: "element",
       type: name,
       props,
       attributes,
@@ -349,10 +346,7 @@ class Parser {
     const match = ATTR_NAME.exec(this.src);
     if (!match) {
       const char = this.src[this.i];
-      this.error(
-        `Unexpected \`${char}\` inside the \`<${tag}\` tag.`,
-        this.loc(this.i, this.i + 1),
-      );
+      this.error(`Unexpected \`${char}\` inside the \`<${tag}\` tag.`, this.loc(this.i, this.i + 1));
       this.i++;
       return null;
     }
@@ -361,24 +355,17 @@ class Parser {
     const nameLoc = this.loc(nameStart, this.i);
     const afterName = this.i;
     this.skipWhitespace();
-    if (this.src[this.i] !== '=') {
+    if (this.src[this.i] !== "=") {
       this.i = afterName;
-      this.error(
-        `Prop \`${name}\` needs a value, like ${name}="md". Wizard has no bare props.`,
-        nameLoc,
-      );
-      return { name, value: '', loc: nameLoc, nameLoc, valueLoc: this.loc(afterName, afterName) };
+      this.error(`Prop \`${name}\` needs a value, like ${name}="md". Wizard has no bare props.`, nameLoc);
+      return { name, value: "", loc: nameLoc, nameLoc, valueLoc: this.loc(afterName, afterName) };
     }
     this.i++;
     this.skipWhitespace();
     const quote = this.src[this.i];
     if (quote !== '"' && quote !== "'") {
       const valueStart = this.i;
-      while (
-        this.i < this.src.length &&
-        !/[\s>]/.test(this.src[this.i]) &&
-        !this.src.startsWith('/>', this.i)
-      ) {
+      while (this.i < this.src.length && !/[\s>]/.test(this.src[this.i]) && !this.src.startsWith("/>", this.i)) {
         this.i++;
       }
       const value = this.src.slice(valueStart, this.i);
@@ -400,10 +387,7 @@ class Parser {
     if (close === -1) {
       valueEnd = this.src.length;
       this.i = this.src.length;
-      this.error(
-        `The value of \`${name}\` is missing its closing ${quote}.`,
-        this.loc(valueStart - 1, this.i),
-      );
+      this.error(`The value of \`${name}\` is missing its closing ${quote}.`, this.loc(valueStart - 1, this.i));
     } else {
       valueEnd = close;
       this.i = close + 1;
@@ -425,7 +409,7 @@ function countNewlines(s: string): number {
 }
 
 function collapse(s: string): string {
-  return s.replace(/\s+/g, ' ').trim();
+  return s.replace(/\s+/g, " ").trim();
 }
 
 /** Parse a `.wzd` document. Never throws; syntax problems come back in `errors`. */

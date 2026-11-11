@@ -14,16 +14,11 @@ import {
   type WzdLoc,
   type WzdNode,
   type WzdText,
-} from './ast.js';
-import { WZD_REQUIRED_HEAD_FIELDS, getComponentSpec, type WzdComponentSpec } from './catalogue.js';
-import { bindingMessage, unresolvedBindings } from './bindings.js';
-import {
-  sortDiagnostics,
-  type WzdDiagnostic,
-  type WzdDiagnosticCode,
-  type WzdSeverity,
-} from './diagnostics.js';
-import { parse } from './parse.js';
+} from "./ast.js";
+import { WZD_REQUIRED_HEAD_FIELDS, getComponentSpec, type WzdComponentSpec } from "./catalogue.js";
+import { bindingMessage, unresolvedBindings } from "./bindings.js";
+import { sortDiagnostics, type WzdDiagnostic, type WzdDiagnosticCode, type WzdSeverity } from "./diagnostics.js";
+import { parse } from "./parse.js";
 
 export interface WzdLintOptions {
   /** Fewer slides than this is an error. Default 1. */
@@ -37,10 +32,10 @@ export const WZD_LINT_DEFAULTS: Required<WzdLintOptions> = {
   maxSlides: 10,
 };
 
-const TOP_LEVEL_TAGS = ['head', 'body'];
+const TOP_LEVEL_TAGS = ["head", "body"];
 
 function list(names: readonly string[]): string {
-  return names.join(', ');
+  return names.join(", ");
 }
 
 function zeroWidth(loc: WzdLoc): WzdLoc {
@@ -54,9 +49,8 @@ function sliceLoc(node: WzdText, start: number, end: number): WzdLoc {
   let startPos = node.loc.start;
   for (let i = 0; i <= node.raw.length; i++) {
     if (i === start) startPos = { offset: node.loc.start.offset + i, line, column };
-    if (i === end)
-      return { start: startPos, end: { offset: node.loc.start.offset + i, line, column } };
-    if (node.raw[i] === '\n') {
+    if (i === end) return { start: startPos, end: { offset: node.loc.start.offset + i, line, column } };
+    if (node.raw[i] === "\n") {
       line += 1;
       column = 1;
     } else {
@@ -91,17 +85,17 @@ class Linter {
   private checkDocument(doc: WzdDocument): void {
     if (!doc.headElement) {
       this.add(
-        'missing-head',
-        'error',
-        'This document has no <head>. Add one declaring at least a <title>.',
+        "missing-head",
+        "error",
+        "This document has no <head>. Add one declaring at least a <title>.",
         zeroWidth(doc.loc),
       );
     } else {
       for (const field of WZD_REQUIRED_HEAD_FIELDS) {
         if (!doc.head[field]) {
           this.add(
-            'missing-title',
-            'error',
+            "missing-title",
+            "error",
             `The <head> declares no ${field}. A post is identified by its title.`,
             doc.headElement.openTagLoc,
           );
@@ -111,26 +105,26 @@ class Linter {
 
     if (!doc.bodyElement) {
       this.add(
-        'slide-count',
-        'error',
-        'This document has no <body>, so it has no slides. A post needs at least one.',
+        "slide-count",
+        "error",
+        "This document has no <body>, so it has no slides. A post needs at least one.",
         zeroWidth(doc.loc),
       );
       return;
     }
 
-    const slides = elementChildren(doc.bodyElement).filter((el) => el.type === 'Slide');
+    const slides = elementChildren(doc.bodyElement).filter((el) => el.type === "Slide");
     if (slides.length < this.minSlides) {
       this.add(
-        'slide-count',
-        'error',
+        "slide-count",
+        "error",
         `This post has ${slides.length} slides. A post needs at least ${this.minSlides}.`,
         doc.bodyElement.openTagLoc,
       );
     } else if (slides.length > this.maxSlides) {
       this.add(
-        'slide-count',
-        'warning',
+        "slide-count",
+        "warning",
         `This post has ${slides.length} slides. More than ${this.maxSlides} is a lot to scroll.`,
         doc.bodyElement.openTagLoc,
       );
@@ -139,31 +133,27 @@ class Linter {
     let sawHead = false;
     let sawBody = false;
     for (const node of doc.children) {
-      if (node.kind !== 'element') continue;
-      if (node.type === 'head') {
+      if (node.kind !== "element") continue;
+      if (node.type === "head") {
         if (sawHead) {
-          this.add('misplaced-element', 'error', 'A document has one <head>.', node.openTagLoc);
+          this.add("misplaced-element", "error", "A document has one <head>.", node.openTagLoc);
         }
         sawHead = true;
       }
-      if (node.type === 'body') {
+      if (node.type === "body") {
         if (sawBody) {
-          this.add('misplaced-element', 'error', 'A document has one <body>.', node.openTagLoc);
+          this.add("misplaced-element", "error", "A document has one <body>.", node.openTagLoc);
         }
         sawBody = true;
       }
     }
   }
 
-  private checkNodes(
-    nodes: readonly WzdNode[],
-    parent: WzdElement | null,
-    ancestors: readonly WzdElement[],
-  ): void {
+  private checkNodes(nodes: readonly WzdNode[], parent: WzdElement | null, ancestors: readonly WzdElement[]): void {
     const parentSpec = parent ? getComponentSpec(parent.type) : undefined;
     for (const node of nodes) {
-      if (node.kind === 'comment') continue;
-      if (node.kind === 'text') {
+      if (node.kind === "comment") continue;
+      if (node.kind === "text") {
         this.checkText(node, parent, parentSpec);
         continue;
       }
@@ -172,24 +162,20 @@ class Linter {
     }
   }
 
-  private checkText(
-    node: WzdText,
-    parent: WzdElement | null,
-    parentSpec: WzdComponentSpec | undefined,
-  ): void {
+  private checkText(node: WzdText, parent: WzdElement | null, parentSpec: WzdComponentSpec | undefined): void {
     if (!parent) {
       this.add(
-        'misplaced-element',
-        'error',
-        'Text cannot sit at the top level. Put it inside a component, inside a <Slide>.',
+        "misplaced-element",
+        "error",
+        "Text cannot sit at the top level. Put it inside a component, inside a <Slide>.",
         node.loc,
       );
       return;
     }
-    if (parentSpec && parentSpec.children !== 'text') {
+    if (parentSpec && parentSpec.children !== "text") {
       this.add(
-        'misplaced-element',
-        'error',
+        "misplaced-element",
+        "error",
         `<${parent.type}> holds elements, not text. Wrap the words in a <Text> or <Heading>.`,
         node.loc,
       );
@@ -204,14 +190,9 @@ class Linter {
    * not scanned.
    */
   private checkBindings(node: WzdText, parentSpec: WzdComponentSpec | undefined): void {
-    if (!parentSpec || parentSpec.role !== 'component') return;
+    if (!parentSpec || parentSpec.role !== "component") return;
     for (const binding of unresolvedBindings(node.raw, this.head)) {
-      this.add(
-        'unknown-binding',
-        'error',
-        bindingMessage(binding),
-        sliceLoc(node, binding.start, binding.end),
-      );
+      this.add("unknown-binding", "error", bindingMessage(binding), sliceLoc(node, binding.start, binding.end));
     }
   }
 
@@ -225,8 +206,8 @@ class Linter {
     if (!spec) {
       const lowercase = element.type[0] === element.type[0].toLowerCase();
       this.add(
-        'unknown-component',
-        'error',
+        "unknown-component",
+        "error",
         lowercase
           ? `Unknown tag <${element.type}>. Lowercase tags are document structure: ${list(TOP_LEVEL_TAGS)} and the <head> fields.`
           : `Unknown component <${element.type}>. It is not in the catalogue.`,
@@ -238,11 +219,11 @@ class Linter {
     this.checkProps(element, spec);
     this.checkPlacement(element, spec, parent, parentSpec, ancestors);
 
-    if (spec.name === 'Slide' && elementChildren(element).length === 0) {
+    if (spec.name === "Slide" && elementChildren(element).length === 0) {
       this.add(
-        'empty-slide',
-        'error',
-        'This slide is empty. A slide renders an image, so it needs something on it.',
+        "empty-slide",
+        "error",
+        "This slide is empty. A slide renders an image, so it needs something on it.",
         element.openTagLoc,
       );
     }
@@ -254,8 +235,8 @@ class Linter {
     for (const attr of element.attributes) {
       if (seen.has(attr.name)) {
         this.add(
-          'duplicate-prop',
-          'error',
+          "duplicate-prop",
+          "error",
           `\`${attr.name}\` is set twice on <${element.type}>. The first value wins.`,
           attr.nameLoc,
         );
@@ -266,8 +247,8 @@ class Linter {
       const propSpec = spec.props[attr.name];
       if (!propSpec) {
         this.add(
-          'unknown-prop',
-          'error',
+          "unknown-prop",
+          "error",
           allowed.length
             ? `<${element.type}> has no \`${attr.name}\` prop. It takes: ${list(allowed)}.`
             : `<${element.type}> takes no props.`,
@@ -276,12 +257,12 @@ class Linter {
         continue;
       }
 
-      if (propSpec.kind === 'enum') {
+      if (propSpec.kind === "enum") {
         const values = propSpec.values ?? [];
         if (!values.includes(attr.value)) {
           this.add(
-            'invalid-prop-value',
-            'error',
+            "invalid-prop-value",
+            "error",
             `\`${attr.value}\` is not a ${attr.name}. Use one of: ${list(values)}.`,
             attr.valueLoc,
           );
@@ -291,8 +272,8 @@ class Linter {
 
       if (attr.value.includes('"') && attr.value.includes("'")) {
         this.add(
-          'invalid-prop-value',
-          'error',
+          "invalid-prop-value",
+          "error",
           `The value of \`${attr.name}\` cannot contain both quote characters — Wizard has no escapes.`,
           attr.valueLoc,
         );
@@ -303,8 +284,8 @@ class Linter {
       if (!propSpec.required) continue;
       if (!element.props[propSpec.name]) {
         this.add(
-          'missing-prop',
-          'error',
+          "missing-prop",
+          "error",
           `<${element.type}> needs a \`${propSpec.name}\` prop. ${propSpec.description}`,
           element.openTagLoc,
         );
@@ -322,31 +303,26 @@ class Linter {
     const parentName = parent ? parent.type : WZD_DOCUMENT_PARENT;
 
     if (spec.requiredParent && !spec.requiredParent.includes(parentName)) {
-      if (element.type === 'Slide' && ancestors.some((a) => a.type === 'Slide')) {
+      if (element.type === "Slide" && ancestors.some((a) => a.type === "Slide")) {
         this.add(
-          'misplaced-element',
-          'error',
-          'A <Slide> cannot be nested inside another <Slide>. One slide is one image.',
+          "misplaced-element",
+          "error",
+          "A <Slide> cannot be nested inside another <Slide>. One slide is one image.",
           element.openTagLoc,
         );
         return;
       }
       const where = spec.requiredParent.includes(WZD_DOCUMENT_PARENT)
-        ? 'at the top level of the document'
-        : `a direct child of ${spec.requiredParent.map((p) => `<${p}>`).join(' or ')}`;
-      this.add(
-        'misplaced-element',
-        'error',
-        `<${element.type}> must be ${where}.`,
-        element.openTagLoc,
-      );
+        ? "at the top level of the document"
+        : `a direct child of ${spec.requiredParent.map((p) => `<${p}>`).join(" or ")}`;
+      this.add("misplaced-element", "error", `<${element.type}> must be ${where}.`, element.openTagLoc);
       return;
     }
 
     if (spec.requiredAncestor && !ancestors.some((a) => a.type === spec.requiredAncestor)) {
       this.add(
-        'misplaced-element',
-        'error',
+        "misplaced-element",
+        "error",
         `<${element.type}> must be inside a <${spec.requiredAncestor}>.`,
         element.openTagLoc,
       );
@@ -354,28 +330,18 @@ class Linter {
     }
 
     if (parent && parentSpec) {
-      if (parentSpec.children === 'none') {
-        this.add(
-          'misplaced-element',
-          'error',
-          `<${parent.type}> takes no content.`,
-          element.openTagLoc,
-        );
+      if (parentSpec.children === "none") {
+        this.add("misplaced-element", "error", `<${parent.type}> takes no content.`, element.openTagLoc);
         return;
       }
-      if (parentSpec.children === 'text') {
-        this.add(
-          'misplaced-element',
-          'error',
-          `<${parent.type}> holds text, not elements.`,
-          element.openTagLoc,
-        );
+      if (parentSpec.children === "text") {
+        this.add("misplaced-element", "error", `<${parent.type}> holds text, not elements.`, element.openTagLoc);
         return;
       }
       if (parentSpec.allowedChildren && !parentSpec.allowedChildren.includes(element.type)) {
         this.add(
-          'misplaced-element',
-          'error',
+          "misplaced-element",
+          "error",
           `<${element.type}> cannot go inside <${parent.type}>, which holds: ${list(parentSpec.allowedChildren)}.`,
           element.openTagLoc,
         );

@@ -17,7 +17,7 @@ export interface WzdSample {
 
 export const WZD_SAMPLES: readonly WzdSample[] = [
   {
-    name: 'minimal',
+    name: "minimal",
     clean: true,
     canonical: true,
     source: `<head>
@@ -32,7 +32,7 @@ export const WZD_SAMPLES: readonly WzdSample[] = [
 `,
   },
   {
-    name: 'full head',
+    name: "full head",
     clean: true,
     canonical: true,
     source: `<head>
@@ -53,7 +53,7 @@ export const WZD_SAMPLES: readonly WzdSample[] = [
 `,
   },
   {
-    name: 'list',
+    name: "list",
     clean: true,
     canonical: true,
     source: `<head>
@@ -73,7 +73,7 @@ export const WZD_SAMPLES: readonly WzdSample[] = [
 `,
   },
   {
-    name: 'two columns',
+    name: "two columns",
     clean: true,
     canonical: true,
     source: `<head>
@@ -98,7 +98,7 @@ export const WZD_SAMPLES: readonly WzdSample[] = [
 `,
   },
   {
-    name: 'quote and source',
+    name: "quote and source",
     clean: true,
     canonical: true,
     source: `<head>
@@ -114,7 +114,7 @@ export const WZD_SAMPLES: readonly WzdSample[] = [
 `,
   },
   {
-    name: 'stats',
+    name: "stats",
     clean: true,
     canonical: true,
     source: `<head>
@@ -135,7 +135,7 @@ export const WZD_SAMPLES: readonly WzdSample[] = [
 `,
   },
   {
-    name: 'image',
+    name: "image",
     clean: true,
     canonical: true,
     source: `<head>
@@ -151,7 +151,7 @@ export const WZD_SAMPLES: readonly WzdSample[] = [
 `,
   },
   {
-    name: 'comments',
+    name: "comments",
     clean: true,
     canonical: true,
     source: `<!-- Drafted 2026-08-27, second pass -->
@@ -170,7 +170,7 @@ export const WZD_SAMPLES: readonly WzdSample[] = [
 `,
   },
   {
-    name: 'bindings',
+    name: "bindings",
     clean: true,
     canonical: true,
     source: `<head>
@@ -189,7 +189,7 @@ export const WZD_SAMPLES: readonly WzdSample[] = [
 `,
   },
   {
-    name: 'long lines',
+    name: "long lines",
     clean: true,
     canonical: true,
     source: `<head>
@@ -209,7 +209,7 @@ export const WZD_SAMPLES: readonly WzdSample[] = [
 `,
   },
   {
-    name: 'many slides',
+    name: "many slides",
     clean: true,
     canonical: true,
     source: `<head>
@@ -240,7 +240,7 @@ export const WZD_SAMPLES: readonly WzdSample[] = [
 `,
   },
   {
-    name: 'badly formatted but valid',
+    name: "badly formatted but valid",
     clean: true,
     canonical: false,
     source: `<head><title>Messy</title>

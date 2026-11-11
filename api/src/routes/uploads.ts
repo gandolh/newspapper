@@ -1,6 +1,6 @@
-import { createReadStream, statSync } from 'node:fs';
-import type { FastifyPluginAsync, FastifyReply } from 'fastify';
-import multipart from '@fastify/multipart';
+import { createReadStream, statSync } from "node:fs";
+import type { FastifyPluginAsync, FastifyReply } from "fastify";
+import multipart from "@fastify/multipart";
 import {
   MAX_UPLOAD_BYTES,
   UploadRejected,
@@ -14,12 +14,12 @@ import {
   uploadOriginalPath,
   uploadPublicPath,
   uploadRef,
-} from '@newspapper/core';
-import type { Upload } from '@newspapper/core';
-import { db } from '../lib/db.js';
+} from "@newspapper/core";
+import type { Upload } from "@newspapper/core";
+import { db } from "../lib/db.js";
 
 const MAX_LIST_LIMIT = 500;
-const IMMUTABLE_CACHE = 'public, max-age=31536000, immutable';
+const IMMUTABLE_CACHE = "public, max-age=31536000, immutable";
 
 export interface UploadResponse {
   id: number;
@@ -62,7 +62,7 @@ function positiveInt(value: unknown, fallback: number, max: number): number {
 }
 
 function isFileTooLarge(err: unknown): boolean {
-  return (err as { code?: string })?.code === 'FST_REQ_FILE_TOO_LARGE';
+  return (err as { code?: string })?.code === "FST_REQ_FILE_TOO_LARGE";
 }
 
 function sendFile(reply: FastifyReply, path: string, mime: string) {
@@ -70,12 +70,12 @@ function sendFile(reply: FastifyReply, path: string, mime: string) {
   try {
     size = statSync(path).size;
   } catch {
-    return reply.status(404).send({ error: 'Upload file is missing from the store.' });
+    return reply.status(404).send({ error: "Upload file is missing from the store." });
   }
   return reply
-    .header('Content-Length', String(size))
-    .header('Cache-Control', IMMUTABLE_CACHE)
-    .header('X-Content-Type-Options', 'nosniff')
+    .header("Content-Length", String(size))
+    .header("Cache-Control", IMMUTABLE_CACHE)
+    .header("X-Content-Type-Options", "nosniff")
     .type(mime)
     .send(createReadStream(path));
 }
@@ -88,25 +88,23 @@ const uploadsRoutes: FastifyPluginAsync = async (fastify) => {
   /**
    * POST /api/uploads — multipart/form-data with a single file part.
    */
-  fastify.post('/api/uploads', async (req, reply) => {
+  fastify.post("/api/uploads", async (req, reply) => {
     if (!req.isMultipart()) {
-      return reply
-        .status(415)
-        .send({ error: 'Expected multipart/form-data with a single file part.' });
+      return reply.status(415).send({ error: "Expected multipart/form-data with a single file part." });
     }
 
     let data: Buffer;
     let filename: string;
     try {
       const part = await req.file();
-      if (!part) return reply.status(400).send({ error: 'No file part was provided.' });
-      filename = part.filename ?? 'upload';
+      if (!part) return reply.status(400).send({ error: "No file part was provided." });
+      filename = part.filename ?? "upload";
       data = await part.toBuffer();
     } catch (err) {
       if (isFileTooLarge(err)) {
         return reply.status(413).send({
           error: `That file is larger than the ${MAX_UPLOAD_BYTES} byte (10 MB) limit.`,
-          code: 'file_too_large',
+          code: "file_too_large",
         });
       }
       throw err;
@@ -114,9 +112,7 @@ const uploadsRoutes: FastifyPluginAsync = async (fastify) => {
 
     try {
       const stored = await saveUpload(db(), { filename, data });
-      return reply
-        .status(201)
-        .send({ ...toUploadResponse(stored.upload), original: stored.original });
+      return reply.status(201).send({ ...toUploadResponse(stored.upload), original: stored.original });
     } catch (err) {
       if (err instanceof UploadRejected) {
         return reply.status(err.statusCode).send({ error: err.message, code: err.code });
@@ -128,7 +124,7 @@ const uploadsRoutes: FastifyPluginAsync = async (fastify) => {
   /**
    * GET /api/uploads?limit=&offset=
    */
-  fastify.get('/api/uploads', async (req, reply) => {
+  fastify.get("/api/uploads", async (req, reply) => {
     const query = req.query as { limit?: string; offset?: string };
     const limit = positiveInt(query.limit, 100, MAX_LIST_LIMIT);
     const offset = positiveInt(query.offset, 0, Number.MAX_SAFE_INTEGER);
@@ -138,9 +134,9 @@ const uploadsRoutes: FastifyPluginAsync = async (fastify) => {
   /**
    * GET /api/uploads/:id
    */
-  fastify.get('/api/uploads/:id', async (req, reply) => {
+  fastify.get("/api/uploads/:id", async (req, reply) => {
     const id = Number((req.params as { id: string }).id);
-    if (!Number.isInteger(id)) return reply.status(400).send({ error: 'id must be an integer' });
+    if (!Number.isInteger(id)) return reply.status(400).send({ error: "id must be an integer" });
     const upload = findUpload(db(), id);
     if (!upload) return reply.status(404).send({ error: `Upload ${id} not found` });
     return reply.send(toUploadResponse(upload));
@@ -149,9 +145,9 @@ const uploadsRoutes: FastifyPluginAsync = async (fastify) => {
   /**
    * DELETE /api/uploads/:id — removes both files and the row.
    */
-  fastify.delete('/api/uploads/:id', async (req, reply) => {
+  fastify.delete("/api/uploads/:id", async (req, reply) => {
     const id = Number((req.params as { id: string }).id);
-    if (!Number.isInteger(id)) return reply.status(400).send({ error: 'id must be an integer' });
+    if (!Number.isInteger(id)) return reply.status(400).send({ error: "id must be an integer" });
     const removed = deleteUpload(db(), id);
     if (!removed) return reply.status(404).send({ error: `Upload ${id} not found` });
     return reply.send({ id, deleted: true });
@@ -174,10 +170,10 @@ const uploadsRoutes: FastifyPluginAsync = async (fastify) => {
    * blank images, that interception is what broke**, and the fix is there
    * rather than reopening this route.
    */
-  fastify.get('/uploads/:ref', async (req, reply) => {
+  fastify.get("/uploads/:ref", async (req, reply) => {
     const ref = parseUploadRef((req.params as { ref: string }).ref);
     const upload = ref ? findUploadByRef(db(), ref) : undefined;
-    if (!upload) return reply.status(404).send({ error: 'Upload not found' });
+    if (!upload) return reply.status(404).send({ error: "Upload not found" });
     return sendFile(reply, uploadFiles(upload).served, upload.mime);
   });
 
@@ -188,10 +184,10 @@ const uploadsRoutes: FastifyPluginAsync = async (fastify) => {
    * renderer only ever wants the normalized bytes, and widening it would be a
    * second decision hiding inside a performance change.
    */
-  fastify.get('/uploads/:ref/original', async (req, reply) => {
+  fastify.get("/uploads/:ref/original", async (req, reply) => {
     const ref = parseUploadRef((req.params as { ref: string }).ref);
     const upload = ref ? findUploadByRef(db(), ref) : undefined;
-    if (!upload) return reply.status(404).send({ error: 'Upload not found' });
+    if (!upload) return reply.status(404).send({ error: "Upload not found" });
     return sendFile(reply, uploadFiles(upload).original, upload.mime);
   });
 };

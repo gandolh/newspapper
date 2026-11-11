@@ -1,18 +1,13 @@
-import type { DB } from '../storage/db.js';
-import { fetchFeedConditional, type FeedFetchResult } from '../scrape/rss.js';
-import type { SafeFetchDeps } from '../scrape/safe-url.js';
-import type { ScrapeProgressEvent } from '../scrape/index.js';
-import {
-  listRefreshTargets,
-  recordSourceError,
-  recordSourceFetched,
-  type RefreshTarget,
-} from '../storage/sources.js';
-import { insertFeedItems, purgeFeedItems, KEEP_NEWEST_PER_SOURCE } from '../storage/feed-items.js';
-import { mapWithConcurrency } from '../util/concurrency.js';
-import { readerRetentionDays } from './config.js';
+import type { DB } from "../storage/db.js";
+import { fetchFeedConditional, type FeedFetchResult } from "../scrape/rss.js";
+import type { SafeFetchDeps } from "../scrape/safe-url.js";
+import type { ScrapeProgressEvent } from "../scrape/index.js";
+import { listRefreshTargets, recordSourceError, recordSourceFetched, type RefreshTarget } from "../storage/sources.js";
+import { insertFeedItems, purgeFeedItems, KEEP_NEWEST_PER_SOURCE } from "../storage/feed-items.js";
+import { mapWithConcurrency } from "../util/concurrency.js";
+import { readerRetentionDays } from "./config.js";
 
-const DEFAULT_USER_AGENT = 'Newspapper/3.0';
+const DEFAULT_USER_AGENT = "Newspapper/3.0";
 const DEFAULT_TIMEOUT_MS = 30_000;
 
 /** Feeds fetched at once, the same cap Search uses. */
@@ -111,7 +106,7 @@ async function runRefresh(
   const timeoutMs = opts.requestTimeoutMs ?? DEFAULT_TIMEOUT_MS;
   const now = opts.now ?? (() => new Date());
   const { signal } = opts;
-  const errors: RefreshResult['errors'] = [];
+  const errors: RefreshResult["errors"] = [];
 
   const fail = (sourceId: string, error: string) => {
     errors.push({ sourceId, error });
@@ -120,12 +115,12 @@ async function runRefresh(
     } catch {
       // The source was deleted, or the DB closed under us: nothing to record on.
     }
-    emit({ sourceId, status: 'error', error });
+    emit({ sourceId, status: "error", error });
   };
 
   async function refreshOne(source: RefreshTarget): Promise<number> {
     if (signal?.aborted) return 0;
-    emit({ sourceId: source.id, status: 'fetching' });
+    emit({ sourceId: source.id, status: "fetching" });
 
     let result: FeedFetchResult;
     try {
@@ -145,7 +140,7 @@ async function runRefresh(
       let inserted = 0;
       db.transaction(() => {
         // A 304 parses nothing: there is nothing new by the server's own word.
-        if (result.status === 'ok') {
+        if (result.status === "ok") {
           inserted = insertFeedItems(db, source.id, result.items, fetchedAt);
         }
         recordSourceFetched(db, source.id, {
@@ -154,7 +149,7 @@ async function runRefresh(
           lastModified: result.lastModified,
         });
       })();
-      emit({ sourceId: source.id, status: 'done', count: inserted });
+      emit({ sourceId: source.id, status: "done", count: inserted });
       return inserted;
     } catch (err) {
       fail(source.id, messageOf(err));

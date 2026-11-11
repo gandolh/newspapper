@@ -1,10 +1,10 @@
-import { writeFileSync } from 'node:fs';
-import { dirname } from 'node:path';
-import type { DB } from '../storage/db.js';
-import type { Upload } from '../types.js';
-import { createUpload, findUpload, removeUpload } from '../storage/uploads.js';
-import { ensureDir } from '../util/paths.js';
-import { UploadRejected } from './errors.js';
+import { writeFileSync } from "node:fs";
+import { dirname } from "node:path";
+import type { DB } from "../storage/db.js";
+import type { Upload } from "../types.js";
+import { createUpload, findUpload, removeUpload } from "../storage/uploads.js";
+import { ensureDir } from "../util/paths.js";
+import { UploadRejected } from "./errors.js";
 import {
   ACCEPTED_FORMATS,
   FORMAT_EXTENSION,
@@ -12,7 +12,7 @@ import {
   MAX_UPLOAD_BYTES,
   normalizeImage,
   probeImage,
-} from './image.js';
+} from "./image.js";
 import {
   isValidRef,
   makeRef,
@@ -24,14 +24,14 @@ import {
   sanitizeDisplayName,
   storeFileExists,
   uploadsRoot,
-} from './store.js';
+} from "./store.js";
 
-export * from './errors.js';
-export * from './image.js';
-export * from './store.js';
+export * from "./errors.js";
+export * from "./image.js";
+export * from "./store.js";
 
 /** URL prefix the API serves upload bytes under. */
-export const UPLOADS_URL_PREFIX = '/uploads';
+export const UPLOADS_URL_PREFIX = "/uploads";
 
 const REF_ATTEMPTS = 8;
 
@@ -75,10 +75,9 @@ export function uploadFiles(upload: Upload, root: string = uploadsRoot()): Uploa
 export function findUploadByRef(db: DB, ref: unknown): Upload | undefined {
   if (!isValidRef(ref)) return undefined;
   const candidates = ACCEPTED_FORMATS.map((f) => originalRelPath(ref, FORMAT_EXTENSION[f]));
-  const placeholders = candidates.map(() => '?').join(', ');
-  const row = db
-    .prepare(`SELECT id FROM uploads WHERE stored_path IN (${placeholders}) LIMIT 1`)
-    .get(...candidates) as { id: number } | undefined;
+  const placeholders = candidates.map(() => "?").join(", ");
+  const row = db.prepare(`SELECT id FROM uploads WHERE stored_path IN (${placeholders}) LIMIT 1`).get(...candidates) as
+    { id: number } | undefined;
   return row ? findUpload(db, row.id) : undefined;
 }
 
@@ -88,12 +87,11 @@ export function findUploadByRef(db: DB, ref: unknown): Upload | undefined {
  * URL — is not a reference to an upload.
  */
 export function parseUploadRef(src: unknown): string | null {
-  if (typeof src !== 'string') return null;
+  if (typeof src !== "string") return null;
   let value = src.trim();
   if (!value) return null;
-  if (value.startsWith(`${UPLOADS_URL_PREFIX}/`))
-    value = value.slice(UPLOADS_URL_PREFIX.length + 1);
-  value = value.replace(/\.(jpg|jpeg|png|webp)$/i, '');
+  if (value.startsWith(`${UPLOADS_URL_PREFIX}/`)) value = value.slice(UPLOADS_URL_PREFIX.length + 1);
+  value = value.replace(/\.(jpg|jpeg|png|webp)$/i, "");
   return isValidRef(value) ? value : null;
 }
 
@@ -107,9 +105,9 @@ export function uploadOriginalPath(ref: string): string {
 
 /** Origin the render browser fetches upload bytes from. */
 export function uploadsBaseUrl(): string {
-  const override = process.env['UPLOADS_BASE_URL']?.trim();
-  if (override) return override.replace(/\/+$/, '');
-  return `http://127.0.0.1:${process.env['PORT'] ?? '3001'}`;
+  const override = process.env["UPLOADS_BASE_URL"]?.trim();
+  if (override) return override.replace(/\/+$/, "");
+  return `http://127.0.0.1:${process.env["PORT"] ?? "3001"}`;
 }
 
 /**
@@ -118,7 +116,7 @@ export function uploadsBaseUrl(): string {
  */
 export function resolveUploadSrc(src: unknown, baseUrl: string = uploadsBaseUrl()): string | null {
   const ref = parseUploadRef(src);
-  return ref ? `${baseUrl.replace(/\/+$/, '')}${uploadPublicPath(ref)}` : null;
+  return ref ? `${baseUrl.replace(/\/+$/, "")}${uploadPublicPath(ref)}` : null;
 }
 
 function reserveRef(filename: string, extension: string, root: string): string {
@@ -126,7 +124,7 @@ function reserveRef(filename: string, extension: string, root: string): string {
     const ref = makeRef(filename);
     if (!storeFileExists(originalRelPath(ref, extension), root)) return ref;
   }
-  throw new Error('Could not allocate a free upload reference.');
+  throw new Error("Could not allocate a free upload reference.");
 }
 
 /**
@@ -137,11 +135,11 @@ function reserveRef(filename: string, extension: string, root: string): string {
 export async function saveUpload(db: DB, input: SaveUploadInput): Promise<StoredUpload> {
   const data = input.data;
   if (!Buffer.isBuffer(data) || data.length === 0) {
-    throw new UploadRejected('empty_upload', 400, 'No file content was received.');
+    throw new UploadRejected("empty_upload", 400, "No file content was received.");
   }
   if (data.length > MAX_UPLOAD_BYTES) {
     throw new UploadRejected(
-      'file_too_large',
+      "file_too_large",
       413,
       `That file is ${data.length} bytes; the limit is ${MAX_UPLOAD_BYTES} (10 MB).`,
     );
@@ -160,9 +158,9 @@ export async function saveUpload(db: DB, input: SaveUploadInput): Promise<Stored
 
   ensureDir(dirname(originalAbs));
   ensureDir(dirname(normalizedAbs));
-  writeFileSync(originalAbs, data, { flag: 'wx' });
+  writeFileSync(originalAbs, data, { flag: "wx" });
   try {
-    writeFileSync(normalizedAbs, normalized.data, { flag: 'wx' });
+    writeFileSync(normalizedAbs, normalized.data, { flag: "wx" });
   } catch (err) {
     removeStoreFile(originalRel, root);
     throw err;

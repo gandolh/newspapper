@@ -49,21 +49,21 @@
  * visible, rather than a silent success.
  */
 
-import { readFileSync } from 'node:fs';
-import { extname } from 'node:path';
-import type { BrowserContext } from 'playwright';
+import { readFileSync } from "node:fs";
+import { extname } from "node:path";
+import type { BrowserContext } from "playwright";
 
-import type { DB } from '../storage/db.js';
-import { findUploadByRef, parseUploadRef, uploadFiles } from '../uploads/index.js';
+import type { DB } from "../storage/db.js";
+import { findUploadByRef, parseUploadRef, uploadFiles } from "../uploads/index.js";
 
 /** Requests routed to the local upload store. Matches any origin. */
-export const UPLOADS_ROUTE_GLOB = '**/uploads/*';
+export const UPLOADS_ROUTE_GLOB = "**/uploads/*";
 
 const CONTENT_TYPES: Record<string, string> = {
-  '.jpg': 'image/jpeg',
-  '.jpeg': 'image/jpeg',
-  '.png': 'image/png',
-  '.webp': 'image/webp',
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".png": "image/png",
+  ".webp": "image/webp",
 };
 
 /**
@@ -115,8 +115,8 @@ export async function installUploadsRoute(ctx: BrowserContext, db: DB): Promise<
     // large newspapers.
     await route.fulfill({
       status: 200,
-      contentType: CONTENT_TYPES[extname(file).toLowerCase()] ?? 'application/octet-stream',
-      headers: { 'access-control-allow-origin': '*' },
+      contentType: CONTENT_TYPES[extname(file).toLowerCase()] ?? "application/octet-stream",
+      headers: { "access-control-allow-origin": "*" },
       body: readFileSync(file),
     });
   });

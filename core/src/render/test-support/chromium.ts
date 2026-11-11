@@ -12,7 +12,7 @@
  * reports *passed* while asserting nothing. That is the "green because nothing
  * ran" pattern, in the files closest to what the product outputs.
  */
-import { closeBrowser, getBrowser } from '../browser.js';
+import { closeBrowser, getBrowser } from "../browser.js";
 
 export interface ChromiumGuard {
   readonly available: boolean;
@@ -33,28 +33,28 @@ export interface ChromiumGuard {
  */
 export async function probeChromium(suite: string, unverified: string): Promise<ChromiumGuard> {
   let available = true;
-  let cause = '';
+  let cause = "";
   try {
     const browser = await getBrowser();
-    if (!browser.isConnected()) throw new Error('browser not connected');
+    if (!browser.isConnected()) throw new Error("browser not connected");
   } catch (err) {
     available = false;
-    cause = (err as Error).message.split('\n')[0] ?? String(err);
+    cause = (err as Error).message.split("\n")[0] ?? String(err);
   }
 
   const note = `Chromium unavailable — ${unverified} was NOT verified`;
   const banner = (): string => {
-    const rule = '='.repeat(78);
+    const rule = "=".repeat(78);
     return [
-      '',
+      "",
       rule,
       `[${suite}] CHROMIUM UNAVAILABLE — THESE BROWSER TESTS DID NOT RUN.`,
       `[${suite}] Unverified: ${unverified}.`,
       `[${suite}] Run \`npx playwright install chromium\` before trusting this run.`,
       `[${suite}] cause: ${cause}`,
       rule,
-      '',
-    ].join('\n');
+      "",
+    ].join("\n");
   };
 
   return {
@@ -62,7 +62,7 @@ export async function probeChromium(suite: string, unverified: string): Promise<
     orSkip(skip) {
       if (available) return true;
       console.error(banner());
-      if (process.env['CI']) {
+      if (process.env["CI"]) {
         throw new Error(`${note}. In CI that is a failure, not a skip.${banner()}`);
       }
       skip(note);

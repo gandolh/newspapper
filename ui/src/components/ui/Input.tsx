@@ -1,6 +1,6 @@
-import type { InputHTMLAttributes } from 'react';
-import { Input as BaseInput } from '@base-ui/react/input';
-import styles from './Input.module.css';
+import type { InputHTMLAttributes } from "react";
+import { Input as BaseInput } from "@base-ui/react/input";
+import styles from "./Input.module.css";
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -8,11 +8,9 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   error?: string;
 }
 
-export default function Input({ label, hint, error, className = '', id, ...rest }: InputProps) {
-  const inputId = id ?? label?.toLowerCase().replace(/\s+/g, '-');
-  const cls = [styles.input, error ? styles['input--error'] : '', className]
-    .filter(Boolean)
-    .join(' ');
+export default function Input({ label, hint, error, className = "", id, ...rest }: InputProps) {
+  const inputId = id ?? label?.toLowerCase().replace(/\s+/g, "-");
+  const cls = [styles.input, error ? styles["input--error"] : "", className].filter(Boolean).join(" ");
 
   return (
     <div className={styles.field}>

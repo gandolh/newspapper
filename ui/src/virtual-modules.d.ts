@@ -6,8 +6,8 @@
  * `export default null` and the real module never enters the graph. See the
  * `proofSheet` plugin in `ui/vite.config.ts`.
  */
-declare module 'virtual:proof-sheet' {
-  import type { ComponentType } from 'react';
+declare module "virtual:proof-sheet" {
+  import type { ComponentType } from "react";
   const ProofSheet: ComponentType | null;
   export default ProofSheet;
 }

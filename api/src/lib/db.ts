@@ -4,14 +4,14 @@
  *
  * Tests can override the DB path via the NEWSPAPPER_DB_PATH env variable.
  */
-import { getDb } from '@newspapper/core';
-import type { DB } from '@newspapper/core';
+import { getDb } from "@newspapper/core";
+import type { DB } from "@newspapper/core";
 
 let _db: DB | null = null;
 
 export function db(): DB {
   if (_db === null || !_db.open) {
-    const dbPath = process.env['NEWSPAPPER_DB_PATH'];
+    const dbPath = process.env["NEWSPAPPER_DB_PATH"];
     _db = getDb(dbPath);
   }
   return _db;

@@ -8,7 +8,7 @@
   font-family: var(--font-chrome);
   font-size: var(--fs-board-title);
   font-weight: 800;
-  font-variation-settings: 'wdth' var(--wdth-title);
+  font-variation-settings: "wdth" var(--wdth-title);
   letter-spacing: var(--ls-board-title);
   line-height: var(--lh-board-title);
   color: var(--graphite);
@@ -79,7 +79,7 @@
 
 .rule::before,
 .rule::after {
-  content: '';
+  content: "";
   flex: 1;
   height: 1px;
   background: var(--tick);

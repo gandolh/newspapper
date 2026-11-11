@@ -1,6 +1,6 @@
-import { fileURLToPath } from 'node:url';
-import { defineConfig, type Plugin, type ProxyOptions } from 'vite';
-import react from '@vitejs/plugin-react';
+import { fileURLToPath } from "node:url";
+import { defineConfig, type Plugin, type ProxyOptions } from "vite";
+import react from "@vitejs/plugin-react";
 
 /**
  * The proof sheet is a dev route, never a shipped one.
@@ -29,26 +29,24 @@ import react from '@vitejs/plugin-react';
  * under `vite build` the real module is never resolved, never parsed, and
  * contributes no JS and no CSS.
  */
-const proofEntry = fileURLToPath(new URL('./src/proof/KitchenSink.tsx', import.meta.url));
+const proofEntry = fileURLToPath(new URL("./src/proof/KitchenSink.tsx", import.meta.url));
 
 function proofSheet(): Plugin {
-  const virtualId = 'virtual:proof-sheet';
-  const resolvedId = '\0' + virtualId;
+  const virtualId = "virtual:proof-sheet";
+  const resolvedId = "\0" + virtualId;
   let serving = false;
 
   return {
-    name: 'newspapper:proof-sheet',
+    name: "newspapper:proof-sheet",
     config(_config, { command }) {
-      serving = command === 'serve';
+      serving = command === "serve";
     },
     resolveId(id) {
       return id === virtualId ? resolvedId : null;
     },
     load(id) {
       if (id !== resolvedId) return null;
-      return serving
-        ? `export { default } from ${JSON.stringify(proofEntry)};`
-        : 'export default null;\n';
+      return serving ? `export { default } from ${JSON.stringify(proofEntry)};` : "export default null;\n";
     },
   };
 }
@@ -65,7 +63,7 @@ function proofSheet(): Plugin {
  * reads so the app's own URLs cannot drift from the bundle's. That is the one
  * variable — there is deliberately no second one for the router.
  */
-const base = process.env.NEWSPAPPER_BASE ?? '/';
+const base = process.env.NEWSPAPPER_BASE ?? "/";
 
 /**
  * The dev server stands in for Caddy. The API's paths are proxied under `base`
@@ -76,9 +74,9 @@ const base = process.env.NEWSPAPPER_BASE ?? '/';
  */
 function devProxy(): Record<string, ProxyOptions> {
   const api = `http://localhost:${process.env.PORT ?? 3001}`;
-  const prefix = base.replace(/\/+$/, '');
+  const prefix = base.replace(/\/+$/, "");
   const proxy: Record<string, ProxyOptions> = {};
-  for (const path of ['/api', '/output', '/uploads', '/assets']) {
+  for (const path of ["/api", "/output", "/uploads", "/assets"]) {
     proxy[`${prefix}${path}`] = {
       target: api,
       rewrite: (url) => url.slice(prefix.length),
@@ -92,14 +90,14 @@ export default defineConfig({
   plugins: [react(), proofSheet()],
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url)),
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
   build: {
     // NOT the default `assets/` — the API serves the repo's own `assets/fonts/`
     // at that prefix in production, and the dev server proxies `/assets` to it.
     // Astro sat the bundle in `_astro/` for the same reason.
-    assetsDir: '_bundle',
+    assetsDir: "_bundle",
   },
   server: {
     port: 4321,

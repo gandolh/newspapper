@@ -29,22 +29,22 @@
  * skipped.
  */
 
-import { describe, it, expect, afterAll } from 'vitest';
-import { createServer, type Server } from 'node:http';
-import { readFileSync, existsSync } from 'node:fs';
-import type { AddressInfo } from 'node:net';
+import { describe, it, expect, afterAll } from "vitest";
+import { createServer, type Server } from "node:http";
+import { readFileSync, existsSync } from "node:fs";
+import type { AddressInfo } from "node:net";
 
-import { renderTemplate } from '../templates/interpreter.js';
-import type { Theme, TNode } from '../types.js';
-import { htmlToJpeg } from './screenshot.js';
-import { probeChromium } from './test-support/chromium.js';
-import { FONT_DIR, localFontPath } from './fonts.js';
+import { renderTemplate } from "../templates/interpreter.js";
+import type { Theme, TNode } from "../types.js";
+import { htmlToJpeg } from "./screenshot.js";
+import { probeChromium } from "./test-support/chromium.js";
+import { FONT_DIR, localFontPath } from "./fonts.js";
 
 // ---------------------------------------------------------------------------
 // Browser availability — probed once, loudly
 // ---------------------------------------------------------------------------
 
-const chromium = await probeChromium('fonts.test', 'that rendered slides are set in Inter');
+const chromium = await probeChromium("fonts.test", "that rendered slides are set in Inter");
 
 afterAll(() => chromium.close());
 
@@ -67,7 +67,7 @@ interface FontOrigin {
 async function startFontOrigin(): Promise<FontOrigin> {
   const hits: string[] = [];
   const server = createServer((req, res) => {
-    const name = (req.url ?? '').split('/').pop() ?? '';
+    const name = (req.url ?? "").split("/").pop() ?? "";
     hits.push(name);
     const file = `${FONT_DIR}/${name}`;
     if (!/^[A-Za-z0-9._-]+$/.test(name) || !existsSync(file)) {
@@ -77,11 +77,11 @@ async function startFontOrigin(): Promise<FontOrigin> {
     }
     // Deliberately no Access-Control-Allow-Origin — this is what the API does
     // for the renderer's null origin.
-    res.setHeader('Content-Type', 'font/ttf');
+    res.setHeader("Content-Type", "font/ttf");
     res.end(readFileSync(file));
   });
   servers.push(server);
-  await new Promise<void>((r) => server.listen(0, '127.0.0.1', r));
+  await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
   const { port } = server.address() as AddressInfo;
   return { baseUrl: `http://localhost:${port}/assets/fonts`, hits };
 }
@@ -98,61 +98,61 @@ async function startFontOrigin(): Promise<FontOrigin> {
  * and the way to re-check it by hand is to quote this string, run the file, and
  * put it back.
  */
-const FACE = 'Inter';
+const FACE = "Inter";
 
 /** `FACE` without whatever quoting the theme puts around it. */
-const FACE_NAME = FACE.replace(/^['"]|['"]$/g, '');
+const FACE_NAME = FACE.replace(/^['"]|['"]$/g, "");
 
 /** A family name nothing on any machine answers to, and nothing here defines. */
-const ABSENT_NAME = 'NoSuchFaceOnThisMachine';
+const ABSENT_NAME = "NoSuchFaceOnThisMachine";
 
 /** The guard's slide theme, parameterised by the family its text asks for. */
 function themeWithFamily(fontFamily: string): Theme {
   return {
-    name: 'font-guard',
-    colors: { surface: '#ffffff', 'on-surface': '#000000' },
+    name: "font-guard",
+    colors: { surface: "#ffffff", "on-surface": "#000000" },
     typography: {
       display: {
         fontFamily,
-        fontSize: '96px',
-        fontWeight: '800',
-        lineHeight: '1.1',
-        letterSpacing: '-0.04em',
+        fontSize: "96px",
+        fontWeight: "800",
+        lineHeight: "1.1",
+        letterSpacing: "-0.04em",
       },
-      'body-md': {
+      "body-md": {
         fontFamily,
-        fontSize: '48px',
-        fontWeight: '400',
-        lineHeight: '1.4',
+        fontSize: "48px",
+        fontWeight: "400",
+        lineHeight: "1.4",
       },
     },
-    rounded: { md: '0.75rem' },
-    spacing: { md: '24px' },
-    shapes: { borderRadius: '0.5rem', borderWidth: '2px' },
+    rounded: { md: "0.75rem" },
+    spacing: { md: "24px" },
+    shapes: { borderRadius: "0.5rem", borderWidth: "2px" },
   };
 }
 
 const slide: TNode = {
-  kind: 'box',
+  kind: "box",
   style: {
-    width: '1080px',
-    height: '1080px',
-    background: '$color.surface',
-    padding: '$spacing.md',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '$spacing.md',
+    width: "1080px",
+    height: "1080px",
+    background: "$color.surface",
+    padding: "$spacing.md",
+    display: "flex",
+    flexDirection: "column",
+    gap: "$spacing.md",
   },
   children: [
     {
-      kind: 'text',
-      style: { typography: 'display', color: '$color.on-surface' },
-      text: 'Handgloves 0123',
+      kind: "text",
+      style: { typography: "display", color: "$color.on-surface" },
+      text: "Handgloves 0123",
     },
     {
-      kind: 'text',
-      style: { typography: 'body-md', color: '$color.on-surface' },
-      text: 'The quick brown fox jumps over the lazy dog.',
+      kind: "text",
+      style: { typography: "body-md", color: "$color.on-surface" },
+      text: "The quick brown fox jumps over the lazy dog.",
     },
   ],
 };
@@ -175,9 +175,7 @@ function slideHtml(fontBaseUrl: string): string {
  */
 function assertCannotLoadInter(html: string): void {
   if (/@font-face/i.test(html)) {
-    throw new Error(
-      'the no-Inter control still defines an @font-face — it can load a face, so it is not a control',
-    );
+    throw new Error("the no-Inter control still defines an @font-face — it can load a face, so it is not a control");
   }
   const at = html.toLowerCase().indexOf(FACE_NAME.toLowerCase());
   if (at !== -1) {
@@ -210,55 +208,52 @@ function assertCannotLoadInter(html: string): void {
  */
 function noInterHtml(fontBaseUrl: string): string {
   const control = slideHtml(fontBaseUrl)
-    .replace(/@font-face\{[^}]*\}/g, '')
-    .replace(new RegExp(`\\b${FACE_NAME}\\b`, 'gi'), ABSENT_NAME);
+    .replace(/@font-face\{[^}]*\}/g, "")
+    .replace(new RegExp(`\\b${FACE_NAME}\\b`, "gi"), ABSENT_NAME);
   assertCannotLoadInter(control);
   return control;
 }
 
 /** Every `font-family` declared after the `<style>` block — i.e. the inline ones. */
 function inlineFamilies(html: string): string[] {
-  const body = html.slice(html.indexOf('</style>'));
-  return [...body.matchAll(/font-family:([^;"]*)/g)].map((m) => (m[1] ?? '').trim());
+  const body = html.slice(html.indexOf("</style>"));
+  return [...body.matchAll(/font-family:([^;"]*)/g)].map((m) => (m[1] ?? "").trim());
 }
 
 // ---------------------------------------------------------------------------
 // The control itself — asserted with no browser, so it is never skipped
 // ---------------------------------------------------------------------------
 
-describe('the no-Inter control', () => {
-  it('defines no font face and never names Inter', () => {
-    const control = noInterHtml('/assets/fonts');
-    expect(control, 'the control still defines a face it could be drawn in').not.toMatch(
-      /@font-face/i,
+describe("the no-Inter control", () => {
+  it("defines no font face and never names Inter", () => {
+    const control = noInterHtml("/assets/fonts");
+    expect(control, "the control still defines a face it could be drawn in").not.toMatch(/@font-face/i);
+    expect(control.toLowerCase(), "the control names the face somewhere — it is not a no-Inter document").not.toContain(
+      FACE_NAME.toLowerCase(),
     );
-    expect(
-      control.toLowerCase(),
-      'the control names the face somewhere — it is not a no-Inter document',
-    ).not.toContain(FACE_NAME.toLowerCase());
   });
 
   it("keeps the slide, and the subject's fallback tail, so the two fall back alike", () => {
-    const subject = inlineFamilies(slideHtml('/assets/fonts'));
-    const control = inlineFamilies(noInterHtml('/assets/fonts'));
+    const subject = inlineFamilies(slideHtml("/assets/fonts"));
+    const control = inlineFamilies(noInterHtml("/assets/fonts"));
 
-    expect(subject.length, 'the slide declares no inline font-family at all').toBeGreaterThan(0);
+    expect(subject.length, "the slide declares no inline font-family at all").toBeGreaterThan(0);
     expect(
       control,
-      'control and subject declare different font stacks — a pixel difference ' +
-        'between them would not be attributable to the face alone',
+      "control and subject declare different font stacks — a pixel difference " +
+        "between them would not be attributable to the face alone",
     ).toEqual(subject.map((f) => f.replace(FACE_NAME, ABSENT_NAME)));
 
     for (const family of control) {
-      expect(family.endsWith(',sans-serif'), `control declares "${family}"`).toBe(true);
+      expect(family.endsWith(",sans-serif"), `control declares "${family}"`).toBe(true);
     }
-    expect(noInterHtml('/assets/fonts')).toContain('Handgloves 0123');
+    expect(noInterHtml("/assets/fonts")).toContain("Handgloves 0123");
   });
 
-  it('the subject, unlike the control, does define the face and ask for it', () => {
-    const subject = slideHtml('/assets/fonts');
-    expect(subject, 'the interpreter stopped emitting @font-face').toMatch(/@font-face/);
-    expect(subject).toContain('Inter-Regular.ttf');
+  it("the subject, unlike the control, does define the face and ask for it", () => {
+    const subject = slideHtml("/assets/fonts");
+    expect(subject, "the interpreter stopped emitting @font-face").toMatch(/@font-face/);
+    expect(subject).toContain("Inter-Regular.ttf");
   });
 });
 
@@ -266,8 +261,8 @@ describe('the no-Inter control', () => {
 // The guard
 // ---------------------------------------------------------------------------
 
-describe('rendered slides are set in Inter', () => {
-  it('a rendered slide does not match the same slide with no Inter in it', async (ctx) => {
+describe("rendered slides are set in Inter", () => {
+  it("a rendered slide does not match the same slide with no Inter in it", async (ctx) => {
     if (!chromium.orSkip((note) => ctx.skip(note))) return;
 
     const origin = await startFontOrigin();
@@ -280,17 +275,17 @@ describe('rendered slides are set in Inter', () => {
     // Rendering is deterministic, so the comparison below means something.
     expect(
       inter.equals(interAgain),
-      'two renders of the same slide differ — the comparison below is noise, not signal',
+      "two renders of the same slide differ — the comparison below is noise, not signal",
     ).toBe(true);
 
     expect(
       inter.equals(control),
-      'the rendered slide is pixel-identical to a document that does not contain ' +
-        'Inter at all: Inter did not load and the render fell back to the default sans',
+      "the rendered slide is pixel-identical to a document that does not contain " +
+        "Inter at all: Inter did not load and the render fell back to the default sans",
     ).toBe(false);
   }, 60_000);
 
-  it('renders Inter without reaching the HTTP font origin at all', async (ctx) => {
+  it("renders Inter without reaching the HTTP font origin at all", async (ctx) => {
     if (!chromium.orSkip((note) => ctx.skip(note))) return;
 
     const origin = await startFontOrigin();
@@ -298,8 +293,8 @@ describe('rendered slides are set in Inter', () => {
 
     expect(
       origin.hits,
-      'the render browser fetched fonts over HTTP — the render must not depend ' +
-        'on the API being up, or on its CORS policy',
+      "the render browser fetched fonts over HTTP — the render must not depend " +
+        "on the API being up, or on its CORS policy",
     ).toEqual([]);
   }, 60_000);
 });
@@ -308,19 +303,19 @@ describe('rendered slides are set in Inter', () => {
 // Always runs — no browser needed
 // ---------------------------------------------------------------------------
 
-describe('localFontPath', () => {
-  it('resolves every weight the interpreter injects', () => {
-    for (const name of ['Regular', 'Medium', 'SemiBold', 'Bold', 'ExtraBold', 'Black']) {
+describe("localFontPath", () => {
+  it("resolves every weight the interpreter injects", () => {
+    for (const name of ["Regular", "Medium", "SemiBold", "Bold", "ExtraBold", "Black"]) {
       const file = localFontPath(`http://localhost:3001/assets/fonts/Inter-${name}.ttf`);
       expect(file, `Inter-${name}.ttf is missing from ${FONT_DIR}`).toBeTruthy();
       expect(existsSync(file as string)).toBe(true);
     }
   });
 
-  it('refuses path traversal and unknown files', () => {
-    expect(localFontPath('http://localhost:3001/assets/fonts/../../package.json')).toBeNull();
-    expect(localFontPath('http://localhost:3001/assets/fonts/%2e%2e%2fpackage.json')).toBeNull();
-    expect(localFontPath('http://localhost:3001/assets/fonts/Nope-Regular.ttf')).toBeNull();
-    expect(localFontPath('not a url')).toBeNull();
+  it("refuses path traversal and unknown files", () => {
+    expect(localFontPath("http://localhost:3001/assets/fonts/../../package.json")).toBeNull();
+    expect(localFontPath("http://localhost:3001/assets/fonts/%2e%2e%2fpackage.json")).toBeNull();
+    expect(localFontPath("http://localhost:3001/assets/fonts/Nope-Regular.ttf")).toBeNull();
+    expect(localFontPath("not a url")).toBeNull();
   });
 });

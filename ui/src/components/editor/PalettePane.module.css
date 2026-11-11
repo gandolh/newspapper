@@ -80,7 +80,7 @@
 .showHeading {
   font-size: 17px;
   font-weight: 800;
-  font-variation-settings: 'wdth' var(--wdth-title);
+  font-variation-settings: "wdth" var(--wdth-title);
   letter-spacing: -0.02em;
 }
 
@@ -90,7 +90,7 @@
 }
 
 .showList::before {
-  content: '— ';
+  content: "— ";
   color: var(--graphite-soft);
 }
 

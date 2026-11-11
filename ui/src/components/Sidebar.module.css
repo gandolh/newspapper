@@ -51,7 +51,7 @@
   font-family: var(--font-chrome);
   font-size: var(--fs-brand);
   font-weight: 800;
-  font-variation-settings: 'wdth' var(--wdth-brand);
+  font-variation-settings: "wdth" var(--wdth-brand);
   letter-spacing: var(--ls-brand);
   text-transform: uppercase;
   line-height: 1.2;
@@ -146,8 +146,8 @@
     grid-template-columns: minmax(0, 1fr) auto;
     grid-template-rows: var(--sp-unit) 1fr;
     grid-template-areas:
-      'brand session'
-      'nav nav';
+      "brand session"
+      "nav nav";
   }
 
   .cell--brand {

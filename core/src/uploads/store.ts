@@ -1,10 +1,10 @@
-import { randomBytes } from 'node:crypto';
-import { existsSync, rmSync } from 'node:fs';
-import { basename, resolve, sep } from 'node:path';
-import { uploadsRoot as pathsUploadsRoot } from '../util/paths.js';
+import { randomBytes } from "node:crypto";
+import { existsSync, rmSync } from "node:fs";
+import { basename, resolve, sep } from "node:path";
+import { uploadsRoot as pathsUploadsRoot } from "../util/paths.js";
 
-export const ORIGINALS_DIR = 'originals';
-export const NORMALIZED_DIR = 'normalized';
+export const ORIGINALS_DIR = "originals";
+export const NORMALIZED_DIR = "normalized";
 
 /** The only shape an upload reference may take, in markup or in a URL. */
 export const REF_PATTERN = /^[a-z0-9](?:[a-z0-9-]{0,94}[a-z0-9])?$/;
@@ -26,7 +26,7 @@ export function uploadsRoot(): string {
 }
 
 export function isValidRef(ref: unknown): ref is string {
-  return typeof ref === 'string' && REF_PATTERN.test(ref);
+  return typeof ref === "string" && REF_PATTERN.test(ref);
 }
 
 /**
@@ -45,26 +45,26 @@ export function resolveInStore(relativePath: string, root: string = uploadsRoot(
 
 /** A display label only — never a path component. */
 export function sanitizeDisplayName(filename: unknown): string {
-  const raw = typeof filename === 'string' ? filename : '';
-  const leaf = raw.replace(CONTROL_CHARS, '').split(/[\\/]/).pop() ?? '';
-  return leaf.trim().slice(0, MAX_DISPLAY_NAME_LENGTH) || 'upload';
+  const raw = typeof filename === "string" ? filename : "";
+  const leaf = raw.replace(CONTROL_CHARS, "").split(/[\\/]/).pop() ?? "";
+  return leaf.trim().slice(0, MAX_DISPLAY_NAME_LENGTH) || "upload";
 }
 
 export function slugifyFilename(filename: unknown): string {
-  const label = sanitizeDisplayName(filename).replace(/\.[^.]*$/, '');
+  const label = sanitizeDisplayName(filename).replace(/\.[^.]*$/, "");
   const slug = label
-    .normalize('NFKD')
-    .replace(COMBINING_MARKS, '')
+    .normalize("NFKD")
+    .replace(COMBINING_MARKS, "")
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
     .slice(0, MAX_SLUG_LENGTH)
-    .replace(/-+$/g, '');
-  return slug || 'image';
+    .replace(/-+$/g, "");
+  return slug || "image";
 }
 
 export function makeRef(filename: unknown): string {
-  return `${slugifyFilename(filename)}-${randomBytes(4).toString('hex')}`;
+  return `${slugifyFilename(filename)}-${randomBytes(4).toString("hex")}`;
 }
 
 export function originalRelPath(ref: string, extension: string): string {
@@ -76,7 +76,7 @@ export function normalizedRelPath(ref: string, extension: string): string {
 }
 
 export function refFromStoredPath(storedPath: string): string {
-  return basename(storedPath).replace(/\.[^.]*$/, '');
+  return basename(storedPath).replace(/\.[^.]*$/, "");
 }
 
 export function storeFileExists(relativePath: string, root: string = uploadsRoot()): boolean {

@@ -1,4 +1,4 @@
-import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance } from "fastify";
 
 import {
   createAccounts,
@@ -9,10 +9,10 @@ import {
   wardClientOptionsFromEnv,
   type Accounts,
   type WardClient,
-} from '../../vendor/ward/ward-auth.js';
-import type { DB } from '@newspapper/core';
-import { AUTH_ROUTE_PREFIX, SESSION_COOKIE, authPaths, publicOrigin } from './config.js';
-import { requiresSession } from './ward.guard.js';
+} from "../../vendor/ward/ward-auth.js";
+import type { DB } from "@newspapper/core";
+import { AUTH_ROUTE_PREFIX, SESSION_COOKIE, authPaths, publicOrigin } from "./config.js";
+import { requiresSession } from "./ward.guard.js";
 
 /**
  * Newspapper's accounts: local users and sessions in the app's own SQLite
@@ -97,8 +97,8 @@ export async function seedFromEnv(accounts: Accounts, env: SeedEnv = process.env
   const username = env.SEED_USERNAME?.trim();
   const password = env.SEED_PASSWORD;
   if (!username || !password) {
-    throw new Error('SEED_USERNAME and SEED_PASSWORD must both be set in the environment.');
+    throw new Error("SEED_USERNAME and SEED_PASSWORD must both be set in the environment.");
   }
-  const role = env.SEED_ROLE?.trim() || 'editor';
+  const role = env.SEED_ROLE?.trim() || "editor";
   return seedUsers(accounts, [{ username, password, role }]);
 }

@@ -26,15 +26,15 @@
  * Both are defined once, in `:root`. There is no third way to draw either.
  */
 
-import type { HTMLAttributes, ReactNode } from 'react';
-import styles from './Marks.module.css';
+import type { HTMLAttributes, ReactNode } from "react";
+import styles from "./Marks.module.css";
 
 /** Wax highlight for the selected run in the galley. */
 export const WAX: string = styles.wax;
 /** The 45° hatch — "held out", at a scale too small for the wash. */
 export const HATCH: string = styles.hatched;
 
-export type MarkTone = 'dim' | 'ink' | 'rubylith' | 'blue';
+export type MarkTone = "dim" | "ink" | "rubylith" | "blue";
 
 export interface MarkProps extends HTMLAttributes<HTMLSpanElement> {
   /** The ink. Never the only signal — the word says it too. */
@@ -45,17 +45,15 @@ export interface MarkProps extends HTMLAttributes<HTMLSpanElement> {
 }
 
 const TONE: Record<MarkTone, string> = {
-  dim: '',
+  dim: "",
   ink: styles.markInk,
   rubylith: styles.markRubylith,
   blue: styles.markBlue,
 };
 
 /** A state word: 9px mono, uppercase, tracked, behind a tick. */
-export function Mark({ tone = 'dim', bare = false, children, className = '', ...rest }: MarkProps) {
-  const cls = [styles.mark, TONE[tone], bare ? styles.markBare : '', className]
-    .filter(Boolean)
-    .join(' ');
+export function Mark({ tone = "dim", bare = false, children, className = "", ...rest }: MarkProps) {
+  const cls = [styles.mark, TONE[tone], bare ? styles.markBare : "", className].filter(Boolean).join(" ");
   return (
     <span className={cls} {...rest}>
       {children}
@@ -64,9 +62,9 @@ export function Mark({ tone = 'dim', bare = false, children, className = '', ...
 }
 
 /** Published: the rubylith rubber stamp, 2px outline, rotated -7°. */
-export function Stamp({ children = 'Published', className = '', ...rest }: Partial<MarkProps>) {
+export function Stamp({ children = "Published", className = "", ...rest }: Partial<MarkProps>) {
   return (
-    <span className={[styles.stamp, className].filter(Boolean).join(' ')} {...rest}>
+    <span className={[styles.stamp, className].filter(Boolean).join(" ")} {...rest}>
       {children}
     </span>
   );
@@ -76,7 +74,7 @@ export function Stamp({ children = 'Published', className = '', ...rest }: Parti
  * Draft: a sheet of tissue turned back over the board's top-right corner.
  * Absolutely positioned — the thing it marks must be a positioned box.
  */
-export function TissueCorner({ title = 'Draft' }: { title?: string }) {
+export function TissueCorner({ title = "Draft" }: { title?: string }) {
   return <span className={styles.tissueCorner} title={title} aria-hidden="true" />;
 }
 
@@ -87,10 +85,10 @@ export function TissueCorner({ title = 'Draft' }: { title?: string }) {
 export function HeldOut({
   children,
   hatch = false,
-  className = '',
+  className = "",
   ...rest
 }: { children: ReactNode; hatch?: boolean } & HTMLAttributes<HTMLDivElement>) {
-  const cls = [hatch ? styles.hatched : styles.heldOut, className].filter(Boolean).join(' ');
+  const cls = [hatch ? styles.hatched : styles.heldOut, className].filter(Boolean).join(" ");
   return (
     <div className={cls} {...rest}>
       {children}
@@ -154,7 +152,7 @@ export interface FindingProps {
  */
 export function Finding({ where, children, muted = false }: FindingProps) {
   return (
-    <span className={[styles.finding, muted ? styles.findingMuted : ''].filter(Boolean).join(' ')}>
+    <span className={[styles.finding, muted ? styles.findingMuted : ""].filter(Boolean).join(" ")}>
       <span className={styles.leader} aria-hidden="true" />
       <span className={styles.findingBody}>
         {where && <span className={styles.findingWhere}>{where}</span>}

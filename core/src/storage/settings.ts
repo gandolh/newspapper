@@ -1,19 +1,19 @@
-import type { Settings } from '../types.js';
-import { getDb } from './db.js';
+import type { Settings } from "../types.js";
+import { getDb } from "./db.js";
 
 const DEFAULTS: Settings = {
-  defaultTheme: 'warm-industrial-1',
+  defaultTheme: "warm-industrial-1",
 };
 
 const ENV_MAP: Record<keyof Settings, string> = {
-  defaultTheme: 'THEME',
+  defaultTheme: "THEME",
 };
 
 function fromEnv(): Partial<Settings> {
   const result: Partial<Record<keyof Settings, string>> = {};
   for (const [key, envVar] of Object.entries(ENV_MAP) as [keyof Settings, string][]) {
     const val = process.env[envVar];
-    if (val !== undefined && val !== '') {
+    if (val !== undefined && val !== "") {
       result[key] = val;
     }
   }
@@ -29,7 +29,7 @@ export function getSettings(dbPath?: string): Settings {
     const envOverrides = fromEnv();
     const merged: Settings = { ...DEFAULTS, ...envOverrides };
 
-    const rows = db.prepare('SELECT key, value FROM settings').all() as Array<{
+    const rows = db.prepare("SELECT key, value FROM settings").all() as Array<{
       key: string;
       value: string;
     }>;
@@ -49,7 +49,7 @@ export function getSettings(dbPath?: string): Settings {
 export function saveSettings(patch: Partial<Settings>, dbPath?: string): void {
   const db = getDb(dbPath);
   try {
-    const stmt = db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (@key, @value)');
+    const stmt = db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (@key, @value)");
     const tx = db.transaction((entries: [string, string][]) => {
       for (const [key, value] of entries) {
         stmt.run({ key, value });

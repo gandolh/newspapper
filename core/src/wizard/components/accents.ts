@@ -12,7 +12,7 @@ import {
   textAlign,
   textNode,
   type WzdComponentRenderer,
-} from './context.js';
+} from "./context.js";
 import {
   WZD_FRACTION_BY_SIZE,
   WZD_RULE_COLORS,
@@ -21,19 +21,19 @@ import {
   WZD_TYPOGRAPHY_SCALES,
   colorToken,
   spacingToken,
-} from './style.js';
+} from "./style.js";
 
 export const Kicker: WzdComponentRenderer = (el, ctx) =>
   textNode(contentOf(el, ctx), {
-    typography: WZD_TYPOGRAPHY_SCALES['Kicker'][sizeOf(el)],
+    typography: WZD_TYPOGRAPHY_SCALES["Kicker"][sizeOf(el)],
     color: colorToken(WZD_TEXT_COLORS[emphasisOf(el)]),
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     textAlign: textAlign(alignOf(el, ctx)),
   });
 
 export const Source: WzdComponentRenderer = (el, ctx) =>
   textNode(contentOf(el, ctx), {
-    typography: WZD_TYPOGRAPHY_SCALES['Source'][sizeOf(el)],
+    typography: WZD_TYPOGRAPHY_SCALES["Source"][sizeOf(el)],
     color: colorToken(WZD_TEXT_COLORS[emphasisOf(el)]),
     textAlign: textAlign(alignOf(el, ctx)),
   });
@@ -63,8 +63,8 @@ export const Spacer: WzdComponentRenderer = (el) =>
  */
 export const PageCounter: WzdComponentRenderer = (el, ctx) =>
   textNode(`${ctx.index}/${ctx.total}`, {
-    typography: WZD_TYPOGRAPHY_SCALES['PageCounter'][sizeOf(el)],
+    typography: WZD_TYPOGRAPHY_SCALES["PageCounter"][sizeOf(el)],
     color: colorToken(WZD_TEXT_COLORS[emphasisOf(el)]),
     textAlign: textAlign(alignOf(el, ctx)),
-    marginTop: 'auto',
+    marginTop: "auto",
   });

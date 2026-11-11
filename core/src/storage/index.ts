@@ -1,7 +1,7 @@
 // Storage module public surface
 
-export { getDb, open, migrate } from './db.js';
-export type { DB } from './db.js';
+export { getDb, open, migrate } from "./db.js";
+export type { DB } from "./db.js";
 
 export {
   saveArticle,
@@ -13,8 +13,8 @@ export {
   removeArticle,
   countArticles,
   updateArticleNote,
-} from './articles.js';
-export type { NewArticle, ArticleFilter } from './articles.js';
+} from "./articles.js";
+export type { NewArticle, ArticleFilter } from "./articles.js";
 
 export {
   createPost,
@@ -31,8 +31,8 @@ export {
   deletePost,
   updatePostPayload,
   markRendered,
-} from './posts.js';
-export type { PostInput, PostFilter } from './posts.js';
+} from "./posts.js";
+export type { PostInput, PostFilter } from "./posts.js";
 
 export {
   setPostKeywords,
@@ -41,7 +41,7 @@ export {
   listKeywords,
   pruneKeywords,
   normalizeKeywords,
-} from './keywords.js';
+} from "./keywords.js";
 
 export {
   recordRender,
@@ -51,17 +51,11 @@ export {
   findRender,
   markRenderOptimized,
   removeRender,
-} from './renders.js';
-export type { NewRender } from './renders.js';
+} from "./renders.js";
+export type { NewRender } from "./renders.js";
 
-export {
-  createUpload,
-  findUpload,
-  listUploads,
-  setUploadNormalizedPath,
-  removeUpload,
-} from './uploads.js';
-export type { NewUpload } from './uploads.js';
+export { createUpload, findUpload, listUploads, setUploadNormalizedPath, removeUpload } from "./uploads.js";
+export type { NewUpload } from "./uploads.js";
 
 /*
  * `users.ts` is gone (2026-09-06). newspapper holds no accounts: identity is
@@ -70,7 +64,7 @@ export type { NewUpload } from './uploads.js';
  * which is why nothing below needed re-keying when the accounts left.
  */
 
-export { getSettings, saveSettings } from './settings.js';
+export { getSettings, saveSettings } from "./settings.js";
 
 export {
   listSources,
@@ -80,7 +74,7 @@ export {
   updateSource,
   removeSource,
   normalizeCategory,
-} from './sources.js';
+} from "./sources.js";
 
 export {
   insertFeedItems,
@@ -99,11 +93,5 @@ export {
   KEEP_NEWEST_PER_SOURCE,
   DEFAULT_PAGE_SIZE,
   MAX_PAGE_SIZE,
-} from './feed-items.js';
-export type {
-  NewFeedItem,
-  FeedItemScope,
-  FeedItemQuery,
-  MarkReadScope,
-  PurgeOptions,
-} from './feed-items.js';
+} from "./feed-items.js";
+export type { NewFeedItem, FeedItemScope, FeedItemQuery, MarkReadScope, PurgeOptions } from "./feed-items.js";

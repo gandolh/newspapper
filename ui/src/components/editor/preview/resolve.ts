@@ -14,9 +14,9 @@
  * builder preview is strict, and says so".
  */
 
-import { resolveStyle } from '@newspapper/core/templates';
-import type { TNode, TStyle, Theme } from '@newspapper/core/templates';
-import { sourceOffsetOf, styleWithoutStamp } from './compileTraced.js';
+import { resolveStyle } from "@newspapper/core/templates";
+import type { TNode, TStyle, Theme } from "@newspapper/core/templates";
+import { sourceOffsetOf, styleWithoutStamp } from "./compileTraced.js";
 
 export interface ResolvedStyle {
   css: Record<string, string>;
@@ -34,7 +34,7 @@ export function resolveTolerant(style: TStyle, theme: Theme): ResolvedStyle {
   const problems: string[] = [];
   // `typography` expands first and explicit keys override it, which is the
   // order `resolveStyle` itself uses.
-  const keys = ['typography', ...Object.keys(style).filter((k) => k !== 'typography')];
+  const keys = ["typography", ...Object.keys(style).filter((k) => k !== "typography")];
   for (const key of keys) {
     if (!(key in style)) continue;
     try {
@@ -52,15 +52,14 @@ const CUSTOM = /^--/;
 export function toReactStyle(css: Record<string, string>): Record<string, string> {
   const out: Record<string, string> = {};
   for (const [key, value] of Object.entries(css)) {
-    out[CUSTOM.test(key) ? key : key.replace(/-([a-z])/g, (_m, c: string) => c.toUpperCase())] =
-      value;
+    out[CUSTOM.test(key) ? key : key.replace(/-([a-z])/g, (_m, c: string) => c.toUpperCase())] = value;
   }
   return out;
 }
 
 export function childrenOf(node: TNode): TNode[] {
-  if (node.kind === 'box') return node.children ?? [];
-  if (node.kind === 'repeat') return node.children;
+  if (node.kind === "box") return node.children ?? [];
+  if (node.kind === "repeat") return node.children;
   return [];
 }
 

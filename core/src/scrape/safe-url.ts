@@ -1,9 +1,9 @@
-import { lookup as dnsLookup } from 'node:dns/promises';
-import http from 'node:http';
-import https from 'node:https';
-import { BlockList, isIP, type LookupFunction } from 'node:net';
-import { pipeline, Readable } from 'node:stream';
-import zlib from 'node:zlib';
+import { lookup as dnsLookup } from "node:dns/promises";
+import http from "node:http";
+import https from "node:https";
+import { BlockList, isIP, type LookupFunction } from "node:net";
+import { pipeline, Readable } from "node:stream";
+import zlib from "node:zlib";
 
 /**
  * Server-side fetches of URLs that a third party chose: feed URLs, and the
@@ -36,29 +36,29 @@ import zlib from 'node:zlib';
 /** Addresses the server must never fetch on a feed's behalf. */
 const BLOCKED = new BlockList();
 for (const [net, prefix] of [
-  ['0.0.0.0', 8], // "this network"
-  ['10.0.0.0', 8],
-  ['100.64.0.0', 10], // carrier-grade NAT
-  ['127.0.0.0', 8],
-  ['169.254.0.0', 16], // link-local, incl. cloud metadata
-  ['172.16.0.0', 12],
-  ['192.0.0.0', 24],
-  ['192.168.0.0', 16],
-  ['198.18.0.0', 15], // benchmarking
-  ['224.0.0.0', 4], // multicast
-  ['240.0.0.0', 4], // reserved, incl. broadcast
+  ["0.0.0.0", 8], // "this network"
+  ["10.0.0.0", 8],
+  ["100.64.0.0", 10], // carrier-grade NAT
+  ["127.0.0.0", 8],
+  ["169.254.0.0", 16], // link-local, incl. cloud metadata
+  ["172.16.0.0", 12],
+  ["192.0.0.0", 24],
+  ["192.168.0.0", 16],
+  ["198.18.0.0", 15], // benchmarking
+  ["224.0.0.0", 4], // multicast
+  ["240.0.0.0", 4], // reserved, incl. broadcast
 ] as const) {
-  BLOCKED.addSubnet(net, prefix, 'ipv4');
+  BLOCKED.addSubnet(net, prefix, "ipv4");
 }
 for (const [net, prefix] of [
-  ['::', 128], // unspecified
-  ['::1', 128],
-  ['2002::', 16], // 6to4: the relay it routes through is anyone's
-  ['fc00::', 7], // unique-local
-  ['fe80::', 10], // link-local
-  ['ff00::', 8], // multicast
+  ["::", 128], // unspecified
+  ["::1", 128],
+  ["2002::", 16], // 6to4: the relay it routes through is anyone's
+  ["fc00::", 7], // unique-local
+  ["fe80::", 10], // link-local
+  ["ff00::", 8], // multicast
 ] as const) {
-  BLOCKED.addSubnet(net, prefix, 'ipv6');
+  BLOCKED.addSubnet(net, prefix, "ipv6");
 }
 
 /** An IPv6 address (already known to be one) as its eight 16-bit groups. */
@@ -69,10 +69,10 @@ function ipv6Groups(address: string): number[] {
     const [a, b, c, d] = dotted.slice(1).map(Number) as [number, number, number, number];
     text = `${text.slice(0, dotted.index)}${((a << 8) | b).toString(16)}:${((c << 8) | d).toString(16)}`;
   }
-  const [head, tail] = text.split('::') as [string, string | undefined];
-  const left = head ? head.split(':') : [];
-  const right = tail ? tail.split(':') : [];
-  const zeros = tail === undefined ? [] : Array(8 - left.length - right.length).fill('0');
+  const [head, tail] = text.split("::") as [string, string | undefined];
+  const left = head ? head.split(":") : [];
+  const right = tail ? tail.split(":") : [];
+  const zeros = tail === undefined ? [] : Array(8 - left.length - right.length).fill("0");
   return [...left, ...zeros, ...right].map((group) => parseInt(group, 16));
 }
 
@@ -97,13 +97,13 @@ function embeddedIPv4(address: string): string | null {
  * `::ffff:127.0.0.1` and `64:ff9b::7f00:1` are blocked too; 6to4 is blocked
  * outright. */
 export function isPublicAddress(address: string): boolean {
-  const bare = address.replace(/%.*$/, ''); // an IPv6 zone id
+  const bare = address.replace(/%.*$/, ""); // an IPv6 zone id
   const family = isIP(bare);
-  if (family === 4) return !BLOCKED.check(bare, 'ipv4');
+  if (family === 4) return !BLOCKED.check(bare, "ipv4");
   if (family !== 6) return false;
   const v4 = embeddedIPv4(bare);
   if (v4 !== null) return isPublicAddress(v4);
-  return !BLOCKED.check(bare, 'ipv6');
+  return !BLOCKED.check(bare, "ipv6");
 }
 
 export type Lookup = (host: string) => Promise<string[]>;
@@ -115,7 +115,7 @@ const systemLookup: Lookup = async (host) =>
 export class RefusedAddressError extends Error {
   constructor(host: string) {
     super(`${host} does not resolve to public addresses only`);
-    this.name = 'RefusedAddressError';
+    this.name = "RefusedAddressError";
   }
 }
 
@@ -144,12 +144,12 @@ export function vettingLookup(
   connectTo: (address: string) => string = (address) => address,
 ): LookupFunction {
   return (hostname, options, callback) => {
-    const host = hostname.replace(/^\[|\]$/g, '');
-    const family = options.family === 'IPv4' ? 4 : options.family === 'IPv6' ? 6 : options.family;
+    const host = hostname.replace(/^\[|\]$/g, "");
+    const family = options.family === "IPv4" ? 4 : options.family === "IPv6" ? 6 : options.family;
     (isIP(host) ? Promise.resolve([host]) : lookup(host)).then(
       (addresses) => {
         if (addresses.length === 0 || !addresses.every(isPublicAddress)) {
-          callback(new RefusedAddressError(host), '');
+          callback(new RefusedAddressError(host), "");
           return;
         }
         const entries = addresses
@@ -158,15 +158,15 @@ export function vettingLookup(
           .filter((entry) => !family || entry.family === family);
         if (entries.length === 0) {
           const err: NodeJS.ErrnoException = new Error(`${host} has no IPv${family} address`);
-          err.code = 'ENOTFOUND';
-          callback(err, '');
+          err.code = "ENOTFOUND";
+          callback(err, "");
         } else if (options.all) {
           callback(null, entries);
         } else {
           callback(null, entries[0]!.address, entries[0]!.family);
         }
       },
-      (err: NodeJS.ErrnoException) => callback(err, ''),
+      (err: NodeJS.ErrnoException) => callback(err, ""),
     );
   };
 }
@@ -174,8 +174,8 @@ export function vettingLookup(
 /** One pool per scheme, used by nothing else, so every kept-alive socket in it
  * was opened through `vettingLookup`. */
 const AGENTS: Record<string, http.Agent> = {
-  'http:': new http.Agent({ keepAlive: true }),
-  'https:': new https.Agent({ keepAlive: true }),
+  "http:": new http.Agent({ keepAlive: true }),
+  "https:": new https.Agent({ keepAlive: true }),
 };
 
 /** Statuses whose response has no body: `new Response` refuses one. */
@@ -200,17 +200,17 @@ const BROTLI_LENIENT = {
  * small compressed body cannot inflate past what is read.
  */
 function decoded(res: http.IncomingMessage): Readable {
-  const codings = (res.headers['content-encoding'] ?? '')
+  const codings = (res.headers["content-encoding"] ?? "")
     .toLowerCase()
-    .split(',')
+    .split(",")
     .map((coding) => coding.trim())
     .filter(Boolean)
     .reverse();
   const decoders: NodeJS.ReadWriteStream[] = [];
   for (const coding of codings) {
-    if (coding === 'gzip' || coding === 'x-gzip') decoders.push(zlib.createGunzip(ZLIB_LENIENT));
-    else if (coding === 'deflate') decoders.push(zlib.createInflate(ZLIB_LENIENT));
-    else if (coding === 'br') decoders.push(zlib.createBrotliDecompress(BROTLI_LENIENT));
+    if (coding === "gzip" || coding === "x-gzip") decoders.push(zlib.createGunzip(ZLIB_LENIENT));
+    else if (coding === "deflate") decoders.push(zlib.createInflate(ZLIB_LENIENT));
+    else if (coding === "br") decoders.push(zlib.createBrotliDecompress(BROTLI_LENIENT));
     else return res;
   }
   if (decoders.length === 0) return res;
@@ -244,15 +244,15 @@ function toResponse(res: http.IncomingMessage): Response {
  */
 function request(url: URL, init: RequestInit, lookup: LookupFunction): Promise<Response> {
   return new Promise((resolve, reject) => {
-    if (init.body != null) throw new TypeError('safeFetch sends no request body');
+    if (init.body != null) throw new TypeError("safeFetch sends no request body");
     const headers = new Headers(init.headers);
     // What `fetch` sends; `decoded` undoes either.
-    if (!headers.has('accept-encoding')) headers.set('accept-encoding', 'gzip, deflate');
-    const send = url.protocol === 'https:' ? https.request : http.request;
+    if (!headers.has("accept-encoding")) headers.set("accept-encoding", "gzip, deflate");
+    const send = url.protocol === "https:" ? https.request : http.request;
     const req = send(
       url,
       {
-        method: init.method ?? 'GET',
+        method: init.method ?? "GET",
         headers: Object.fromEntries(headers),
         agent: AGENTS[url.protocol],
         lookup,
@@ -267,7 +267,7 @@ function request(url: URL, init: RequestInit, lookup: LookupFunction): Promise<R
         }
       },
     );
-    req.on('error', reject);
+    req.on("error", reject);
     req.end();
   });
 }
@@ -282,8 +282,8 @@ export async function vetUrl(raw: string, lookup: Lookup = systemLookup): Promis
   } catch {
     return null;
   }
-  if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
-  const host = url.hostname.replace(/^\[|\]$/g, '');
+  if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+  const host = url.hostname.replace(/^\[|\]$/g, "");
   try {
     const addresses = isIP(host) ? [host] : await lookup(host);
     if (addresses.length === 0 || !addresses.every(isPublicAddress)) return null;
@@ -302,11 +302,7 @@ export const MAX_REDIRECTS = 5;
  * hop was refused, at resolve time or at connect time, or there were too many.
  * Network errors and aborts reject, as `fetch` does.
  */
-export async function safeFetch(
-  raw: string,
-  init: RequestInit,
-  deps: SafeFetchDeps = {},
-): Promise<Response | null> {
+export async function safeFetch(raw: string, init: RequestInit, deps: SafeFetchDeps = {}): Promise<Response | null> {
   const lookup = vettingLookup(deps.lookup, deps.connectTo);
   const send = deps.fetch ?? ((url: URL, hop: RequestInit) => request(url, hop, lookup));
   let next = raw;
@@ -315,12 +311,12 @@ export async function safeFetch(
     if (!url) return null;
     let res: Response;
     try {
-      res = await send(url, { ...init, redirect: 'manual' });
+      res = await send(url, { ...init, redirect: "manual" });
     } catch (err) {
       if (err instanceof RefusedAddressError) return null;
       throw err;
     }
-    const location = res.headers.get('location');
+    const location = res.headers.get("location");
     if (res.status >= 300 && res.status < 400 && location) {
       await res.body?.cancel().catch(() => {});
       next = new URL(location, url).href;
@@ -340,11 +336,8 @@ export const MAX_BODY_BYTES = 2 * 1024 * 1024;
  * is cancelled, not downloaded, and the text read so far is returned: for an
  * article body a truncated page is still a page.
  */
-export async function readCapped(
-  res: Response,
-  maxBytes: number = MAX_BODY_BYTES,
-): Promise<string> {
-  if (!res.body) return '';
+export async function readCapped(res: Response, maxBytes: number = MAX_BODY_BYTES): Promise<string> {
+  if (!res.body) return "";
   const reader = res.body.getReader();
   const chunks: Uint8Array[] = [];
   let total = 0;

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Button, Card, Input, Skeleton, useToast } from '../ui';
+import { useState } from "react";
+import { Button, Card, Input, Skeleton, useToast } from "../ui";
 import {
   useChangePassword,
   useLogout,
@@ -8,11 +8,11 @@ import {
   useWardLink,
   useWardSignOut,
   useWardUnlink,
-} from '@/lib/auth';
-import { withBase } from '@/lib/base';
-import { Redirect } from '@/router';
-import { authMessage } from '../auth/messages';
-import styles from './SettingsIsland.module.css';
+} from "@/lib/auth";
+import { withBase } from "@/lib/base";
+import { Redirect } from "@/router";
+import { authMessage } from "../auth/messages";
+import styles from "./SettingsIsland.module.css";
 
 /**
  * The account half of Settings: who you are, the local password, the Ward link
@@ -26,7 +26,7 @@ import styles from './SettingsIsland.module.css';
 export default function AccountSection() {
   const session = useSession();
 
-  if (session.status === 'loading') {
+  if (session.status === "loading") {
     return (
       <Card>
         <div className={styles.loading}>
@@ -38,8 +38,8 @@ export default function AccountSection() {
   }
   // A session that ended while the page was open (Ward revoked it, or it was
   // unlinked) goes back to the form rather than showing an account that is gone.
-  if (session.status === 'signed_out') return <Redirect to="/login" />;
-  if (session.status === 'error') {
+  if (session.status === "signed_out") return <Redirect to="/login" />;
+  if (session.status === "error") {
     return (
       <Card>
         <h2 className={styles.sectionTitle}>Account</h2>
@@ -56,10 +56,10 @@ export default function AccountSection() {
       <Card>
         <h2 className={styles.sectionTitle}>Account</h2>
         <p className={styles.sectionHint}>
-          Signed in as <strong>{user.username}</strong> ({user.role}),{' '}
-          {info.origin === 'ward' ? 'through Ward' : 'with your password'}.
+          Signed in as <strong>{user.username}</strong> ({user.role}),{" "}
+          {info.origin === "ward" ? "through Ward" : "with your password"}.
         </p>
-        <SignOutRow viaWard={info.origin === 'ward'} />
+        <SignOutRow viaWard={info.origin === "ward"} />
       </Card>
 
       {user.hasPassword ? <ChangePasswordCard /> : <SetPasswordCard />}
@@ -76,7 +76,7 @@ function SignOutRow({ viaWard }: { viaWard: boolean }) {
     <>
       {out.error && (
         <p className={styles.problem} role="alert">
-          {authMessage(out.error, 'ward')}
+          {authMessage(out.error, "ward")}
         </p>
       )}
       <div className={styles.actions}>
@@ -84,7 +84,7 @@ function SignOutRow({ viaWard }: { viaWard: boolean }) {
           variant="secondary"
           loading={pending}
           onClick={async () => {
-            if (await logout()) window.location.assign(withBase('/login'));
+            if (await logout()) window.location.assign(withBase("/login"));
           }}
         >
           Sign out
@@ -102,16 +102,16 @@ function SignOutRow({ viaWard }: { viaWard: boolean }) {
 function ChangePasswordCard() {
   const { addToast } = useToast();
   const { changePassword, pending, error, reset } = useChangePassword();
-  const [current, setCurrent] = useState('');
-  const [next, setNext] = useState('');
+  const [current, setCurrent] = useState("");
+  const [next, setNext] = useState("");
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
     reset();
     if (await changePassword(current, next)) {
-      setCurrent('');
-      setNext('');
-      addToast('Password changed', 'success');
+      setCurrent("");
+      setNext("");
+      addToast("Password changed", "success");
     }
   }
 
@@ -119,12 +119,10 @@ function ChangePasswordCard() {
     <Card>
       <form onSubmit={save} noValidate>
         <h2 className={styles.sectionTitle}>Password</h2>
-        <p className={styles.sectionHint}>
-          Changing it signs out every other session of yours on this app.
-        </p>
+        <p className={styles.sectionHint}>Changing it signs out every other session of yours on this app.</p>
         {error && (
           <p className={styles.problem} role="alert">
-            {authMessage(error, 'password')}
+            {authMessage(error, "password")}
           </p>
         )}
         <div className={styles.fields}>
@@ -165,34 +163,34 @@ function SetPasswordCard() {
   const { addToast } = useToast();
   const session = useSession();
   const local = useSetLocalPassword();
-  const [next, setNext] = useState('');
+  const [next, setNext] = useState("");
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
     local.reset();
     if (await local.setPassword(next)) {
-      setNext('');
-      addToast('Password set', 'success');
+      setNext("");
+      addToast("Password set", "success");
       await session.refresh();
     }
   }
 
-  const needsWard = local.error?.code === 'reauthentication_required';
+  const needsWard = local.error?.code === "reauthentication_required";
 
   return (
     <Card>
       <form onSubmit={save} noValidate>
         <h2 className={styles.sectionTitle}>Local password</h2>
         <p className={styles.sectionHint}>
-          You sign in with Ward and have no password here. Set one to get in while Ward is
-          unreachable, and before you can unlink Ward.
+          You sign in with Ward and have no password here. Set one to get in while Ward is unreachable, and before you
+          can unlink Ward.
         </p>
         {local.reauthenticated && !local.error && (
           <p className={styles.note}>Confirmed with Ward. Set your password now.</p>
         )}
         {local.error && (
           <p className={styles.problem} role="alert">
-            {authMessage(local.error, 'password')}
+            {authMessage(local.error, "password")}
           </p>
         )}
         <div className={styles.fields}>
@@ -236,13 +234,13 @@ function WardCard({ linked, hasPassword }: { linked: boolean; hasPassword: boole
       <h2 className={styles.sectionTitle}>Ward</h2>
       <p className={styles.sectionHint}>
         {linked
-          ? 'Your Ward account is linked, so you can sign in with the Ward button.'
-          : 'Link your Ward account to sign in with the Ward button. Nothing is linked by name: you confirm it at Ward.'}
+          ? "Your Ward account is linked, so you can sign in with the Ward button."
+          : "Link your Ward account to sign in with the Ward button. Nothing is linked by name: you confirm it at Ward."}
       </p>
       {link.linked && !error && <p className={styles.note}>Ward is linked.</p>}
       {error && (
         <p className={styles.problem} role="alert">
-          {authMessage(error, 'ward')}
+          {authMessage(error, "ward")}
         </p>
       )}
       <div className={styles.actions}>

@@ -4,11 +4,11 @@
  * shaped the way the formatter will keep it.
  */
 
-export const STARTER_TITLE = 'Hello, Wizard';
+export const STARTER_TITLE = "Hello, Wizard";
 
 /** `YYYY-MM-DD` in the browser's own timezone. */
 export function todayIso(now: Date = new Date()): string {
-  const pad = (n: number): string => String(n).padStart(2, '0');
+  const pad = (n: number): string => String(n).padStart(2, "0");
   return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
 }
 

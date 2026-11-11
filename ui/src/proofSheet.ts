@@ -7,4 +7,4 @@
  * and Vite rejects the import before `vi.mock` can stand in for it. A test
  * mocks this module instead (see routes.test.tsx).
  */
-export { default } from 'virtual:proof-sheet';
+export { default } from "virtual:proof-sheet";

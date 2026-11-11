@@ -1,8 +1,8 @@
-import { useCallback, useMemo, type ReactNode } from 'react';
-import { Toast } from '@base-ui/react/toast';
-import styles from './Toast.module.css';
+import { useCallback, useMemo, type ReactNode } from "react";
+import { Toast } from "@base-ui/react/toast";
+import styles from "./Toast.module.css";
 
-export type ToastVariant = 'success' | 'error' | 'info';
+export type ToastVariant = "success" | "error" | "info";
 
 export interface ToastItem {
   id: string;
@@ -34,7 +34,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 export function useToast(): ToastContextValue {
   const manager = Toast.useToastManager();
   const addToast = useCallback(
-    (message: string, variant: ToastVariant = 'info', duration = 4000) => {
+    (message: string, variant: ToastVariant = "info", duration = 4000) => {
       manager.add({ title: message, type: variant, timeout: duration });
     },
     [manager],
@@ -44,23 +44,23 @@ export function useToast(): ToastContextValue {
 
 /** The kind, said as a word in the mark face. Never colour alone. */
 const MARKS: Record<ToastVariant, string> = {
-  success: 'Done',
-  error: 'Failed',
-  info: 'Note',
+  success: "Done",
+  error: "Failed",
+  info: "Note",
 };
 
 function ToastList() {
   const { toasts } = Toast.useToastManager();
   return toasts.map((toast) => {
-    const variant: ToastVariant = (toast.type as ToastVariant) ?? 'info';
+    const variant: ToastVariant = (toast.type as ToastVariant) ?? "info";
     return (
       <Toast.Root
         key={toast.id}
         toast={toast}
-        className={[styles.toast, styles[`toast--${variant}`]].filter(Boolean).join(' ')}
+        className={[styles.toast, styles[`toast--${variant}`]].filter(Boolean).join(" ")}
       >
         <span className={styles.toastIcon} aria-hidden="true">
-          {MARKS[variant] ?? 'Note'}
+          {MARKS[variant] ?? "Note"}
         </span>
         <Toast.Title className={styles.toastMessage} />
         <Toast.Close className={styles.toastClose} aria-label="Dismiss">

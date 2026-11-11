@@ -21,7 +21,7 @@
 }
 
 .mark::before {
-  content: '';
+  content: "";
   width: var(--sp-hair);
   height: 1px;
   background: var(--tick);
@@ -86,7 +86,7 @@
 }
 
 .tissueCorner::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   background: var(--tissue);
@@ -96,7 +96,7 @@
 }
 
 .tissueCorner::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   background: linear-gradient(to bottom left, rgba(43, 43, 43, 0.1) 0 50%, transparent 50%);
@@ -113,7 +113,7 @@
 }
 
 .heldOut::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   background: var(--rubylith-wash);
@@ -128,7 +128,7 @@
 }
 
 .hatched::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   background-image: var(--hatch);
@@ -170,7 +170,7 @@
 
 .cropTick::before,
 .cropTick::after {
-  content: '';
+  content: "";
   position: absolute;
   background: var(--graphite-tint);
 }
@@ -286,7 +286,7 @@
 }
 
 .leader::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 5px;
   left: 0;
@@ -296,7 +296,7 @@
 }
 
 .leader::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 1px;
   right: 0;

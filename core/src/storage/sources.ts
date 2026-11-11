@@ -1,5 +1,5 @@
-import type { Source, SourceConfig } from '../types.js';
-import { getDb, type DB } from './db.js';
+import type { Source, SourceConfig } from "../types.js";
+import { getDb, type DB } from "./db.js";
 
 interface SourceDbRow {
   id: string;
@@ -28,8 +28,8 @@ function rowToSource(r: SourceDbRow): Source {
 
 /** A category as stored: trimmed, and blank means uncategorized (NULL). */
 export function normalizeCategory(category: string | null | undefined): string | null {
-  const trimmed = (category ?? '').trim();
-  return trimmed === '' ? null : trimmed;
+  const trimmed = (category ?? "").trim();
+  return trimmed === "" ? null : trimmed;
 }
 
 /**
@@ -49,23 +49,21 @@ function withDb<T>(db: DB | undefined, fn: (db: DB) => T): T {
 
 export function listSources(db?: DB): Source[] {
   return withDb(db, (d) => {
-    const rows = d
-      .prepare('SELECT * FROM sources ORDER BY name COLLATE NOCASE')
-      .all() as SourceDbRow[];
+    const rows = d.prepare("SELECT * FROM sources ORDER BY name COLLATE NOCASE").all() as SourceDbRow[];
     return rows.map(rowToSource);
   });
 }
 
 export function getSource(id: string, db?: DB): Source | undefined {
   return withDb(db, (d) => {
-    const row = d.prepare('SELECT * FROM sources WHERE id = ?').get(id) as SourceDbRow | undefined;
+    const row = d.prepare("SELECT * FROM sources WHERE id = ?").get(id) as SourceDbRow | undefined;
     return row ? rowToSource(row) : undefined;
   });
 }
 
 export function addSource(src: SourceConfig, db?: DB): Source[] {
   return withDb(db, (d) => {
-    const exists = d.prepare('SELECT 1 FROM sources WHERE id = ?').get(src.id);
+    const exists = d.prepare("SELECT 1 FROM sources WHERE id = ?").get(src.id);
     if (exists) throw new Error(`Source with id "${src.id}" already exists`);
     d.prepare(
       `INSERT INTO sources (id, name, rss_url, enabled, created_at, category)
@@ -87,11 +85,7 @@ export function addSource(src: SourceConfig, db?: DB): Source[] {
  * last error) is never touched from here, except that a changed feed URL drops
  * the validators: an ETag belongs to the URL that sent it.
  */
-export function updateSource(
-  id: string,
-  patch: Partial<Omit<SourceConfig, 'id'>>,
-  db?: DB,
-): Source[] {
+export function updateSource(id: string, patch: Partial<Omit<SourceConfig, "id">>, db?: DB): Source[] {
   return withDb(db, (d) => {
     const current = getSource(id, d);
     if (!current) throw new Error(`Source "${id}" not found`);
@@ -100,7 +94,7 @@ export function updateSource(
     d.prepare(
       `UPDATE sources
           SET name = @name, rss_url = @rss_url, enabled = @enabled, category = @category
-              ${urlChanged ? ', etag = NULL, last_modified = NULL' : ''}
+              ${urlChanged ? ", etag = NULL, last_modified = NULL" : ""}
         WHERE id = @id`,
     ).run({
       id,
@@ -115,7 +109,7 @@ export function updateSource(
 
 export function removeSource(id: string, db?: DB): Source[] {
   return withDb(db, (d) => {
-    const r = d.prepare('DELETE FROM sources WHERE id = ?').run(id);
+    const r = d.prepare("DELETE FROM sources WHERE id = ?").run(id);
     if (r.changes === 0) throw new Error(`Source "${id}" not found`);
     return listSources(d);
   });
@@ -125,7 +119,7 @@ export function removeSource(id: string, db?: DB): Source[] {
 export function saveSources(all: SourceConfig[], db?: DB): void {
   withDb(db, (d) => {
     const now = new Date().toISOString();
-    const clear = d.prepare('DELETE FROM sources');
+    const clear = d.prepare("DELETE FROM sources");
     const insert = d.prepare(
       `INSERT INTO sources (id, name, rss_url, enabled, created_at, category)
        VALUES (@id, @name, @rss_url, @enabled, @created_at, @category)`,
@@ -165,11 +159,11 @@ export function listRefreshTargets(db: DB, sourceId?: string): RefreshTarget[] {
   const rows = db
     .prepare(
       `SELECT id, name, rss_url, etag, last_modified FROM sources
-        WHERE enabled = 1 ${sourceId === undefined ? '' : 'AND id = @id'}
+        WHERE enabled = 1 ${sourceId === undefined ? "" : "AND id = @id"}
         ORDER BY name COLLATE NOCASE`,
     )
     .all(sourceId === undefined ? {} : { id: sourceId }) as Array<
-    Pick<SourceDbRow, 'id' | 'name' | 'rss_url' | 'etag' | 'last_modified'>
+    Pick<SourceDbRow, "id" | "name" | "rss_url" | "etag" | "last_modified">
   >;
   return rows.map((r) => ({
     id: r.id,
@@ -204,6 +198,6 @@ const MAX_ERROR_CHARS = 500;
 export function recordSourceError(db: DB, id: string, error: string): void {
   db.prepare(`UPDATE sources SET last_error = @error WHERE id = @id`).run({
     id,
-    error: error.slice(0, MAX_ERROR_CHARS) || 'Unknown error',
+    error: error.slice(0, MAX_ERROR_CHARS) || "Unknown error",
   });
 }

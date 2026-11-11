@@ -1,15 +1,15 @@
-import type { SourceConfig } from '../types.js';
-import { mapWithConcurrency } from '../util/concurrency.js';
-import { fetchFeed, type RssItem } from './rss.js';
-import { fetchBody } from './body.js';
+import type { SourceConfig } from "../types.js";
+import { mapWithConcurrency } from "../util/concurrency.js";
+import { fetchFeed, type RssItem } from "./rss.js";
+import { fetchBody } from "./body.js";
 
-const DEFAULT_USER_AGENT = 'Newspapper/3.0';
+const DEFAULT_USER_AGENT = "Newspapper/3.0";
 const DEFAULT_TIMEOUT_MS = 30_000;
 const DEFAULT_MAX_PER_SOURCE = 10;
 
 export interface ScrapeProgressEvent {
   sourceId: string;
-  status: 'fetching' | 'done' | 'error';
+  status: "fetching" | "done" | "error";
   count?: number;
   error?: string;
 }
@@ -79,10 +79,7 @@ function matchScore(title: string, body: string, keywords: string[]): number {
  * (case-insensitive substring, across title + body), ranked by match count.
  * Nothing is persisted — saving a result is a separate, explicit step.
  */
-export async function searchArticles(
-  sources: SourceConfig[],
-  opts: SearchOptions,
-): Promise<SearchResult> {
+export async function searchArticles(sources: SourceConfig[], opts: SearchOptions): Promise<SearchResult> {
   const {
     keywords,
     maxPerSource = DEFAULT_MAX_PER_SOURCE,
@@ -93,7 +90,7 @@ export async function searchArticles(
 
   const cleanKeywords = keywords.map((k) => k.trim()).filter(Boolean);
   if (cleanKeywords.length === 0) {
-    throw new Error('At least one keyword is required');
+    throw new Error("At least one keyword is required");
   }
 
   const enabled = sources.filter((s) => s.enabled);
@@ -102,7 +99,7 @@ export async function searchArticles(
   // One source's search: its feed, then its candidates' bodies in parallel.
   // Returns that source's matches; a failed feed records itself and returns [].
   async function searchSource(source: SourceConfig): Promise<ScrapedArticle[]> {
-    onProgress?.({ sourceId: source.id, status: 'fetching' });
+    onProgress?.({ sourceId: source.id, status: "fetching" });
 
     let items: DatedRssItem[];
     try {
@@ -113,7 +110,7 @@ export async function searchArticles(
     } catch (err) {
       const error = (err as Error).message;
       errors.push({ sourceId: source.id, error });
-      onProgress?.({ sourceId: source.id, status: 'error', error });
+      onProgress?.({ sourceId: source.id, status: "error", error });
       return [];
     }
 
@@ -141,7 +138,7 @@ export async function searchArticles(
       });
     }
 
-    onProgress?.({ sourceId: source.id, status: 'done', count: sourceMatches.length });
+    onProgress?.({ sourceId: source.id, status: "done", count: sourceMatches.length });
     return sourceMatches;
   }
 

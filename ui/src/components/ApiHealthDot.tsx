@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
-import { Mark } from './ui';
-import { withBase } from '../lib/base';
-import styles from './ApiHealthDot.module.css';
+import { useEffect, useState } from "react";
+import { Mark } from "./ui";
+import { withBase } from "../lib/base";
+import styles from "./ApiHealthDot.module.css";
 
-type Status = 'up' | 'down';
+type Status = "up" | "down";
 
 /**
  * Whether the API answers. Said as a mark — a tick and a word — not as a
@@ -22,7 +22,7 @@ type Status = 'up' | 'down';
  * width where the sighted view gives it up.
  */
 export default function ApiHealthDot() {
-  const [status, setStatus] = useState<Status>('up');
+  const [status, setStatus] = useState<Status>("up");
 
   async function check() {
     try {
@@ -30,12 +30,12 @@ export default function ApiHealthDot() {
       // outcome here and must not trigger the 401 redirect. That also means the
       // base is not applied for us — this is the one API URL in the app that
       // has to say so itself.
-      const res = await fetch(withBase('/api/health'), {
+      const res = await fetch(withBase("/api/health"), {
         signal: AbortSignal.timeout(5000),
       });
-      setStatus(res.ok ? 'up' : 'down');
+      setStatus(res.ok ? "up" : "down");
     } catch {
-      setStatus('down');
+      setStatus("down");
     }
   }
 
@@ -51,13 +51,13 @@ export default function ApiHealthDot() {
     return () => clearInterval(id);
   }, []);
 
-  const down = status === 'down';
-  const label = down ? 'API offline' : 'API online';
-  const word = down ? 'API down' : 'API up';
+  const down = status === "down";
+  const label = down ? "API offline" : "API online";
+  const word = down ? "API down" : "API up";
 
   return (
-    <span className={[styles.probe, down ? '' : styles.up].filter(Boolean).join(' ')} title={label}>
-      <Mark tone={down ? 'rubylith' : 'dim'} aria-label={label}>
+    <span className={[styles.probe, down ? "" : styles.up].filter(Boolean).join(" ")} title={label}>
+      <Mark tone={down ? "rubylith" : "dim"} aria-label={label}>
         {word}
       </Mark>
     </span>

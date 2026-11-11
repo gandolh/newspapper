@@ -13,17 +13,17 @@ export const READER_REFRESH_MINUTES_DEFAULT = 30;
 export const READER_RETENTION_DAYS_DEFAULT = 30;
 
 function nonNegative(raw: string | undefined, fallback: number): number {
-  if (raw === undefined || raw.trim() === '') return fallback;
+  if (raw === undefined || raw.trim() === "") return fallback;
   const n = Number(raw);
   return Number.isFinite(n) && n >= 0 ? n : fallback;
 }
 
 /** `READER_REFRESH_MINUTES`, default 30; `0` = off. */
 export function readerRefreshMinutes(env: NodeJS.ProcessEnv = process.env): number {
-  return nonNegative(env['READER_REFRESH_MINUTES'], READER_REFRESH_MINUTES_DEFAULT);
+  return nonNegative(env["READER_REFRESH_MINUTES"], READER_REFRESH_MINUTES_DEFAULT);
 }
 
 /** `READER_RETENTION_DAYS`, default 30. */
 export function readerRetentionDays(env: NodeJS.ProcessEnv = process.env): number {
-  return nonNegative(env['READER_RETENTION_DAYS'], READER_RETENTION_DAYS_DEFAULT);
+  return nonNegative(env["READER_RETENTION_DAYS"], READER_RETENTION_DAYS_DEFAULT);
 }

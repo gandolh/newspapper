@@ -17,12 +17,12 @@
  *      feel necessary, one of these two is in the wrong place.
  */
 
-import { animate, utils } from 'animejs';
+import { animate, utils } from "animejs";
 
 /** True when the operator has asked for less motion. */
 export function prefersReducedMotion(): boolean {
-  if (typeof window === 'undefined' || !window.matchMedia) return false;
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (typeof window === "undefined" || !window.matchMedia) return false;
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
 /**
@@ -40,7 +40,7 @@ export function compile(frame: HTMLElement | null): void {
     opacity: [0.25, 1],
     scale: [1.014, 1],
     duration: 260,
-    ease: 'outQuad',
+    ease: "outQuad",
   });
 }
 
@@ -58,6 +58,6 @@ export function hinge(sheet: HTMLElement | null): void {
     rotateX: [-11, 0],
     opacity: [0.55, 1],
     duration: 300,
-    ease: 'outCubic',
+    ease: "outCubic",
   });
 }

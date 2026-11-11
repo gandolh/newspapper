@@ -4,20 +4,20 @@
 //   {{_date}}   — post date string YYYY-MM-DD
 
 export type SlideBlock =
-  | { type: 'title'; variant: 'title-main'; text: string; kicker?: string }
-  | { type: 'title'; variant: 'title-statement' | 'title-question'; text: string }
-  | { type: 'body'; variant: 'body-text'; heading: string; body: string }
-  | { type: 'body'; variant: 'body-list'; heading: string; items: string[] }
+  | { type: "title"; variant: "title-main"; text: string; kicker?: string }
+  | { type: "title"; variant: "title-statement" | "title-question"; text: string }
+  | { type: "body"; variant: "body-text"; heading: string; body: string }
+  | { type: "body"; variant: "body-list"; heading: string; items: string[] }
   | {
-      type: 'body';
-      variant: 'body-comparison';
+      type: "body";
+      variant: "body-comparison";
       heading: string;
       left: { label: string; body: string };
       right: { label: string; body: string };
     }
   | {
-      type: 'quote';
-      variant: 'quote-classic' | 'quote-pullout' | 'quote-reaction';
+      type: "quote";
+      variant: "quote-classic" | "quote-pullout" | "quote-reaction";
       quote: string;
       attribution: string;
     };
@@ -49,7 +49,7 @@ export interface Article {
 // The `.wzd` markup is the source of truth; every other column on `posts` is
 // derived from its <head> block on save and exists only to index the library.
 
-export type PostStatus = 'draft' | 'published';
+export type PostStatus = "draft" | "published";
 
 export interface PostHead {
   title: string;
@@ -118,7 +118,7 @@ export interface PostRow {
   title: string;
   theme: string;
   payload: PostPayload;
-  status: 'draft' | 'rendered';
+  status: "draft" | "rendered";
   outputDir: string | null;
   createdAt: string;
   updatedAt: string;
@@ -150,9 +150,9 @@ export interface Theme {
 export type TStyle = Record<string, string | number>;
 
 export type TNode =
-  | { kind: 'box'; style?: TStyle; children?: TNode[] }
-  | { kind: 'text'; style?: TStyle; text: string } // supports {{binding}}
-  | { kind: 'repeat'; source: string; style?: TStyle; children: TNode[] }; // {{item}}, {{i}} inside
+  | { kind: "box"; style?: TStyle; children?: TNode[] }
+  | { kind: "text"; style?: TStyle; text: string } // supports {{binding}}
+  | { kind: "repeat"; source: string; style?: TStyle; children: TNode[] }; // {{item}}, {{i}} inside
 
 export interface RenderTemplateOptions {
   index: number;
@@ -189,11 +189,11 @@ export interface Settings {
 
 /** A post as a list shows it: everything but the markup, which only the editor
  * needs. `GET /api/posts` returns these. */
-export type PostSummary = Omit<Post, 'markup'>;
+export type PostSummary = Omit<Post, "markup">;
 
 /** A saved article as the library lists it: the body is cut to an excerpt,
  * which is all the list shows. */
-export type ArticleSummary = Omit<Article, 'body'> & { excerpt: string };
+export type ArticleSummary = Omit<Article, "body"> & { excerpt: string };
 
 // ---- The Reader (schema v6) ----
 // An **Item** is a stored feed entry. It becomes an **Article** only when saved
@@ -220,7 +220,7 @@ export interface FeedItemSummary {
 }
 
 /** One item in full, for the reading pane. */
-export interface FeedItem extends Omit<FeedItemSummary, 'excerpt'> {
+export interface FeedItem extends Omit<FeedItemSummary, "excerpt"> {
   /** The dedupe key: the item's URL. */
   guid: string;
   /** The feed's HTML, unsanitized, capped at 256 KB. Sanitize before rendering. */

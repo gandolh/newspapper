@@ -5,9 +5,9 @@
  * Astro used to supply the plain `*.css` half through its generated
  * `.astro/types.d.ts`. It is spelled out here now.
  */
-declare module '*.css';
+declare module "*.css";
 
-declare module '*.module.css' {
+declare module "*.module.css" {
   const classes: Record<string, string>;
   export default classes;
 }

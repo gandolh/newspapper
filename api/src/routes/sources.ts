@@ -1,11 +1,11 @@
-import type { FastifyPluginAsync } from 'fastify';
-import { listSources, addSource, updateSource, removeSource, pingSource } from '@newspapper/core';
-import type { SourceConfig } from '@newspapper/core';
-import { db } from '../lib/db.js';
+import type { FastifyPluginAsync } from "fastify";
+import { listSources, addSource, updateSource, removeSource, pingSource } from "@newspapper/core";
+import type { SourceConfig } from "@newspapper/core";
+import { db } from "../lib/db.js";
 
 /** A source's category, when given: a string (blank = uncategorized) or null. */
 function isCategory(value: unknown): boolean {
-  return value === undefined || value === null || typeof value === 'string';
+  return value === undefined || value === null || typeof value === "string";
 }
 
 const sourcesRoutes: FastifyPluginAsync = async (fastify) => {
@@ -14,7 +14,7 @@ const sourcesRoutes: FastifyPluginAsync = async (fastify) => {
    * Each source carries its `category` and the Reader's last refresh outcome
    * (`lastFetchedAt`, `lastError`).
    */
-  fastify.get('/api/sources', async (_req, reply) => {
+  fastify.get("/api/sources", async (_req, reply) => {
     return reply.send(listSources(db()));
   });
 
@@ -22,13 +22,13 @@ const sourcesRoutes: FastifyPluginAsync = async (fastify) => {
    * POST /api/sources  { id, name, rss, enabled?, category? }
    * A blank or absent category is stored as uncategorized (NULL).
    */
-  fastify.post('/api/sources', async (req, reply) => {
+  fastify.post("/api/sources", async (req, reply) => {
     const body = req.body as Partial<SourceConfig>;
     if (!body?.id || !body?.name || !body?.rss) {
-      return reply.status(400).send({ error: 'id, name, and rss are required' });
+      return reply.status(400).send({ error: "id, name, and rss are required" });
     }
     if (!isCategory(body.category)) {
-      return reply.status(400).send({ error: 'category must be a string' });
+      return reply.status(400).send({ error: "category must be a string" });
     }
     try {
       const all = addSource(
@@ -43,7 +43,7 @@ const sourcesRoutes: FastifyPluginAsync = async (fastify) => {
       );
       return reply.status(201).send(all);
     } catch (err) {
-      if ((err as Error).message.includes('already exists')) {
+      if ((err as Error).message.includes("already exists")) {
         return reply.status(409).send({ error: (err as Error).message });
       }
       throw err;
@@ -53,17 +53,17 @@ const sourcesRoutes: FastifyPluginAsync = async (fastify) => {
   /**
    * PUT /api/sources/:id  (partial patch: name, rss, enabled, category)
    */
-  fastify.put('/api/sources/:id', async (req, reply) => {
+  fastify.put("/api/sources/:id", async (req, reply) => {
     const { id } = req.params as { id: string };
-    const body = req.body as Partial<Omit<SourceConfig, 'id'>>;
+    const body = req.body as Partial<Omit<SourceConfig, "id">>;
     if (!isCategory(body?.category)) {
-      return reply.status(400).send({ error: 'category must be a string' });
+      return reply.status(400).send({ error: "category must be a string" });
     }
     try {
       const all = updateSource(id, body, db());
       return reply.send(all);
     } catch (err) {
-      if ((err as Error).message.includes('not found')) {
+      if ((err as Error).message.includes("not found")) {
         return reply.status(404).send({ error: (err as Error).message });
       }
       throw err;
@@ -75,13 +75,13 @@ const sourcesRoutes: FastifyPluginAsync = async (fastify) => {
    * Already-saved articles from this source keep their `source_name`
    * snapshot and stay readable — only `source_id` goes NULL (schema v3 FK).
    */
-  fastify.delete('/api/sources/:id', async (req, reply) => {
+  fastify.delete("/api/sources/:id", async (req, reply) => {
     const { id } = req.params as { id: string };
     try {
       const all = removeSource(id, db());
       return reply.send(all);
     } catch (err) {
-      if ((err as Error).message.includes('not found')) {
+      if ((err as Error).message.includes("not found")) {
         return reply.status(404).send({ error: (err as Error).message });
       }
       throw err;
@@ -92,7 +92,7 @@ const sourcesRoutes: FastifyPluginAsync = async (fastify) => {
    * POST /api/sources/:id/ping
    * Doubles as the Articles page's "test feed" action.
    */
-  fastify.post('/api/sources/:id/ping', async (req, reply) => {
+  fastify.post("/api/sources/:id/ping", async (req, reply) => {
     const { id } = req.params as { id: string };
     const all = listSources(db());
     const src = all.find((s) => s.id === id);

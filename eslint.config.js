@@ -1,6 +1,6 @@
-import js from '@eslint/js';
-import tseslint from 'typescript-eslint';
-import reactHooks from 'eslint-plugin-react-hooks';
+import js from "@eslint/js";
+import tseslint from "typescript-eslint";
+import reactHooks from "eslint-plugin-react-hooks";
 
 /**
  * Flat ESLint config for all three workspaces.
@@ -15,18 +15,18 @@ import reactHooks from 'eslint-plugin-react-hooks';
  */
 export default [
   {
-    ignores: ['**/dist/**', '**/node_modules/**'],
+    ignores: ["**/dist/**", "**/node_modules/**"],
   },
 
   js.configs.recommended,
   ...tseslint.configs.recommended,
 
   {
-    files: ['**/*.ts', '**/*.tsx'],
+    files: ["**/*.ts", "**/*.tsx"],
     languageOptions: {
       parserOptions: {
         ecmaVersion: 2022,
-        sourceType: 'module',
+        sourceType: "module",
       },
     },
     rules: {
@@ -34,21 +34,21 @@ export default [
       // the signature, deliberately unused" — see the not-implemented stubs in
       // core/src/storage/posts.ts. Honour the convention rather than deleting
       // parameters that shape a public API.
-      'no-unused-vars': 'off',
-      '@typescript-eslint/no-unused-vars': [
-        'error',
+      "no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": [
+        "error",
         {
-          argsIgnorePattern: '^_',
-          varsIgnorePattern: '^_',
-          caughtErrorsIgnorePattern: '^_',
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
         },
       ],
     },
   },
 
   {
-    files: ['ui/src/**/*.{ts,tsx}'],
-    plugins: { 'react-hooks': reactHooks },
+    files: ["ui/src/**/*.{ts,tsx}"],
+    plugins: { "react-hooks": reactHooks },
     rules: {
       ...reactHooks.configs.recommended.rules,
 
@@ -63,8 +63,8 @@ export default [
       // `SourcesPanel` function in ui/src/components/articles/SourcesPanel.tsx
       // is one; a synchronous setState added to `loadSources` there produces no
       // finding. A clean run means "nothing found", not "nothing there".
-      'react-hooks/set-state-in-effect': 'error',
-      'react-hooks/refs': 'error',
+      "react-hooks/set-state-in-effect": "error",
+      "react-hooks/refs": "error",
     },
   },
 ];

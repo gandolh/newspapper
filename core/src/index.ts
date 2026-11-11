@@ -4,32 +4,26 @@
 // module below can read it. This is the repo's only `dotenv` call site, and
 // `api` gets it purely by importing this barrel. It exports nothing, so it
 // looks removable — it is not. See ./util/config.ts and its test.
-import './util/config.js';
+import "./util/config.js";
 
 // Types (canonical source of truth for PostPayload, SlideBlock, Article, PostRow, Theme, etc.)
-export * from './types.js';
+export * from "./types.js";
 
 // Storage
-export * from './storage/index.js';
+export * from "./storage/index.js";
 
 // Scrape
-export { fetchBody, stripHtml } from './scrape/body.js';
-export { fetchFeed, fetchFeedConditional } from './scrape/rss.js';
-export type { RssItem, FeedFetchOptions, FeedFetchResult } from './scrape/rss.js';
-export { searchArticles, pingSource } from './scrape/index.js';
-export type {
-  SearchOptions,
-  SearchResult,
-  ScrapedArticle,
-  ScrapeProgressEvent,
-  PingResult,
-} from './scrape/index.js';
+export { fetchBody, stripHtml } from "./scrape/body.js";
+export { fetchFeed, fetchFeedConditional } from "./scrape/rss.js";
+export type { RssItem, FeedFetchOptions, FeedFetchResult } from "./scrape/rss.js";
+export { searchArticles, pingSource } from "./scrape/index.js";
+export type { SearchOptions, SearchResult, ScrapedArticle, ScrapeProgressEvent, PingResult } from "./scrape/index.js";
 
 // The Reader: background refresh of stored feed items
-export * from './reader/index.js';
+export * from "./reader/index.js";
 
 // Util
-export { log } from './util/logger.js';
+export { log } from "./util/logger.js";
 export {
   ensureDir,
   ensureParent,
@@ -43,21 +37,21 @@ export {
   fontsDir,
   designSystemsDir,
   uiDistDir,
-} from './util/paths.js';
+} from "./util/paths.js";
 
 // Render
-export * from './render/index.js';
+export * from "./render/index.js";
 
 // Themes (Node-only)
-export { loadTheme, listThemes } from './themes/index.js';
+export { loadTheme, listThemes } from "./themes/index.js";
 
 // Newspapper Wizard (.wzd) — parser, formatter, linter, component catalogue
-export * from './wizard/index.js';
+export * from "./wizard/index.js";
 
 // TNode interpreter — the compile target `.wzd` documents render through.
 // The JSON template documents, their registry, and `/builder` are gone; see
 // decisions.md "The template system is removed".
-export { renderTemplate, resolveStyle, validateSlideData } from './templates/interpreter.js';
+export { renderTemplate, resolveStyle, validateSlideData } from "./templates/interpreter.js";
 
 // Image uploads (Node-only) — store paths, Sharp normalization, ref resolution
-export * from './uploads/index.js';
+export * from "./uploads/index.js";

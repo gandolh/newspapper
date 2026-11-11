@@ -33,7 +33,7 @@
   font-family: var(--font-chrome);
   font-size: var(--fs-label);
   font-weight: 700;
-  font-variation-settings: 'wdth' var(--wdth-brand);
+  font-variation-settings: "wdth" var(--wdth-brand);
   letter-spacing: var(--ls-brand);
   text-transform: uppercase;
   color: var(--graphite);

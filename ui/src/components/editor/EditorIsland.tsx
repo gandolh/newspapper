@@ -14,27 +14,21 @@
  * element's own `loc`.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  format,
-  isFormatted,
-  lintSource,
-  parse,
-  WZD_RENDERABLE_NAMES,
-} from '@newspapper/core/wizard';
-import type { Theme } from '@newspapper/core/templates';
-import { Button, Mark, Select, Skeleton, ToastProvider, useToast } from '../ui';
-import { api, ApiError, sse } from '@/lib/api';
-import type { Post, Settings } from '@/lib/types';
-import SourcePane from './SourcePane.js';
-import PreviewPane from './PreviewPane.js';
-import InspectorPane from './InspectorPane.js';
-import PalettePane from './PalettePane.js';
-import ImagePicker from './ImagePicker.js';
-import Splitter from './Splitter.js';
-import { compileTraced } from './preview/compileTraced.js';
-import { canContain } from './preview/slots.js';
-import { zoneAt, type DragPayload, type MeasuredZone } from './dragTypes.js';
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { format, isFormatted, lintSource, parse, WZD_RENDERABLE_NAMES } from "@newspapper/core/wizard";
+import type { Theme } from "@newspapper/core/templates";
+import { Button, Mark, Select, Skeleton, ToastProvider, useToast } from "../ui";
+import { api, ApiError, sse } from "@/lib/api";
+import type { Post, Settings } from "@/lib/types";
+import SourcePane from "./SourcePane.js";
+import PreviewPane from "./PreviewPane.js";
+import InspectorPane from "./InspectorPane.js";
+import PalettePane from "./PalettePane.js";
+import ImagePicker from "./ImagePicker.js";
+import Splitter from "./Splitter.js";
+import { compileTraced } from "./preview/compileTraced.js";
+import { canContain } from "./preview/slots.js";
+import { zoneAt, type DragPayload, type MeasuredZone } from "./dragTypes.js";
 import {
   duplicateNode,
   insertComponent,
@@ -45,20 +39,13 @@ import {
   setHeadField,
   setProp,
   setTextContent,
-} from './edits.js';
-import {
-  bodyPath,
-  elementAtPath,
-  elementPathAtOffset,
-  samePath,
-  slidePaths,
-  type WzdPath,
-} from './paths.js';
-import { starterDocument } from './starter.js';
-import styles from './EditorIsland.module.css';
-import { withBase } from '@/lib/base';
-import { createSaveQueue, type SaveQueue } from './saveQueue';
-import ErrorBoundary from '../ErrorBoundary';
+} from "./edits.js";
+import { bodyPath, elementAtPath, elementPathAtOffset, samePath, slidePaths, type WzdPath } from "./paths.js";
+import { starterDocument } from "./starter.js";
+import styles from "./EditorIsland.module.css";
+import { withBase } from "@/lib/base";
+import { createSaveQueue, type SaveQueue } from "./saveQueue";
+import ErrorBoundary from "../ErrorBoundary";
 
 /**
  * Compile options for the live preview canvas. Its `<Image>` backgrounds are
@@ -67,7 +54,7 @@ import ErrorBoundary from '../ErrorBoundary';
  * default: Fastify never sees the prefix.)
  */
 export function previewCompileOptions(): { uploadBaseUrl: string } {
-  return { uploadBaseUrl: withBase('/uploads') };
+  return { uploadBaseUrl: withBase("/uploads") };
 }
 
 const PREVIEW_DEBOUNCE_MS = 200;
@@ -75,7 +62,7 @@ const AUTOSAVE_DEBOUNCE_MS = 900;
 const NARROW_PX = 1180;
 
 /** Everything the palette can offer. `Slide` has its own controls. */
-const PALETTE_NAMES = WZD_RENDERABLE_NAMES.filter((name) => name !== 'Slide');
+const PALETTE_NAMES = WZD_RENDERABLE_NAMES.filter((name) => name !== "Slide");
 
 export interface EditorIslandProps {
   /**
@@ -95,9 +82,9 @@ interface ThemeRecord {
   tokens: Theme | null;
 }
 
-type SaveState = 'clean' | 'dirty' | 'saving' | 'saved' | 'error';
+type SaveState = "clean" | "dirty" | "saving" | "saved" | "error";
 
-type Pane = 'source' | 'preview' | 'inspector';
+type Pane = "source" | "preview" | "inspector";
 
 interface InsertionPoint {
   parentPath: WzdPath;
@@ -105,8 +92,8 @@ interface InsertionPoint {
 }
 
 function postIdFromUrl(): number | null {
-  if (typeof window === 'undefined') return null;
-  const raw = new URLSearchParams(window.location.search).get('post');
+  if (typeof window === "undefined") return null;
+  const raw = new URLSearchParams(window.location.search).get("post");
   const id = raw === null ? Number.NaN : Number(raw);
   return Number.isInteger(id) && id > 0 ? id : null;
 }
@@ -122,10 +109,10 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
   const [postId, setPostId] = useState<number | null>(propPostId ?? null);
   const [loading, setLoading] = useState(false);
   const [dirty, setDirty] = useState(false);
-  const [saveState, setSaveState] = useState<SaveState>('clean');
+  const [saveState, setSaveState] = useState<SaveState>("clean");
 
   const [themes, setThemes] = useState<ThemeRecord[]>([]);
-  const [themeName, setThemeName] = useState(initialTheme ?? '');
+  const [themeName, setThemeName] = useState(initialTheme ?? "");
 
   const [drag, setDrag] = useState<DragPayload | null>(null);
   const [activeZoneKey, setActiveZoneKey] = useState<string | null>(null);
@@ -137,7 +124,7 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
   const [leftWidth, setLeftWidth] = useState(390);
   const [rightWidth, setRightWidth] = useState(338);
   const [narrow, setNarrow] = useState(false);
-  const [pane, setPane] = useState<Pane>('preview');
+  const [pane, setPane] = useState<Pane>("preview");
   const [rendering, setRendering] = useState(false);
 
   const zonesRef = useRef(new Map<string, MeasuredZone[]>());
@@ -174,10 +161,7 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
   const formatted = useMemo(() => isFormatted(source), [source]);
 
   const previewDoc = useMemo(() => parse(previewSource).doc, [previewSource]);
-  const theme = useMemo(
-    () => themes.find((t) => t.name === themeName)?.tokens ?? null,
-    [themes, themeName],
-  );
+  const theme = useMemo(() => themes.find((t) => t.name === themeName)?.tokens ?? null, [themes, themeName]);
   const compiled = useMemo(
     () => (theme ? compileTraced(previewDoc, theme, previewCompileOptions()) : null),
     [previewDoc, theme],
@@ -204,7 +188,7 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
       sourceRef.current = next;
       setSource(next);
       setDirty(true);
-      setSaveState('dirty');
+      setSaveState("dirty");
     }
     if (nextSelection !== undefined) {
       setSelectedPath(nextSelection);
@@ -216,7 +200,7 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
     sourceRef.current = next;
     setSource(next);
     setDirty(true);
-    setSaveState('dirty');
+    setSaveState("dirty");
   }, []);
 
   const onCursor = useCallback(
@@ -266,15 +250,12 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
     (at: InsertionPoint, component: string) => {
       // `<Image src>` is required, so an image is chosen before it is inserted
       // rather than landing as a lint error.
-      if (component === 'Image') {
+      if (component === "Image") {
         pendingImage.current = { insert: at };
         setPickerOpen(true);
         return;
       }
-      write(insertComponent(sourceRef.current, at.parentPath, at.index, component), [
-        ...at.parentPath,
-        at.index,
-      ]);
+      write(insertComponent(sourceRef.current, at.parentPath, at.index, component), [...at.parentPath, at.index]);
     },
     [write],
   );
@@ -306,7 +287,7 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
     // a re-render per pointer move would re-render every slide.
     if (ghostRef.current) {
       ghostRef.current.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-      ghostRef.current.style.visibility = 'visible';
+      ghostRef.current.style.visibility = "visible";
     }
     const all: MeasuredZone[] = [];
     for (const zones of zonesRef.current.values()) all.push(...zones);
@@ -319,11 +300,11 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
     const zone = activeZone.current;
     const payload = dragRef.current;
     activeZone.current = null;
-    if (ghostRef.current) ghostRef.current.style.visibility = 'hidden';
+    if (ghostRef.current) ghostRef.current.style.visibility = "hidden";
     setActiveZoneKey(null);
     setDrag(null);
     if (!zone || !payload) return;
-    if (payload.kind === 'new') {
+    if (payload.kind === "new") {
       insertAt({ parentPath: zone.slot.parentPath, index: zone.slot.index }, payload.component);
       return;
     }
@@ -339,7 +320,7 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
       onDragStart: (offset: number) => {
         const path = elementPathAtOffset(previewDoc, offset);
         const el = path ? elementAtPath(previewDoc, path) : null;
-        if (path && el) setDrag({ kind: 'move', path, component: el.type });
+        if (path && el) setDrag({ kind: "move", path, component: el.type });
       },
       onDragMove,
       onDragEnd: endDrag,
@@ -356,10 +337,8 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
       const body = elementAtPath(doc, at);
       const slides = slidePaths(doc);
       const childIndex =
-        index >= slides.length
-          ? (body?.children.length ?? 0)
-          : slides[index][slides[index].length - 1];
-      write(insertComponent(sourceRef.current, at, childIndex, 'Slide'), [...at, childIndex]);
+        index >= slides.length ? (body?.children.length ?? 0) : slides[index][slides[index].length - 1];
+      write(insertComponent(sourceRef.current, at, childIndex, "Slide"), [...at, childIndex]);
     },
     [doc, write],
   );
@@ -367,10 +346,7 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
   const nudge = useCallback(
     (path: WzdPath, delta: -1 | 1) => {
       const index = path[path.length - 1];
-      write(nudgeNode(sourceRef.current, path, delta), [
-        ...path.slice(0, -1),
-        Math.max(0, index + delta),
-      ]);
+      write(nudgeNode(sourceRef.current, path, delta), [...path.slice(0, -1), Math.max(0, index + delta)]);
     },
     [write],
   );
@@ -380,14 +356,14 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
   useEffect(() => {
     void (async () => {
       try {
-        const list = await api<ThemeRecord[]>('/api/themes');
+        const list = await api<ThemeRecord[]>("/api/themes");
         setThemes(list);
         setThemeName((current) => {
           if (current && list.some((t) => t.name === current && t.tokens)) return current;
           return list.find((t) => t.tokens)?.name ?? current;
         });
       } catch {
-        addToast('Could not load the themes.', 'error');
+        addToast("Could not load the themes.", "error");
       }
     })();
   }, [addToast]);
@@ -396,7 +372,7 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
     if (initialTheme) return;
     void (async () => {
       try {
-        const settings = await api<Settings>('/api/settings');
+        const settings = await api<Settings>("/api/settings");
         setThemeName((current) => current || settings.defaultTheme);
       } catch {
         // The theme list already provides a usable fallback.
@@ -418,28 +394,25 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
   useEffect(() => {
     saveQueue.current = createSaveQueue({
       read: () => ({ markup: sourceRef.current, theme: themeRef.current }),
-      create: (body) => api<Post>('/api/posts', { method: 'POST', json: body }),
-      update: (id, body) => api<Post>(`/api/posts/${id}`, { method: 'PUT', json: body }),
-      onStart: () => setSaveState('saving'),
+      create: (body) => api<Post>("/api/posts", { method: "POST", json: body }),
+      update: (id, body) => api<Post>(`/api/posts/${id}`, { method: "PUT", json: body }),
+      onStart: () => setSaveState("saving"),
       onSaved: (body, id, created) => {
         if (created) {
           setPostId(id);
           const url = new URL(window.location.href);
-          url.searchParams.set('post', String(id));
-          window.history.replaceState({}, '', url);
+          url.searchParams.set("post", String(id));
+          window.history.replaceState({}, "", url);
         }
         // Clean only if nothing changed while the request was out; otherwise
         // the edit still needs saving and stays dirty.
         const current = body.markup === sourceRef.current && body.theme === themeRef.current;
         if (current) setDirty(false);
-        setSaveState(current ? 'saved' : 'dirty');
+        setSaveState(current ? "saved" : "dirty");
       },
       onError: (err) => {
-        setSaveState('error');
-        addToastRef.current(
-          err instanceof ApiError ? err.message : 'Could not save this post.',
-          'error',
-        );
+        setSaveState("error");
+        addToastRef.current(err instanceof ApiError ? err.message : "Could not save this post.", "error");
       },
     });
   }, []);
@@ -470,9 +443,9 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
         saveQueue.current?.setId(post.id);
         if (post.theme) setThemeName(post.theme);
         setDirty(false);
-        setSaveState('clean');
+        setSaveState("clean");
       } catch (err) {
-        addToast(err instanceof ApiError ? err.message : 'Could not open that post.', 'error');
+        addToast(err instanceof ApiError ? err.message : "Could not open that post.", "error");
       } finally {
         setLoading(false);
       }
@@ -490,9 +463,9 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
     setRendering(true);
     try {
       await sse(`/api/posts/${postId}/render`, {}, { onEvent: () => undefined });
-      addToast('Rendered. The JPEGs are in the output folder.', 'success');
+      addToast("Rendered. The JPEGs are in the output folder.", "success");
     } catch (err) {
-      addToast(err instanceof ApiError ? err.message : 'Render failed.', 'error');
+      addToast(err instanceof ApiError ? err.message : "Render failed.", "error");
     } finally {
       setRendering(false);
     }
@@ -503,11 +476,11 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
   useEffect(() => {
     const update = (): void => setNarrow(window.innerWidth < NARROW_PX);
     update();
-    window.addEventListener('resize', update);
-    return () => window.removeEventListener('resize', update);
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
   }, []);
 
-  const errorCount = diagnostics.filter((d) => d.severity === 'error').length;
+  const errorCount = diagnostics.filter((d) => d.severity === "error").length;
 
   const sourcePane = (
     <SourcePane
@@ -544,12 +517,12 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
   const inspectorPane = (
     <div className={styles.rightColumn}>
       <PalettePane
-        onDragStart={(component) => setDrag({ kind: 'new', component })}
+        onDragStart={(component) => setDrag({ kind: "new", component })}
         onDragMove={onDragMove}
         onDragEnd={endDrag}
         onInsert={paletteInsert}
         unavailable={unavailable}
-        dragging={drag?.kind === 'new' ? drag.component : null}
+        dragging={drag?.kind === "new" ? drag.component : null}
         disabled={broken}
       />
       <InspectorPane
@@ -574,20 +547,20 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
   return (
     <div className={styles.editor}>
       <header className={styles.header}>
-        <h1 className={styles.title}>{doc.head['title'] || 'Untitled post'}</h1>
-        <Mark tone={errorCount ? 'rubylith' : 'ink'}>
-          {errorCount ? `${errorCount} ${errorCount === 1 ? 'error' : 'errors'}` : 'Compiles'}
+        <h1 className={styles.title}>{doc.head["title"] || "Untitled post"}</h1>
+        <Mark tone={errorCount ? "rubylith" : "ink"}>
+          {errorCount ? `${errorCount} ${errorCount === 1 ? "error" : "errors"}` : "Compiles"}
         </Mark>
-        <Mark tone={saveState === 'error' ? 'rubylith' : 'dim'}>
-          {saveState === 'saving'
-            ? 'Saving…'
-            : saveState === 'dirty'
-              ? 'Unsaved'
-              : saveState === 'error'
-                ? 'Save failed'
+        <Mark tone={saveState === "error" ? "rubylith" : "dim"}>
+          {saveState === "saving"
+            ? "Saving…"
+            : saveState === "dirty"
+              ? "Unsaved"
+              : saveState === "error"
+                ? "Save failed"
                 : postId
-                  ? 'Saved'
-                  : 'New post'}
+                  ? "Saved"
+                  : "New post"}
         </Mark>
         <span className={styles.spacer} />
         <Select
@@ -597,16 +570,11 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
           onValueChange={(value) => {
             setThemeName(value);
             setDirty(true);
-            setSaveState('dirty');
+            setSaveState("dirty");
           }}
           className={styles.themeSelect}
         />
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => void save()}
-          disabled={!dirty || saveState === 'saving'}
-        >
+        <Button variant="secondary" size="sm" onClick={() => void save()} disabled={!dirty || saveState === "saving"}>
           Save
         </Button>
         <Button
@@ -624,21 +592,16 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
       {!loading && narrow && (
         <>
           <nav className={styles.tabs}>
-            {(['source', 'preview', 'inspector'] as Pane[]).map((name) => (
-              <Button
-                key={name}
-                variant={pane === name ? 'primary' : 'ghost'}
-                size="sm"
-                onClick={() => setPane(name)}
-              >
+            {(["source", "preview", "inspector"] as Pane[]).map((name) => (
+              <Button key={name} variant={pane === name ? "primary" : "ghost"} size="sm" onClick={() => setPane(name)}>
                 {name[0].toUpperCase() + name.slice(1)}
               </Button>
             ))}
           </nav>
           <div className={styles.singlePane}>
-            {pane === 'source' && sourcePane}
-            {pane === 'preview' && previewPane}
-            {pane === 'inspector' && <div className={styles.scroller}>{inspectorPane}</div>}
+            {pane === "source" && sourcePane}
+            {pane === "preview" && previewPane}
+            {pane === "inspector" && <div className={styles.scroller}>{inspectorPane}</div>}
           </div>
         </>
       )}
@@ -648,13 +611,7 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
           <div className={styles.left} style={{ width: leftWidth }}>
             {sourcePane}
           </div>
-          <Splitter
-            width={leftWidth}
-            min={240}
-            max={800}
-            label="Resize the source pane"
-            onResize={setLeftWidth}
-          />
+          <Splitter width={leftWidth} min={240} max={800} label="Resize the source pane" onResize={setLeftWidth} />
           <div className={styles.centre}>{previewPane}</div>
           <Splitter
             width={rightWidth}
@@ -671,7 +628,7 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
       )}
 
       <div ref={ghostRef} className={styles.ghost} aria-hidden="true">
-        {drag?.component ?? ''}
+        {drag?.component ?? ""}
       </div>
 
       <ImagePicker
@@ -684,13 +641,13 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
           const pending = pendingImage.current;
           pendingImage.current = null;
           if (!pending) return;
-          if ('path' in pending) {
-            write(setProp(sourceRef.current, pending.path, 'src', ref));
+          if ("path" in pending) {
+            write(setProp(sourceRef.current, pending.path, "src", ref));
             return;
           }
           const { parentPath, index } = pending.insert;
           write(
-            insertComponent(sourceRef.current, parentPath, index, 'Image', {
+            insertComponent(sourceRef.current, parentPath, index, "Image", {
               src: ref,
             }),
             [...parentPath, index],

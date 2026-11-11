@@ -10,13 +10,13 @@
  * loaded is what Mark all read is bounded by, so loading has to be a thing you
  * did.
  */
-import { useEffect, useRef, type ReactNode } from 'react';
-import type { FeedItemSummary, Source } from '@/lib/types';
-import { Button, ChipRow, Finding, Input, Mark, Skeleton } from '../ui';
-import BackControl from './BackControl';
-import { formatAge } from './format';
-import type { ReaderScope } from './query';
-import styles from './ItemList.module.css';
+import { useEffect, useRef, type ReactNode } from "react";
+import type { FeedItemSummary, Source } from "@/lib/types";
+import { Button, ChipRow, Finding, Input, Mark, Skeleton } from "../ui";
+import BackControl from "./BackControl";
+import { formatAge } from "./format";
+import type { ReaderScope } from "./query";
+import styles from "./ItemList.module.css";
 
 export interface ItemListProps {
   heading: string;
@@ -47,8 +47,8 @@ export interface ItemListProps {
 }
 
 const SCOPES = [
-  { value: 'unread', label: 'Unread' },
-  { value: 'all', label: 'All' },
+  { value: "unread", label: "Unread" },
+  { value: "all", label: "All" },
 ];
 
 export default function ItemList(props: ItemListProps) {
@@ -59,7 +59,7 @@ export default function ItemList(props: ItemListProps) {
   useEffect(() => {
     if (selectedId === null) return;
     const row = listRef.current?.querySelector<HTMLElement>(`[data-item-id="${selectedId}"]`);
-    row?.scrollIntoView?.({ block: 'nearest' });
+    row?.scrollIntoView?.({ block: "nearest" });
   }, [selectedId]);
 
   return (
@@ -90,18 +90,13 @@ export default function ItemList(props: ItemListProps) {
           onChange={(e) => props.onFilterChange(e.target.value)}
           onKeyDown={(e) => {
             // Esc hands the keys back to the Reader, filter kept.
-            if (e.key === 'Escape') {
+            if (e.key === "Escape") {
               e.preventDefault();
               e.currentTarget.blur();
             }
           }}
         />
-        <Button
-          size="sm"
-          variant="secondary"
-          onClick={props.onMarkAllRead}
-          disabled={!props.canMarkAllRead}
-        >
+        <Button size="sm" variant="secondary" onClick={props.onMarkAllRead} disabled={!props.canMarkAllRead}>
           Mark all read
         </Button>
       </div>
@@ -137,20 +132,16 @@ export default function ItemList(props: ItemListProps) {
                   <button
                     type="button"
                     data-item-id={row.id}
-                    className={[
-                      styles.row,
-                      row.read ? styles.read : styles.unread,
-                      selected ? styles.selected : '',
-                    ]
+                    className={[styles.row, row.read ? styles.read : styles.unread, selected ? styles.selected : ""]
                       .filter(Boolean)
-                      .join(' ')}
-                    aria-current={selected ? 'true' : undefined}
+                      .join(" ")}
+                    aria-current={selected ? "true" : undefined}
                     onClick={() => props.onOpen(row.id)}
                   >
                     <span className={styles.dot} aria-hidden="true" />
                     <span className={styles.rowBody}>
-                      <span className={styles.srOnly}>{row.read ? 'Read: ' : 'Unread: '}</span>
-                      <span className={styles.title}>{row.title || 'Untitled'}</span>
+                      <span className={styles.srOnly}>{row.read ? "Read: " : "Unread: "}</span>
+                      <span className={styles.title}>{row.title || "Untitled"}</span>
                       <span className={styles.meta}>
                         <span className={styles.source}>{row.sourceName}</span>
                         <span>{formatAge(row.sortAt, props.now)}</span>
@@ -168,12 +159,7 @@ export default function ItemList(props: ItemListProps) {
           </ul>
           <div className={styles.more}>
             {props.nextCursor ? (
-              <Button
-                size="sm"
-                variant="secondary"
-                loading={props.loadingMore}
-                onClick={props.onLoadMore}
-              >
+              <Button size="sm" variant="secondary" loading={props.loadingMore} onClick={props.onLoadMore}>
                 Load more
               </Button>
             ) : (

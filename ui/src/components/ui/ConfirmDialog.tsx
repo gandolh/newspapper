@@ -1,6 +1,6 @@
-import Modal from './Modal';
-import Button from './Button';
-import styles from './ConfirmDialog.module.css';
+import Modal from "./Modal";
+import Button from "./Button";
+import styles from "./ConfirmDialog.module.css";
 
 export interface ConfirmDialogProps {
   open: boolean;
@@ -10,7 +10,7 @@ export interface ConfirmDialogProps {
   message: string;
   confirmLabel?: string;
   cancelLabel?: string;
-  variant?: 'danger' | 'primary';
+  variant?: "danger" | "primary";
   loading?: boolean;
 }
 
@@ -18,11 +18,11 @@ export default function ConfirmDialog({
   open,
   onClose,
   onConfirm,
-  title = 'Confirm',
+  title = "Confirm",
   message,
-  confirmLabel = 'Confirm',
-  cancelLabel = 'Cancel',
-  variant = 'danger',
+  confirmLabel = "Confirm",
+  cancelLabel = "Cancel",
+  variant = "danger",
   loading = false,
 }: ConfirmDialogProps) {
   return (

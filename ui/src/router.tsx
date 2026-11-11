@@ -35,8 +35,8 @@ import {
   type JSX,
   type MouseEvent,
   type ReactNode,
-} from 'react';
-import { stripBase, withBase } from './lib/base';
+} from "react";
+import { stripBase, withBase } from "./lib/base";
 
 const listeners = new Set<() => void>();
 
@@ -46,10 +46,10 @@ function emit(): void {
 
 function subscribe(listener: () => void): () => void {
   listeners.add(listener);
-  window.addEventListener('popstate', listener);
+  window.addEventListener("popstate", listener);
   return () => {
     listeners.delete(listener);
-    window.removeEventListener('popstate', listener);
+    window.removeEventListener("popstate", listener);
   };
 }
 
@@ -71,8 +71,8 @@ export function usePathname(): string {
  */
 export function navigate(to: string, options?: { replace?: boolean }): void {
   const url = withBase(to);
-  if (options?.replace) window.history.replaceState({}, '', url);
-  else window.history.pushState({}, '', url);
+  if (options?.replace) window.history.replaceState({}, "", url);
+  else window.history.pushState({}, "", url);
   emit();
 }
 
@@ -90,18 +90,15 @@ export function Link({
   href,
   children,
   ...rest
-}: { href: string; children: ReactNode } & Omit<
-  AnchorHTMLAttributes<HTMLAnchorElement>,
-  'href'
->): JSX.Element {
+}: { href: string; children: ReactNode } & Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href">): JSX.Element {
   function onClick(event: MouseEvent<HTMLAnchorElement>): void {
     rest.onClick?.(event);
     if (event.defaultPrevented) return;
     if (event.button !== 0) return;
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-    if (rest.target && rest.target !== '_self') return;
+    if (rest.target && rest.target !== "_self") return;
     if (rest.download != null) return;
-    if (!href.startsWith('/') || href.startsWith('//')) return;
+    if (!href.startsWith("/") || href.startsWith("//")) return;
     event.preventDefault();
     navigate(href);
   }

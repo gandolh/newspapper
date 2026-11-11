@@ -6,7 +6,7 @@
  * counts as a binding.
  */
 
-import { WZD_HEAD_FIELDS } from './catalogue.js';
+import { WZD_HEAD_FIELDS } from "./catalogue.js";
 
 /** A `{name}` occurrence inside a text run. */
 export interface WzdBinding {
@@ -20,7 +20,7 @@ export interface WzdBinding {
   end: number;
 }
 
-export type WzdBindingProblem = 'unknown-field' | 'empty-field';
+export type WzdBindingProblem = "unknown-field" | "empty-field";
 
 export interface WzdUnresolvedBinding extends WzdBinding {
   problem: WzdBindingProblem;
@@ -52,16 +52,13 @@ export function findBindings(text: string): WzdBinding[] {
 }
 
 /** The bindings that would not resolve against `head`, with why. */
-export function unresolvedBindings(
-  text: string,
-  head: Record<string, string>,
-): WzdUnresolvedBinding[] {
+export function unresolvedBindings(text: string, head: Record<string, string>): WzdUnresolvedBinding[] {
   const problems: WzdUnresolvedBinding[] = [];
   for (const binding of findBindings(text)) {
     if (!isBindableField(binding.name)) {
-      problems.push({ ...binding, problem: 'unknown-field' });
+      problems.push({ ...binding, problem: "unknown-field" });
     } else if (!head[binding.name]) {
-      problems.push({ ...binding, problem: 'empty-field' });
+      problems.push({ ...binding, problem: "empty-field" });
     }
   }
   return problems;
@@ -83,8 +80,8 @@ export function resolveBindings(text: string, head: Record<string, string>): str
 
 /** The message a `unknown-binding` finding carries. */
 export function bindingMessage(binding: WzdUnresolvedBinding): string {
-  if (binding.problem === 'unknown-field') {
-    return `\`${binding.raw}\` does not name a <head> field. Bindings read: ${WZD_BINDABLE_FIELDS.join(', ')}.`;
+  if (binding.problem === "unknown-field") {
+    return `\`${binding.raw}\` does not name a <head> field. Bindings read: ${WZD_BINDABLE_FIELDS.join(", ")}.`;
   }
   return `\`${binding.raw}\` has nothing to resolve to — the <head> declares no ${binding.name}.`;
 }

@@ -13,19 +13,19 @@
  * run when the selection is inside it, and the ink on the tokens.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import type { WzdDiagnostic } from '@newspapper/core/wizard';
-import { Button, Finding, Mark, WAX } from '../ui';
-import { decorate, tokenize, type WzdRangeMark } from './highlight.js';
-import styles from './SourcePane.module.css';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import type { WzdDiagnostic } from "@newspapper/core/wizard";
+import { Button, Finding, Mark, WAX } from "../ui";
+import { decorate, tokenize, type WzdRangeMark } from "./highlight.js";
+import styles from "./SourcePane.module.css";
 
-const SELECTED_MARK = 'selected';
+const SELECTED_MARK = "selected";
 /** The textarea's own selection, while it has focus and spans a range. */
-const TEXT_SELECTION_MARK = 'text-selection';
+const TEXT_SELECTION_MARK = "text-selection";
 
 function lineOf(source: string, offset: number): number {
   let line = 1;
-  for (let i = 0; i < offset && i < source.length; i += 1) if (source[i] === '\n') line += 1;
+  for (let i = 0; i < offset && i < source.length; i += 1) if (source[i] === "\n") line += 1;
   return line;
 }
 
@@ -86,7 +86,7 @@ export default function SourcePane({
       const hits = diagnostics.filter(
         (d) => d.loc.start.offset < Math.max(end, start + 1) && d.loc.end.offset + 1 > start,
       );
-      return hits.length ? hits.map((d) => `${d.code}: ${d.message}`).join('\n') : undefined;
+      return hits.length ? hits.map((d) => `${d.code}: ${d.message}`).join("\n") : undefined;
     },
     [diagnostics],
   );
@@ -115,8 +115,8 @@ export default function SourcePane({
     const handler = (): void => {
       if (document.activeElement === textRef.current) reportCursor();
     };
-    document.addEventListener('selectionchange', handler);
-    return () => document.removeEventListener('selectionchange', handler);
+    document.addEventListener("selectionchange", handler);
+    return () => document.removeEventListener("selectionchange", handler);
   }, [reportCursor]);
 
   useEffect(() => {
@@ -185,9 +185,7 @@ export default function SourcePane({
       const token = (
         <span
           key={`${span.start}-${span.end}`}
-          className={[styles[span.kind], ink, ...lint.map((m) => styles[m])]
-            .filter(Boolean)
-            .join(' ')}
+          className={[styles[span.kind], ink, ...lint.map((m) => styles[m])].filter(Boolean).join(" ")}
           title={lint.length > 0 ? messageAt(span.start, span.end) : undefined}
         >
           {source.slice(span.start, span.end)}
@@ -216,8 +214,8 @@ export default function SourcePane({
     return out;
   }, [spans, source, messageAt]);
 
-  const errors = diagnostics.filter((d) => d.severity === 'error');
-  const warnings = diagnostics.filter((d) => d.severity === 'warning');
+  const errors = diagnostics.filter((d) => d.severity === "error");
+  const warnings = diagnostics.filter((d) => d.severity === "warning");
 
   return (
     <div className={styles.pane}>
@@ -230,14 +228,14 @@ export default function SourcePane({
         </span>
         <span className={styles.barSpacer} />
         <Button variant="ghost" size="sm" onClick={onFormat} disabled={formatted}>
-          {formatted ? 'Formatted' : 'Format'}
+          {formatted ? "Formatted" : "Format"}
         </Button>
       </div>
 
       <div className={styles.code}>
         <pre className={styles.highlight} ref={preRef} aria-hidden="true">
           {galley}
-          {'\n '}
+          {"\n "}
         </pre>
         <textarea
           ref={textRef}
@@ -247,9 +245,7 @@ export default function SourcePane({
           wrap="off"
           aria-label="Wizard markup"
           onChange={(event) => onChange(event.target.value)}
-          onScroll={(event) =>
-            followScroll(event.currentTarget.scrollTop, event.currentTarget.scrollLeft)
-          }
+          onScroll={(event) => followScroll(event.currentTarget.scrollTop, event.currentTarget.scrollLeft)}
           onClick={reportCursor}
           onKeyUp={reportCursor}
           onFocus={reportCursor}
@@ -276,7 +272,7 @@ export default function SourcePane({
             >
               <Finding
                 where={`${d.code} · line ${d.loc.start.line}, col ${d.loc.start.column}`}
-                muted={d.severity !== 'error'}
+                muted={d.severity !== "error"}
               >
                 {d.message}
               </Finding>

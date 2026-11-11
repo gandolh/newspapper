@@ -1,146 +1,142 @@
-import { describe, it, expect } from 'vitest';
-import { resolveStyle, renderTemplate, validateSlideData } from './interpreter.js';
-import type { Theme, TNode, RenderTemplateOptions } from '../types.js';
+import { describe, it, expect } from "vitest";
+import { resolveStyle, renderTemplate, validateSlideData } from "./interpreter.js";
+import type { Theme, TNode, RenderTemplateOptions } from "../types.js";
 
 // ---------------------------------------------------------------------------
 // Minimal theme fixture
 // ---------------------------------------------------------------------------
 const theme: Theme = {
-  name: 'test',
+  name: "test",
   colors: {
-    primary: '#a2391a',
-    'on-primary': '#ffffff',
-    surface: '#fbf9f8',
-    'on-surface': '#1b1c1c',
-    'on-surface-variant': '#57423c',
-    'surface-container': '#efeded',
+    primary: "#a2391a",
+    "on-primary": "#ffffff",
+    surface: "#fbf9f8",
+    "on-surface": "#1b1c1c",
+    "on-surface-variant": "#57423c",
+    "surface-container": "#efeded",
   },
   typography: {
     display: {
-      fontFamily: 'Inter',
-      fontSize: '80px',
-      fontWeight: '800',
-      lineHeight: '1.0',
-      letterSpacing: '-0.04em',
+      fontFamily: "Inter",
+      fontSize: "80px",
+      fontWeight: "800",
+      lineHeight: "1.0",
+      letterSpacing: "-0.04em",
     },
-    'body-md': {
-      fontFamily: 'Inter',
-      fontSize: '16px',
-      fontWeight: '400',
-      lineHeight: '1.5',
+    "body-md": {
+      fontFamily: "Inter",
+      fontSize: "16px",
+      fontWeight: "400",
+      lineHeight: "1.5",
     },
   },
-  rounded: { md: '0.75rem', sm: '0.25rem' },
+  rounded: { md: "0.75rem", sm: "0.25rem" },
   spacing: {
-    md: '24px',
-    lg: '48px',
-    sm: '12px',
-    xl: '80px',
-    xs: '4px',
-    base: '8px',
-    gutter: '24px',
-    'container-margin': '32px',
+    md: "24px",
+    lg: "48px",
+    sm: "12px",
+    xl: "80px",
+    xs: "4px",
+    base: "8px",
+    gutter: "24px",
+    "container-margin": "32px",
   },
-  shapes: { borderRadius: '0.5rem', borderWidth: '2px' },
+  shapes: { borderRadius: "0.5rem", borderWidth: "2px" },
 };
 
-const opts: RenderTemplateOptions = { index: 1, total: 5, fontBaseUrl: '/fonts' };
+const opts: RenderTemplateOptions = { index: 1, total: 5, fontBaseUrl: "/fonts" };
 
 // ---------------------------------------------------------------------------
 // resolveStyle tests
 // ---------------------------------------------------------------------------
-describe('resolveStyle', () => {
-  it('resolves color token', () => {
-    const result = resolveStyle({ color: '$color.primary' }, theme);
-    expect(result['color']).toBe('#a2391a');
+describe("resolveStyle", () => {
+  it("resolves color token", () => {
+    const result = resolveStyle({ color: "$color.primary" }, theme);
+    expect(result["color"]).toBe("#a2391a");
   });
 
-  it('resolves spacing token', () => {
-    const result = resolveStyle({ padding: '$spacing.md' }, theme);
-    expect(result['padding']).toBe('24px');
+  it("resolves spacing token", () => {
+    const result = resolveStyle({ padding: "$spacing.md" }, theme);
+    expect(result["padding"]).toBe("24px");
   });
 
-  it('resolves rounded token', () => {
-    const result = resolveStyle({ borderRadius: '$rounded.md' }, theme);
-    expect(result['border-radius']).toBe('0.75rem');
+  it("resolves rounded token", () => {
+    const result = resolveStyle({ borderRadius: "$rounded.md" }, theme);
+    expect(result["border-radius"]).toBe("0.75rem");
   });
 
-  it('throws for unknown token', () => {
-    expect(() => resolveStyle({ color: '$color.nonexistent' }, theme)).toThrow(
-      'Unknown color token',
-    );
+  it("throws for unknown token", () => {
+    expect(() => resolveStyle({ color: "$color.nonexistent" }, theme)).toThrow("Unknown color token");
   });
 
-  it('converts camelCase to kebab-case', () => {
+  it("converts camelCase to kebab-case", () => {
     const result = resolveStyle({ fontWeight: 700 }, theme);
-    expect(result['font-weight']).toBeDefined();
+    expect(result["font-weight"]).toBeDefined();
   });
 
-  it('adds px to number values for non-unitless props', () => {
+  it("adds px to number values for non-unitless props", () => {
     const result = resolveStyle({ fontSize: 32 }, theme);
-    expect(result['font-size']).toBe('32px');
+    expect(result["font-size"]).toBe("32px");
   });
 
-  it('does NOT add px to unitless props', () => {
+  it("does NOT add px to unitless props", () => {
     const result = resolveStyle({ lineHeight: 1.5 }, theme);
-    expect(result['line-height']).toBe('1.5');
+    expect(result["line-height"]).toBe("1.5");
     const result2 = resolveStyle({ fontWeight: 700 }, theme);
-    expect(result2['font-weight']).toBe('700');
+    expect(result2["font-weight"]).toBe("700");
     const result3 = resolveStyle({ opacity: 0.5 }, theme);
-    expect(result3['opacity']).toBe('0.5');
+    expect(result3["opacity"]).toBe("0.5");
     const result4 = resolveStyle({ flex: 1 }, theme);
-    expect(result4['flex']).toBe('1');
+    expect(result4["flex"]).toBe("1");
   });
 
-  it('expands typography token', () => {
-    const result = resolveStyle({ typography: 'display' }, theme);
-    expect(result['font-family']).toBe('Inter,sans-serif');
-    expect(result['font-size']).toBe('80px');
-    expect(result['font-weight']).toBe('800');
-    expect(result['line-height']).toBe('1.0');
-    expect(result['letter-spacing']).toBe('-0.04em');
-    expect(result['typography']).toBeUndefined();
+  it("expands typography token", () => {
+    const result = resolveStyle({ typography: "display" }, theme);
+    expect(result["font-family"]).toBe("Inter,sans-serif");
+    expect(result["font-size"]).toBe("80px");
+    expect(result["font-weight"]).toBe("800");
+    expect(result["line-height"]).toBe("1.0");
+    expect(result["letter-spacing"]).toBe("-0.04em");
+    expect(result["typography"]).toBeUndefined();
   });
 
-  it('explicit keys override typography expansion', () => {
-    const result = resolveStyle({ typography: 'display', fontSize: 48 }, theme);
-    expect(result['font-size']).toBe('48px');
+  it("explicit keys override typography expansion", () => {
+    const result = resolveStyle({ typography: "display", fontSize: 48 }, theme);
+    expect(result["font-size"]).toBe("48px");
   });
 
-  it('throws for unknown typography token', () => {
-    expect(() => resolveStyle({ typography: 'nonexistent' }, theme)).toThrow(
-      'Unknown typography token',
-    );
+  it("throws for unknown typography token", () => {
+    expect(() => resolveStyle({ typography: "nonexistent" }, theme)).toThrow("Unknown typography token");
   });
 
-  it('throws for unknown token group', () => {
-    expect(() => resolveStyle({ color: '$foo.bar' }, theme)).toThrow('Unknown token group');
+  it("throws for unknown token group", () => {
+    expect(() => resolveStyle({ color: "$foo.bar" }, theme)).toThrow("Unknown token group");
   });
 });
 
 // ---------------------------------------------------------------------------
 // renderTemplate tests — root is a bare TNode now, no wrapping document
 // ---------------------------------------------------------------------------
-describe('renderTemplate', () => {
+describe("renderTemplate", () => {
   const simpleRoot: TNode = {
-    kind: 'box',
-    style: { width: 1080, height: 1080, display: 'flex' },
-    children: [{ kind: 'text', text: '{{text}}' }],
+    kind: "box",
+    style: { width: 1080, height: 1080, display: "flex" },
+    children: [{ kind: "text", text: "{{text}}" }],
   };
 
-  it('returns a complete HTML document', () => {
-    const html = renderTemplate(simpleRoot, { text: 'Hello World' }, theme, opts);
-    expect(html).toContain('<!doctype html>');
-    expect(html).toContain('<html');
-    expect(html).toContain('<head>');
-    expect(html).toContain('<body>');
-    expect(html).toContain('Hello World');
+  it("returns a complete HTML document", () => {
+    const html = renderTemplate(simpleRoot, { text: "Hello World" }, theme, opts);
+    expect(html).toContain("<!doctype html>");
+    expect(html).toContain("<html");
+    expect(html).toContain("<head>");
+    expect(html).toContain("<body>");
+    expect(html).toContain("Hello World");
   });
 
-  it('HTML-escapes substituted values', () => {
-    const html = renderTemplate(simpleRoot, { text: '<script>alert(1)</script>' }, theme, opts);
-    expect(html).toContain('&lt;script&gt;');
-    expect(html).not.toContain('<script>');
+  it("HTML-escapes substituted values", () => {
+    const html = renderTemplate(simpleRoot, { text: "<script>alert(1)</script>" }, theme, opts);
+    expect(html).toContain("&lt;script&gt;");
+    expect(html).not.toContain("<script>");
   });
 
   // -------------------------------------------------------------------------
@@ -149,60 +145,60 @@ describe('renderTemplate', () => {
   // Not reachable from the themes on disk — this is the guard that keeps it
   // that way.
   // -------------------------------------------------------------------------
-  describe('escapes style values into the style attribute', () => {
+  describe("escapes style values into the style attribute", () => {
     /** A theme whose tokens carry the characters that break out of an attribute. */
     const hostileTheme: Theme = {
       ...theme,
       colors: {
         ...theme.colors,
         breakout: '#fff" onload="alert(1)',
-        ampersand: 'url(x.png?a=1&b=2)',
-        angled: '<script>',
+        ampersand: "url(x.png?a=1&b=2)",
+        angled: "<script>",
       },
     };
 
     /** The value of every `style` attribute in the document, unparsed. */
     function styleAttrs(html: string): string[] {
-      return [...html.matchAll(/ style="([^"]*)"/g)].map((m) => m[1] ?? '');
+      return [...html.matchAll(/ style="([^"]*)"/g)].map((m) => m[1] ?? "");
     }
 
-    it('a token containing a double quote cannot leave the attribute', () => {
-      const root: TNode = { kind: 'box', style: { background: '$color.breakout' } };
+    it("a token containing a double quote cannot leave the attribute", () => {
+      const root: TNode = { kind: "box", style: { background: "$color.breakout" } };
       const html = renderTemplate(root, {}, hostileTheme, opts);
 
-      expect(html).toContain('background:#fff&quot; onload=&quot;alert(1)');
-      expect(html, 'the token escaped the attribute and became markup').not.toContain('onload="');
+      expect(html).toContain("background:#fff&quot; onload=&quot;alert(1)");
+      expect(html, "the token escaped the attribute and became markup").not.toContain('onload="');
       // The div is one tag with one attribute — parse the attribute out and
       // nothing of the token is left loose in the markup.
       expect(html).toContain('<div style="background:#fff&quot; onload=&quot;alert(1)"></div>');
     });
 
-    it('escapes ampersands and angle brackets too, without double-escaping', () => {
+    it("escapes ampersands and angle brackets too, without double-escaping", () => {
       const root: TNode = {
-        kind: 'box',
-        style: { background: '$color.ampersand' },
-        children: [{ kind: 'text', style: { color: '$color.angled' }, text: 'x' }],
+        kind: "box",
+        style: { background: "$color.ampersand" },
+        children: [{ kind: "text", style: { color: "$color.angled" }, text: "x" }],
       };
       const html = renderTemplate(root, {}, hostileTheme, opts);
 
-      expect(html).toContain('background:url(x.png?a=1&amp;b=2)');
-      expect(html).not.toContain('&amp;amp;');
-      expect(html).toContain('color:&lt;script&gt;');
-      expect(html).not.toContain('<script>');
+      expect(html).toContain("background:url(x.png?a=1&amp;b=2)");
+      expect(html).not.toContain("&amp;amp;");
+      expect(html).toContain("color:&lt;script&gt;");
+      expect(html).not.toContain("<script>");
     });
 
-    it('a hostile style key is escaped as well as its value', () => {
-      const root: TNode = { kind: 'box', style: { 'x" onload="alert(1)': 'red' } };
+    it("a hostile style key is escaped as well as its value", () => {
+      const root: TNode = { kind: "box", style: { 'x" onload="alert(1)': "red" } };
       const html = renderTemplate(root, {}, hostileTheme, opts);
       expect(html).not.toContain('onload="');
-      expect(html).toContain('x&quot; onload=&quot;alert(1):red');
+      expect(html).toContain("x&quot; onload=&quot;alert(1):red");
     });
 
-    it('leaves ordinary declarations — quotes in font-family included — alone', () => {
+    it("leaves ordinary declarations — quotes in font-family included — alone", () => {
       const root: TNode = {
-        kind: 'text',
-        style: { typography: 'display', fontFamily: "'Inter'" },
-        text: 'x',
+        kind: "text",
+        style: { typography: "display", fontFamily: "'Inter'" },
+        text: "x",
       };
       const html = renderTemplate(root, {}, theme, opts);
       // Single quotes cannot close a double-quoted attribute, so they survive
@@ -214,89 +210,89 @@ describe('renderTemplate', () => {
     });
   });
 
-  it('substitutes _index and _total built-ins', () => {
+  it("substitutes _index and _total built-ins", () => {
     const root: TNode = {
-      kind: 'box',
-      children: [{ kind: 'text', text: '{{_index}} of {{_total}}' }],
+      kind: "box",
+      children: [{ kind: "text", text: "{{_index}} of {{_total}}" }],
     };
-    const html = renderTemplate(root, {}, theme, { index: 3, total: 7, fontBaseUrl: '/f' });
-    expect(html).toContain('3 of 7');
+    const html = renderTemplate(root, {}, theme, { index: 3, total: 7, fontBaseUrl: "/f" });
+    expect(html).toContain("3 of 7");
   });
 
-  it('_date resolves from data._date', () => {
-    const root: TNode = { kind: 'text', text: '{{_date}}' };
-    const html = renderTemplate(root, { _date: '2026-01-15' }, theme, opts);
-    expect(html).toContain('2026-01-15');
+  it("_date resolves from data._date", () => {
+    const root: TNode = { kind: "text", text: "{{_date}}" };
+    const html = renderTemplate(root, { _date: "2026-01-15" }, theme, opts);
+    expect(html).toContain("2026-01-15");
   });
 
-  it('resolves dot-path bindings', () => {
-    const root: TNode = { kind: 'text', text: '{{left.label}}' };
-    const html = renderTemplate(root, { left: { label: 'Before' } }, theme, opts);
-    expect(html).toContain('Before');
+  it("resolves dot-path bindings", () => {
+    const root: TNode = { kind: "text", text: "{{left.label}}" };
+    const html = renderTemplate(root, { left: { label: "Before" } }, theme, opts);
+    expect(html).toContain("Before");
   });
 
-  it('unknown binding → empty string', () => {
-    const root: TNode = { kind: 'text', text: '{{nonexistent}}' };
+  it("unknown binding → empty string", () => {
+    const root: TNode = { kind: "text", text: "{{nonexistent}}" };
     const html = renderTemplate(root, {}, theme, opts);
-    expect(html).toContain('<div></div>');
+    expect(html).toContain("<div></div>");
   });
 
-  it('repeat renders each item with {{item}} and {{i}}', () => {
+  it("repeat renders each item with {{item}} and {{i}}", () => {
     const root: TNode = {
-      kind: 'repeat',
-      source: 'items',
-      children: [{ kind: 'text', text: '{{i}}:{{item}}' }],
+      kind: "repeat",
+      source: "items",
+      children: [{ kind: "text", text: "{{i}}:{{item}}" }],
     };
-    const html = renderTemplate(root, { items: ['alpha', 'beta'] }, theme, opts);
-    expect(html).toContain('1:alpha');
-    expect(html).toContain('2:beta');
+    const html = renderTemplate(root, { items: ["alpha", "beta"] }, theme, opts);
+    expect(html).toContain("1:alpha");
+    expect(html).toContain("2:beta");
   });
 
-  it('repeat with object items supports {{item.label}}', () => {
+  it("repeat with object items supports {{item.label}}", () => {
     const root: TNode = {
-      kind: 'repeat',
-      source: 'items',
-      children: [{ kind: 'text', text: '{{item.label}}' }],
+      kind: "repeat",
+      source: "items",
+      children: [{ kind: "text", text: "{{item.label}}" }],
     };
-    const html = renderTemplate(root, { items: [{ label: 'Foo' }, { label: 'Bar' }] }, theme, opts);
-    expect(html).toContain('Foo');
-    expect(html).toContain('Bar');
+    const html = renderTemplate(root, { items: [{ label: "Foo" }, { label: "Bar" }] }, theme, opts);
+    expect(html).toContain("Foo");
+    expect(html).toContain("Bar");
   });
 
-  it('includes @font-face declarations for Inter', () => {
-    const html = renderTemplate(simpleRoot, { text: 'x' }, theme, opts);
-    expect(html).toContain('@font-face');
-    expect(html).toContain('Inter-Regular.ttf');
-    expect(html).toContain('Inter-Bold.ttf');
+  it("includes @font-face declarations for Inter", () => {
+    const html = renderTemplate(simpleRoot, { text: "x" }, theme, opts);
+    expect(html).toContain("@font-face");
+    expect(html).toContain("Inter-Regular.ttf");
+    expect(html).toContain("Inter-Bold.ttf");
   });
 
-  it('root div is 1080x1080', () => {
-    const html = renderTemplate(simpleRoot, { text: 'x' }, theme, opts);
-    expect(html).toContain('width:1080px;height:1080px;overflow:hidden');
+  it("root div is 1080x1080", () => {
+    const html = renderTemplate(simpleRoot, { text: "x" }, theme, opts);
+    expect(html).toContain("width:1080px;height:1080px;overflow:hidden");
   });
 });
 
 // ---------------------------------------------------------------------------
 // validateSlideData tests — a non-null-object guard, nothing FieldSpec-driven
 // ---------------------------------------------------------------------------
-describe('validateSlideData', () => {
-  it('accepts a plain object', () => {
-    expect(() => validateSlideData({ text: 'hello' })).not.toThrow();
+describe("validateSlideData", () => {
+  it("accepts a plain object", () => {
+    expect(() => validateSlideData({ text: "hello" })).not.toThrow();
   });
 
-  it('accepts an empty object', () => {
+  it("accepts an empty object", () => {
     expect(() => validateSlideData({})).not.toThrow();
   });
 
-  it('throws for null', () => {
-    expect(() => validateSlideData(null)).toThrow('Slide data must be an object');
+  it("throws for null", () => {
+    expect(() => validateSlideData(null)).toThrow("Slide data must be an object");
   });
 
-  it('throws for a non-object', () => {
-    expect(() => validateSlideData('nope')).toThrow('Slide data must be an object');
+  it("throws for a non-object", () => {
+    expect(() => validateSlideData("nope")).toThrow("Slide data must be an object");
   });
 
-  it('throws for an array', () => {
-    expect(() => validateSlideData(['nope'])).toThrow('Slide data must be an object');
+  it("throws for an array", () => {
+    expect(() => validateSlideData(["nope"])).toThrow("Slide data must be an object");
   });
 });

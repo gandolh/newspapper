@@ -6,26 +6,18 @@
  * the same code the renderer does.
  */
 
-import type { TNode } from '../../types.js';
-import type { WzdElement, WzdNode } from '../ast.js';
-import { WZD_RENDERABLE_NAMES } from '../catalogue.js';
-import { Heading, Image, Item, List, Quote, Stat, Text } from './content.js';
-import { Divider, Kicker, PageCounter, Source, Spacer } from './accents.js';
-import { Row, Slide, Stack } from './structure.js';
-import type { WzdComponentRenderer, WzdRenderContext } from './context.js';
+import type { TNode } from "../../types.js";
+import type { WzdElement, WzdNode } from "../ast.js";
+import { WZD_RENDERABLE_NAMES } from "../catalogue.js";
+import { Heading, Image, Item, List, Quote, Stat, Text } from "./content.js";
+import { Divider, Kicker, PageCounter, Source, Spacer } from "./accents.js";
+import { Row, Slide, Stack } from "./structure.js";
+import type { WzdComponentRenderer, WzdRenderContext } from "./context.js";
 
-export type { WzdComponentRenderer, WzdRenderContext } from './context.js';
-export {
-  alignOf,
-  contentOf,
-  emphasisOf,
-  enumProp,
-  escapeText,
-  resolveProps,
-  sizeOf,
-} from './context.js';
-export * from './style.js';
-export { imageUrl } from './content.js';
+export type { WzdComponentRenderer, WzdRenderContext } from "./context.js";
+export { alignOf, contentOf, emphasisOf, enumProp, escapeText, resolveProps, sizeOf } from "./context.js";
+export * from "./style.js";
+export { imageUrl } from "./content.js";
 
 /** Every renderable component, by name. Keys match `WZD_RENDERABLE_NAMES`. */
 export const WZD_RENDERERS: Readonly<Record<string, WzdComponentRenderer>> = Object.freeze({
@@ -50,9 +42,7 @@ export const WZD_RENDERERS: Readonly<Record<string, WzdComponentRenderer>> = Obj
 export const WZD_RENDERER_NAMES: readonly string[] = WZD_RENDERABLE_NAMES;
 
 export function getRenderer(name: string): WzdComponentRenderer | undefined {
-  return Object.prototype.hasOwnProperty.call(WZD_RENDERERS, name)
-    ? WZD_RENDERERS[name]
-    : undefined;
+  return Object.prototype.hasOwnProperty.call(WZD_RENDERERS, name) ? WZD_RENDERERS[name] : undefined;
 }
 
 /**
@@ -60,7 +50,7 @@ export function getRenderer(name: string): WzdComponentRenderer | undefined {
  * component produces nothing — the linter is what reports either.
  */
 export function renderComponent(node: WzdNode, ctx: WzdRenderContext): TNode | null {
-  if (node.kind !== 'element') return null;
+  if (node.kind !== "element") return null;
   const renderer = getRenderer(node.type);
   if (!renderer) return null;
   return renderer(node, ctx);
@@ -76,9 +66,7 @@ export function renderComponents(nodes: readonly WzdNode[], ctx: WzdRenderContex
 }
 
 /** A context with the dispatch wired in — what `compile` starts from. */
-export function baseContext(
-  init: Omit<WzdRenderContext, 'render' | 'renderChildren'>,
-): WzdRenderContext {
+export function baseContext(init: Omit<WzdRenderContext, "render" | "renderChildren">): WzdRenderContext {
   return { ...init, render: renderComponent, renderChildren: renderComponents };
 }
 

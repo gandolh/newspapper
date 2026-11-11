@@ -8,11 +8,11 @@
  * without measuring anything.
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { Button, EmptyState, Modal, Skeleton } from '../ui';
-import { api, ApiError } from '@/lib/api';
-import styles from './ImagePicker.module.css';
-import { withBase } from '@/lib/base';
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Button, EmptyState, Modal, Skeleton } from "../ui";
+import { api, ApiError } from "@/lib/api";
+import styles from "./ImagePicker.module.css";
+import { withBase } from "@/lib/base";
 
 /** An upload's thumbnail URL. `upload.url` is the server's origin-relative
  * `/uploads/<ref>`; the browser resolves it, so it needs the base. */
@@ -46,9 +46,9 @@ export default function ImagePicker({ open, onClose, onChoose }: ImagePickerProp
   const load = useCallback(async () => {
     try {
       setError(null);
-      setUploads(await api<UploadSummary[]>('/api/uploads?limit=200'));
+      setUploads(await api<UploadSummary[]>("/api/uploads?limit=200"));
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Could not list uploads.');
+      setError(err instanceof ApiError ? err.message : "Could not list uploads.");
       setUploads([]);
     }
   }, []);
@@ -68,12 +68,12 @@ export default function ImagePicker({ open, onClose, onChoose }: ImagePickerProp
     setError(null);
     try {
       const body = new FormData();
-      body.append('file', file);
-      const created = await api<UploadSummary>('/api/uploads', { method: 'POST', body });
+      body.append("file", file);
+      const created = await api<UploadSummary>("/api/uploads", { method: "POST", body });
       onChoose(created.src);
       onClose();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Upload failed.');
+      setError(err instanceof ApiError ? err.message : "Upload failed.");
     } finally {
       setBusy(false);
     }
@@ -95,7 +95,7 @@ export default function ImagePicker({ open, onClose, onChoose }: ImagePickerProp
           className={styles.file}
           onChange={(event) => {
             const file = event.target.files?.[0];
-            event.target.value = '';
+            event.target.value = "";
             if (file) void upload(file);
           }}
         />

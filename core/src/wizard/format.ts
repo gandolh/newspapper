@@ -7,8 +7,8 @@
  * from a single blank line between siblings, which it keeps.
  */
 
-import { type WzdDocument, type WzdElement, type WzdNode } from './ast.js';
-import { parse } from './parse.js';
+import { type WzdDocument, type WzdElement, type WzdNode } from "./ast.js";
+import { parse } from "./parse.js";
 
 export interface WzdFormatOptions {
   /** Spaces per indent level. Default 2. */
@@ -23,7 +23,7 @@ export const WZD_FORMAT_DEFAULTS: Required<WzdFormatOptions> = {
 };
 
 function quoteValue(value: string): string {
-  const collapsed = value.replace(/\s+/g, ' ').trim();
+  const collapsed = value.replace(/\s+/g, " ").trim();
   return collapsed.includes('"') ? `'${collapsed}'` : `"${collapsed}"`;
 }
 
@@ -32,7 +32,7 @@ function attributeParts(element: WzdElement): string[] {
 }
 
 function printableChildren(element: WzdElement): WzdNode[] {
-  return element.children.filter((child) => child.kind !== 'text' || child.value !== '');
+  return element.children.filter((child) => child.kind !== "text" || child.value !== "");
 }
 
 class Printer {
@@ -45,22 +45,22 @@ class Printer {
   }
 
   private pad(depth: number): string {
-    return ' '.repeat(depth * this.indentWidth);
+    return " ".repeat(depth * this.indentWidth);
   }
 
   nodes(list: WzdNode[], depth: number, blankBetweenAll: boolean): string[] {
     const out: string[] = [];
     list.forEach((node, index) => {
-      if (index > 0 && (blankBetweenAll || node.blankLineBefore)) out.push('');
+      if (index > 0 && (blankBetweenAll || node.blankLineBefore)) out.push("");
       out.push(...this.node(node, depth));
     });
     return out;
   }
 
   node(node: WzdNode, depth: number): string[] {
-    if (node.kind === 'text') return [`${this.pad(depth)}${node.value}`];
-    if (node.kind === 'comment') {
-      const body = node.value ? ` ${node.value} ` : ' ';
+    if (node.kind === "text") return [`${this.pad(depth)}${node.value}`];
+    if (node.kind === "comment") {
+      const body = node.value ? ` ${node.value} ` : " ";
       return [`${this.pad(depth)}<!--${body}-->`];
     }
     return this.element(node, depth);
@@ -69,7 +69,7 @@ class Printer {
   private element(element: WzdElement, depth: number): string[] {
     const indent = this.pad(depth);
     const attrs = attributeParts(element);
-    const inlineAttrs = attrs.length ? ` ${attrs.join(' ')}` : '';
+    const inlineAttrs = attrs.length ? ` ${attrs.join(" ")}` : "";
     const children = printableChildren(element);
 
     const openInline = `${indent}<${element.type}${inlineAttrs}`;
@@ -78,26 +78,17 @@ class Printer {
     if (!attrsFit) {
       const head = [`${indent}<${element.type}`, ...attrs.map((a) => `${this.pad(depth + 1)}${a}`)];
       if (!children.length) return [...head, `${indent}/>`];
-      return [
-        ...head,
-        `${indent}>`,
-        ...this.nodes(children, depth + 1, false),
-        `${indent}</${element.type}>`,
-      ];
+      return [...head, `${indent}>`, ...this.nodes(children, depth + 1, false), `${indent}</${element.type}>`];
     }
 
     if (!children.length) return [`${openInline} />`];
 
-    if (children.length === 1 && children[0].kind === 'text') {
+    if (children.length === 1 && children[0].kind === "text") {
       const oneLine = `${openInline}>${children[0].value}</${element.type}>`;
       if (oneLine.length <= this.printWidth) return [oneLine];
     }
 
-    return [
-      `${openInline}>`,
-      ...this.nodes(children, depth + 1, false),
-      `${indent}</${element.type}>`,
-    ];
+    return [`${openInline}>`, ...this.nodes(children, depth + 1, false), `${indent}</${element.type}>`];
   }
 }
 
@@ -105,8 +96,8 @@ class Printer {
 export function formatDocument(doc: WzdDocument, options: WzdFormatOptions = {}): string {
   const printer = new Printer(options);
   const lines = printer.nodes(doc.children, 0, true);
-  if (!lines.length) return '';
-  return `${lines.join('\n')}\n`;
+  if (!lines.length) return "";
+  return `${lines.join("\n")}\n`;
 }
 
 /**

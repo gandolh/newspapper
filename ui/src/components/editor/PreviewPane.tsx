@@ -6,19 +6,19 @@
  * local state is the measured scale and the drop-zone geometry.
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react';
-import type { WzdDocument } from '@newspapper/core/wizard';
-import type { TNode, Theme } from '@newspapper/core/templates';
-import { Button, CropMarks, EmptyState, Mark, RegisterTargets } from '../ui';
-import SlideCanvas from './preview/SlideCanvas.js';
-import type { NodeGestures } from './preview/TNodeView.js';
-import { slotsForSubtree, type SlotDescriptor } from './preview/slots.js';
-import { collectStyleProblems } from './preview/resolve.js';
-import { sourceOffsetOf } from './preview/compileTraced.js';
-import type { MeasuredZone } from './dragTypes.js';
-import { elementAtPath, slidePaths, type WzdPath } from './paths.js';
-import { compile } from '@/lib/motion';
-import styles from './PreviewPane.module.css';
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { WzdDocument } from "@newspapper/core/wizard";
+import type { TNode, Theme } from "@newspapper/core/templates";
+import { Button, CropMarks, EmptyState, Mark, RegisterTargets } from "../ui";
+import SlideCanvas from "./preview/SlideCanvas.js";
+import type { NodeGestures } from "./preview/TNodeView.js";
+import { slotsForSubtree, type SlotDescriptor } from "./preview/slots.js";
+import { collectStyleProblems } from "./preview/resolve.js";
+import { sourceOffsetOf } from "./preview/compileTraced.js";
+import type { MeasuredZone } from "./dragTypes.js";
+import { elementAtPath, slidePaths, type WzdPath } from "./paths.js";
+import { compile } from "@/lib/motion";
+import styles from "./PreviewPane.module.css";
 
 const MAX_SLIDE_PX = 560;
 const MIN_SLIDE_PX = 135;
@@ -32,8 +32,8 @@ function stampedOffsets(slides: readonly TNode[]): Set<number> {
   const visit = (node: TNode): void => {
     const at = sourceOffsetOf(node);
     if (at !== null) out.add(at);
-    if (node.kind === 'box') (node.children ?? []).forEach(visit);
-    if (node.kind === 'repeat') node.children.forEach(visit);
+    if (node.kind === "box") (node.children ?? []).forEach(visit);
+    if (node.kind === "repeat") node.children.forEach(visit);
   };
   slides.forEach(visit);
   return out;
@@ -91,10 +91,7 @@ export default function PreviewPane(props: PreviewPaneProps) {
 
   const paths = useMemo(() => (doc ? slidePaths(doc) : []), [doc]);
   const rendered = useMemo(() => stampedOffsets(slides), [slides]);
-  const problems = useMemo(
-    () => (theme ? collectStyleProblems(slides, theme) : []),
-    [slides, theme],
-  );
+  const problems = useMemo(() => (theme ? collectStyleProblems(slides, theme) : []), [slides, theme]);
 
   const selectedOffset = useMemo(() => {
     if (!doc || !selectedPath) return null;
@@ -125,7 +122,7 @@ export default function PreviewPane(props: PreviewPaneProps) {
         {stale && <Mark tone="ink">Last good set</Mark>}
         {problems.length > 0 && (
           <Mark tone="rubylith">
-            {problems.length} unthemed {problems.length === 1 ? 'node' : 'nodes'}
+            {problems.length} unthemed {problems.length === 1 ? "node" : "nodes"}
           </Mark>
         )}
         <Mark bare>1 : {Math.round(1 / scale)}</Mark>
@@ -143,8 +140,8 @@ export default function PreviewPane(props: PreviewPaneProps) {
 
       {problems.length > 0 && (
         <p className={styles.warning} role="alert">
-          The theme does not define every token these slides ask for. The marked nodes render
-          incompletely here, and the renderer will refuse them outright.
+          The theme does not define every token these slides ask for. The marked nodes render incompletely here, and the
+          renderer will refuse them outright.
           <span className={styles.warningDetail}>{problems[0].problems[0]}</span>
         </p>
       )}
@@ -167,7 +164,7 @@ export default function PreviewPane(props: PreviewPaneProps) {
         {theme &&
           slides.map((slide, i) => {
             const path = paths[i];
-            const key = path ? path.join('.') : `slide-${i}`;
+            const key = path ? path.join(".") : `slide-${i}`;
             return (
               <section className={styles.slide} key={key}>
                 <header className={styles.slideBar}>

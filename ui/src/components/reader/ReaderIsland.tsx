@@ -18,8 +18,8 @@
  * than as a flag an effect switches on — a list whose key is not the current
  * one is loading. The effects only ever set state when a request settles.
  */
-import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { api, sse } from '@/lib/api';
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { api, sse } from "@/lib/api";
 import type {
   ArticleSummary,
   Article,
@@ -28,24 +28,24 @@ import type {
   FeedItemSummary,
   ReaderCounts,
   Source,
-} from '@/lib/types';
-import { Button, ConfirmDialog, EmptyState, ToastProvider, useToast } from '../ui';
-import BackControl from './BackControl';
-import ItemList from './ItemList';
-import KeyLegend from './KeyLegend';
-import Rail, { type ReaderView, type RefreshState, type SourceProgress } from './Rail';
-import ReadingPane, { type NoteDraft } from './ReadingPane';
-import { attributedQuote, titleAndLink } from './format';
-import { useReaderKeys, type ReaderKeyAction } from './keys';
-import { markAllRead } from './markAllRead';
-import { adjustUnread, itemsPath, unreadIn, type Narrow, type ReaderScope } from './query';
-import LibraryPanel from './views/LibraryPanel';
-import SearchPanel from './views/SearchPanel';
-import SourcesPanel from './views/SourcesPanel';
-import styles from './ReaderIsland.module.css';
+} from "@/lib/types";
+import { Button, ConfirmDialog, EmptyState, ToastProvider, useToast } from "../ui";
+import BackControl from "./BackControl";
+import ItemList from "./ItemList";
+import KeyLegend from "./KeyLegend";
+import Rail, { type ReaderView, type RefreshState, type SourceProgress } from "./Rail";
+import ReadingPane, { type NoteDraft } from "./ReadingPane";
+import { attributedQuote, titleAndLink } from "./format";
+import { useReaderKeys, type ReaderKeyAction } from "./keys";
+import { markAllRead } from "./markAllRead";
+import { adjustUnread, itemsPath, unreadIn, type Narrow, type ReaderScope } from "./query";
+import LibraryPanel from "./views/LibraryPanel";
+import SearchPanel from "./views/SearchPanel";
+import SourcesPanel from "./views/SourcesPanel";
+import styles from "./ReaderIsland.module.css";
 
 /** Which pane shows below the narrow breakpoint. */
-type Stage = 'rail' | 'list' | 'article';
+type Stage = "rail" | "list" | "article";
 
 interface ListState {
   key: string;
@@ -59,10 +59,10 @@ interface ListState {
   loadedAt: number;
 }
 
-const FILTER_ID = 'reader-filter';
+const FILTER_ID = "reader-filter";
 const FILTER_DEBOUNCE_MS = 300;
 /** Mirrors the 1099px media query in ReaderIsland.module.css. */
-const NARROW_QUERY = '(max-width: 1099px)';
+const NARROW_QUERY = "(max-width: 1099px)";
 
 function selectionKey(scope: ReaderScope, narrow: Narrow, q: string): string {
   return JSON.stringify([scope, narrow, q]);
@@ -73,22 +73,22 @@ function messageOf(err: unknown): string {
 }
 
 function plural(n: number, word: string): string {
-  return `${n} ${word}${n === 1 ? '' : 's'}`;
+  return `${n} ${word}${n === 1 ? "" : "s"}`;
 }
 
 function atNarrow(): boolean {
-  return typeof window !== 'undefined' && !!window.matchMedia?.(NARROW_QUERY).matches;
+  return typeof window !== "undefined" && !!window.matchMedia?.(NARROW_QUERY).matches;
 }
 
 function ReaderPage() {
   const { addToast } = useToast();
 
-  const [view, setView] = useState<ReaderView>('read');
-  const [stage, setStage] = useState<Stage>('list');
-  const [scope, setScope] = useState<ReaderScope>('unread');
+  const [view, setView] = useState<ReaderView>("read");
+  const [stage, setStage] = useState<Stage>("list");
+  const [scope, setScope] = useState<ReaderScope>("unread");
   const [narrow, setNarrow] = useState<Narrow>(null);
-  const [filterInput, setFilterInput] = useState('');
-  const [q, setQ] = useState('');
+  const [filterInput, setFilterInput] = useState("");
+  const [q, setQ] = useState("");
 
   const [listEpoch, setListEpoch] = useState(0);
   const [list, setList] = useState<ListState | null>(null);
@@ -150,7 +150,7 @@ function ReaderPage() {
 
   useEffect(() => {
     let live = true;
-    Promise.all([api<Source[]>('/api/sources'), api<ReaderCounts>('/api/reader/counts')]).then(
+    Promise.all([api<Source[]>("/api/sources"), api<ReaderCounts>("/api/reader/counts")]).then(
       ([nextSources, nextCounts]) => {
         if (!live) return;
         setSources(nextSources);
@@ -181,35 +181,31 @@ function ReaderPage() {
   // ---- selection ----------------------------------------------------------
 
   function select(nextScope: ReaderScope | null, nextNarrow: Narrow) {
-    if (view !== 'read') setRailEpoch((e) => e + 1);
-    setView('read');
+    if (view !== "read") setRailEpoch((e) => e + 1);
+    setView("read");
     if (nextScope) setScope(nextScope);
     setNarrow(nextNarrow);
     setListEpoch((e) => e + 1);
-    setStage('list');
+    setStage("list");
     if (atNarrow()) window.scrollTo({ top: 0 });
   }
 
   function selectView(next: ReaderView) {
     setView(next);
-    setStage('list');
+    setStage("list");
     if (atNarrow()) window.scrollTo({ top: 0 });
   }
 
   function patchRow(id: number, patch: Partial<FeedItemSummary>) {
-    setList(
-      (l) => l && { ...l, items: l.items.map((r) => (r.id === id ? { ...r, ...patch } : r)) },
-    );
+    setList((l) => l && { ...l, items: l.items.map((r) => (r.id === id ? { ...r, ...patch } : r)) });
   }
 
-  async function setRead(target: Pick<FeedItemSummary, 'id' | 'sourceId' | 'read'>, read: boolean) {
+  async function setRead(target: Pick<FeedItemSummary, "id" | "sourceId" | "read">, read: boolean) {
     if (target.read === read) return;
-    await api(`/api/reader/items/${target.id}`, { method: 'PATCH', json: { read } });
+    await api(`/api/reader/items/${target.id}`, { method: "PATCH", json: { read } });
     const readAt = new Date().toISOString();
     patchRow(target.id, { read });
-    setItem((it) =>
-      it && it.id === target.id ? { ...it, read, readAt: read ? (it.readAt ?? readAt) : null } : it,
-    );
+    setItem((it) => (it && it.id === target.id ? { ...it, read, readAt: read ? (it.readAt ?? readAt) : null } : it));
     setCounts((c) => c && adjustUnread(c, target.sourceId, read ? -1 : 1));
   }
 
@@ -226,7 +222,7 @@ function ReaderPage() {
     setItem(null);
     setItemError(null);
     setNote(null);
-    setStage('article');
+    setStage("article");
     if (atNarrow()) window.scrollTo({ top: 0 });
 
     const marked: Promise<boolean> =
@@ -234,7 +230,7 @@ function ReaderPage() {
         ? setRead(row, true).then(
             () => true,
             (err: unknown) => {
-              addToast(messageOf(err), 'error');
+              addToast(messageOf(err), "error");
               return false;
             },
           )
@@ -278,12 +274,10 @@ function ReaderPage() {
         itemsPath({ scope: from.scope, narrow: from.narrow, q: from.q, cursor: from.nextCursor }),
       );
       setList((l) =>
-        l && l.key === from.key
-          ? { ...l, items: [...l.items, ...page.items], nextCursor: page.nextCursor }
-          : l,
+        l && l.key === from.key ? { ...l, items: [...l.items, ...page.items], nextCursor: page.nextCursor } : l,
       );
     } catch (err) {
-      addToast(messageOf(err), 'error');
+      addToast(messageOf(err), "error");
     } finally {
       setLoadingMore(false);
     }
@@ -294,7 +288,7 @@ function ReaderPage() {
     try {
       await setRead(shown, !shown.read);
     } catch (err) {
-      addToast(messageOf(err), 'error');
+      addToast(messageOf(err), "error");
     }
   }
 
@@ -305,31 +299,27 @@ function ReaderPage() {
   async function startSave() {
     if (!item) return;
     if (!item.saved || item.articleId === null) {
-      setNote({ mode: 'save', text: '', loading: false, busy: false });
+      setNote({ mode: "save", text: "", loading: false, busy: false });
       return;
     }
     const target = item;
     const seq = openSeq.current;
-    setNote({ mode: 'edit', text: '', loading: true, busy: false });
+    setNote({ mode: "edit", text: "", loading: true, busy: false });
     try {
-      const library = await api<ArticleSummary[]>(
-        `/api/articles?sourceId=${encodeURIComponent(target.sourceId)}`,
-      );
+      const library = await api<ArticleSummary[]>(`/api/articles?sourceId=${encodeURIComponent(target.sourceId)}`);
       if (seq !== openSeq.current) return;
       const article = library.find((a) => a.id === target.articleId);
       if (!article) {
         // Deleted from the library since the item loaded: saving is the way back.
-        setItem((it) =>
-          it && it.id === target.id ? { ...it, saved: false, articleId: null } : it,
-        );
+        setItem((it) => (it && it.id === target.id ? { ...it, saved: false, articleId: null } : it));
         patchRow(target.id, { saved: false });
-        setNote({ mode: 'save', text: '', loading: false, busy: false });
+        setNote({ mode: "save", text: "", loading: false, busy: false });
         return;
       }
-      setNote({ mode: 'edit', text: article.note, loading: false, busy: false });
+      setNote({ mode: "edit", text: article.note, loading: false, busy: false });
     } catch (err) {
       setNote(null);
-      addToast(messageOf(err), 'error');
+      addToast(messageOf(err), "error");
     }
   }
 
@@ -339,53 +329,51 @@ function ReaderPage() {
     const text = note.text.trim();
     setNote({ ...note, busy: true });
     try {
-      if (note.mode === 'save' || target.articleId === null) {
+      if (note.mode === "save" || target.articleId === null) {
         const article = await api<Article>(`/api/reader/items/${target.id}/save`, {
-          method: 'POST',
+          method: "POST",
           json: text ? { note: text } : {},
         });
         // Saving an item that is already saved returns it unchanged, note
         // included; a note typed now still has to land.
         if (text && article.note !== text) {
           await api<Article>(`/api/articles/${article.id}`, {
-            method: 'PATCH',
+            method: "PATCH",
             json: { note: text },
           });
         }
-        setItem((it) =>
-          it && it.id === target.id ? { ...it, saved: true, articleId: article.id } : it,
-        );
+        setItem((it) => (it && it.id === target.id ? { ...it, saved: true, articleId: article.id } : it));
         patchRow(target.id, { saved: true });
-        addToast(text ? 'Saved to library, with the note' : 'Saved to library', 'success');
+        addToast(text ? "Saved to library, with the note" : "Saved to library", "success");
       } else {
         await api<Article>(`/api/articles/${target.articleId}`, {
-          method: 'PATCH',
+          method: "PATCH",
           json: { note: text },
         });
-        addToast(text ? 'Note saved' : 'Note cleared', 'success');
+        addToast(text ? "Note saved" : "Note cleared", "success");
       }
       setNote(null);
     } catch (err) {
       setNote((n) => n && { ...n, busy: false });
-      addToast(messageOf(err), 'error');
+      addToast(messageOf(err), "error");
     }
   }
 
   async function copy(text: string, done: string) {
     try {
       await navigator.clipboard.writeText(text);
-      addToast(done, 'success');
+      addToast(done, "success");
     } catch {
-      addToast('The browser refused clipboard access', 'error');
+      addToast("The browser refused clipboard access", "error");
     }
   }
 
   function copyLink() {
-    if (shown) void copy(titleAndLink(shown.title, shown.url), 'Copied the title and link');
+    if (shown) void copy(titleAndLink(shown.title, shown.url), "Copied the title and link");
   }
 
   function copyQuote(passage: string) {
-    if (shown && passage) void copy(attributedQuote(passage, shown), 'Copied the quote');
+    if (shown && passage) void copy(attributedQuote(passage, shown), "Copied the quote");
   }
 
   // ---- refresh ------------------------------------------------------------
@@ -403,12 +391,12 @@ function ReaderPage() {
 
     try {
       await sse(
-        '/api/reader/refresh',
+        "/api/reader/refresh",
         {},
         {
           signal: controller.signal,
           onEvent: (event, data) => {
-            if (event === 'progress') {
+            if (event === "progress") {
               const p = data as SourceProgress & { sourceId: string };
               setRefresh(
                 (r) =>
@@ -420,10 +408,10 @@ function ReaderPage() {
                     },
                   },
               );
-            } else if (event === 'done') {
+            } else if (event === "done") {
               outcome.done = data as NonNullable<typeof outcome.done>;
-            } else if (event === 'error') {
-              outcome.failure = (data as { message?: string } | null)?.message ?? 'Refresh failed';
+            } else if (event === "error") {
+              outcome.failure = (data as { message?: string } | null)?.message ?? "Refresh failed";
             }
           },
         },
@@ -439,14 +427,14 @@ function ReaderPage() {
     setRailEpoch((e) => e + 1);
     setListEpoch((e) => e + 1);
     if (outcome.failure) {
-      addToast(outcome.failure, 'error');
+      addToast(outcome.failure, "error");
     } else if (outcome.done) {
       const { newCount, errors } = outcome.done;
       addToast(
         errors.length
-          ? `${plural(newCount, 'new item')} · ${plural(errors.length, 'feed')} failed`
-          : `${plural(newCount, 'new item')}`,
-        errors.length ? 'error' : 'success',
+          ? `${plural(newCount, "new item")} · ${plural(errors.length, "feed")} failed`
+          : `${plural(newCount, "new item")}`,
+        errors.length ? "error" : "success",
       );
     }
   }
@@ -465,9 +453,7 @@ function ReaderPage() {
     const from = list;
     setMarking(true);
     try {
-      const result = await markAllRead(from.items, from.q, from.narrow, (path, init) =>
-        api(path, init),
-      );
+      const result = await markAllRead(from.items, from.q, from.narrow, (path, init) => api(path, init));
       setList((l) =>
         l && l.key === from.key
           ? { ...l, items: l.items.map((r) => (result.isNowRead(r) ? { ...r, read: true } : r)) }
@@ -475,9 +461,9 @@ function ReaderPage() {
       );
       setItem((it) => (it && result.isNowRead(it) ? { ...it, read: true } : it));
       setConfirmMarkAll(false);
-      addToast(`Marked ${plural(result.marked, 'item')} read`, 'success');
+      addToast(`Marked ${plural(result.marked, "item")} read`, "success");
     } catch (err) {
-      addToast(messageOf(err), 'error');
+      addToast(messageOf(err), "error");
       setListEpoch((e) => e + 1);
     } finally {
       setMarking(false);
@@ -488,53 +474,52 @@ function ReaderPage() {
   // ---- keys ---------------------------------------------------------------
 
   function focusFilter() {
-    setStage('list');
+    setStage("list");
     window.requestAnimationFrame(() => document.getElementById(FILTER_ID)?.focus());
   }
 
   function onKey(action: ReaderKeyAction, event: KeyboardEvent) {
     event.preventDefault();
     switch (action) {
-      case 'next':
+      case "next":
         return step(1);
-      case 'previous':
+      case "previous":
         return step(-1);
-      case 'toggleRead':
+      case "toggleRead":
         return void toggleRead();
-      case 'save':
+      case "save":
         return void startSave();
-      case 'openOriginal':
-        if (shown) window.open(shown.url, '_blank', 'noopener,noreferrer');
+      case "openOriginal":
+        if (shown) window.open(shown.url, "_blank", "noopener,noreferrer");
         return;
-      case 'copyLink':
+      case "copyLink":
         return copyLink();
-      case 'refresh':
+      case "refresh":
         return void runRefresh();
-      case 'focusFilter':
+      case "focusFilter":
         return focusFilter();
-      case 'markAllRead':
+      case "markAllRead":
         if (canMarkAllRead) setConfirmMarkAll(true);
         return;
-      case 'legend':
+      case "legend":
         setLegendOpen(true);
         return;
     }
   }
 
-  useReaderKeys(view === 'read' && !legendOpen && !confirmMarkAll, onKey);
+  useReaderKeys(view === "read" && !legendOpen && !confirmMarkAll, onKey);
 
   // ---- render -------------------------------------------------------------
 
-  const narrowedSource =
-    narrow?.kind === 'source' ? (sources?.find((s) => s.id === narrow.sourceId) ?? null) : null;
+  const narrowedSource = narrow?.kind === "source" ? (sources?.find((s) => s.id === narrow.sourceId) ?? null) : null;
   const heading =
     narrow === null
-      ? scope === 'unread'
-        ? 'Unread'
-        : 'All items'
-      : narrow.kind === 'source'
+      ? scope === "unread"
+        ? "Unread"
+        : "All items"
+      : narrow.kind === "source"
         ? (narrowedSource?.name ?? narrow.sourceId)
-        : (narrow.category ?? 'Uncategorized');
+        : (narrow.category ?? "Uncategorized");
 
   function emptyList(): ReactNode {
     if (list?.q) {
@@ -542,18 +527,18 @@ function ReaderPage() {
         <EmptyState
           icon="⌕"
           title="Nothing matches"
-          hint={`No ${scope === 'unread' ? 'unread ' : ''}item in ${heading} has “${list.q}” in its title or text. Comma-separated terms: any one matches.`}
+          hint={`No ${scope === "unread" ? "unread " : ""}item in ${heading} has “${list.q}” in its title or text. Comma-separated terms: any one matches.`}
         />
       );
     }
-    if (scope === 'unread') {
+    if (scope === "unread") {
       return (
         <EmptyState
           icon="✓"
           title="All caught up"
           hint={`Nothing unread in ${heading}.`}
           action={
-            <Button size="sm" variant="secondary" onClick={() => select('all', narrow)}>
+            <Button size="sm" variant="secondary" onClick={() => select("all", narrow)}>
               Show all
             </Button>
           }
@@ -575,9 +560,7 @@ function ReaderPage() {
   }
 
   const noSources = sources !== null && sources.length === 0;
-  const viewLabel = { read: 'Reader', search: 'Search', library: 'Library', sources: 'Sources' }[
-    view
-  ];
+  const viewLabel = { read: "Reader", search: "Search", library: "Library", sources: "Sources" }[view];
 
   return (
     <div className={styles.reader} data-stage={stage}>
@@ -598,21 +581,21 @@ function ReaderPage() {
         />
       </aside>
 
-      {view !== 'read' ? (
+      {view !== "read" ? (
         <section className={styles.view} aria-label={viewLabel}>
-          <BackControl label="Feeds" onClick={() => setStage('rail')} />
-          {view === 'search' && <SearchPanel />}
-          {view === 'library' && <LibraryPanel />}
-          {view === 'sources' && <SourcesPanel />}
+          <BackControl label="Feeds" onClick={() => setStage("rail")} />
+          {view === "search" && <SearchPanel />}
+          {view === "library" && <LibraryPanel />}
+          {view === "sources" && <SourcesPanel />}
         </section>
       ) : noSources ? (
         <section className={styles.view} aria-label="No feeds">
-          <BackControl label="Feeds" onClick={() => setStage('rail')} />
+          <BackControl label="Feeds" onClick={() => setStage("rail")} />
           <EmptyState
             icon="⊕"
             title="No feeds yet"
             hint="The Reader stores what your RSS feeds publish. Add one under Sources, then Refresh."
-            action={<Button onClick={() => selectView('sources')}>Add a source</Button>}
+            action={<Button onClick={() => selectView("sources")}>Add a source</Button>}
           />
         </section>
       ) : (
@@ -639,7 +622,7 @@ function ReaderPage() {
               onMarkAllRead={() => setConfirmMarkAll(true)}
               failing={narrowedSource?.lastError ? narrowedSource : null}
               empty={emptyList()}
-              onBack={() => setStage('rail')}
+              onBack={() => setStage("rail")}
             />
           </section>
           <section className={styles.pane} aria-label="Reading pane">
@@ -656,7 +639,7 @@ function ReaderPage() {
               onCopyLink={copyLink}
               onCopyQuote={copyQuote}
               onRetry={() => selectedId !== null && void openItem(selectedId)}
-              onBack={() => setStage('list')}
+              onBack={() => setStage("list")}
             />
           </section>
         </>
@@ -669,7 +652,7 @@ function ReaderPage() {
         title="Mark all read?"
         message={
           filterActive
-            ? `Mark the ${plural(rows.filter((r) => !r.read).length, 'loaded item')} matching “${list?.q}” as read? Items the filter hid stay as they are.`
+            ? `Mark the ${plural(rows.filter((r) => !r.read).length, "loaded item")} matching “${list?.q}” as read? Items the filter hid stay as they are.`
             : `Mark everything unread in ${heading}, up to the newest item loaded, as read? Items that arrive after this list loaded stay unread.`
         }
         confirmLabel="Mark read"

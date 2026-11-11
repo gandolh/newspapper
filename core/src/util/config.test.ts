@@ -1,8 +1,8 @@
-import { describe, expect, it } from 'vitest';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { describe, expect, it } from "vitest";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 /**
  * Guards the one thing `./config.ts` does: load `.env` into `process.env`.
@@ -16,23 +16,23 @@ import { fileURLToPath } from 'node:url';
  * The module exports nothing, so (2) is a bare side-effect import that reads as
  * deletable. This is the test that makes deleting it loud.
  */
-describe('.env loading', () => {
-  it('populates process.env from a .env in the working directory', async () => {
-    const dir = mkdtempSync(join(tmpdir(), 'newspapper-dotenv-'));
+describe(".env loading", () => {
+  it("populates process.env from a .env in the working directory", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "newspapper-dotenv-"));
     const cwd = process.cwd();
-    const probe = 'NEWSPAPPER_DOTENV_PROBE';
+    const probe = "NEWSPAPPER_DOTENV_PROBE";
     delete process.env[probe];
 
     try {
-      writeFileSync(join(dir, '.env'), `${probe}=loaded\n`);
+      writeFileSync(join(dir, ".env"), `${probe}=loaded\n`);
       process.chdir(dir);
 
       // Dynamic, and this file imports ./config.js nowhere else — vitest gives
       // each test file its own module registry, so this evaluation is the first
       // and dotenv actually runs against the cwd set above.
-      await import('./config.js');
+      await import("./config.js");
 
-      expect(process.env[probe]).toBe('loaded');
+      expect(process.env[probe]).toBe("loaded");
     } finally {
       process.chdir(cwd);
       delete process.env[probe];
@@ -40,8 +40,8 @@ describe('.env loading', () => {
     }
   });
 
-  it('is imported by the core barrel, which is how the api gets it', () => {
-    const barrel = readFileSync(fileURLToPath(new URL('../index.ts', import.meta.url)), 'utf8');
+  it("is imported by the core barrel, which is how the api gets it", () => {
+    const barrel = readFileSync(fileURLToPath(new URL("../index.ts", import.meta.url)), "utf8");
     expect(barrel).toMatch(/^import '\.\/util\/config\.js';$/m);
   });
 });

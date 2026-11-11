@@ -1,6 +1,6 @@
-import { Switch } from '@base-ui/react/switch';
-import { HATCH } from './Marks';
-import styles from './Toggle.module.css';
+import { Switch } from "@base-ui/react/switch";
+import { HATCH } from "./Marks";
+import styles from "./Toggle.module.css";
 
 export interface ToggleProps {
   checked?: boolean;
@@ -12,7 +12,7 @@ export interface ToggleProps {
   id?: string;
   name?: string;
   className?: string;
-  'aria-label'?: string;
+  "aria-label"?: string;
 }
 
 /**
@@ -28,18 +28,18 @@ export default function Toggle({
   hint,
   id,
   name,
-  className = '',
-  'aria-label': ariaLabel,
+  className = "",
+  "aria-label": ariaLabel,
 }: ToggleProps) {
-  const toggleId = id ?? label?.toLowerCase().replace(/\s+/g, '-');
+  const toggleId = id ?? label?.toLowerCase().replace(/\s+/g, "-");
   const labelId = toggleId ? `${toggleId}-label` : undefined;
 
   return (
-    <div className={[styles.field, className].filter(Boolean).join(' ')}>
+    <div className={[styles.field, className].filter(Boolean).join(" ")}>
       <div className={styles.toggle}>
         <Switch.Root
           id={toggleId}
-          className={[styles.track, disabled ? HATCH : ''].filter(Boolean).join(' ')}
+          className={[styles.track, disabled ? HATCH : ""].filter(Boolean).join(" ")}
           checked={checked}
           defaultChecked={defaultChecked}
           onCheckedChange={(c) => onCheckedChange?.(c)}

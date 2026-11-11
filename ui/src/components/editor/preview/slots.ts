@@ -9,13 +9,8 @@
  * will accept what is being dragged.
  */
 
-import {
-  getComponentSpec,
-  isElement,
-  type WzdDocument,
-  type WzdElement,
-} from '@newspapper/core/wizard';
-import { elementAtPath, type WzdPath } from '../paths.js';
+import { getComponentSpec, isElement, type WzdDocument, type WzdElement } from "@newspapper/core/wizard";
+import { elementAtPath, type WzdPath } from "../paths.js";
 
 export interface SlotDescriptor {
   /** The container the node lands in. */
@@ -26,7 +21,7 @@ export interface SlotDescriptor {
   containerOffset: number;
   /** The rendered child this slot is measured against; null for an empty container. */
   childOffset: number | null;
-  side: 'before' | 'after' | 'inside';
+  side: "before" | "after" | "inside";
   /** Nesting depth, so a slot inside a nested container wins the overlap. */
   depth: number;
 }
@@ -36,7 +31,7 @@ export function canContain(containerType: string, childType: string): boolean {
   const container = getComponentSpec(containerType);
   const child = getComponentSpec(childType);
   if (!container || !child) return false;
-  if (container.children !== 'elements') return false;
+  if (container.children !== "elements") return false;
   if (container.allowedChildren && !container.allowedChildren.includes(childType)) return false;
   if (child.requiredParent && !child.requiredParent.includes(containerType)) return false;
   return true;
@@ -44,7 +39,7 @@ export function canContain(containerType: string, childType: string): boolean {
 
 function isContainer(el: WzdElement): boolean {
   const spec = getComponentSpec(el.type);
-  return spec?.role === 'component' && spec.children === 'elements';
+  return spec?.role === "component" && spec.children === "elements";
 }
 
 /**
@@ -76,7 +71,7 @@ export function slotsForSubtree(
             index: el.children.length,
             containerOffset: el.loc.start.offset,
             childOffset: null,
-            side: 'inside',
+            side: "inside",
             depth,
           });
         } else {
@@ -87,7 +82,7 @@ export function slotsForSubtree(
               index: entry.index,
               containerOffset: el.loc.start.offset,
               childOffset,
-              side: 'before',
+              side: "before",
               depth,
             });
             out.push({
@@ -95,7 +90,7 @@ export function slotsForSubtree(
               index: entry.index + 1,
               containerOffset: el.loc.start.offset,
               childOffset,
-              side: 'after',
+              side: "after",
               depth,
             });
           }

@@ -35,10 +35,10 @@
  * same place. Exported for the tests — application code wants `BASE`.
  */
 export function normalizeBase(raw: string | undefined): string {
-  const trimmed = (raw ?? '').trim();
-  if (trimmed === '' || trimmed === '/') return '/';
-  const withLeading = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
-  return withLeading.endsWith('/') ? withLeading : `${withLeading}/`;
+  const trimmed = (raw ?? "").trim();
+  if (trimmed === "" || trimmed === "/") return "/";
+  const withLeading = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
+  return withLeading.endsWith("/") ? withLeading : `${withLeading}/`;
 }
 
 /**
@@ -51,7 +51,7 @@ export function normalizeBase(raw: string | undefined): string {
  */
 export function joinBase(base: string, path: string): string {
   const prefix = normalizeBase(base).slice(0, -1);
-  const absolute = path.startsWith('/') ? path : `/${path}`;
+  const absolute = path.startsWith("/") ? path : `/${path}`;
   return `${prefix}${absolute}`;
 }
 
@@ -69,9 +69,9 @@ export function joinBase(base: string, path: string): string {
 export function stripPrefix(base: string, pathname: string): string {
   const normalized = normalizeBase(base);
   const prefix = normalized.slice(0, -1);
-  if (prefix === '') return pathname === '' ? '/' : pathname;
-  if (pathname === prefix) return '/';
-  if (pathname.startsWith(normalized)) return pathname.slice(prefix.length) || '/';
+  if (prefix === "") return pathname === "" ? "/" : pathname;
+  if (pathname === prefix) return "/";
+  if (pathname.startsWith(normalized)) return pathname.slice(prefix.length) || "/";
   return pathname;
 }
 
@@ -101,14 +101,14 @@ export function stripBase(pathname: string): string {
  * bounce a signed-in person back to the form they just left.
  */
 export function safeNext(base: string, raw: string | null | undefined): string {
-  if (!raw || !raw.startsWith('/') || raw.startsWith('//') || raw.includes('\\')) return '/';
+  if (!raw || !raw.startsWith("/") || raw.startsWith("//") || raw.includes("\\")) return "/";
   const path = stripPrefix(base, raw);
-  if (normalizeBase(base) !== '/' && path === raw) return '/';
-  if (path === '/login' || path.startsWith('/login?') || path.startsWith('/login/')) return '/';
+  if (normalizeBase(base) !== "/" && path === raw) return "/";
+  if (path === "/login" || path.startsWith("/login?") || path.startsWith("/login/")) return "/";
   return path;
 }
 
 /** `safeNext` against the base this bundle was built with. */
 export function nextFromSearch(search: string): string {
-  return safeNext(BASE, new URLSearchParams(search).get('next'));
+  return safeNext(BASE, new URLSearchParams(search).get("next"));
 }

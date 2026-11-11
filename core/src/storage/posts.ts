@@ -1,6 +1,6 @@
-import type { DB } from './db.js';
-import type { Post, PostPayload, PostRow, PostStatus, PostSummary } from '../types.js';
-import { keywordsForPost, keywordsForPosts, setPostKeywords } from './keywords.js';
+import type { DB } from "./db.js";
+import type { Post, PostPayload, PostRow, PostStatus, PostSummary } from "../types.js";
+import { keywordsForPost, keywordsForPosts, setPostKeywords } from "./keywords.js";
 
 interface PostDbRow {
   id: number;
@@ -34,13 +34,13 @@ export interface PostFilter {
   offset?: number;
 }
 
-const DEFAULT_THEME = 'warm-industrial-1';
+const DEFAULT_THEME = "warm-industrial-1";
 
 function rowToPost(db: DB, r: PostDbRow, keywords?: string[]): Post {
   return { ...rowToSummary(r, keywords ?? keywordsForPost(db, r.id)), markup: r.markup };
 }
 
-function rowToSummary(r: Omit<PostDbRow, 'markup'>, keywords: string[]): PostSummary {
+function rowToSummary(r: Omit<PostDbRow, "markup">, keywords: string[]): PostSummary {
   return {
     id: r.id,
     title: r.title,
@@ -64,7 +64,7 @@ export function createPost(db: DB, input: PostInput): Post {
   const create = db.transaction((): number => {
     const r = insert.run({
       title: input.title,
-      description: input.description ?? '',
+      description: input.description ?? "",
       markup: input.markup,
       theme: input.theme ?? DEFAULT_THEME,
       created_at: now,
@@ -79,14 +79,14 @@ export function createPost(db: DB, input: PostInput): Post {
 }
 
 export function findPost(db: DB, id: number): Post | undefined {
-  const row = db.prepare('SELECT * FROM posts WHERE id = ?').get(id) as PostDbRow | undefined;
+  const row = db.prepare("SELECT * FROM posts WHERE id = ?").get(id) as PostDbRow | undefined;
   if (!row) return undefined;
   return rowToPost(db, row);
 }
 
 /** Posts newest-updated first, optionally narrowed by status, keyword, or text. */
 export function queryPosts(db: DB, filter: PostFilter = {}): Post[] {
-  const rows = selectPostRows(db, filter, 'p.*') as PostDbRow[];
+  const rows = selectPostRows(db, filter, "p.*") as PostDbRow[];
   const keywords = keywordsForPosts(
     db,
     rows.map((r) => r.id),
@@ -103,8 +103,8 @@ export function queryPostSummaries(db: DB, filter: PostFilter = {}): PostSummary
   const rows = selectPostRows(
     db,
     filter,
-    'p.id, p.title, p.description, p.theme, p.status, p.created_at, p.updated_at, p.published_at',
-  ) as Omit<PostDbRow, 'markup'>[];
+    "p.id, p.title, p.description, p.theme, p.status, p.created_at, p.updated_at, p.published_at",
+  ) as Omit<PostDbRow, "markup">[];
   const keywords = keywordsForPosts(
     db,
     rows.map((r) => r.id),
@@ -117,8 +117,8 @@ function selectPostRows(db: DB, filter: PostFilter, columns: string): unknown[] 
   const params: Record<string, unknown> = {};
 
   if (filter.status) {
-    where.push('p.status = @status');
-    params['status'] = filter.status;
+    where.push("p.status = @status");
+    params["status"] = filter.status;
   }
   if (filter.keyword) {
     where.push(`p.id IN (
@@ -126,20 +126,20 @@ function selectPostRows(db: DB, filter: PostFilter, columns: string): unknown[] 
       JOIN keywords k ON k.id = pk.keyword_id
       WHERE k.name = @keyword
     )`);
-    params['keyword'] = filter.keyword;
+    params["keyword"] = filter.keyword;
   }
   if (filter.search) {
-    where.push('(p.title LIKE @search OR p.description LIKE @search OR p.markup LIKE @search)');
-    params['search'] = `%${filter.search}%`;
+    where.push("(p.title LIKE @search OR p.description LIKE @search OR p.markup LIKE @search)");
+    params["search"] = `%${filter.search}%`;
   }
 
-  params['limit'] = filter.limit ?? 100;
-  params['offset'] = filter.offset ?? 0;
+  params["limit"] = filter.limit ?? 100;
+  params["offset"] = filter.offset ?? 0;
 
   return db
     .prepare(
       `SELECT ${columns} FROM posts p
-       ${where.length ? `WHERE ${where.join(' AND ')}` : ''}
+       ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
        ORDER BY p.updated_at DESC, p.id DESC
        LIMIT @limit OFFSET @offset`,
     )
@@ -160,7 +160,7 @@ export function updatePost(db: DB, id: number, input: PostInput): Post | undefin
     const r = update.run({
       id,
       title: input.title,
-      description: input.description ?? '',
+      description: input.description ?? "",
       markup: input.markup,
       theme: input.theme ?? DEFAULT_THEME,
       updated_at: now,
@@ -197,14 +197,14 @@ export function setPostStatus(db: DB, id: number, status: PostStatus): Post | un
 export function removePost(db: DB, id: number): Post | undefined {
   const existing = findPost(db, id);
   if (!existing) return undefined;
-  db.prepare('DELETE FROM posts WHERE id = ?').run(id);
+  db.prepare("DELETE FROM posts WHERE id = ?").run(id);
   return existing;
 }
 
 export function countPosts(db: DB, status?: PostStatus): number {
   const row = status
-    ? (db.prepare('SELECT COUNT(*) AS n FROM posts WHERE status = ?').get(status) as { n: number })
-    : (db.prepare('SELECT COUNT(*) AS n FROM posts').get() as { n: number });
+    ? (db.prepare("SELECT COUNT(*) AS n FROM posts WHERE status = ?").get(status) as { n: number })
+    : (db.prepare("SELECT COUNT(*) AS n FROM posts").get() as { n: number });
   return row.n;
 }
 
@@ -230,15 +230,11 @@ export function deletePost(_db: DB, _id: number): PostRow | undefined {
 }
 
 /** @deprecated Payload posts no longer exist. Use updatePost with `.wzd` markup. */
-export function updatePostPayload(
-  _db: DB,
-  _id: number,
-  _payload: PostPayload,
-): PostRow | undefined {
-  throw new Error('posts.payload was removed in schema v3 — use updatePost with .wzd markup');
+export function updatePostPayload(_db: DB, _id: number, _payload: PostPayload): PostRow | undefined {
+  throw new Error("posts.payload was removed in schema v3 — use updatePost with .wzd markup");
 }
 
 /** @deprecated Renders are recorded in the `renders` table. Use recordRender. */
 export function markRendered(_db: DB, _id: number, _outputDir: string): PostRow | undefined {
-  throw new Error('posts.output_dir was removed in schema v3 — use recordRender');
+  throw new Error("posts.output_dir was removed in schema v3 — use recordRender");
 }

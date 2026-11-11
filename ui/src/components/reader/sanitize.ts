@@ -31,66 +31,66 @@
  *    module never calls it there: `sanitizeItemHtml` returns `null`, and the
  *    caller renders `contentText` as text instead.
  */
-import createDOMPurify, { type DOMPurify, type WindowLike } from 'dompurify';
+import createDOMPurify, { type DOMPurify, type WindowLike } from "dompurify";
 
 /** Every tag that may survive. Anything else is removed, its text kept. */
 export const ALLOWED_TAGS: readonly string[] = [
   // Paragraphs and breaks
-  'p',
-  'br',
-  'hr',
+  "p",
+  "br",
+  "hr",
   // Text formatting
-  'b',
-  'strong',
-  'i',
-  'em',
-  'u',
-  's',
-  'del',
-  'ins',
-  'mark',
-  'small',
-  'sub',
-  'sup',
-  'cite',
-  'q',
-  'abbr',
+  "b",
+  "strong",
+  "i",
+  "em",
+  "u",
+  "s",
+  "del",
+  "ins",
+  "mark",
+  "small",
+  "sub",
+  "sup",
+  "cite",
+  "q",
+  "abbr",
   // Headings
-  'h1',
-  'h2',
-  'h3',
-  'h4',
-  'h5',
-  'h6',
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "h5",
+  "h6",
   // Lists
-  'ul',
-  'ol',
-  'li',
-  'dl',
-  'dt',
-  'dd',
+  "ul",
+  "ol",
+  "li",
+  "dl",
+  "dt",
+  "dd",
   // Quotation and code
-  'blockquote',
-  'pre',
-  'code',
-  'kbd',
-  'samp',
+  "blockquote",
+  "pre",
+  "code",
+  "kbd",
+  "samp",
   // Figures
-  'figure',
-  'figcaption',
-  'img',
+  "figure",
+  "figcaption",
+  "img",
   // Links
-  'a',
+  "a",
 ];
 
 /** Which attribute each tag may keep. A tag absent here keeps none. */
 const ATTRIBUTES_BY_TAG: Readonly<Record<string, readonly string[]>> = {
-  a: ['href'],
-  img: ['src', 'alt'],
+  a: ["href"],
+  img: ["src", "alt"],
 };
 
 /** The attributes whose value is a URL; each must be absolute http(s). */
-const URL_ATTRIBUTES = new Set(['href', 'src']);
+const URL_ATTRIBUTES = new Set(["href", "src"]);
 
 const HTTP_URL = /^https?:\/\//i;
 
@@ -102,12 +102,12 @@ const HTTP_URL = /^https?:\/\//i;
  */
 export function safeHttpUrl(raw: string): string | null {
   const value = raw.trim();
-  const absolute = value.startsWith('//') ? `https:${value}` : value;
+  const absolute = value.startsWith("//") ? `https:${value}` : value;
   return HTTP_URL.test(absolute) ? absolute : null;
 }
 
 function configure(purify: DOMPurify): DOMPurify {
-  purify.addHook('uponSanitizeAttribute', (node, event) => {
+  purify.addHook("uponSanitizeAttribute", (node, event) => {
     const allowed = ATTRIBUTES_BY_TAG[node.nodeName.toLowerCase()] ?? [];
     if (!allowed.includes(event.attrName)) {
       event.keepAttr = false;
@@ -123,25 +123,25 @@ function configure(purify: DOMPurify): DOMPurify {
   // Forced attributes go on after validation, so they are the app's values
   // and never the feed's. A link with no surviving href is inert text and
   // gets nothing; an image with no surviving src is removed outright.
-  purify.addHook('afterSanitizeAttributes', (node) => {
+  purify.addHook("afterSanitizeAttributes", (node) => {
     const tag = node.nodeName.toLowerCase();
-    if (tag === 'a') {
-      const href = node.getAttribute('href');
+    if (tag === "a") {
+      const href = node.getAttribute("href");
       if (href === null) return;
       if (safeHttpUrl(href) === null) {
-        node.removeAttribute('href');
+        node.removeAttribute("href");
         return;
       }
-      node.setAttribute('target', '_blank');
-      node.setAttribute('rel', 'noopener noreferrer');
-    } else if (tag === 'img') {
-      const src = node.getAttribute('src');
+      node.setAttribute("target", "_blank");
+      node.setAttribute("rel", "noopener noreferrer");
+    } else if (tag === "img") {
+      const src = node.getAttribute("src");
       if (src === null || safeHttpUrl(src) === null) {
         node.remove();
         return;
       }
-      node.setAttribute('loading', 'lazy');
-      node.setAttribute('referrerpolicy', 'no-referrer');
+      node.setAttribute("loading", "lazy");
+      node.setAttribute("referrerpolicy", "no-referrer");
     }
   });
 
@@ -150,7 +150,7 @@ function configure(purify: DOMPurify): DOMPurify {
 
 const CONFIG = {
   ALLOWED_TAGS: [...ALLOWED_TAGS],
-  ALLOWED_ATTR: ['href', 'src', 'alt'],
+  ALLOWED_ATTR: ["href", "src", "alt"],
   ALLOWED_URI_REGEXP: HTTP_URL,
   ALLOW_DATA_ATTR: false,
   ALLOW_ARIA_ATTR: false,
@@ -187,7 +187,7 @@ let shared: ReturnType<typeof createItemSanitizer> | null = null;
  * DOMPurify would have handed back.
  */
 export function sanitizeItemHtml(html: string): string | null {
-  shared ??= createItemSanitizer(typeof window === 'undefined' ? undefined : window);
+  shared ??= createItemSanitizer(typeof window === "undefined" ? undefined : window);
   return shared.sanitize(html);
 }
 
@@ -195,6 +195,6 @@ export function sanitizeItemHtml(html: string): string | null {
 export function textParagraphs(text: string): string[] {
   return text
     .split(/\n\s*\n|\r\n\s*\r\n/)
-    .map((p) => p.replace(/\s+/g, ' ').trim())
+    .map((p) => p.replace(/\s+/g, " ").trim())
     .filter(Boolean);
 }

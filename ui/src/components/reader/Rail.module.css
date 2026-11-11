@@ -23,7 +23,7 @@
   font-family: var(--font-chrome);
   font-size: var(--fs-board-title);
   font-weight: 800;
-  font-variation-settings: 'wdth' var(--wdth-title);
+  font-variation-settings: "wdth" var(--wdth-title);
   letter-spacing: var(--ls-board-title);
   line-height: var(--sp-unit);
 }
@@ -65,7 +65,7 @@
   background: rgba(43, 43, 43, 0.05);
 }
 
-.item[aria-current='true'] {
+.item[aria-current="true"] {
   position: relative;
   z-index: 1;
   background: var(--paper);
@@ -102,7 +102,7 @@
   border-bottom: 1px solid var(--rule);
 }
 
-.category[aria-current='true'] {
+.category[aria-current="true"] {
   color: var(--graphite);
 }
 

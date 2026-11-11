@@ -19,13 +19,13 @@
  */
 
 /** Prefixes the guard covers. Everything else (the UI, fonts) is public. */
-export const GUARDED_PREFIXES = ['/api/', '/output/', '/uploads/'] as const;
+export const GUARDED_PREFIXES = ["/api/", "/output/", "/uploads/"] as const;
 
 /** Paths reachable without a session, besides the plugin's own routes. */
-export const PUBLIC_PATHS: ReadonlySet<string> = new Set(['/api/health']);
+export const PUBLIC_PATHS: ReadonlySet<string> = new Set(["/api/health"]);
 
 export function pathOf(url: string): string {
-  return url.split('?')[0] ?? '';
+  return url.split("?")[0] ?? "";
 }
 
 export function isGuardedPath(url: string): boolean {

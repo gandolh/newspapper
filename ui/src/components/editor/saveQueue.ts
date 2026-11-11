@@ -41,10 +41,7 @@ export interface SaveQueue {
   readonly saving: boolean;
 }
 
-export function createSaveQueue(
-  options: SaveQueueOptions,
-  initialId: number | null = null,
-): SaveQueue {
+export function createSaveQueue(options: SaveQueueOptions, initialId: number | null = null): SaveQueue {
   let id = initialId;
   let inFlight: Promise<void> | null = null;
   let again = false;

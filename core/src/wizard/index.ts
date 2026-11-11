@@ -16,7 +16,7 @@ export type {
   WzdNode,
   WzdDocument,
   WzdVisitorContext,
-} from './ast.js';
+} from "./ast.js";
 export {
   WZD_DOCUMENT_PARENT,
   isElement,
@@ -27,7 +27,7 @@ export {
   walk,
   locContains,
   nodeAt,
-} from './ast.js';
+} from "./ast.js";
 
 export type {
   WzdPropKind,
@@ -37,7 +37,7 @@ export type {
   WzdComponentSpec,
   WzdScaleName,
   WzdHeadField,
-} from './catalogue.js';
+} from "./catalogue.js";
 export {
   WZD_PROP_SCALES,
   WZD_HEAD_FIELDS,
@@ -50,24 +50,24 @@ export {
   isHeadField,
   propsFor,
   allowedValues,
-} from './catalogue.js';
+} from "./catalogue.js";
 
-export type { WzdSeverity, WzdDiagnosticCode, WzdDiagnostic, WzdRule } from './diagnostics.js';
-export { WZD_RULES, hasErrors, sortDiagnostics, formatDiagnostic } from './diagnostics.js';
+export type { WzdSeverity, WzdDiagnosticCode, WzdDiagnostic, WzdRule } from "./diagnostics.js";
+export { WZD_RULES, hasErrors, sortDiagnostics, formatDiagnostic } from "./diagnostics.js";
 
-export type { WzdParseResult } from './parse.js';
-export { parse, parseOrThrow, normalizeSource, WzdSyntaxError } from './parse.js';
+export type { WzdParseResult } from "./parse.js";
+export { parse, parseOrThrow, normalizeSource, WzdSyntaxError } from "./parse.js";
 
-export type { WzdFormatOptions } from './format.js';
-export { format, formatDocument, isFormatted, WZD_FORMAT_DEFAULTS } from './format.js';
+export type { WzdFormatOptions } from "./format.js";
+export { format, formatDocument, isFormatted, WZD_FORMAT_DEFAULTS } from "./format.js";
 
-export type { WzdLintOptions } from './lint.js';
-export { lint, lintSource, WZD_LINT_DEFAULTS } from './lint.js';
+export type { WzdLintOptions } from "./lint.js";
+export { lint, lintSource, WZD_LINT_DEFAULTS } from "./lint.js";
 
-export type { WzdSample } from './samples.js';
-export { WZD_SAMPLES } from './samples.js';
+export type { WzdSample } from "./samples.js";
+export { WZD_SAMPLES } from "./samples.js";
 
-export type { WzdBinding, WzdBindingProblem, WzdUnresolvedBinding } from './bindings.js';
+export type { WzdBinding, WzdBindingProblem, WzdUnresolvedBinding } from "./bindings.js";
 export {
   WZD_BINDABLE_FIELDS,
   bindingMessage,
@@ -75,15 +75,9 @@ export {
   isBindableField,
   resolveBindings,
   unresolvedBindings,
-} from './bindings.js';
+} from "./bindings.js";
 
-export type {
-  WzdAlign,
-  WzdComponentRenderer,
-  WzdEmphasis,
-  WzdRenderContext,
-  WzdSize,
-} from './components/index.js';
+export type { WzdAlign, WzdComponentRenderer, WzdEmphasis, WzdRenderContext, WzdSize } from "./components/index.js";
 export {
   WZD_CAPTION_COLOR,
   WZD_CAPTION_TYPOGRAPHY,
@@ -122,9 +116,9 @@ export {
   spacingToken,
   themeValues,
   unthemedStyleValues,
-} from './components/index.js';
+} from "./components/index.js";
 
-export type { WzdCompileOptions, WzdCompileResult } from './compile.js';
+export type { WzdCompileOptions, WzdCompileResult } from "./compile.js";
 export {
   WZD_COMPILE_DEFAULTS,
   WzdCompileError,
@@ -133,4 +127,4 @@ export {
   compileSlide,
   compileSource,
   slideElements,
-} from './compile.js';
+} from "./compile.js";

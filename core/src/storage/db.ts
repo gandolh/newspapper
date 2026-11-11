@@ -1,9 +1,9 @@
-import Database from 'better-sqlite3';
-import type { Database as DB } from 'better-sqlite3';
-import { dbPath, ensureParent, sourcesSeedPath } from '../util/paths.js';
-import { existsSync, readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
-import type { SourceConfig } from '../types.js';
+import Database from "better-sqlite3";
+import type { Database as DB } from "better-sqlite3";
+import { dbPath, ensureParent, sourcesSeedPath } from "../util/paths.js";
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import type { SourceConfig } from "../types.js";
 
 export type { DB };
 
@@ -27,8 +27,8 @@ export function getDb(dbPath?: string): DB {
   const p = resolve(dbPath ?? defaultDbPath());
   ensureParent(p);
   const db = new Database(p);
-  db.pragma('journal_mode = WAL');
-  db.pragma('foreign_keys = ON');
+  db.pragma("journal_mode = WAL");
+  db.pragma("foreign_keys = ON");
   migrate(db);
   return db;
 }
@@ -174,7 +174,7 @@ function seedSourcesFromJson(db: DB): void {
   const jsonPath = defaultSourcesPath();
   if (!existsSync(jsonPath)) return;
 
-  const raw = readFileSync(jsonPath, 'utf8').trim();
+  const raw = readFileSync(jsonPath, "utf8").trim();
   if (!raw) return;
 
   let parsed: unknown;
@@ -210,17 +210,17 @@ function seedSourcesFromJson(db: DB): void {
  * Kept so a very old DB can still be walked forward to v3 in one boot.
  */
 function migrateV1ToV2(db: DB): void {
-  const postCols = (db.pragma('table_info(posts)') as Array<{ name: string }>).map((c) => c.name);
-  if (!postCols.includes('title')) {
+  const postCols = (db.pragma("table_info(posts)") as Array<{ name: string }>).map((c) => c.name);
+  if (!postCols.includes("title")) {
     db.exec(`ALTER TABLE posts ADD COLUMN title TEXT NOT NULL DEFAULT ''`);
   }
-  if (!postCols.includes('theme')) {
+  if (!postCols.includes("theme")) {
     db.exec(`ALTER TABLE posts ADD COLUMN theme TEXT NOT NULL DEFAULT 'warm-industrial'`);
   }
-  if (!postCols.includes('status')) {
+  if (!postCols.includes("status")) {
     db.exec(`ALTER TABLE posts ADD COLUMN status TEXT NOT NULL DEFAULT 'rendered'`);
   }
-  if (!postCols.includes('updated_at')) {
+  if (!postCols.includes("updated_at")) {
     db.exec(`ALTER TABLE posts ADD COLUMN updated_at TEXT NOT NULL DEFAULT ''`);
     db.exec(`UPDATE posts SET updated_at = created_at WHERE updated_at = ''`);
   }
@@ -233,15 +233,13 @@ function migrateV1ToV2(db: DB): void {
     );
   `);
 
-  const articleCols = (db.pragma('table_info(articles)') as Array<{ name: string }>).map(
-    (c) => c.name,
-  );
-  if (!articleCols.includes('source_name')) {
+  const articleCols = (db.pragma("table_info(articles)") as Array<{ name: string }>).map((c) => c.name);
+  if (!articleCols.includes("source_name")) {
     db.exec(`ALTER TABLE articles ADD COLUMN source_name TEXT NOT NULL DEFAULT ''`);
   }
-  if (!articleCols.includes('created_at')) {
+  if (!articleCols.includes("created_at")) {
     db.exec(`ALTER TABLE articles ADD COLUMN created_at TEXT NOT NULL DEFAULT ''`);
-    if (articleCols.includes('scraped_at')) {
+    if (articleCols.includes("scraped_at")) {
       db.exec(`UPDATE articles SET created_at = scraped_at WHERE created_at = ''`);
     }
   }
@@ -280,19 +278,15 @@ function migrateV2ToV3(db: DB): void {
  * makes re-running this a no-op. Foreign keys go off for the rebuild: with
  * them on, `DROP TABLE posts` would cascade `post_keywords` and `renders` away.
  */
-const LEGACY_THEME = 'warm-industrial';
-const RENAMED_THEME = 'warm-industrial-1';
+const LEGACY_THEME = "warm-industrial";
+const RENAMED_THEME = "warm-industrial-1";
 
 function migrateV3ToV4(db: DB): void {
   db.prepare(`UPDATE posts SET theme = ? WHERE theme = ?`).run(RENAMED_THEME, LEGACY_THEME);
-  db.prepare(`UPDATE settings SET value = ? WHERE key = 'defaultTheme' AND value = ?`).run(
-    RENAMED_THEME,
-    LEGACY_THEME,
-  );
+  db.prepare(`UPDATE settings SET value = ? WHERE key = 'defaultTheme' AND value = ?`).run(RENAMED_THEME, LEGACY_THEME);
 
-  const schema = db
-    .prepare(`SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'posts'`)
-    .get() as { sql: string } | undefined;
+  const schema = db.prepare(`SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'posts'`).get() as
+    { sql: string } | undefined;
   if (!schema?.sql.includes(`DEFAULT '${LEGACY_THEME}'`)) return;
 
   // Runs with foreign keys off (set by `migrate`, outside the transaction, where
@@ -354,21 +348,21 @@ function migrateV4ToV5(db: DB): void {
  * (all `IF NOT EXISTS`) creates whatever is still missing: `feed_items` and
  * its indexes always, and any table a hand-built older DB never had.
  */
-const V6_SOURCE_COLUMNS = ['category', 'etag', 'last_modified', 'last_fetched_at', 'last_error'];
+const V6_SOURCE_COLUMNS = ["category", "etag", "last_modified", "last_fetched_at", "last_error"];
 
 function columnNames(db: DB, table: string): string[] {
   return (db.pragma(`table_info(${table})`) as Array<{ name: string }>).map((c) => c.name);
 }
 
 function migrateV5ToV6(db: DB): void {
-  const sourceCols = columnNames(db, 'sources');
+  const sourceCols = columnNames(db, "sources");
   if (sourceCols.length > 0) {
     for (const col of V6_SOURCE_COLUMNS) {
       if (!sourceCols.includes(col)) db.exec(`ALTER TABLE sources ADD COLUMN ${col} TEXT`);
     }
   }
-  const articleCols = columnNames(db, 'articles');
-  if (articleCols.length > 0 && !articleCols.includes('note')) {
+  const articleCols = columnNames(db, "articles");
+  if (articleCols.length > 0 && !articleCols.includes("note")) {
     db.exec(`ALTER TABLE articles ADD COLUMN note TEXT NOT NULL DEFAULT ''`);
   }
   db.exec(SCHEMA_CURRENT);
@@ -397,21 +391,20 @@ export function runMigrationStep(
   work: (db: DB) => void,
   options: { foreignKeysOff?: boolean } = {},
 ): void {
-  const restoreForeignKeys =
-    options.foreignKeysOff === true && db.pragma('foreign_keys', { simple: true }) === 1;
-  if (restoreForeignKeys) db.pragma('foreign_keys = OFF');
+  const restoreForeignKeys = options.foreignKeysOff === true && db.pragma("foreign_keys", { simple: true }) === 1;
+  if (restoreForeignKeys) db.pragma("foreign_keys = OFF");
   try {
     db.transaction(() => {
       work(db);
       db.pragma(`user_version = ${toVersion}`);
     })();
   } finally {
-    if (restoreForeignKeys) db.pragma('foreign_keys = ON');
+    if (restoreForeignKeys) db.pragma("foreign_keys = ON");
   }
 }
 
 export function migrate(db: DB): void {
-  const version = (db.pragma('user_version', { simple: true }) as number) ?? 0;
+  const version = (db.pragma("user_version", { simple: true }) as number) ?? 0;
   if (version >= CURRENT_SCHEMA_VERSION) return;
 
   if (version === 0) {

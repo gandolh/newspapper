@@ -6,7 +6,7 @@
  * - closeBrowser() tears down cleanly (call in process exit handlers).
  */
 
-import { chromium, type Browser } from 'playwright';
+import { chromium, type Browser } from "playwright";
 
 let _browser: Browser | null = null;
 /**

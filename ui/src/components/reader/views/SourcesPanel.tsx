@@ -10,7 +10,7 @@
  * reports the Reader's last refresh when no ping has been taken.
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Button,
   Card,
@@ -23,11 +23,11 @@ import {
   PageHeader,
   useToast,
   ConfirmDialog,
-} from '../../ui';
-import { api, ApiError } from '@/lib/api';
-import type { Source } from '@/lib/types';
-import { formatDate } from '../format';
-import styles from './SourcesPanel.module.css';
+} from "../../ui";
+import { api, ApiError } from "@/lib/api";
+import type { Source } from "@/lib/types";
+import { formatDate } from "../format";
+import styles from "./SourcesPanel.module.css";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -51,8 +51,8 @@ function slugify(name: string): string {
   return name
     .toLowerCase()
     .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 function isValidUrl(s: string): boolean {
@@ -65,7 +65,7 @@ function isValidUrl(s: string): boolean {
 }
 
 function truncateUrl(url: string, max = 55): string {
-  return url.length > max ? url.slice(0, max) + '…' : url;
+  return url.length > max ? url.slice(0, max) + "…" : url;
 }
 
 // ---------------------------------------------------------------------------
@@ -80,18 +80,14 @@ function PingMark({ state }: { state: PingState }) {
 
   const { ok, itemCount, latencyMs, error } = state.result;
   if (ok) {
-    const label = [
-      'ok',
-      itemCount != null ? `${itemCount} items` : null,
-      latencyMs != null ? `${latencyMs}ms` : null,
-    ]
+    const label = ["ok", itemCount != null ? `${itemCount} items` : null, latencyMs != null ? `${latencyMs}ms` : null]
       .filter(Boolean)
-      .join(' · ');
+      .join(" · ");
     return <Mark tone="ink">{label}</Mark>;
   }
   return (
-    <span title={error ?? 'Unknown error'}>
-      <Mark tone="rubylith">error{error ? ' ⓘ' : ''}</Mark>
+    <span title={error ?? "Unknown error"}>
+      <Mark tone="rubylith">error{error ? " ⓘ" : ""}</Mark>
     </span>
   );
 }
@@ -165,11 +161,11 @@ function SourceFormModal({ open, source, categories, onClose, onSaved }: SourceF
   const isEdit = source !== null;
   const { addToast } = useToast();
 
-  const [name, setName] = useState(source?.name ?? '');
-  const [rss, setRss] = useState(source?.rss ?? '');
-  const [id, setId] = useState(source?.id ?? '');
+  const [name, setName] = useState(source?.name ?? "");
+  const [rss, setRss] = useState(source?.rss ?? "");
+  const [id, setId] = useState(source?.id ?? "");
   const [enabled, setEnabled] = useState(source?.enabled ?? true);
-  const [category, setCategory] = useState(source?.category ?? '');
+  const [category, setCategory] = useState(source?.category ?? "");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -186,13 +182,13 @@ function SourceFormModal({ open, source, categories, onClose, onSaved }: SourceF
 
   function validate(): boolean {
     const errs: Record<string, string> = {};
-    if (!name.trim()) errs.name = 'Name is required';
+    if (!name.trim()) errs.name = "Name is required";
     if (!rss.trim()) {
-      errs.rss = 'RSS URL is required';
+      errs.rss = "RSS URL is required";
     } else if (!isValidUrl(rss.trim())) {
-      errs.rss = 'Must be a valid URL (include https://)';
+      errs.rss = "Must be a valid URL (include https://)";
     }
-    if (!id.trim()) errs.id = 'ID is required';
+    if (!id.trim()) errs.id = "ID is required";
     setErrors(errs);
     return Object.keys(errs).length === 0;
   }
@@ -206,13 +202,13 @@ function SourceFormModal({ open, source, categories, onClose, onSaved }: SourceF
       let result: Source[];
       if (isEdit) {
         result = await api<Source[]>(`/api/sources/${source!.id}`, {
-          method: 'PUT',
+          method: "PUT",
           json: { name: name.trim(), rss: rss.trim(), enabled, category: category.trim() || null },
         });
-        addToast(`"${name}" updated`, 'success');
+        addToast(`"${name}" updated`, "success");
       } else {
-        result = await api<Source[]>('/api/sources', {
-          method: 'POST',
+        result = await api<Source[]>("/api/sources", {
+          method: "POST",
           json: {
             id: id.trim(),
             name: name.trim(),
@@ -221,15 +217,15 @@ function SourceFormModal({ open, source, categories, onClose, onSaved }: SourceF
             category: category.trim() || null,
           },
         });
-        addToast(`"${name}" added`, 'success');
+        addToast(`"${name}" added`, "success");
       }
       onSaved(result);
       onClose();
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {
-        setErrors({ id: 'A source with this ID already exists' });
+        setErrors({ id: "A source with this ID already exists" });
       } else {
-        addToast((err as Error).message, 'error');
+        addToast((err as Error).message, "error");
       }
     } finally {
       setLoading(false);
@@ -237,7 +233,7 @@ function SourceFormModal({ open, source, categories, onClose, onSaved }: SourceF
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={isEdit ? 'Edit source' : 'Add source'} width={520}>
+    <Modal open={open} onClose={onClose} title={isEdit ? "Edit source" : "Add source"} width={520}>
       <form onSubmit={handleSubmit} noValidate>
         <div className={styles.formFields}>
           <Input
@@ -263,11 +259,7 @@ function SourceFormModal({ open, source, categories, onClose, onSaved }: SourceF
             onChange={(e) => setId(e.target.value)}
             error={errors.id}
             readOnly={isEdit}
-            hint={
-              isEdit
-                ? 'ID cannot be changed after creation'
-                : 'Auto-generated from name; must be unique'
-            }
+            hint={isEdit ? "ID cannot be changed after creation" : "Auto-generated from name; must be unique"}
           />
           <Input
             label="Category"
@@ -294,7 +286,7 @@ function SourceFormModal({ open, source, categories, onClose, onSaved }: SourceF
             Cancel
           </Button>
           <Button type="submit" loading={loading}>
-            {isEdit ? 'Save changes' : 'Add source'}
+            {isEdit ? "Save changes" : "Add source"}
           </Button>
         </div>
       </form>
@@ -307,12 +299,12 @@ function SourceFormModal({ open, source, categories, onClose, onSaved }: SourceF
 // ---------------------------------------------------------------------------
 
 const COLUMNS: Array<{ label: string; center: boolean }> = [
-  { label: 'Feed', center: false },
-  { label: 'Category', center: false },
-  { label: 'RSS URL', center: false },
-  { label: 'Enabled', center: true },
-  { label: 'Health', center: false },
-  { label: '', center: true },
+  { label: "Feed", center: false },
+  { label: "Category", center: false },
+  { label: "RSS URL", center: false },
+  { label: "Enabled", center: true },
+  { label: "Health", center: false },
+  { label: "", center: true },
 ];
 
 export default function SourcesPanel() {
@@ -335,10 +327,10 @@ export default function SourcesPanel() {
   // Load sources
   const loadSources = useCallback(async () => {
     try {
-      const data = await api<Source[]>('/api/sources');
+      const data = await api<Source[]>("/api/sources");
       setSources(data);
     } catch {
-      addToast('Failed to load sources', 'error');
+      addToast("Failed to load sources", "error");
     } finally {
       setLoading(false);
     }
@@ -349,8 +341,7 @@ export default function SourcesPanel() {
   }, [loadSources]);
 
   const categories = useMemo(
-    () =>
-      [...new Set(sources.map((s) => s.category?.trim()).filter((c): c is string => !!c))].sort(),
+    () => [...new Set(sources.map((s) => s.category?.trim()).filter((c): c is string => !!c))].sort(),
     [sources],
   );
 
@@ -359,12 +350,12 @@ export default function SourcesPanel() {
     setSources((prev) => prev.map((s) => (s.id === source.id ? { ...s, enabled } : s)));
     try {
       await api(`/api/sources/${source.id}`, {
-        method: 'PUT',
+        method: "PUT",
         json: { enabled },
       });
     } catch {
       setSources((prev) => prev.map((s) => (s.id === source.id ? { ...s, enabled: !enabled } : s)));
-      addToast('Failed to update source', 'error');
+      addToast("Failed to update source", "error");
     }
   }
 
@@ -373,7 +364,7 @@ export default function SourcesPanel() {
     setPings((p) => ({ ...p, [source.id]: { loading: true } }));
     try {
       const result = await api<PingResult>(`/api/sources/${source.id}/ping`, {
-        method: 'POST',
+        method: "POST",
       });
       setPings((p) => ({ ...p, [source.id]: { loading: false, result } }));
     } catch (err) {
@@ -414,13 +405,13 @@ export default function SourcesPanel() {
     setDeleteLoading(true);
     try {
       const result = await api<Source[]>(`/api/sources/${deleteTarget.id}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
       setSources(result);
-      addToast(`"${deleteTarget.name}" deleted`, 'success');
+      addToast(`"${deleteTarget.name}" deleted`, "success");
       setDeleteTarget(null);
     } catch (err) {
-      addToast((err as Error).message, 'error');
+      addToast((err as Error).message, "error");
     } finally {
       setDeleteLoading(false);
     }
@@ -444,12 +435,7 @@ export default function SourcesPanel() {
         actions={
           <>
             {sources.length > 0 && (
-              <Button
-                variant="secondary"
-                size="sm"
-                loading={pingAllLoading}
-                onClick={handlePingAll}
-              >
+              <Button variant="secondary" size="sm" loading={pingAllLoading} onClick={handlePingAll}>
                 Ping all
               </Button>
             )}
@@ -475,10 +461,7 @@ export default function SourcesPanel() {
               <thead>
                 <tr className={styles.headRow}>
                   {COLUMNS.map((col) => (
-                    <th
-                      key={col.label}
-                      className={col.center ? `${styles.th} ${styles.thCenter}` : styles.th}
-                    >
+                    <th key={col.label} className={col.center ? `${styles.th} ${styles.thCenter}` : styles.th}>
                       {col.label}
                     </th>
                   ))}
@@ -509,11 +492,7 @@ export default function SourcesPanel() {
                       />
                     </td>
                     <td className={styles.td}>
-                      {pings[source.id] ? (
-                        <PingMark state={pings[source.id]} />
-                      ) : (
-                        <RefreshMark source={source} />
-                      )}
+                      {pings[source.id] ? <PingMark state={pings[source.id]} /> : <RefreshMark source={source} />}
                     </td>
                     <td className={styles.td}>
                       <div className={styles.rowActions}>

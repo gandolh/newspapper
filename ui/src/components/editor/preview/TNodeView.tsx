@@ -13,12 +13,12 @@
  * thing under the pointer.
  */
 
-import type { CSSProperties, PointerEvent, ReactNode } from 'react';
-import { useDrag } from '@use-gesture/react';
-import type { TNode, Theme } from '@newspapper/core/templates';
-import { sourceOffsetOf, styleWithoutStamp } from './compileTraced.js';
-import { childrenOf, resolveTolerant, toReactStyle } from './resolve.js';
-import styles from './TNodeView.module.css';
+import type { CSSProperties, PointerEvent, ReactNode } from "react";
+import { useDrag } from "@use-gesture/react";
+import type { TNode, Theme } from "@newspapper/core/templates";
+import { sourceOffsetOf, styleWithoutStamp } from "./compileTraced.js";
+import { childrenOf, resolveTolerant, toReactStyle } from "./resolve.js";
+import styles from "./TNodeView.module.css";
 
 export interface NodeGestures {
   onSelect: (offset: number) => void;
@@ -58,12 +58,12 @@ export default function TNodeView(props: TNodeViewProps): ReactNode {
 
   const className = [
     styles.node,
-    offset !== null ? styles.selectable : '',
-    selected ? styles.selected : '',
-    problems.length ? styles.warned : '',
+    offset !== null ? styles.selectable : "",
+    selected ? styles.selected : "",
+    problems.length ? styles.warned : "",
   ]
     .filter(Boolean)
-    .join(' ');
+    .join(" ");
 
   // `bind()` recognizes the gesture on this node; every ancestor has its own
   // recognizer listening for the same bubbling pointerdown, so propagation is
@@ -79,15 +79,15 @@ export default function TNodeView(props: TNodeViewProps): ReactNode {
     },
     className,
     style: toReactStyle(css) as CSSProperties,
-    'data-wzd-offset': offset ?? undefined,
-    'data-wzd-warning': problems.length ? '' : undefined,
-    title: problems.length ? problems.join('\n') : undefined,
+    "data-wzd-offset": offset ?? undefined,
+    "data-wzd-warning": problems.length ? "" : undefined,
+    title: problems.length ? problems.join("\n") : undefined,
     ref: (el: HTMLDivElement | null) => {
       if (offset !== null) registerNode(offset, el);
     },
   };
 
-  if (node.kind === 'text') {
+  if (node.kind === "text") {
     return (
       <div {...shared}>
         <span dangerouslySetInnerHTML={{ __html: node.text }} />

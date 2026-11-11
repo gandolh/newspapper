@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from "vitest";
 
 /**
  * Unit test for SSE frame format.
@@ -37,24 +37,24 @@ function sseWrite(reply: { raw: MockRaw }, event: string, data: unknown): void {
 }
 
 function sseDone(reply: { raw: MockRaw }, data: unknown): void {
-  sseWrite(reply, 'done', data);
+  sseWrite(reply, "done", data);
   reply.raw.end();
 }
 
 function sseError(reply: { raw: MockRaw }, message: string): void {
-  sseWrite(reply, 'error', { message });
+  sseWrite(reply, "error", { message });
   reply.raw.end();
 }
 
-describe('SSE helper frame format', () => {
-  it('sseWrite emits event: <name>\\ndata: <json>\\n\\n', () => {
+describe("SSE helper frame format", () => {
+  it("sseWrite emits event: <name>\\ndata: <json>\\n\\n", () => {
     const reply = makeReply();
-    sseWrite(reply, 'progress', { stage: 'prompting' });
+    sseWrite(reply, "progress", { stage: "prompting" });
     expect(reply.raw.written).toHaveLength(1);
     expect(reply.raw.written[0]).toBe('event: progress\ndata: {"stage":"prompting"}\n\n');
   });
 
-  it('sseDone emits done event then ends stream', () => {
+  it("sseDone emits done event then ends stream", () => {
     const reply = makeReply();
     sseDone(reply, { ok: true });
     expect(reply.raw.written[0]).toMatch(/^event: done\ndata: /);
@@ -62,16 +62,16 @@ describe('SSE helper frame format', () => {
     expect(reply.raw.ended).toBe(true);
   });
 
-  it('sseError emits error event with message field then ends stream', () => {
+  it("sseError emits error event with message field then ends stream", () => {
     const reply = makeReply();
-    sseError(reply, 'something went wrong');
+    sseError(reply, "something went wrong");
     expect(reply.raw.written[0]).toBe('event: error\ndata: {"message":"something went wrong"}\n\n');
     expect(reply.raw.ended).toBe(true);
   });
 
-  it('sseWrite with complex payload serializes correctly', () => {
+  it("sseWrite with complex payload serializes correctly", () => {
     const reply = makeReply();
-    sseWrite(reply, 'progress', { done: 3, total: 7 });
+    sseWrite(reply, "progress", { done: 3, total: 7 });
     expect(reply.raw.written[0]).toBe('event: progress\ndata: {"done":3,"total":7}\n\n');
   });
 });
