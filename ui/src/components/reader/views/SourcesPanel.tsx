@@ -120,7 +120,7 @@ function CopyableUrl({ url }: { url: string }) {
   const [copied, setCopied] = useState(false);
 
   function handleCopy() {
-    navigator.clipboard.writeText(url).then(() => {
+    void navigator.clipboard.writeText(url).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     });
@@ -234,7 +234,7 @@ function SourceFormModal({ open, source, categories, onClose, onSaved }: SourceF
 
   return (
     <Modal open={open} onClose={onClose} title={isEdit ? "Edit source" : "Add source"} width={520}>
-      <form onSubmit={handleSubmit} noValidate>
+      <form onSubmit={(e) => void handleSubmit(e)} noValidate>
         <div className={styles.formFields}>
           <Input
             label="Name"
@@ -435,7 +435,7 @@ export function SourcesPanel() {
         actions={
           <>
             {sources.length > 0 && (
-              <Button variant="secondary" size="sm" loading={pingAllLoading} onClick={handlePingAll}>
+              <Button variant="secondary" size="sm" loading={pingAllLoading} onClick={() => void handlePingAll()}>
                 Ping all
               </Button>
             )}
@@ -487,7 +487,7 @@ export function SourcesPanel() {
                     <td className={`${styles.td} ${styles.tdCenter}`}>
                       <Toggle
                         checked={source.enabled}
-                        onCheckedChange={(c) => handleToggle(source, c)}
+                        onCheckedChange={(c) => void handleToggle(source, c)}
                         aria-label={`Enable ${source.name}`}
                       />
                     </td>
@@ -499,7 +499,7 @@ export function SourcesPanel() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => handlePing(source)}
+                          onClick={() => void handlePing(source)}
                           disabled={pings[source.id]?.loading}
                           title="Ping this feed"
                         >
@@ -535,7 +535,7 @@ export function SourcesPanel() {
       <ConfirmDialog
         open={deleteTarget !== null}
         onClose={() => setDeleteTarget(null)}
-        onConfirm={handleConfirmDelete}
+        onConfirm={() => void handleConfirmDelete()}
         title="Delete source?"
         message={`Remove "${deleteTarget?.name}"? This won't affect already-scraped articles.`}
         confirmLabel="Delete"

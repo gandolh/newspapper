@@ -91,7 +91,7 @@ describe("API server", () => {
       });
       const bySearch = await inject({ method: "GET", url: "/api/articles?search=tax" });
       expect(bySearch.statusCode).toBe(200);
-      const titles = (bySearch.json() as Array<{ title: string }>).map((a) => a.title);
+      const titles = bySearch.json<Array<{ title: string }>>().map((a) => a.title);
       expect(titles).toContain("Budget day");
 
       const bySource = await inject({
@@ -637,7 +637,7 @@ describe("API server", () => {
     it("returns array with warm-industrial-1", async () => {
       const res = await inject({ method: "GET", url: "/api/themes" });
       expect(res.statusCode).toBe(200);
-      const themes = res.json() as Array<{ name: string; tokens: unknown }>;
+      const themes = res.json<Array<{ name: string; tokens: unknown }>>();
       expect(Array.isArray(themes)).toBe(true);
       const names = themes.map((t) => t.name);
       expect(names).toContain("warm-industrial-1");

@@ -72,6 +72,10 @@ function SignOutRow({ viaWard }: { viaWard: boolean }) {
   const { logout, pending } = useLogout();
   const out = useWardSignOut();
 
+  async function signOutHere() {
+    if (await logout()) window.location.assign(withBase("/login"));
+  }
+
   return (
     <>
       {out.error && (
@@ -80,13 +84,7 @@ function SignOutRow({ viaWard }: { viaWard: boolean }) {
         </p>
       )}
       <div className={styles.actions}>
-        <Button
-          variant="secondary"
-          loading={pending}
-          onClick={async () => {
-            if (await logout()) window.location.assign(withBase("/login"));
-          }}
-        >
+        <Button variant="secondary" loading={pending} onClick={() => void signOutHere()}>
           Sign out
         </Button>
         {viaWard && (
@@ -117,7 +115,7 @@ function ChangePasswordCard() {
 
   return (
     <Card>
-      <form onSubmit={save} noValidate>
+      <form onSubmit={(e) => void save(e)} noValidate>
         <h2 className={styles.sectionTitle}>Password</h2>
         <p className={styles.sectionHint}>Changing it signs out every other session of yours on this app.</p>
         {error && (
@@ -179,7 +177,7 @@ function SetPasswordCard() {
 
   return (
     <Card>
-      <form onSubmit={save} noValidate>
+      <form onSubmit={(e) => void save(e)} noValidate>
         <h2 className={styles.sectionTitle}>Local password</h2>
         <p className={styles.sectionHint}>
           You sign in with Ward and have no password here. Set one to get in while Ward is unreachable, and before you
@@ -229,6 +227,11 @@ function WardCard({ linked, hasPassword }: { linked: boolean; hasPassword: boole
   const session = useSession();
   const error = link.error ?? unlink.error;
 
+  async function unlinkWard() {
+    link.reset();
+    if (await unlink.unlink()) await session.refresh();
+  }
+
   return (
     <Card>
       <h2 className={styles.sectionTitle}>Ward</h2>
@@ -249,10 +252,7 @@ function WardCard({ linked, hasPassword }: { linked: boolean; hasPassword: boole
             variant="secondary"
             loading={unlink.pending}
             disabled={!hasPassword}
-            onClick={async () => {
-              link.reset();
-              if (await unlink.unlink()) await session.refresh();
-            }}
+            onClick={() => void unlinkWard()}
           >
             Unlink Ward
           </Button>

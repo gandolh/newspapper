@@ -39,6 +39,8 @@ export function LoginIsland() {
   const notice = reasonMessage(session.status === "signed_out" ? session.reason : undefined) ?? reasonMessage(reason);
   const wardEnabled = session.status === "signed_out" && session.ward.enabled;
 
+  const shownError = error || ward.error;
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     ward.reset();
@@ -52,11 +54,11 @@ export function LoginIsland() {
       <p className={styles.tagline}>Sign in to continue.</p>
 
       <Card padding="md">
-        <form className={styles.form} onSubmit={handleSubmit}>
+        <form className={styles.form} onSubmit={(e) => void handleSubmit(e)}>
           {notice && !error && !ward.error && <p className={styles.note}>{notice}</p>}
-          {(error || ward.error) && (
+          {shownError && (
             <p className={styles.error} role="alert">
-              {authMessage((error ?? ward.error)!)}
+              {authMessage(shownError)}
             </p>
           )}
           {session.status === "error" && (

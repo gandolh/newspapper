@@ -1,70 +1,47 @@
-import js from "@eslint/js";
-import tseslint from "typescript-eslint";
-import reactHooks from "eslint-plugin-react-hooks";
+import { houseStyle } from "./vendor/house-style/eslint.config.js";
 
 /**
- * Flat ESLint config for all three workspaces.
+ * The house config from the vendored house-style copy, given Newspapper's folders. Thin on purpose:
+ * the compiler is the first gate, and the house adds only what it cannot see. The rules and the
+ * reason for each are in the copy.
  *
- * Before 2026-08-31 this file enabled *zero* rules: it registered the TypeScript
- * parser and plugin and then switched off the only three rules it named. It
- * also only ever ran against core/ and api/ — see the `lint` script in the root
- * package.json. Both halves of that are fixed here: a real recommended baseline,
- * and ui/ inside the glob.
- *
- * @type {import('eslint').Linter.Config[]}
+ * Before 2026-08-31 this file enabled no rules at all, and for a while after it linted two of the
+ * three workspaces; the typed rules now read the same tsconfigs the typecheck does, tests included.
  */
 export default [
+  ...houseStyle({
+    root: import.meta.dirname,
+    web: "ui/src",
+    server: ["api/src", "core/src"],
+    // Allowed to print: the seed CLI talks to the person running it, the server entry logs its
+    // startup, the Chromium test guard prints its skip banner, and the two loggers are where the
+    // app's output goes (core's logger, and the error boundary, which has no logger to call).
+    console: [
+      "api/src/seed.ts",
+      "api/src/server.ts",
+      "core/src/render/test-support/chromium.ts",
+      "core/src/util/logger.ts",
+      "ui/src/components/ErrorBoundary.tsx",
+    ],
+    // Read through `default` by a runtime contract: the virtual proof-sheet module re-exports the
+    // proof sheet's default, and ambient `declare module` blocks declare what a plugin's module exports.
+    defaultExports: ["ui/src/proofSheet.ts", "ui/src/proof/KitchenSink.tsx", "ui/src/**/*.d.ts"],
+    // docs/ is the Docusaurus workspace, with its own build; data/, output/ and uploads/ are local state.
+    ignores: ["docs/**", "data/**", "output/**", "uploads/**", ".claude/**"],
+  }),
   {
-    ignores: ["**/dist/**", "**/node_modules/**"],
+    // core is a library with readers of its own (the Reader's config, the settings store, the upload
+    // directory, the data paths), recorded in scripts/conventions.json. The rule covers the API.
+    name: "newspapper/core-reads-env",
+    files: ["core/src/**"],
+    rules: { "n/no-process-env": "off" },
   },
-
-  js.configs.recommended,
-  ...tseslint.configs.recommended,
-
   {
-    files: ["**/*.ts", "**/*.tsx"],
-    languageOptions: {
-      parserOptions: {
-        ecmaVersion: 2022,
-        sourceType: "module",
-      },
-    },
-    rules: {
-      // A leading underscore is this repo's existing signal for "required by
-      // the signature, deliberately unused" — see the not-implemented stubs in
-      // core/src/storage/posts.ts. Honour the convention rather than deleting
-      // parameters that shape a public API.
-      "no-unused-vars": "off",
-      "@typescript-eslint/no-unused-vars": [
-        "error",
-        {
-          argsIgnorePattern: "^_",
-          varsIgnorePattern: "^_",
-          caughtErrorsIgnorePattern: "^_",
-        },
-      ],
-    },
-  },
-
-  {
-    files: ["ui/src/**/*.{ts,tsx}"],
-    plugins: { "react-hooks": reactHooks },
-    rules: {
-      ...reactHooks.configs.recommended.rules,
-
-      // Both of these were 'off' for part of 2026-08-31, which hid ten
-      // findings behind a config-level blanket. They are on. Five of those ten
-      // sites were restructured; the other five carry an
-      // `eslint-disable-next-line` with the reason on the line above it, so the
-      // claim is checkable where the code is.
-      //
-      // Caveat worth knowing: this rule is not exhaustive. The compiler bails
-      // out silently on some components and reports nothing inside them — the
-      // `SourcesPanel` function in ui/src/components/articles/SourcesPanel.tsx
-      // is one; a synchronous setState added to `loadSources` there produces no
-      // finding. A clean run means "nothing found", not "nothing there".
-      "react-hooks/set-state-in-effect": "error",
-      "react-hooks/refs": "error",
-    },
+    // A warning for now (2026-11-11): these files still read the environment themselves. When the
+    // server takes its settings from config.ts, this block goes and the rule is an error again.
+    name: "newspapper/process-env-warns",
+    files: ["api/src/**"],
+    ignores: ["**/*.test.ts"],
+    rules: { "n/no-process-env": "warn" },
   },
 ];

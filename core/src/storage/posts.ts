@@ -75,7 +75,9 @@ export function createPost(db: DB, input: PostInput): Post {
     return id;
   });
 
-  return findPost(db, create())!;
+  const post = findPost(db, create());
+  if (!post) throw new Error("A post was inserted but could not be read back.");
+  return post;
 }
 
 export function findPost(db: DB, id: number): Post | undefined {

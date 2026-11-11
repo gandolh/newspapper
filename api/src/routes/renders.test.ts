@@ -60,7 +60,7 @@ describe("GET /api/renders thumbnails", () => {
       cookies: session,
     });
     const byPost = new Map(
-      (res.json() as Array<{ postId: number; thumb: string | null; files: string[] }>).map((r) => [r.postId, r]),
+      res.json<Array<{ postId: number; thumb: string | null; files: string[] }>>().map((r) => [r.postId, r]),
     );
     expect(byPost.get(withThumb.id)!.thumb).toBe("/output/1999-01-01-1/thumb.jpg");
     expect(byPost.get(withThumb.id)!.files).toEqual(["/output/1999-01-01-1/slide-01.jpg"]);

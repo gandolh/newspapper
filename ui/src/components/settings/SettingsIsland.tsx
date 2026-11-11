@@ -72,7 +72,7 @@ function ThemeSection() {
 
   return (
     <Card>
-      <form onSubmit={save} noValidate>
+      <form onSubmit={(e) => void save(e)} noValidate>
         <h2 className={styles.sectionTitle}>Theme</h2>
         <p className={styles.sectionHint}>
           The theme a new post starts on. The three warm-industrial palettes are identical apart from their accent

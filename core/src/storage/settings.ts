@@ -55,7 +55,7 @@ export function saveSettings(patch: Partial<Settings>, dbPath?: string): void {
         stmt.run({ key, value });
       }
     });
-    tx(Object.entries(patch) as [string, string][]);
+    tx(Object.entries<string>(patch));
   } finally {
     db.close();
   }

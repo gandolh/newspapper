@@ -67,10 +67,10 @@ export function groupSources(sources: Source[]): SourceGroup[] {
     byCategory.set(key, list);
   }
   const byName = (a: Source, b: Source) => a.name.localeCompare(b.name);
-  const named = [...byCategory.keys()]
-    .filter((k): k is string => k !== null)
-    .sort((a, b) => a.localeCompare(b))
-    .map((category) => ({ category, sources: byCategory.get(category)!.sort(byName) }));
+  const named = [...byCategory.entries()]
+    .filter((entry): entry is [string, Source[]] => entry[0] !== null)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([category, sources]) => ({ category, sources: sources.sort(byName) }));
   const loose = byCategory.get(null);
   return loose ? [...named, { category: null, sources: loose.sort(byName) }] : named;
 }

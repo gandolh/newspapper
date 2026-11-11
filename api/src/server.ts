@@ -205,5 +205,5 @@ const isMain =
   process.argv[1] !== undefined && fileURLToPath(import.meta.url).endsWith(process.argv[1].replace(/\\/g, "/"));
 
 if (isMain) {
-  start();
+  void start();
 }

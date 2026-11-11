@@ -156,7 +156,7 @@ export function LibraryPanel() {
               {article.excerpt && <p className={styles.resultExcerpt}>{excerpt(article.excerpt)}</p>}
 
               {editing?.id === article.id ? (
-                <form className={styles.noteForm} onSubmit={handleSaveNote}>
+                <form className={styles.noteForm} onSubmit={(e) => void handleSaveNote(e)}>
                   <Textarea
                     id={`note-${article.id}`}
                     label="Note"
@@ -219,7 +219,7 @@ export function LibraryPanel() {
       <ConfirmDialog
         open={deleteTarget !== null}
         onClose={() => setDeleteTarget(null)}
-        onConfirm={handleConfirmDelete}
+        onConfirm={() => void handleConfirmDelete()}
         title="Delete article?"
         message={`Remove "${deleteTarget?.title}" from the library? This can't be undone.`}
         confirmLabel="Delete"

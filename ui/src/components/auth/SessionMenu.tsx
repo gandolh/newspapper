@@ -40,7 +40,7 @@ export function SessionMenu() {
       <span className={styles.username} title={session.user.username}>
         {session.user.username}
       </span>
-      <button type="button" className={styles.signOut} disabled={pending} onClick={signOut}>
+      <button type="button" className={styles.signOut} disabled={pending} onClick={() => void signOut()}>
         Sign out
       </button>
     </span>

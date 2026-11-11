@@ -208,9 +208,9 @@ export function ReadingPane(props: ReadingPaneProps) {
                 <Skeleton height={130} />
                 <Skeleton height={78} />
               </div>
-            ) : (
+            ) : item ? (
               <ItemBody
-                item={item!}
+                item={item}
                 empty={
                   <EmptyState
                     icon="↗"
@@ -220,7 +220,7 @@ export function ReadingPane(props: ReadingPaneProps) {
                   />
                 }
               />
-            )}
+            ) : null}
           </div>
         </div>
       </article>

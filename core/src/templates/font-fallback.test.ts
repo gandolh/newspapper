@@ -94,7 +94,7 @@ describe("no emitted font-family is a bare family name", () => {
   });
 
   for (const name of themeNames) {
-    describe(name, () => {
+    describe(`${name}`, () => {
       const theme = loadTheme(name);
 
       it("every typography token resolves to a stack ending in a generic", () => {

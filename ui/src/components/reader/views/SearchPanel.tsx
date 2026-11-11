@@ -124,7 +124,7 @@ export function SearchPanel() {
         subtitle="Search every enabled feed by keyword, live. Nothing is kept unless you save it."
       />
 
-      <form onSubmit={handleSearch} className={styles.searchForm}>
+      <form onSubmit={(e) => void handleSearch(e)} className={styles.searchForm}>
         <Input
           placeholder="budget, economy, tax"
           hint="Comma-separated keywords. An article matching any one of them counts."
@@ -193,7 +193,7 @@ export function SearchPanel() {
                   variant={saved ? "secondary" : "primary"}
                   disabled={saved}
                   loading={savingGuid === article.guid}
-                  onClick={() => handleSave(article)}
+                  onClick={() => void handleSave(article)}
                 >
                   {saved ? "Saved" : "Save"}
                 </Button>

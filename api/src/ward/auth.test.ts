@@ -228,7 +228,7 @@ describe("Ward routes", () => {
     it("starts a sign-in at Ward, with the flow cookie on the callback path", async () => {
       const res = await app.inject({ method: "POST", url: "/api/auth/ward/start", payload: {} });
       expect(res.statusCode).toBe(200);
-      const { url } = res.json() as { url: string };
+      const { url } = res.json<{ url: string }>();
       expect(url.startsWith(`${TEST_ISSUER}/auth?`)).toBe(true);
       expect(new URL(url).searchParams.get("client_id")).toBe("newspapper");
       const flow = res.cookies.find((c) => c.name === `${SESSION_COOKIE}_ward`);
@@ -264,7 +264,7 @@ describe("Ward routes", () => {
       const { cookies } = await signInCookie(app);
       const res = await app.inject({ method: "POST", url: "/api/auth/ward/link", cookies });
       expect(res.statusCode).toBe(200);
-      expect((res.json() as { url: string }).url.startsWith(`${TEST_ISSUER}/auth?`)).toBe(true);
+      expect(res.json<{ url: string }>().url.startsWith(`${TEST_ISSUER}/auth?`)).toBe(true);
 
       // Linking is for a signed-in user: with no session it is a 401, not a Ward redirect.
       const anon = await app.inject({ method: "POST", url: "/api/auth/ward/link" });

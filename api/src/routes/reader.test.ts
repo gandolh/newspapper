@@ -113,7 +113,7 @@ function seed(sourceId: string, items: Seed[]): Record<string, number> {
 async function list(query = ""): Promise<FeedItemPage> {
   const res = await call("GET", `/api/reader/items${query}`);
   expect(res.statusCode).toBe(200);
-  return res.json() as FeedItemPage;
+  return res.json<FeedItemPage>();
 }
 
 const titles = (page: FeedItemPage) => page.items.map((i) => i.title);
@@ -148,14 +148,14 @@ describe("GET /api/reader/items", () => {
     expect(res.body).not.toContain("contentHtml");
     expect(res.body).not.toContain("np-marker");
     expect(res.body).not.toContain("<em>");
-    const [summary] = (res.json() as FeedItemPage).items;
+    const [summary] = res.json<FeedItemPage>().items;
     expect(summary).toMatchObject({ title: "marked", excerpt: "Body html", read: false });
 
     // The control: the same item in full does carry it, so the assertions
     // above are looking at the field's real name.
     const full = await call("GET", `/api/reader/items/${summary.id}`);
     expect(full.body).toContain("contentHtml");
-    expect((full.json() as FeedItem).contentHtml).toBe('<p class="np-marker">Body <em>html</em></p>');
+    expect(full.json<FeedItem>().contentHtml).toBe('<p class="np-marker">Body <em>html</em></p>');
   });
 
   it("scope=unread leaves out read items; scope=all and no scope keep them", async () => {
@@ -326,7 +326,7 @@ describe("GET /api/reader/counts", () => {
 
     const res = await call("GET", "/api/reader/counts");
     expect(res.statusCode).toBe(200);
-    expect(res.json() as ReaderCounts).toEqual({
+    expect(res.json<ReaderCounts>()).toEqual({
       unread: 2,
       all: 3,
       unreadBySource: { alpha: 1, beta: 1, gamma: 0 },
@@ -341,7 +341,7 @@ describe("POST /api/reader/items/:id/save", () => {
       note: "for the budget post",
     });
     expect(first.statusCode).toBe(201);
-    const article = first.json() as Article;
+    const article = first.json<Article>();
     expect(article).toMatchObject({
       sourceId: "alpha",
       sourceName: "Alpha",
@@ -352,22 +352,22 @@ describe("POST /api/reader/items/:id/save", () => {
     });
 
     expect((await list()).items[0].saved).toBe(true);
-    const item = (await call("GET", `/api/reader/items/${ids["keep"]}`)).json() as FeedItem;
+    const item = (await call("GET", `/api/reader/items/${ids["keep"]}`)).json<FeedItem>();
     expect(item.saved).toBe(true);
     expect(item.articleId).toBe(article.id);
 
     // A second save returns the same article, note untouched.
     const second = await call("POST", `/api/reader/items/${ids["keep"]}/save`, { note: "other" });
-    expect((second.json() as Article).id).toBe(article.id);
-    expect((second.json() as Article).note).toBe("for the budget post");
-    const library = (await call("GET", "/api/articles?sourceId=alpha")).json() as Article[];
+    expect(second.json<Article>().id).toBe(article.id);
+    expect(second.json<Article>().note).toBe("for the budget post");
+    const library = (await call("GET", "/api/articles?sourceId=alpha")).json<Article[]>();
     expect(library).toHaveLength(1);
 
     // The note is edited on the article, and the library shows the edit.
     const patched = await call("PATCH", `/api/articles/${article.id}`, { note: "changed my mind" });
     expect(patched.statusCode).toBe(200);
-    expect((patched.json() as Article).note).toBe("changed my mind");
-    const after = (await call("GET", "/api/articles?sourceId=alpha")).json() as Article[];
+    expect(patched.json<Article>().note).toBe("changed my mind");
+    const after = (await call("GET", "/api/articles?sourceId=alpha")).json<Article[]>();
     expect(after[0].note).toBe("changed my mind");
   });
 
@@ -375,7 +375,7 @@ describe("POST /api/reader/items/:id/save", () => {
     const ids = seed("alpha", [{ slug: "bare", at: 1 }]);
     const res = await call("POST", `/api/reader/items/${ids["bare"]}/save`);
     expect(res.statusCode).toBe(201);
-    expect((res.json() as Article).note).toBe("");
+    expect(res.json<Article>().note).toBe("");
   });
 
   it("404 for an unknown item, 400 for a note that is not text", async () => {
@@ -413,10 +413,12 @@ describe("POST /api/reader/refresh (SSE)", () => {
     expect(titles(await list())).toEqual(["Fresh two", "Fresh one"]);
 
     // The failing source is marked on its row, for the rail.
-    const sources = (await call("GET", "/api/sources")).json() as Array<{
-      id: string;
-      lastError: string | null;
-    }>;
+    const sources = (await call("GET", "/api/sources")).json<
+      Array<{
+        id: string;
+        lastError: string | null;
+      }>
+    >();
     expect(sources.find((s) => s.id === "beta")!.lastError).toBe("connect ECONNREFUSED");
     expect(sources.find((s) => s.id === "alpha")!.lastError).toBeNull();
   });
