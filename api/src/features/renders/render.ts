@@ -109,7 +109,10 @@ export const renderRoutes: FastifyPluginAsyncZod<RenderRoutesOptions> = async (f
 
       const files = result.files.filter((f) => f.endsWith(".jpg")).map((f) => `/output${f.slice(outputPrefix.length)}`);
 
-      sseDone(reply, { post, render, files });
+      // The render without its outputDir, a server path no client reads: publish and GET /api/renders
+      // leave it out too.
+      const { id, postId, slideCount, optimized, createdAt } = render;
+      sseDone(reply, { post, render: { id, postId, slideCount, optimized, createdAt }, files });
     } catch (err) {
       sseError(reply, (err as Error).message);
     }

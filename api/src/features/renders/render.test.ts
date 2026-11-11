@@ -90,8 +90,9 @@ describe("POST /api/posts/:id/render", () => {
     const res = await post(`/api/posts/${created.id}/render`);
     const stream = events(res.body);
     expect(stream.map((e) => e.event)).toEqual(["progress", "done"]);
-    const done = stream[1].data as { files: string[] };
+    const done = stream[1].data as { files: string[]; render: Record<string, unknown> };
     expect(done.files).toHaveLength(1);
+    expect(Object.keys(done.render)).toEqual(["id", "postId", "slideCount", "optimized", "createdAt"]);
     const file = join(repoRoot, done.files[0]);
     createdOutputDirs.push(resolve(file, ".."));
     expect(existsSync(file)).toBe(true);
