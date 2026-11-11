@@ -16,7 +16,7 @@ import {
   uploadRef,
 } from "@newspapper/core";
 import type { Upload } from "@newspapper/core";
-import { db } from "../lib/db.js";
+import { db } from "../../lib/db.js";
 
 const MAX_LIST_LIMIT = 500;
 const IMMUTABLE_CACHE = "public, max-age=31536000, immutable";

@@ -15,8 +15,8 @@ import {
   todayLocal,
   outputRoot,
 } from "@newspapper/core";
-import { db } from "../lib/db.js";
-import { sseHeaders, sseWrite, sseDone, sseError } from "../plugins/sse.js";
+import { db } from "../../lib/db.js";
+import { sseHeaders, sseWrite, sseDone, sseError } from "../../plugins/sse.js";
 
 const outputPrefix = outputRoot();
 

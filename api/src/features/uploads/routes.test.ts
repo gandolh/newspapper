@@ -5,9 +5,9 @@ import { join } from "node:path";
 import Fastify, { type FastifyInstance } from "fastify";
 import sharp from "sharp";
 import { MAX_UPLOAD_BYTES, htmlToPng } from "@newspapper/core";
-import { probeChromium, type ChromiumGuard } from "../../../core/src/render/test-support/chromium.js";
-import { uploadsRoutes } from "./uploads.js";
-import { db, resetDb } from "../lib/db.js";
+import { probeChromium, type ChromiumGuard } from "../../../../core/src/render/test-support/chromium.js";
+import { uploadsRoutes } from "./routes.js";
+import { db, resetDb } from "../../lib/db.js";
 
 let tmpDir: string;
 let store: string;

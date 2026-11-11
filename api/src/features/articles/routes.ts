@@ -1,7 +1,7 @@
 import type { FastifyPluginAsync } from "fastify";
 import { saveArticle, listArticleSummaries, removeArticle, updateArticleNote } from "@newspapper/core";
 import type { NewArticle } from "@newspapper/core";
-import { db } from "../lib/db.js";
+import { db } from "../../lib/db.js";
 
 export const articlesRoutes: FastifyPluginAsync = async (fastify) => {
   /**

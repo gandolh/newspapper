@@ -8,7 +8,7 @@ import {
   THUMB_FILE,
   type RenderRecord,
 } from "@newspapper/core";
-import { db } from "../lib/db.js";
+import { db } from "../../lib/db.js";
 
 const outputRoot = outputRootDir();
 

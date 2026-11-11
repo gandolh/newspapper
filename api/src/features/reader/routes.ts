@@ -11,8 +11,8 @@ import {
   InvalidCursorError,
 } from "@newspapper/core";
 import type { RefreshOptions } from "@newspapper/core";
-import { sseHeaders, sseWrite, sseDone, sseError } from "../plugins/sse.js";
-import { db } from "../lib/db.js";
+import { sseHeaders, sseWrite, sseDone, sseError } from "../../plugins/sse.js";
+import { db } from "../../lib/db.js";
 
 /*
  * The Reader: stored feed items, read in place. An **Item** lives

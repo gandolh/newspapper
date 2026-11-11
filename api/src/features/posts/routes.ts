@@ -10,7 +10,7 @@ import {
   updatePost,
   type PostInput,
 } from "@newspapper/core";
-import { db } from "../lib/db.js";
+import { db } from "../../lib/db.js";
 
 /**
  * The index columns are derived from the markup's `<head>`, server-side, so a

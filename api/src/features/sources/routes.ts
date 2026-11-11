@@ -1,7 +1,7 @@
 import type { FastifyPluginAsync } from "fastify";
 import { listSources, addSource, updateSource, removeSource, pingSource } from "@newspapper/core";
 import type { SourceConfig } from "@newspapper/core";
-import { db } from "../lib/db.js";
+import { db } from "../../lib/db.js";
 
 /** A source's category, when given: a string (blank = uncategorized) or null. */
 function isCategory(value: unknown): boolean {
