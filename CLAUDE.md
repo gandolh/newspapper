@@ -18,17 +18,20 @@ UI at `http://localhost:4321/newspapper/`, API at `http://localhost:3001`. No CL
 
 ```bash
 npm install                      # one-time (+ npx playwright install chromium)
-npm run build                    # fmt:check → tsc core → tsc api → tsc ui → vite build
+npm run check                    # before every hand-back: typecheck (core, api with tests, ui), lint, format:check, conventions, tests
+npm run check:fast               # typecheck + ESLint on the changed files, no tests; the Stop hook runs it
+npm run build                    # format:check → tsc core → tsc api → tsc ui → vite build
 npm run dev                      # start API (3001) + UI dev server (4321)
 npm run dev --workspace=api      # API only
 npm test                         # vitest over core/**, api/** and ui/**
-npm run lint                     # eslint core/src api/src ui/src ui/vite.config.ts
-npm run fmt                      # prettier, same three workspaces + ui/index.html
+npm run format                   # prettier, whole repo (house style, 120 columns)
 bash corpus/lint.sh              # corpus health check (add --index to regenerate)
 
 # Single test file
 npx vitest run core/src/path/to/file.test.ts
 ```
+
+`check` sets `CI=1`, so the Chromium tests run (and fail when Chromium is missing). `npm run gate` is `check`, `build` and the corpus lint.
 
 Every one of those coverages was, at some point, silently doing nothing — see Tests below.
 
@@ -76,13 +79,13 @@ The `digital-broadsheet` theme was removed in v2; Satori/resvg rendering in v3; 
 - **Do not add** canvas, cheerio, Handlebars, inquirer, ora, axios, or Satori. Playwright and Sharp are ordinary dependencies of `@newspapper/core` — Chromium rendering and image normalization; see [dependencies.md](corpus/wiki/dependencies.md).
 - **Dependency versions are pinned exactly.** No `^`, no `~`, anywhere.
 - **ESM throughout.** `core`, `api` and `ui` are `"type": "module"`. The one exception is the `docs` workspace (the Docusaurus site): Docusaurus's build fails with that field, so its package leaves it out, and its scripts are `.mjs` instead ([why](corpus/wiki/decisions-tooling.md#the-docs-workspace-is-the-one-package-without-type-module)). Paths must be resolved from `import.meta.url`, not `process.cwd()`.
-- **`npm run build` runs `fmt:check` first**, and `npm run lint` covers all three workspaces. Both were enforced on 2026-08-31, after the linter was found to have enabled zero rules since the project began. Don't unwire either.
+- **`npm run build` runs `format:check` first**, and `npm run lint` covers all three workspaces. Both were enforced on 2026-08-31, after the linter was found to have enabled zero rules since the project began. Don't unwire either.
 
 ## Tests
 
 Co-located `*.test.ts` under `core/src/`, `api/src/` and `ui/src/`, run with `vitest`. Prefer unit tests on parsing and filtering over snapshots of rendered images. Some tests launch real Chromium: the render, font and upload tests in core and api assert on real pixels, and `sanitize` in ui runs the Reader's sanitizer in a real page, because happy-dom only pretends to support it. All of them go through one guard, `core/src/render/test-support/chromium.ts`: without `npx playwright install chromium` they skip with a loud banner locally and **fail under `CI`**. `npm run gate` runs the full gate (build, test, lint, corpus lint) with `CI=1`, so a missing Chromium fails it; run it before a deploy. No GitHub workflows: the owner does not want GitHub-specific CI in the repo.
 
-**Read [`corpus/wiki/green-because-nothing-ran.md`](corpus/wiki/green-because-nothing-ran.md) before you trust a green command.** That pattern — a tool reporting success while reaching nothing — has been hit ten times in this repo: a DB path the tests set but nothing read, a `.gitignore` rule that would have hidden a module, a vitest `include` that omitted `ui/`, a workspace bundled but never typechecked, a formatter with no config, a test control that collapsed into its subject, an ESLint config with zero rules enabled, a test whose import resolved only through a hoisted optional dependency, an overflow check pointed at the document instead of the element it was about, and a sanitizer test under happy-dom where DOMPurify reported support and sanitized nothing. When a check passes, ask what it actually reached. (The page collects them; [`corpus/log.md`](corpus/log.md) has each in full.)
+**Read [`corpus/wiki/green-because-nothing-ran.md`](corpus/wiki/green-because-nothing-ran.md) before you trust a green command.** That pattern — a tool reporting success while reaching nothing — has been hit eleven times in this repo: a DB path the tests set but nothing read, a `.gitignore` rule that would have hidden a module, a vitest `include` that omitted `ui/`, a workspace bundled but never typechecked, a formatter with no config, a test control that collapsed into its subject, an ESLint config with zero rules enabled, a test whose import resolved only through a hoisted optional dependency, an overflow check pointed at the document instead of the element it was about, a sanitizer test under happy-dom where DOMPurify reported support and sanitized nothing, and `tsc` in `core` and `api`, which excluded 49 test files. When a check passes, ask what it actually reached. (The page collects them; [`corpus/log.md`](corpus/log.md) has each in full.)
 
 ## Corpus (the project wiki)
 
