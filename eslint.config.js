@@ -42,4 +42,18 @@ export default [
     name: "newspapper/no-unnecessary-type-assertion-off",
     rules: { "@typescript-eslint/no-unnecessary-type-assertion": "off" },
   },
+  {
+    // Base UI is imported through a part's subpath (`@base-ui/react/dialog`), never the package root
+    // (the base-ui skill's rule 2). check-base-ui reads the same rule; this one fails in the editor.
+    name: "newspapper/base-ui-subpaths",
+    files: ["ui/src/**"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [{ name: "@base-ui/react", message: "Import the part's subpath, such as @base-ui/react/dialog." }],
+        },
+      ],
+    },
+  },
 ];
