@@ -89,6 +89,7 @@ RUN npx playwright install chromium
 # builder — core and api to JavaScript with tsc, and the Vite bundle
 # ---------------------------------------------------------------------------
 FROM deps AS builder
+COPY tsconfig.base.json ./
 COPY core ./core
 COPY api ./api
 # Before the UI's build arg, so a different base path does not recompile them.

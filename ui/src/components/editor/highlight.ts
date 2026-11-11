@@ -24,8 +24,11 @@ const NAME_CHAR = /[A-Za-z0-9_.:-]/;
 class Tokenizer {
   private readonly out: WzdToken[] = [];
   private pending = -1;
+  private readonly src: string;
 
-  constructor(private readonly src: string) {}
+  constructor(src: string) {
+    this.src = src;
+  }
 
   private flushText(upTo: number): void {
     if (this.pending < 0 || upTo <= this.pending) {

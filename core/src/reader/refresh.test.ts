@@ -23,7 +23,7 @@ type Route = (headers: Record<string, string>) => Response | Promise<Response>;
 let routes: Record<string, Route>;
 let calls: Array<{ url: string; headers: Record<string, string> }>;
 
-const fetchSpy = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+const fetchSpy = vi.fn(async (input: Parameters<typeof fetch>[0], init?: RequestInit) => {
   const url = String(input);
   const headers = (init?.headers ?? {}) as Record<string, string>;
   calls.push({ url, headers });

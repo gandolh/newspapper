@@ -24,17 +24,17 @@ interface State {
  * inside one of these, and the person can get back to their posts.
  */
 export class ErrorBoundary extends Component<Props, State> {
-  state: State = { error: null };
+  override state: State = { error: null };
 
   static getDerivedStateFromError(error: Error): State {
     return { error };
   }
 
-  componentDidCatch(error: Error, info: ErrorInfo): void {
+  override componentDidCatch(error: Error, info: ErrorInfo): void {
     console.error("Editor crashed", error, info.componentStack);
   }
 
-  render(): ReactNode {
+  override render(): ReactNode {
     const { error } = this.state;
     if (!error) return this.props.children;
     return (

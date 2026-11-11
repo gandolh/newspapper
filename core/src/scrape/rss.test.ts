@@ -10,7 +10,7 @@ const fixture = (name: string) => readFileSync(new URL(`./fixtures/${name}`, imp
 const lookup = async () => ["93.184.216.34"];
 
 function serve(body: string | null, init: ResponseInit = {}) {
-  const spy = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => {
+  const spy = vi.fn(async (_input: Parameters<typeof fetch>[0], _init?: RequestInit) => {
     return new Response(body, { status: 200, ...init });
   });
   return spy as unknown as typeof fetch & typeof spy;

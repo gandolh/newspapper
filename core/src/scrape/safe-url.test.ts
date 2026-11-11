@@ -21,7 +21,7 @@ function html(body: string, init: ResponseInit = {}) {
 
 /** A fetch spy that answers from a URL → response table and records every URL. */
 function fakeFetch(routes: Record<string, () => Response>) {
-  const spy = vi.fn(async (input: RequestInfo | URL) => {
+  const spy = vi.fn(async (input: Parameters<typeof fetch>[0]) => {
     const url = String(input);
     const route = routes[url];
     if (!route) throw new Error(`unexpected fetch ${url}`);

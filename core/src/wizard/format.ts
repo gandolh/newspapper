@@ -7,7 +7,7 @@
  * from a single blank line between siblings, which it keeps.
  */
 
-import { type WzdDocument, type WzdElement, type WzdNode } from "./ast.js";
+import type { WzdDocument, WzdElement, WzdNode } from "./ast.js";
 import { parse } from "./parse.js";
 
 export interface WzdFormatOptions {

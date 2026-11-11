@@ -22,7 +22,7 @@
     }
   },
   "scripts": {
-    "build": "tsc"
+    "build": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
     "better-sqlite3": "12.10.0",

@@ -35,7 +35,7 @@ const ALPHA_XML = `<?xml version="1.0" encoding="UTF-8"?>
     <pubDate>Thu, 01 Oct 2026 11:00:00 GMT</pubDate><description>Second.</description></item>
 </channel></rss>`;
 
-const fetchSpy = vi.fn(async (input: RequestInfo | URL) => {
+const fetchSpy = vi.fn(async (input: Parameters<typeof fetch>[0]) => {
   const url = String(input);
   if (url === ALPHA_FEED) return new Response(ALPHA_XML);
   if (url === BETA_FEED) throw new Error("connect ECONNREFUSED");

@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { searchArticles, pingSource } from "./index.js";
 import type { SourceConfig } from "../types.js";
+import type { RssItem } from "./rss.js";
 
 // Mock rss-parser and fetchBody so we don't hit the network
 vi.mock("./rss.js", () => ({
@@ -22,8 +23,8 @@ const sources: SourceConfig[] = [
   { id: "rt", name: "Reuters", rss: "https://reuters.com/rss", enabled: true },
 ];
 
-function makeItem(title: string, url: string, summary = "") {
-  return { title, url, summary, publishedAt: "2026-06-10T10:00:00.000Z" };
+function makeItem(title: string, url: string, summary = ""): RssItem {
+  return { title, url, summary, contentHtml: "", author: null, publishedAt: "2026-06-10T10:00:00.000Z" };
 }
 
 describe("searchArticles", () => {

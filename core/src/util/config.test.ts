@@ -42,6 +42,6 @@ describe(".env loading", () => {
 
   it("is imported by the core barrel, which is how the api gets it", () => {
     const barrel = readFileSync(fileURLToPath(new URL("../index.ts", import.meta.url)), "utf8");
-    expect(barrel).toMatch(/^import '\.\/util\/config\.js';$/m);
+    expect(barrel).toMatch(/^import "\.\/util\/config\.js";$/m);
   });
 });

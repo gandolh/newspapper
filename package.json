@@ -18,7 +18,8 @@
     "lint": "eslint \"core/src/**/*.ts\" \"api/src/**/*.ts\" \"ui/src/**/*.{ts,tsx}\" \"ui/vite.config.ts\"",
     "house-style:sync": "node vendor/house-style/bin/sync.mjs",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "typecheck": "tsc -p core --noEmit && tsc -p api --noEmit && npm run typecheck -w @newspapper/ui"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

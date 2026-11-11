@@ -25,7 +25,7 @@ type Method = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 interface InjectOpts {
   method: Method;
   url: string;
-  payload?: unknown;
+  payload?: string | object;
   cookies?: Record<string, string>;
 }
 
