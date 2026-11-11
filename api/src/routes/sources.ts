@@ -8,7 +8,7 @@ function isCategory(value: unknown): boolean {
   return value === undefined || value === null || typeof value === "string";
 }
 
-const sourcesRoutes: FastifyPluginAsync = async (fastify) => {
+export const sourcesRoutes: FastifyPluginAsync = async (fastify) => {
   /**
    * GET /api/sources
    * Each source carries its `category` and the Reader's last refresh outcome
@@ -101,5 +101,3 @@ const sourcesRoutes: FastifyPluginAsync = async (fastify) => {
     return reply.send(result);
   });
 };
-
-export default sourcesRoutes;

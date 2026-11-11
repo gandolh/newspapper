@@ -46,7 +46,7 @@ function isOptionalCategory(value: unknown): boolean {
   return value === undefined || value === null || typeof value === "string";
 }
 
-const readerRoutes: FastifyPluginAsync<ReaderRoutesOptions> = async (fastify, opts) => {
+export const readerRoutes: FastifyPluginAsync<ReaderRoutesOptions> = async (fastify, opts) => {
   /**
    * GET /api/reader/items?scope=unread|all&sourceId=&category=&q=&cursor=&limit=50
    * → { items: FeedItemSummary[], nextCursor: string | null }
@@ -226,5 +226,3 @@ const readerRoutes: FastifyPluginAsync<ReaderRoutesOptions> = async (fastify, op
     }
   });
 };
-
-export default readerRoutes;

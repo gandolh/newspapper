@@ -60,7 +60,7 @@ function unknownTheme(theme: string | undefined): boolean {
   return theme !== undefined && !listThemes().includes(theme);
 }
 
-const postsRoutes: FastifyPluginAsync = async (fastify) => {
+export const postsRoutes: FastifyPluginAsync = async (fastify) => {
   /**
    * GET /api/posts?status=&keyword=&search=&limit=&offset=
    */
@@ -157,5 +157,3 @@ const postsRoutes: FastifyPluginAsync = async (fastify) => {
     return reply.send({ id, deleted: true });
   });
 };
-
-export default postsRoutes;

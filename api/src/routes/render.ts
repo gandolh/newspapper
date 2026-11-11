@@ -29,7 +29,7 @@ function formatCaption(head: Record<string, string>): string | undefined {
   return hashtags ? `${caption}\n\n${hashtags}` : caption;
 }
 
-const renderRoutes: FastifyPluginAsync = async (fastify) => {
+export const renderRoutes: FastifyPluginAsync = async (fastify) => {
   /**
    * POST /api/posts/:id/render  (SSE)
    * Compiles the post's `.wzd` markup and renders every slide to JPEG.
@@ -130,5 +130,3 @@ const renderRoutes: FastifyPluginAsync = async (fastify) => {
     return reply.send(buf);
   });
 };
-
-export default renderRoutes;

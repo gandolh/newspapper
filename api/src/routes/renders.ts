@@ -67,7 +67,7 @@ function toSummary(render: RenderRecord): RenderSummary {
   };
 }
 
-const rendersRoutes: FastifyPluginAsync = async (fastify) => {
+export const rendersRoutes: FastifyPluginAsync = async (fastify) => {
   /**
    * GET /api/renders?postId=
    *
@@ -90,5 +90,3 @@ const rendersRoutes: FastifyPluginAsync = async (fastify) => {
     return reply.send(latestRenders(db()).map(toSummary));
   });
 };
-
-export default rendersRoutes;

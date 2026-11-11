@@ -80,7 +80,7 @@ function sendFile(reply: FastifyReply, path: string, mime: string) {
     .send(createReadStream(path));
 }
 
-const uploadsRoutes: FastifyPluginAsync = async (fastify) => {
+export const uploadsRoutes: FastifyPluginAsync = async (fastify) => {
   await fastify.register(multipart, {
     limits: { fileSize: MAX_UPLOAD_BYTES, files: 1, fields: 8, parts: 12, headerPairs: 200 },
   });
@@ -191,5 +191,3 @@ const uploadsRoutes: FastifyPluginAsync = async (fastify) => {
     return sendFile(reply, uploadFiles(upload).original, upload.mime);
   });
 };
-
-export default uploadsRoutes;

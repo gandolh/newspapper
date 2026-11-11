@@ -2,7 +2,7 @@ import type { FastifyPluginAsync } from "fastify";
 import { getSettings, listThemes, saveSettings } from "@newspapper/core";
 import type { Settings } from "@newspapper/core";
 
-const settingsRoutes: FastifyPluginAsync = async (fastify) => {
+export const settingsRoutes: FastifyPluginAsync = async (fastify) => {
   /**
    * GET /api/settings
    */
@@ -28,5 +28,3 @@ const settingsRoutes: FastifyPluginAsync = async (fastify) => {
     return reply.send(getSettings());
   });
 };
-
-export default settingsRoutes;

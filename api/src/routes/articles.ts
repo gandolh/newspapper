@@ -3,7 +3,7 @@ import { saveArticle, listArticleSummaries, removeArticle, updateArticleNote } f
 import type { NewArticle } from "@newspapper/core";
 import { db } from "../lib/db.js";
 
-const articlesRoutes: FastifyPluginAsync = async (fastify) => {
+export const articlesRoutes: FastifyPluginAsync = async (fastify) => {
   /**
    * GET /api/articles?sourceId=&search=&limit=&offset=
    * The saved library — never the transient results of a search.
@@ -75,5 +75,3 @@ const articlesRoutes: FastifyPluginAsync = async (fastify) => {
     return reply.send({ ok: true });
   });
 };
-
-export default articlesRoutes;

@@ -3,7 +3,7 @@ import { searchArticles, listSources } from "@newspapper/core";
 import { sseHeaders, sseWrite, sseDone, sseError } from "../lib/sse.js";
 import { db } from "../lib/db.js";
 
-const scrapeRoutes: FastifyPluginAsync = async (fastify) => {
+export const scrapeRoutes: FastifyPluginAsync = async (fastify) => {
   /**
    * POST /api/scrape  (SSE)   body: { keywords: string[], maxPerSource?: number }
    * Fetches the enabled sources and returns items matching any of `keywords`
@@ -34,5 +34,3 @@ const scrapeRoutes: FastifyPluginAsync = async (fastify) => {
     }
   });
 };
-
-export default scrapeRoutes;

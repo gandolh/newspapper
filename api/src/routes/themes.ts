@@ -1,7 +1,7 @@
 import type { FastifyPluginAsync } from "fastify";
 import { loadTheme, listThemes } from "@newspapper/core";
 
-const themesRoutes: FastifyPluginAsync = async (fastify) => {
+export const themesRoutes: FastifyPluginAsync = async (fastify) => {
   /**
    * GET /api/themes
    */
@@ -18,5 +18,3 @@ const themesRoutes: FastifyPluginAsync = async (fastify) => {
     return reply.send(result);
   });
 };
-
-export default themesRoutes;

@@ -2,7 +2,7 @@ import type { FastifyPluginAsync } from "fastify";
 import { OutputDirMissingError, publishPost } from "@newspapper/core/publish";
 import { db } from "../lib/db.js";
 
-const publishRoutes: FastifyPluginAsync = async (fastify) => {
+export const publishRoutes: FastifyPluginAsync = async (fastify) => {
   /**
    * POST /api/posts/:id/publish
    *
@@ -32,5 +32,3 @@ const publishRoutes: FastifyPluginAsync = async (fastify) => {
     }
   });
 };
-
-export default publishRoutes;
