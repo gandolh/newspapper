@@ -2,5 +2,62 @@
   "$schema": "../vendor/house-style/conventions.schema.json",
   "web": ["ui/src"],
   "server": ["api/src"],
-  "shared": []
+  "shared": [],
+  "exceptions": [
+    {
+      "check": "structure",
+      "rule": 6,
+      "path": "api/src/features/renders/render.ts",
+      "match": "/api/posts/:id/render",
+      "reason": "A server-sent event stream: every reply is a 200 of text/event-stream with its outcome in the events, so it declares its params and no response schema (Q53)."
+    },
+    {
+      "check": "structure",
+      "rule": 6,
+      "path": "api/src/features/renders/render.ts",
+      "match": "/api/posts/:id/export.zip",
+      "reason": "Sends the latest render as an application/zip Buffer, so it declares its params and no response schema; a declared JSON 404 alone would type the Buffer out (Q53)."
+    },
+    {
+      "check": "structure",
+      "rule": 6,
+      "path": "api/src/features/reader/routes.ts",
+      "match": "/api/reader/refresh",
+      "reason": "A server-sent event stream: it declares its body and no response schema (Q53)."
+    },
+    {
+      "check": "structure",
+      "rule": 6,
+      "path": "api/src/features/scrape/routes.ts",
+      "match": "/api/scrape",
+      "reason": "A server-sent event stream: it declares its body and no response schema (Q53)."
+    },
+    {
+      "check": "structure",
+      "rule": 6,
+      "path": "api/src/features/uploads/routes.ts",
+      "match": "/uploads/:ref",
+      "reason": "Streams the normalized image file, so it declares its params (the ref, parsed there) and no response schema (Q53)."
+    },
+    {
+      "check": "structure",
+      "rule": 6,
+      "path": "api/src/features/uploads/routes.ts",
+      "match": "/uploads/:ref/original",
+      "reason": "Streams the original image file, so it declares its params (the ref, parsed there) and no response schema (Q53)."
+    },
+    {
+      "check": "structure",
+      "rule": 6,
+      "path": "api/src/features/uploads/routes.ts",
+      "match": "/api/uploads",
+      "reason": "POST takes multipart/form-data, which no body schema reads: req.file() and the multipart plugin's limits check it. Its JSON reply declares every status (Q53)."
+    },
+    {
+      "check": "structure",
+      "rule": 3,
+      "path": "core/src",
+      "reason": "core is a library the API calls, with readers of its own (the data, output and upload paths, the Reader's retention, UPLOADS_BASE_URL, THEME); api/src reads the environment only in config.ts."
+    }
+  ]
 }

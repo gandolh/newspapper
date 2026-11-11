@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from
 import { existsSync, mkdtempSync, readdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { serializerCompiler, validatorCompiler } from "@fastify/type-provider-zod";
 import Fastify, { type FastifyInstance } from "fastify";
 import sharp from "sharp";
 import { MAX_UPLOAD_BYTES, htmlToPng } from "@newspapper/core";
@@ -29,7 +30,10 @@ afterAll(() => {
 let app: FastifyInstance;
 
 beforeEach(async () => {
+  // The feature alone, on a bare Fastify with the zod compilers buildApp sets.
   app = Fastify();
+  app.setValidatorCompiler(validatorCompiler);
+  app.setSerializerCompiler(serializerCompiler);
   await app.register(uploadsRoutes);
   await app.ready();
 });
@@ -211,6 +215,8 @@ describe("the upload URL is reachable from headless Chromium", () => {
 
     const hits: { url: string; status: number }[] = [];
     const server = Fastify();
+    server.setValidatorCompiler(validatorCompiler);
+    server.setSerializerCompiler(serializerCompiler);
     server.addHook("onResponse", async (req, reply) => {
       if (req.url.startsWith("/uploads/")) hits.push({ url: req.url, status: reply.statusCode });
     });

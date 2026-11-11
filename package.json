@@ -22,7 +22,7 @@
     "typecheck": "tsc -p core --noEmit && tsc -p api --noEmit && npm run typecheck -w @newspapper/ui",
     "check": "npm run typecheck && npm run lint && npm run format:check && npm run check:conventions && CI=1 vitest run",
     "check:fast": "npm run typecheck && node scripts/check-fast.mjs",
-    "check:conventions": "knip && depcruise core/src api/src ui/src && node vendor/house-style/bin/check-base-ui.mjs --warn-only && node vendor/house-style/bin/check-structure.mjs --warn-only"
+    "check:conventions": "knip && depcruise core/src api/src ui/src && node vendor/house-style/bin/check-base-ui.mjs --warn-only && node vendor/house-style/bin/check-structure.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
