@@ -8,12 +8,15 @@ const keywords = "keywords must be a list of strings";
  * before the stream opens.
  */
 export const scrapeSchema = z
-  .object({
-    keywords: z.array(z.string({ error: keywords }), { error: keywords }).optional(),
-    maxPerSource: z
-      .number({ error: "maxPerSource must be a positive integer" })
-      .int({ error: "maxPerSource must be a positive integer" })
-      .positive({ error: "maxPerSource must be a positive integer" })
-      .optional(),
-  })
+  .object(
+    {
+      keywords: z.array(z.string({ error: keywords }), { error: keywords }).optional(),
+      maxPerSource: z
+        .number({ error: "maxPerSource must be a positive integer" })
+        .int({ error: "maxPerSource must be a positive integer" })
+        .positive({ error: "maxPerSource must be a positive integer" })
+        .optional(),
+    },
+    { error: "body must be an object" },
+  )
   .nullish();

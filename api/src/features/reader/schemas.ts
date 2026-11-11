@@ -101,9 +101,14 @@ export const readerCountsSchema = z.object({
 });
 
 /** `POST /api/reader/items/:id/save  { note? }`: no body saves with no note. */
-export const saveItemSchema = z.object({ note: z.string({ error: "note must be a string" }).optional() }).nullish();
+export const saveItemSchema = z
+  .object({ note: z.string({ error: "note must be a string" }).optional() }, { error: "body must be an object" })
+  .nullish();
 
 /** `POST /api/reader/refresh  { sourceId? }`: one source, or every enabled one. */
 export const refreshSchema = z
-  .object({ sourceId: z.string({ error: "sourceId must be a string" }).optional() })
+  .object(
+    { sourceId: z.string({ error: "sourceId must be a string" }).optional() },
+    { error: "body must be an object" },
+  )
   .nullish();

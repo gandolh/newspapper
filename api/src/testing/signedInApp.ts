@@ -1,7 +1,7 @@
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { afterAll, afterEach, beforeAll, beforeEach } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, vi } from "vitest";
 import { resetDb } from "../lib/db.js";
 import { buildTestApp } from "./buildTestApp.js";
 import { signInCookie } from "./ward.js";
@@ -34,12 +34,12 @@ export function useSignedInApp() {
 
   beforeAll(() => {
     tmpDir = mkdtempSync(join(tmpdir(), "newspapper-test-"));
-    process.env["NEWSPAPPER_DB_PATH"] = join(tmpDir, "test.db");
+    vi.stubEnv("NEWSPAPPER_DB_PATH", join(tmpDir, "test.db"));
   });
 
   afterAll(() => {
     resetDb();
-    delete process.env["NEWSPAPPER_DB_PATH"];
+    vi.unstubAllEnvs();
     rmSync(tmpDir, { recursive: true, force: true });
   });
 

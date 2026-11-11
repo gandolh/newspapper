@@ -8,49 +8,49 @@
       "check": "structure",
       "rule": 6,
       "path": "api/src/features/renders/render.ts",
-      "match": "/api/posts/:id/render",
+      "match": "POST /api/posts/:id/render declares",
       "reason": "A server-sent event stream: every reply is a 200 of text/event-stream with its outcome in the events, so it declares its params and no response schema (Q53)."
     },
     {
       "check": "structure",
       "rule": 6,
       "path": "api/src/features/renders/render.ts",
-      "match": "/api/posts/:id/export.zip",
+      "match": "GET /api/posts/:id/export.zip declares",
       "reason": "Sends the latest render as an application/zip Buffer, so it declares its params and no response schema; a declared JSON 404 alone would type the Buffer out (Q53)."
     },
     {
       "check": "structure",
       "rule": 6,
       "path": "api/src/features/reader/routes.ts",
-      "match": "/api/reader/refresh",
+      "match": "POST /api/reader/refresh declares",
       "reason": "A server-sent event stream: it declares its body and no response schema (Q53)."
     },
     {
       "check": "structure",
       "rule": 6,
       "path": "api/src/features/scrape/routes.ts",
-      "match": "/api/scrape",
+      "match": "POST /api/scrape declares",
       "reason": "A server-sent event stream: it declares its body and no response schema (Q53)."
     },
     {
       "check": "structure",
       "rule": 6,
       "path": "api/src/features/uploads/routes.ts",
-      "match": "/uploads/:ref",
+      "match": "GET /uploads/:ref declares",
       "reason": "Streams the normalized image file, so it declares its params (the ref, parsed there) and no response schema (Q53)."
     },
     {
       "check": "structure",
       "rule": 6,
       "path": "api/src/features/uploads/routes.ts",
-      "match": "/uploads/:ref/original",
+      "match": "GET /uploads/:ref/original declares",
       "reason": "Streams the original image file, so it declares its params (the ref, parsed there) and no response schema (Q53)."
     },
     {
       "check": "structure",
       "rule": 6,
       "path": "api/src/features/uploads/routes.ts",
-      "match": "/api/uploads",
+      "match": "POST /api/uploads declares",
       "reason": "POST takes multipart/form-data, which no body schema reads: req.file() and the multipart plugin's limits check it. Its JSON reply declares every status (Q53)."
     },
     {

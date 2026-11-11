@@ -37,12 +37,15 @@ export const sourceInputSchema = z.object(
 
 /** `PUT /api/sources/:id`: a partial patch. No body changes nothing, as before the schema. */
 export const sourcePatchSchema = z
-  .object({
-    name: z.string({ error: "name must be a string" }).optional(),
-    rss: z.string({ error: "rss must be a string" }).optional(),
-    enabled,
-    category,
-  })
+  .object(
+    {
+      name: z.string({ error: "name must be a string" }).optional(),
+      rss: z.string({ error: "rss must be a string" }).optional(),
+      enabled,
+      category,
+    },
+    { error: "body must be an object" },
+  )
   .nullish();
 
 /** `POST /api/sources/:id/ping`: whether the feed answered, and how fast. */
