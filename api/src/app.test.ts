@@ -90,3 +90,30 @@ describe("the global error handler", () => {
     expect(res.json()).toEqual({ error: "Body is not valid JSON but content-type is set to 'application/json'" });
   });
 });
+
+describe("a reply its response schema refuses", () => {
+  // A row the store hands back in a shape the schema doesn't allow is a bug, never the client's
+  // fault: a 500 with the fixed body, the zod issues in the log only.
+  it("is a 500 with no detail", async () => {
+    const app = await buildTestApp();
+    await app.ready();
+    try {
+      const session = (await signInCookie(app)).cookies;
+      const created = await app.inject({
+        method: "POST",
+        url: "/api/posts",
+        cookies: session,
+        payload: { markup: "<head><title>Fine</title></head>" },
+      });
+      const { id } = created.json<{ id: number }>();
+      // A blob: TEXT affinity would turn a number back into text, but leaves a blob alone.
+      appDb().prepare("UPDATE posts SET title = x'6869' WHERE id = ?").run(id);
+      const res = await app.inject({ method: "GET", url: `/api/posts/${id}`, cookies: session });
+      expect(res.statusCode).toBe(500);
+      expect(res.json()).toEqual({ error: "Internal Server Error" });
+      expect(res.body).not.toContain("title");
+    } finally {
+      await app.close();
+    }
+  });
+});
