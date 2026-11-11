@@ -40,3 +40,22 @@ describe("PUT /api/settings", () => {
     expect(after.json().defaultTheme).toBe("warm-industrial-1");
   });
 });
+
+describe("PUT /api/settings with a malformed body", () => {
+  it("answers 400 with the error body, before anything is stored", async () => {
+    for (const [payload, error] of [
+      ["[]", "body must be an object"],
+      ['"x"', "body must be an object"],
+      [{ defaultTheme: 5 }, 'Unknown theme: "5"'],
+    ] as const) {
+      const res = await inject({
+        method: "PUT",
+        url: "/api/settings",
+        payload: typeof payload === "string" ? payload : JSON.stringify(payload),
+        headers: { "content-type": "application/json" },
+      });
+      expect(res.statusCode).toBe(400);
+      expect(res.json()).toEqual({ error });
+    }
+  });
+});

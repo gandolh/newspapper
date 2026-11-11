@@ -12,6 +12,7 @@ export interface InjectOpts {
   method: Method;
   url: string;
   payload?: string | object;
+  headers?: Record<string, string>;
   cookies?: Record<string, string>;
 }
 

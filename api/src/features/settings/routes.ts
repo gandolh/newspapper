@@ -1,12 +1,13 @@
-import type { FastifyPluginAsync } from "fastify";
+import type { FastifyPluginAsyncZod } from "@fastify/type-provider-zod";
 import { getSettings, listThemes, saveSettings } from "@newspapper/core";
-import type { Settings } from "@newspapper/core";
+import { errorSchema } from "../../lib/schemas.js";
+import { settingsPatchSchema, settingsSchema } from "./schemas.js";
 
-export const settingsRoutes: FastifyPluginAsync = async (fastify) => {
+export const settingsRoutes: FastifyPluginAsyncZod = async (fastify) => {
   /**
    * GET /api/settings
    */
-  fastify.get("/api/settings", async (_req, reply) => {
+  fastify.get("/api/settings", { schema: { response: { 200: settingsSchema } } }, async (_req, reply) => {
     return reply.send(getSettings());
   });
 
@@ -16,15 +17,16 @@ export const settingsRoutes: FastifyPluginAsync = async (fastify) => {
    * `defaultTheme` is checked against the themes on disk: an unknown id would
    * be handed straight to `loadTheme` on the next render and throw there.
    */
-  fastify.put("/api/settings", async (req, reply) => {
-    const body = req.body as Partial<Settings>;
-    if (!body || typeof body !== "object") {
-      return reply.status(400).send({ error: "body must be an object" });
-    }
-    if (body.defaultTheme !== undefined && !listThemes().includes(body.defaultTheme)) {
-      return reply.status(400).send({ error: `Unknown theme: "${body.defaultTheme}"` });
-    }
-    saveSettings(body);
-    return reply.send(getSettings());
-  });
+  fastify.put(
+    "/api/settings",
+    { schema: { body: settingsPatchSchema, response: { 200: settingsSchema, 400: errorSchema } } },
+    async (req, reply) => {
+      const body = req.body;
+      if (body.defaultTheme !== undefined && !listThemes().includes(body.defaultTheme)) {
+        return reply.status(400).send({ error: `Unknown theme: "${body.defaultTheme}"` });
+      }
+      saveSettings(body);
+      return reply.send(getSettings());
+    },
+  );
 };
