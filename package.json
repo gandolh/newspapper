@@ -14,12 +14,15 @@
     "dev": "concurrently --kill-others-on-fail \"npm run dev --workspace=api\" \"npm run dev --workspace=ui\"",
     "build": "npm run format:check && npm run build --workspace=core && npm run build --workspace=api && npm run typecheck --workspace=ui && npm run build --workspace=ui",
     "test": "vitest run",
-    "gate": "CI=1 npm run build && CI=1 npm test && npm run lint && bash corpus/lint.sh",
-    "lint": "eslint \"core/src/**/*.ts\" \"api/src/**/*.ts\" \"ui/src/**/*.{ts,tsx}\" \"ui/vite.config.ts\"",
+    "gate": "npm run check && npm run build && bash corpus/lint.sh",
+    "lint": "eslint .",
     "house-style:sync": "node vendor/house-style/bin/sync.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "tsc -p core --noEmit && tsc -p api --noEmit && npm run typecheck -w @newspapper/ui"
+    "typecheck": "tsc -p core --noEmit && tsc -p api --noEmit && npm run typecheck -w @newspapper/ui",
+    "check": "npm run typecheck && npm run lint && npm run format:check && npm run check:conventions && CI=1 vitest run",
+    "check:fast": "npm run typecheck && node scripts/check-fast.mjs",
+    "check:conventions": "knip && depcruise core/src api/src ui/src && node vendor/house-style/bin/check-base-ui.mjs --warn-only && node vendor/house-style/bin/check-structure.mjs --warn-only"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
@@ -37,7 +40,6 @@
     "eslint-plugin-react-hooks": "7.1.1",
     "knip": "6.44.2",
     "prettier": "3.9.10",
-    "tsx": "4.22.1",
     "typescript": "6.0.3",
     "typescript-eslint": "8.72.2",
     "vitest": "4.1.12"
