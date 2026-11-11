@@ -46,6 +46,27 @@ describe("POST /api/sources validation", () => {
   });
 });
 
+describe("a malformed source body", () => {
+  it("answers 400 with the error body on create and on update, and stores nothing", async () => {
+    const feed = "https://example.com/feed";
+    for (const [payload, error] of [
+      [{ id: 5, name: "Five", rss: feed }, "id, name, and rss are required"],
+      [{ id: "five", name: "Five", rss: feed, enabled: "yes" }, "enabled must be true or false"],
+      [["five"], "id, name, and rss are required"],
+    ] as const) {
+      const res = await inject({ method: "POST", url: "/api/sources", payload });
+      expect(res.statusCode).toBe(400);
+      expect(res.json()).toEqual({ error });
+    }
+    const list = (await inject({ method: "GET", url: "/api/sources" })).json<{ id: string }[]>();
+    expect(list.map((source) => source.id)).not.toContain("five");
+
+    const put = await inject({ method: "PUT", url: "/api/sources/bbc", payload: { rss: 7 } });
+    expect(put.statusCode).toBe(400);
+    expect(put.json()).toEqual({ error: "rss must be a string" });
+  });
+});
+
 describe("source categories", () => {
   it("accepts and returns a category on create and update; blank means none", async () => {
     const created = await inject({
