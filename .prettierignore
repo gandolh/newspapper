@@ -1,0 +1,22 @@
+# Markdown stays out of Prettier (decided 2026-11-10): the corpus is prose that corpus/lint.sh governs.
+*.md
+
+# Generated or vendored copies.
+vendor/house-style/
+api/vendor/
+ui/vendor/
+
+# The Docusaurus workspace has its own build and its own conventions.
+docs/
+
+# Lockfile, build output, local data, static assets.
+package-lock.json
+**/dist/
+/data/
+/output/
+/uploads/
+/coverage/
+ui/public/
+
+# Local agent settings.
+.claude/
