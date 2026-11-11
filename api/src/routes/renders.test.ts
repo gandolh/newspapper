@@ -26,7 +26,7 @@ beforeAll(() => {
     mkdirSync(dir, { recursive: true });
     writeFileSync(join(dir, "slide-01.jpg"), "jpg");
   }
-  writeFileSync(join(dirs[0]!, "thumb.jpg"), "thumb");
+  writeFileSync(join(dirs[0], "thumb.jpg"), "thumb");
 });
 
 afterAll(() => {
@@ -51,8 +51,8 @@ describe("GET /api/renders thumbnails", () => {
     const markup = "<head><title>T</title></head><body><Slide /></body>";
     const withThumb = createPost(db(), { title: "new", markup });
     const older = createPost(db(), { title: "old", markup });
-    recordRender(db(), { postId: withThumb.id, outputDir: dirs[0]!, slideCount: 1 });
-    recordRender(db(), { postId: older.id, outputDir: dirs[1]!, slideCount: 1 });
+    recordRender(db(), { postId: withThumb.id, outputDir: dirs[0], slideCount: 1 });
+    recordRender(db(), { postId: older.id, outputDir: dirs[1], slideCount: 1 });
 
     const res = await app.inject({
       method: "GET",

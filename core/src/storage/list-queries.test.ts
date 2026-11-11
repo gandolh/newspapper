@@ -34,7 +34,7 @@ function countStatements<T>(fn: () => T): { result: T; statements: number } {
   target.prepare = (...args: unknown[]) => {
     const stmt = original.apply(db, args) as Record<string, (...x: unknown[]) => unknown>;
     for (const method of ["all", "get", "run"] as const) {
-      const run = stmt[method]!.bind(stmt);
+      const run = stmt[method].bind(stmt);
       stmt[method] = (...x: unknown[]) => {
         statements += 1;
         return run(...x);
@@ -77,7 +77,7 @@ describe("post lists", () => {
     seed(30);
     const { result, statements } = countStatements(() => queryPosts(db));
     expect(statements).toBe(2);
-    expect(result[0]!.markup).toContain("<Slide />");
+    expect(result[0].markup).toContain("<Slide />");
   });
 
   it("summaries match the full posts field for field, minus markup", () => {
@@ -92,8 +92,8 @@ describe("post lists", () => {
       title: "bare",
       markup: "<head><title>b</title></head><body /></body>",
     });
-    const map = keywordsForPosts(db, [id!, bare.id]);
-    expect(map.get(id!)).toEqual(["sport"]);
+    const map = keywordsForPosts(db, [id, bare.id]);
+    expect(map.get(id)).toEqual(["sport"]);
     expect(map.get(bare.id)).toEqual([]);
     expect(keywordsForPosts(db, []).size).toBe(0);
   });
@@ -102,9 +102,9 @@ describe("post lists", () => {
 describe("latestRenders", () => {
   it("returns each post's newest render, in one statement", () => {
     const [a, b, c] = seed(3);
-    recordRender(db, { postId: a!, outputDir: "/out/a1", slideCount: 1 });
-    recordRender(db, { postId: a!, outputDir: "/out/a2", slideCount: 2 });
-    recordRender(db, { postId: b!, outputDir: "/out/b1", slideCount: 3 });
+    recordRender(db, { postId: a, outputDir: "/out/a1", slideCount: 1 });
+    recordRender(db, { postId: a, outputDir: "/out/a2", slideCount: 2 });
+    recordRender(db, { postId: b, outputDir: "/out/b1", slideCount: 3 });
     void c; // no render
     const { result, statements } = countStatements(() => latestRenders(db));
     expect(statements).toBe(1);

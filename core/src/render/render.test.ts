@@ -360,7 +360,7 @@ describe("the grid thumbnail", () => {
       );
       expect(run.thumb).toBe(join(run.dir, THUMB_FILE));
       const sharp = (await import("sharp")).default;
-      const meta = await sharp(run.thumb!).metadata();
+      const meta = await sharp(run.thumb).metadata();
       expect([meta.width, meta.height]).toEqual([220, 220]);
       const { statSync } = await import("node:fs");
       const slideBytes = statSync(join(run.dir, "slide-01.jpg")).size;

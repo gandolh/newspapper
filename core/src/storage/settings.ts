@@ -17,7 +17,7 @@ function fromEnv(): Partial<Settings> {
       result[key] = val;
     }
   }
-  return result as Partial<Settings>;
+  return result;
 }
 
 /**

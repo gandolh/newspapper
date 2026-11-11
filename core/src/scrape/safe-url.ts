@@ -88,7 +88,7 @@ function embeddedIPv4(address: string): string | null {
   const mapped = zero(0, 5) && g[5] === 0xffff;
   const nat64 = g[0] === 0x64 && g[1] === 0xff9b && zero(2, 6);
   if (!mapped && !nat64 && !zero(0, 6)) return null;
-  const [hi, lo] = [g[6]!, g[7]!];
+  const [hi, lo] = [g[6], g[7]];
   return `${hi >> 8}.${hi & 0xff}.${lo >> 8}.${lo & 0xff}`;
 }
 
@@ -163,7 +163,7 @@ export function vettingLookup(
         } else if (options.all) {
           callback(null, entries);
         } else {
-          callback(null, entries[0]!.address, entries[0]!.family);
+          callback(null, entries[0].address, entries[0].family);
         }
       },
       (err: NodeJS.ErrnoException) => callback(err, ""),
@@ -224,7 +224,7 @@ function toResponse(res: http.IncomingMessage): Response {
   const headers = new Headers();
   for (let i = 0; i < res.rawHeaders.length; i += 2) {
     try {
-      headers.append(res.rawHeaders[i]!, res.rawHeaders[i + 1]!);
+      headers.append(res.rawHeaders[i], res.rawHeaders[i + 1]);
     } catch {
       // A header value `Headers` won't hold; nothing here reads it.
     }

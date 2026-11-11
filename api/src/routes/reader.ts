@@ -84,7 +84,7 @@ export const readerRoutes: FastifyPluginAsync<ReaderRoutesOptions> = async (fast
 
     try {
       const page = listFeedItems(db(), {
-        scope: (scope as "unread" | "all" | "" | undefined) || undefined,
+        scope: scope || undefined,
         sourceId: (sourceId as string | undefined) || undefined,
         category: category as string | undefined,
         q: (q as string | undefined) || undefined,

@@ -301,8 +301,8 @@ describe("a request connects only to the address that was checked", () => {
     expect(await res?.text()).toBe("<p>hello</p>");
     expect(connectTo).toHaveBeenCalledWith(PUBLIC);
     expect(hits).toHaveLength(1);
-    expect(hits[0]!.headers["user-agent"]).toBe("ua-test");
-    expect(hits[0]!.headers["accept-encoding"]).toBe("gzip, deflate");
+    expect(hits[0].headers["user-agent"]).toBe("ua-test");
+    expect(hits[0].headers["accept-encoding"]).toBe("gzip, deflate");
   });
 
   const deps = { lookup: async () => [PUBLIC], connectTo: toLoopback };
@@ -345,7 +345,7 @@ describe("a request connects only to the address that was checked", () => {
       deps,
     );
     expect(feed.status).toBe("notModified");
-    expect(hits[1]!.headers["if-none-match"]).toBe('"v1"');
+    expect(hits[1].headers["if-none-match"]).toBe('"v1"');
   });
 
   it("an abort before the answer rejects", async () => {

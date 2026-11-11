@@ -253,7 +253,7 @@ function ReaderPage() {
     if (rows.length === 0) return;
     const index = rows.findIndex((r) => r.id === selectedId);
     if (index === -1) {
-      void openItem(rows[0]!.id);
+      void openItem(rows[0].id);
       return;
     }
     const next = index + delta;
@@ -262,7 +262,7 @@ function ReaderPage() {
       if (list?.nextCursor && !loadingMore) void loadMore();
       return;
     }
-    void openItem(rows[next]!.id);
+    void openItem(rows[next].id);
   }
 
   async function loadMore() {

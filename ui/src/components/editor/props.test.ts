@@ -47,7 +47,7 @@ describe("inheritedAlign", () => {
       if (node.style?.["textAlign"]) styles.push(String(node.style["textAlign"]));
       (node.children as (typeof node)[] | undefined)?.forEach(visit);
     };
-    visit(slides[0] as never);
+    visit(slides[0]);
     expect(styles).toContain("center");
     expect(styles).toContain("right");
     expect(styles).toContain("left");

@@ -39,7 +39,7 @@ export interface TracedCompile {
 }
 
 function stamp(node: TNode, offset: number): TNode {
-  return { ...node, style: { ...(node.style ?? {}), [WZD_SRC_KEY]: offset } } as TNode;
+  return { ...node, style: { ...(node.style ?? {}), [WZD_SRC_KEY]: offset } };
 }
 
 function tracedRender(node: WzdNode, ctx: WzdRenderContext): TNode | null {

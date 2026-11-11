@@ -102,7 +102,7 @@ describe("the tray on /reader", () => {
   it("has four compartments, the third of them the Reader", async () => {
     await mountAt("/reader");
     expect(compartments().map((a) => a.textContent)).toEqual(["Editor", "Posts", "Reader", "Settings"]);
-    expect(compartments()[2]!.getAttribute("href")).toBe("/reader");
+    expect(compartments()[2].getAttribute("href")).toBe("/reader");
     expect(tray().querySelector('a[href="/articles"]')).toBeNull();
   });
 
@@ -114,7 +114,7 @@ describe("the tray on /reader", () => {
 
   it("keeps the clipping as the Reader compartment’s showing", async () => {
     await mountAt("/reader");
-    const reader = compartments()[2]!;
+    const reader = compartments()[2];
     expect(reader.querySelector("svg path")?.getAttribute("d")).toBe("M3 6h24M3 11h18M3 16h21M3 21h11");
   });
 

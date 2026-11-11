@@ -139,12 +139,8 @@ async function parseFeed(xml: string): Promise<RssItem[]> {
   const items: RssItem[] = [];
   for (const item of feed.items ?? []) {
     if (!item.link || !item.title) continue;
-    const fields = item as Parser.Item & Record<string, unknown>;
-    const summary =
-      (item.contentSnippet as string | undefined) ??
-      (item.content as string | undefined) ??
-      (item.summary as string | undefined) ??
-      "";
+    const fields = item;
+    const summary = item.contentSnippet ?? item.content ?? item.summary ?? "";
     items.push({
       title: item.title,
       url: item.link,

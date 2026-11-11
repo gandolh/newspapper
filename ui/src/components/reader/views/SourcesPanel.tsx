@@ -201,7 +201,7 @@ function SourceFormModal({ open, source, categories, onClose, onSaved }: SourceF
     try {
       let result: Source[];
       if (isEdit) {
-        result = await api<Source[]>(`/api/sources/${source!.id}`, {
+        result = await api<Source[]>(`/api/sources/${source.id}`, {
           method: "PUT",
           json: { name: name.trim(), rss: rss.trim(), enabled, category: category.trim() || null },
         });

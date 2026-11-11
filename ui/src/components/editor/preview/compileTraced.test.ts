@@ -72,7 +72,7 @@ describe("compileTraced", () => {
   });
 
   it("reports a theme that cannot drive the library instead of throwing", () => {
-    const broken = { ...theme, colors: {} } as Theme;
+    const broken = { ...theme, colors: {} };
     const result = compileTraced(parse(WZD_SAMPLES[0].source).doc, broken);
     expect(result.themeError).toContain("missing tokens");
     expect(result.slides).toEqual([]);

@@ -103,7 +103,7 @@ export async function createFakeWard(): Promise<FakeWard> {
     clientId: "newspapper",
     clientKey,
     redirectUri: TEST_REDIRECT,
-    fetch: fake as typeof fetch,
+    fetch: fake,
     now: () => clock,
   });
 

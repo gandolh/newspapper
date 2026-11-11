@@ -117,7 +117,7 @@ describe("refreshSources", () => {
         ),
       );
     await refreshSources(db, { deps, now });
-    expect(listFeedItems(db).items[0]!.url).toBe("https://atom.example/later");
+    expect(listFeedItems(db).items[0].url).toBe("https://atom.example/later");
   });
 
   it("a 304 parses nothing and updates last_fetched_at", async () => {

@@ -38,7 +38,7 @@ export function resolveTolerant(style: TStyle, theme: Theme): ResolvedStyle {
   for (const key of keys) {
     if (!(key in style)) continue;
     try {
-      Object.assign(css, resolveStyle({ [key]: style[key] } as TStyle, theme));
+      Object.assign(css, resolveStyle({ [key]: style[key] }, theme));
     } catch (err) {
       problems.push(err instanceof Error ? err.message : String(err));
     }

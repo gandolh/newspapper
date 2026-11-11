@@ -66,7 +66,7 @@ async function bundle(): Promise<string> {
       },
     },
   })) as Rollup.RollupOutput[];
-  const chunk = result[0]!.output.find((o): o is Rollup.OutputChunk => o.type === "chunk");
+  const chunk = result[0].output.find((o): o is Rollup.OutputChunk => o.type === "chunk");
   if (!chunk) throw new Error("vite produced no chunk for sanitize.ts");
   return chunk.code;
 }
@@ -161,7 +161,7 @@ describe("sanitizing feed HTML in Chromium", () => {
         '<img src="data:image/svg+xml,%3Csvg onload=alert(1)%3E" alt="x">',
     );
     expect(tags(out)).toEqual(["p", "a"]);
-    expect(only(out, "a")[0]!.attrs).toEqual({});
+    expect(only(out, "a")[0].attrs).toEqual({});
     expect(out.html).not.toContain("data:");
   });
 
@@ -228,7 +228,7 @@ describe("sanitizing feed HTML in Chromium", () => {
     if (!chromium.orSkip((note) => ctx.skip(note))) return;
     const out = await clean('<p>x</p><a href="/api/sources">a</a><img src="pic.png" alt="p">');
     expect(tags(out)).toEqual(["p", "a"]);
-    expect(only(out, "a")[0]!.attrs).toEqual({});
+    expect(only(out, "a")[0].attrs).toEqual({});
   });
 
   it("unwraps tags outside the allowlist but keeps their text", async (ctx) => {
@@ -264,7 +264,7 @@ describe("sanitizing feed HTML in Chromium", () => {
       '<p>x</p><figure><img src="http://ok.test/i.png" alt="pic" loading="eager" ' +
         'referrerpolicy="unsafe-url"><figcaption>c</figcaption></figure>',
     );
-    expect(only(out, "img")[0]!.attrs).toEqual({
+    expect(only(out, "img")[0].attrs).toEqual({
       src: "http://ok.test/i.png",
       alt: "pic",
       loading: "lazy",

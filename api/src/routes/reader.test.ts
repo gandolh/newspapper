@@ -153,7 +153,7 @@ describe("GET /api/reader/items", () => {
 
     // The control: the same item in full does carry it, so the assertions
     // above are looking at the field's real name.
-    const full = await call("GET", `/api/reader/items/${summary!.id}`);
+    const full = await call("GET", `/api/reader/items/${summary.id}`);
     expect(full.body).toContain("contentHtml");
     expect((full.json() as FeedItem).contentHtml).toBe('<p class="np-marker">Body <em>html</em></p>');
   });
@@ -240,7 +240,7 @@ describe("GET /api/reader/items/:id", () => {
       saved: false,
       articleId: null,
     });
-    expect((await list()).items[0]!.read).toBe(false);
+    expect((await list()).items[0].read).toBe(false);
   });
 
   it("404 for an unknown id, 400 for a malformed one", async () => {
@@ -255,10 +255,10 @@ describe("PATCH /api/reader/items/:id", () => {
     const read = await call("PATCH", `/api/reader/items/${ids["one"]}`, { read: true });
     expect(read.statusCode).toBe(200);
     expect(read.json()).toEqual({ id: ids["one"], read: true });
-    expect((await list()).items[0]!.read).toBe(true);
+    expect((await list()).items[0].read).toBe(true);
 
     await call("PATCH", `/api/reader/items/${ids["one"]}`, { read: false });
-    expect((await list()).items[0]!.read).toBe(false);
+    expect((await list()).items[0].read).toBe(false);
   });
 
   it("404 for an unknown id, 400 without a boolean", async () => {
@@ -351,7 +351,7 @@ describe("POST /api/reader/items/:id/save", () => {
       note: "for the budget post",
     });
 
-    expect((await list()).items[0]!.saved).toBe(true);
+    expect((await list()).items[0].saved).toBe(true);
     const item = (await call("GET", `/api/reader/items/${ids["keep"]}`)).json() as FeedItem;
     expect(item.saved).toBe(true);
     expect(item.articleId).toBe(article.id);
@@ -368,7 +368,7 @@ describe("POST /api/reader/items/:id/save", () => {
     expect(patched.statusCode).toBe(200);
     expect((patched.json() as Article).note).toBe("changed my mind");
     const after = (await call("GET", "/api/articles?sourceId=alpha")).json() as Article[];
-    expect(after[0]!.note).toBe("changed my mind");
+    expect(after[0].note).toBe("changed my mind");
   });
 
   it("saves without a body", async () => {

@@ -58,7 +58,7 @@ export function Select({
         items={options}
         value={value}
         defaultValue={defaultValue}
-        onValueChange={(v) => onValueChange?.((v ?? "") as string)}
+        onValueChange={(v) => onValueChange?.(v ?? "")}
         name={name}
         disabled={disabled}
       >

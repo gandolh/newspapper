@@ -71,7 +71,7 @@ describe("startReaderSchedule", () => {
   it("unrefs its timer, so it can never keep the process alive", () => {
     const spy = vi.spyOn(globalThis, "setTimeout");
     const schedule = startReaderSchedule(db, { intervalMinutes: 30 });
-    const timer = spy.mock.results[0]!.value as NodeJS.Timeout;
+    const timer = spy.mock.results[0].value as NodeJS.Timeout;
     expect(timer.hasRef()).toBe(false);
     spy.mockRestore();
     void schedule.stop();

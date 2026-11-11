@@ -90,9 +90,9 @@ describe("POST /api/posts/:id/render", () => {
     const res = await post(`/api/posts/${created.id}/render`);
     const stream = events(res.body);
     expect(stream.map((e) => e.event)).toEqual(["progress", "done"]);
-    const done = stream[1]!.data as { files: string[] };
+    const done = stream[1].data as { files: string[] };
     expect(done.files).toHaveLength(1);
-    const file = join(repoRoot, done.files[0]!);
+    const file = join(repoRoot, done.files[0]);
     createdOutputDirs.push(resolve(file, ".."));
     expect(existsSync(file)).toBe(true);
 
@@ -100,7 +100,7 @@ describe("POST /api/posts/:id/render", () => {
     const { data, info } = await sharp(file).raw().toBuffer({ resolveWithObject: true });
     let redPixels = 0;
     for (let i = 0; i < data.length; i += info.channels) {
-      if (data[i]! > 200 && data[i + 1]! < 60 && data[i + 2]! < 60) redPixels += 1;
+      if (data[i] > 200 && data[i + 1] < 60 && data[i + 2] < 60) redPixels += 1;
     }
     expect(redPixels).toBeGreaterThan(10_000);
   });
@@ -118,7 +118,7 @@ describe("POST /api/posts/:id/render", () => {
     db().prepare("UPDATE posts SET theme = ? WHERE id = ?").run("no-such-theme", created.id);
     const stream = events((await post(`/api/posts/${created.id}/render`)).body);
     expect(stream.map((e) => e.event)).toEqual(["error"]);
-    expect(JSON.stringify(stream[0]!.data)).toMatch(/Theme not found/);
+    expect(JSON.stringify(stream[0].data)).toMatch(/Theme not found/);
   });
 
   it("a post that does not compile is an SSE error, not a render", async () => {

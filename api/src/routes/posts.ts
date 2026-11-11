@@ -9,7 +9,6 @@ import {
   setPostStatus,
   updatePost,
   type PostInput,
-  type PostStatus,
 } from "@newspapper/core";
 import { db } from "../lib/db.js";
 
@@ -72,7 +71,7 @@ export const postsRoutes: FastifyPluginAsync = async (fastify) => {
       limit?: string;
       offset?: string;
     };
-    const status = query.status === "draft" || query.status === "published" ? (query.status as PostStatus) : undefined;
+    const status = query.status === "draft" || query.status === "published" ? query.status : undefined;
     // Summaries, without each post's markup: the grid never reads it, and it
     // was most of the payload. `GET /api/posts/:id` still returns the full post.
     return reply.send(

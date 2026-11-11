@@ -69,10 +69,10 @@ describe("createSaveQueue", () => {
     await flush();
     expect(server.posts()).toBe(1);
     expect(server.pending).toHaveLength(1);
-    server.pending[0]!.resolve();
+    server.pending[0].resolve();
     await flush();
     expect(server.pending.map((p) => p.kind)).toEqual(["POST", "PUT"]);
-    server.pending[1]!.resolve();
+    server.pending[1].resolve();
     await Promise.all([first, second]);
     expect(server.posts()).toBe(1);
     expect([...server.db.values()]).toEqual([{ markup: "v2", theme: "t" }]);
@@ -87,11 +87,11 @@ describe("createSaveQueue", () => {
     const c = queue.save(); // coalesces with the queued one
     await flush();
     expect(server.pending).toHaveLength(1); // never two PUTs in flight
-    server.pending[0]!.resolve();
+    server.pending[0].resolve();
     await flush();
     expect(server.pending).toHaveLength(2);
-    expect(server.pending[1]!.body.markup).toBe("v3"); // reads content at send time
-    server.pending[1]!.resolve();
+    expect(server.pending[1].body.markup).toBe("v3"); // reads content at send time
+    server.pending[1].resolve();
     await Promise.all([a, c]);
     expect(server.db.get(5)?.markup).toBe("v3");
     expect(shown.map((b) => b.markup)).toEqual(["v1", "v3"]); // in order; v1 never after v3

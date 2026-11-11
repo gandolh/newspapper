@@ -103,7 +103,7 @@ async function bundle(): Promise<{ js: string; css: string }> {
       lib: { entry: "virtual:galley-entry", formats: ["iife"], name: "Galley", fileName: "galley" },
     },
   })) as Rollup.RollupOutput[];
-  const output = result[0]!.output;
+  const output = result[0].output;
   const js = output.find((o): o is Rollup.OutputChunk => o.type === "chunk");
   const css = output
     .filter((o): o is Rollup.OutputAsset => o.type === "asset" && o.fileName.endsWith(".css"))
@@ -201,7 +201,7 @@ async function inkPerGlyph(png: Buffer, glyphs: Glyph[]): Promise<Shot> {
       ctx.drawImage(img, 0, 0);
       const all = ctx.getImageData(0, 0, img.width, img.height).data;
       const near = (i: number, [r, g, b]: number[]) =>
-        Math.abs(all[i]! - r!) < 8 && Math.abs(all[i + 1]! - g!) < 8 && Math.abs(all[i + 2]! - b!) < 8;
+        Math.abs(all[i] - r) < 8 && Math.abs(all[i + 1] - g) < 8 && Math.abs(all[i + 2] - b) < 8;
       let wax = 0;
       let blue = 0;
       let [x0, y0, x1, y1] = [Infinity, Infinity, -1, -1];
@@ -222,7 +222,7 @@ async function inkPerGlyph(png: Buffer, glyphs: Glyph[]): Promise<Shot> {
         const { data: px } = ctx.getImageData(g.x, g.y, g.w, g.h);
         let n = 0;
         for (let i = 0; i < px.length; i += 4) {
-          const lum = (0.2126 * px[i]! + 0.7152 * px[i + 1]! + 0.0722 * px[i + 2]!) / 255;
+          const lum = (0.2126 * px[i] + 0.7152 * px[i + 1] + 0.0722 * px[i + 2]) / 255;
           // Wax is ~0.84, the selection's blue ~0.75 and paper 1.0; every
           // galley ink is below 0.45.
           if (lum < 0.6) n += 1;
@@ -276,14 +276,14 @@ async function measure(source: string, range: [number, number] | null, margin = 
         const text = node.textContent ?? "";
         for (let i = 0; i < text.length; i += 1) {
           const at = offset + i;
-          if (at < from || at >= to || /\s/.test(text[i]!)) continue;
+          if (at < from || at >= to || /\s/.test(text[i])) continue;
           const r = document.createRange();
           r.setStart(node, i);
           r.setEnd(node, i + 1);
           const rect = r.getBoundingClientRect();
           glyphs.push({
             index: at,
-            char: text[i]!,
+            char: text[i],
             x: Math.round((rect.left - box.left) * scale),
             y: Math.round((rect.top - box.top) * scale),
             w: Math.round(rect.width * scale),
@@ -325,7 +325,7 @@ async function measure(source: string, range: [number, number] | null, margin = 
       top: origin.y + waxed.blueBox.y / SCALE,
       bottom: origin.y + (waxed.blueBox.y + waxed.blueBox.h) / SCALE,
     },
-    glyphs: glyphs.map((g, i) => ({ ...g, waxed: waxed.ink[i]!, control: control.ink[i]! })),
+    glyphs: glyphs.map((g, i) => ({ ...g, waxed: waxed.ink[i], control: control.ink[i] })),
   };
 }
 
@@ -558,10 +558,10 @@ describe("a text selection in the galley (Chromium)", () => {
       { start: select[0], end: select[1] },
     );
     expect(ground).toBeDefined();
-    expect(Math.abs(ground!.height - run.height)).toBeLessThan(0.5);
-    expect(ground!.height).toBeLessThan(line);
-    expect(Math.abs(ground!.left - chars.left)).toBeLessThan(0.5);
-    expect(Math.abs(ground!.right - chars.right)).toBeLessThan(0.5);
+    expect(Math.abs(ground.height - run.height)).toBeLessThan(0.5);
+    expect(ground.height).toBeLessThan(line);
+    expect(Math.abs(ground.left - chars.left)).toBeLessThan(0.5);
+    expect(Math.abs(ground.right - chars.right)).toBeLessThan(0.5);
   });
 
   it("keeps each line of a selection over several lines to the height of the text", async (ctx) => {

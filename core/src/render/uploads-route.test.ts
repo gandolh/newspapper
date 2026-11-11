@@ -61,7 +61,7 @@ function slide(src: string): string {
 async function centre(jpeg: Buffer): Promise<[number, number, number]> {
   const { data, info } = await sharp(jpeg).raw().toBuffer({ resolveWithObject: true });
   const i = (540 * info.width + 540) * info.channels;
-  return [data[i]!, data[i + 1]!, data[i + 2]!];
+  return [data[i], data[i + 1], data[i + 2]];
 }
 
 const isRed = ([r, g, b]: [number, number, number]) => r > 200 && g < 60 && b < 60;

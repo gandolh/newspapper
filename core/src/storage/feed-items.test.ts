@@ -168,7 +168,7 @@ describe("listFeedItems", () => {
       expect(JSON.stringify(summary)).not.toContain("<p>");
       expect(summary.excerpt.length).toBeLessThanOrEqual(200);
     }
-    expect(page.items[0]!.excerpt.endsWith("…")).toBe(true);
+    expect(page.items[0].excerpt.endsWith("…")).toBe(true);
     expect(page.items[1]).toMatchObject({
       sourceName: "BBC News",
       read: false,
@@ -435,7 +435,7 @@ describe("saving an item to the library", () => {
       url: "https://news.example/a",
       note: "from the reader",
     });
-    expect(listFeedItems(db).items[0]!.saved).toBe(true);
+    expect(listFeedItems(db).items[0].saved).toBe(true);
   });
 
   it("an undated item is saved with its sort time as the date", () => {

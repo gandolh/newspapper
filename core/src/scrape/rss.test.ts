@@ -65,7 +65,7 @@ describe("fetchFeedConditional — RSS 2.0", () => {
       lookup,
     });
     expect(items).toHaveLength(1);
-    expect(items[0]!.publishedAt).toBeNull();
+    expect(items[0].publishedAt).toBeNull();
   });
 });
 
@@ -103,7 +103,7 @@ describe("fetchFeedConditional — conditional GET", () => {
       { ...opts, etag: '"v1"', lastModified: "Thu, 01 Oct 2026 10:00:00 GMT" },
       { fetch, lookup },
     );
-    const headers = fetch.mock.calls[0]![1]!.headers as Record<string, string>;
+    const headers = fetch.mock.calls[0][1]!.headers as Record<string, string>;
     expect(headers["If-None-Match"]).toBe('"v1"');
     expect(headers["If-Modified-Since"]).toBe("Thu, 01 Oct 2026 10:00:00 GMT");
     expect(result).toMatchObject({
@@ -116,7 +116,7 @@ describe("fetchFeedConditional — conditional GET", () => {
   it("sends no validators when none are stored", async () => {
     const fetch = serve(fixture("rss2.xml"));
     await fetchFeedConditional("https://news.example/rss", opts, { fetch, lookup });
-    const headers = fetch.mock.calls[0]![1]!.headers as Record<string, string>;
+    const headers = fetch.mock.calls[0][1]!.headers as Record<string, string>;
     expect(headers).not.toHaveProperty("If-None-Match");
     expect(headers).not.toHaveProperty("If-Modified-Since");
   });

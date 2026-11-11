@@ -85,7 +85,7 @@ describe("api()", () => {
     const { api } = await load();
     const fetch = respond(204);
     await expect(api("/api/posts/1", { method: "DELETE", json: { a: 1 } })).resolves.toBeUndefined();
-    const init = fetch.mock.calls[0]![1]!;
+    const init = fetch.mock.calls[0][1]!;
     expect(new Headers(init.headers).get("content-type")).toBe("application/json");
     expect(init.body).toBe('{"a":1}');
   });
@@ -96,7 +96,7 @@ describe("under /newspapper/", () => {
     const { api } = await load("/newspapper/");
     const fetch = respond(200, []);
     await api("/api/posts");
-    expect(fetch.mock.calls[0]![0]).toBe("/newspapper/api/posts");
+    expect(fetch.mock.calls[0][0]).toBe("/newspapper/api/posts");
   });
 
   it("the login URL carries the base, and next stays an origin path", async () => {

@@ -105,7 +105,7 @@ export function withFallbackFamily(value: string): string {
     .map((s) => s.trim())
     .filter((s) => s !== "");
   if (families.length === 0) return FALLBACK_FAMILY;
-  const last = unquoteFamily(families[families.length - 1] as string).toLowerCase();
+  const last = unquoteFamily(families[families.length - 1]).toLowerCase();
   if (GENERIC_FAMILIES.has(last)) return families.join(",");
   return [...families, FALLBACK_FAMILY].join(",");
 }
@@ -298,7 +298,7 @@ function renderNode(node: TNode, data: Record<string, unknown>, theme: Theme): s
         };
         // Allow {{item}} to resolve to stringified value for non-object items
         if (typeof item !== "object" || item === null) {
-          (itemData["item"] as unknown) = item;
+          itemData["item"] = item;
         }
         return node.children.map((c) => renderNode(c, itemData, theme)).join("");
       })
@@ -346,7 +346,7 @@ export function renderTemplate(
     ...data,
     _index: opts.index,
     _total: opts.total,
-    _date: (data["_date"] as string | undefined) ?? "",
+    _date: data["_date"] ?? "",
   };
 
   const bodyContent = renderNode(root, fullData, theme);

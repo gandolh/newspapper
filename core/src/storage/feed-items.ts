@@ -41,7 +41,7 @@ export function capUtf8(html: string, maxBytes: number = MAX_CONTENT_HTML_BYTES)
   if (bytes.byteLength <= maxBytes) return html;
   let end = maxBytes;
   // Back off continuation bytes (10xxxxxx) to the start of a character.
-  while (end > 0 && (bytes[end]! & 0xc0) === 0x80) end -= 1;
+  while (end > 0 && (bytes[end] & 0xc0) === 0x80) end -= 1;
   return bytes.subarray(0, end).toString("utf8");
 }
 
