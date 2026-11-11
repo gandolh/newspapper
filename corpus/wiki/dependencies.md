@@ -51,7 +51,7 @@ Per-workspace. Versions are locked in `package-lock.json`.
 | `tsx` | Dev runner: `tsx watch` for the API and `npm run seed`. **Not in the runtime image** since 2026-11-04, which installs production dependencies only and runs the compiled API under `node` ([why](./decisions-tooling.md#the-api-runs-built-javascript-started-by-node)). |
 | `vitest` | Test framework (co-located `*.test.ts`). |
 | `concurrently` | Runs API + UI dev servers in parallel (`npm run dev`). |
-| `eslint`, `prettier` | Lint and format — both **enforced**: `npm run build` runs `fmt:check` first, and `npm run lint` covers all three workspaces. Until the tooling fix (2026-08-31) there was no Prettier config at all and `eslint.config.js` enabled **zero rules**; [why the current shape](./decisions-tooling.md#the-formatter-and-the-linter-are-enforced-and-configured-to-do-something). |
+| `eslint`, `prettier` | Lint and format — both **enforced**: `npm run build` runs `format:check` first, and `npm run lint` covers all three workspaces. Until the tooling fix (2026-08-31) there was no Prettier config at all and `eslint.config.js` enabled **zero rules**; [why the current shape](./decisions-tooling.md#the-formatter-and-the-linter-are-enforced-and-configured-to-do-something). |
 | `@eslint/js` | The recommended JS ruleset. Was a transitive dependency; declared explicitly by the tooling fix (2026-08-31) when the config started importing it. |
 | `eslint-plugin-react-hooks` | Hook correctness in `ui/`. `rules-of-hooks` and `exhaustive-deps` are on and clean; the React Compiler rules (`set-state-in-effect`, `refs`) are errors since the hook-rules fix of 2026-08-31. |
 | `@types/node`, `@types/react`, `@types/better-sqlite3`, `@types/react-dom` | Type declarations. |

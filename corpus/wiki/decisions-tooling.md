@@ -55,13 +55,16 @@ three rules it named turned off, no recommended set imported. `npm run lint` had
 reported green for the project's entire history while linting nothing. Proved,
 not assumed: a plain unused variable draws exit 0 and no output from it.
 
-The config is `{ singleQuote: true, printWidth: 100 }`, **derived by measuring**
+*Revisited 2026-11-11: the config is now the house format (width 120, double
+quotes, semicolons; see "The house style, formatted and checked" below). The
+enforcement stands; the measured minimum does not.* The config was
+`{ singleQuote: true, printWidth: 100 }`, **derived by measuring**
 — 12 options against all 158 committed files, scored by files already clean.
 Prettier's defaults scored 1 of 158; this scores 88, at the minimum of the
 changed-line curve. Rejected: picking a house style by preference, which makes
 the diff a matter of taste rather than of fit.
 
-`npm run build` now runs `fmt:check` **first**. Rejected: leaving the formatter
+`npm run build` now runs `format:check` **first** (it was `fmt:check` until 2026-11-11). Rejected: leaving the formatter
 available but unenforced — precisely how 106 files drifted. Accepted cost: an
 agent running `build` for type feedback mid-refactor hits a formatting failure
 before any type error.
@@ -74,6 +77,40 @@ rather than becoming permanent. Ten `react-hooks` findings were
 suppressed at config level until the hook-rules fix later that day turned the
 rules on; `rules-of-hooks` and `exhaustive-deps`, the two that catch
 correctness bugs, were on and clean throughout.
+
+## The house style, formatted and checked
+
+_2026-11-11_ — The owner's call of 2026-11-09 (every repo enforces the researched
+conventions) made the formatter and linter the estate's, not this repo's own
+measurement. The configs are a vendored copy of the skills library's
+`house-style` package at 1.0.0 (`vendor/house-style/`, refreshed by
+`npm run house-style:sync`, never edited by hand). Rejected: a `github:` or
+tarball dependency, which npm locks as a git URL and so needs `git` in the
+image.
+
+- **Format.** Width 120, double quotes, semicolons, trailing commas; Markdown
+  and `docs/` stay out of Prettier. One reformat commit (8,675 lines deleted in
+  248 files, against 7,912 in 234 measured at the start: the whole repo is now
+  in scope, not five globs), proved a no-op by bundling every file before and
+  after with esbuild. Rejected: keeping width 100, which the owner's single
+  estate width overrules, though it would have cost 1,144 fewer lines.
+- **Types.** `tsconfig.base.json` holds `strict`, the lineage flags,
+  `verbatimModuleSyntax` and `erasableSyntaxOnly`, and it is Newspapper's own
+  file, not an extension of the vendored base: the image copies the workspaces
+  and this one file, and the vendored base would turn on
+  `noUncheckedIndexedAccess`. That flag stays off (a later brief; counts in
+  [status.md](./status.md)). `core` and `api` typecheck their tests;
+  `tsconfig.build.json` leaves them out of `dist/`.
+- **Lint.** The house ESLint config, typed through the workspace tsconfigs.
+  Components, layouts, pages and route plugins use named exports. `console` is
+  allowed in the seed CLI, the server entry, the Chromium test guard and the two
+  loggers. `process.env` in `api/src` is a warning until the API reads its
+  settings through one config module; `core` is a library and reads its own.
+  Left as warnings: 120 non-null assertions in tests and 42 conditional skips of
+  the Chromium tests.
+- **The gate.** `npm run check` (typecheck, lint, `format:check`, knip,
+  dependency-cruiser, the two house checkers `--warn-only`, tests with `CI=1`)
+  and `npm run check:fast`. `gate` is `check`, `build` and the corpus lint.
 
 ## npm workspaces, three packages, ESM throughout
 _2026-06-10_ — `core` / `api` / `ui`, all `"type": "module"` (the docs

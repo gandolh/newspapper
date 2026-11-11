@@ -244,3 +244,48 @@ One commit per step, with `npm run build`, `npm test` and `npm run lint` green a
 
 - Brief 09 adds nothing to the gate beyond turning `check-base-ui` on `--warn-only`. Brief 10 adds `eslint-plugin-better-tailwindcss`, deletes the CSS the reformat touched (`ui/src/**/*.module.css`, 18 files, 69 lines), and drops `check-base-ui`'s `--warn-only`. Brief 11 adds dependency-cruiser, drops `check-structure`'s `--warn-only`, and turns `no-process-env` into an error.
 - Brief 11 renames `api/src/server.ts`'s exports (it splits `buildApp` into `app.ts`); the `import X from` change in this brief's default-export step touches the same lines, so run 08 first.
+
+## Outcome (2026-11-11)
+
+Built in eleven commits on `main`, none pushed. `npm run check` exits 0 (944 tests in 76 files, `CI=1`), `npx prettier --check .` and `npm run house-style:sync -- --check` exit 0.
+
+**Timings (warm):** `check` 66 s; `check:fast` with one changed file 11 to 15 s (the typecheck is incremental, buildinfo under `node_modules/.tmp/`; the first run after a clean checkout is slower).
+
+**The reformat** (`dadfc8b`): 248 files, 7,571 insertions and 8,675 deletions, against 7,912 lines in 234 files measured on 2026-11-10 (the whole repo is in scope now: `package.json`s, tsconfigs, the theme JSON, `eslint.config.js`). The esbuild bundle compare (every `.ts`, `.tsx` and `.js` minified, CSS through the `css` loader, JSON parsed; 285 files) printed no difference, so there is none to explain, and no JSX text was split. Its hash is in `.git-blame-ignore-revs` (`a8c69a2`). It left one test red: `core/src/util/config.test.ts` matched the barrel's single-quoted import with a regex; fixed in the tsconfig commit.
+
+**Rule counts, before and after** (source / tests):
+
+| Rule | Before | After |
+|---|---|---|
+| `no-floating-promises` | 2 / 0 | 0 |
+| `no-misused-promises` | 16 / 0 | 0 (`() => void run()` at the handler; two inline async handlers became named functions) |
+| `switch-exhaustiveness-check` | 1 / 0 | 0 (`considerDefaultExhaustiveForUnions`) |
+| `no-unnecessary-type-assertion` | 26 / 87 | 0 (113 fixed by `--fix`, 18 `res.json() as T` became `res.json<T>()`, one `Object.entries<string>`) |
+| `no-non-null-assertion` | 15 / 187 | 0 error / 120 warnings (the `--fix` removed the `!` on indexed reads, which `no-unnecessary-type-assertion` flags while `noUncheckedIndexedAccess` is off; 4 were narrowed by hand) |
+| `n/no-process-env` (`api/src`) | 9 | 9 warnings; `core/src` is off with a comment (7 readers of its own) |
+| `vitest/valid-title` | 0 / 1 | 0 |
+| `vitest/no-disabled-tests` | n/a | 42 warnings (the Chromium guard's conditional skips) |
+| `vitest/valid-expect`, `no-conditional-expect` | 0 / 22 and 0 / 14 | off or `maxArgs: 2` per the house config; no findings |
+| `no-console`, `import-x/no-default-export`, enum, `TODO` | 9 and 61 | 0 (console files listed in the config; default exports only in `proofSheet.ts`, `proof/KitchenSink.tsx` and `*.d.ts`) |
+
+No rule exceeded the 20-finding line without the brief's ruling, apart from the counted-and-settled ones above.
+
+**Checkers** (both `--warn-only`, so `check` exits 0): `check-base-ui` 43 errors, all rule 5 (42 CSS modules plus `global.css`; briefs 09 and 10 remove them). `check-structure` 50 errors and 6 warnings: rule 2 one (no `app.ts`), rule 3 seven (`process.env`), rule 6 forty-two (routes with no schema), rule 11 six (files over 400 lines). Brief 11 clears them. `scripts/conventions.json` names `ui/src` and `api/src` and no exceptions. dependency-cruiser runs strict except `lib-without-fastify`, a warning (`api/src/lib/sse.ts` imports `FastifyReply`), and `not-to-unresolvable` which allows `virtual:` ids (the Vite proof-sheet module). knip: 1 unused devDependency (`tsx` at the root, removed), then 22 unused exports and 34 unused types as warnings.
+
+**Deviations:**
+
+- `scripts/house-style-sync.mjs` is not written: the package's own `bin/sync.mjs` is the sync, as the skill says, behind `"house-style:sync"`.
+- `tsconfig.base.json` is Newspapper's own file and does not extend the vendored base: the Dockerfile copies only that one file, and the vendored base would switch on `noUncheckedIndexedAccess` (decision 5). The Dockerfile has the one `COPY tsconfig.base.json ./` line; **not built** (no docker builds).
+- `tsconfig.build.json` excludes only `**/*.test.ts`, not `test-support`, because `dist/` has to stay byte-identical (the `test-support` helpers are emitted today). `rootDir` and `outDir` live in the build file, since the tests import `core`'s guard from outside `api/src`.
+- `fmt` and `fmt:check` were renamed `format` and `format:check` (the skill's names); `build` and the docs follow.
+- `knip.config.js` instead of `knip.json` (knip has no `extends`), with `ignoreWorkspaces: ["docs"]`; the preset ignores `vendor/`.
+- `.prettierignore` also lists `.claude/` (local agent settings), and `.gitignore` gained `*.tsbuildinfo`.
+- `prettier` 3.9.10 reflowed 7 files under the old config; they went in the first commit (`b05095e`).
+- `posts.ts`'s `create()` now throws if the inserted row cannot be read back, where it returned `undefined` typed as a `Post`. A case that cannot happen, so no behaviour change in practice. `ReadingPane` renders nothing in the unreachable case `item === null && error === ""`, where `item!` would have crashed.
+- A `tsx` devDependency was dropped from the root (`api` declares its own).
+- `noUncheckedIndexedAccess` counts today: 80 in source (`core` 34, `api` 1, `ui` 45) and 245 in tests (171, 16, 58). `exactOptionalPropertyTypes`: 23 (5, 12, 7). In `wiki/status.md`.
+- Brief 11 has a dated line saying dependency-cruiser landed here.
+
+**Checks skipped:** `docker build`; the live-session hook check waits for the plugin update; two `ui/src/components/base-urls.test.ts` tests time out at 5 s when the whole suite runs on a loaded machine (they pass alone, and fail the same way on the stashed baseline).
+
+**Owner steps:** `git config blame.ignoreRevsFile .git-blame-ignore-revs`; then `node cli.ts newspapper deploy` from the vps-deploy checkout.

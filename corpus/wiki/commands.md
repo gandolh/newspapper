@@ -1,6 +1,6 @@
 ---
 summary: Every npm script — what each one actually covers, in what order, and what it does not cover — plus ports, production mode, and the Playwright install step.
-updated: 2026-11-04
+updated: 2026-11-11
 ---
 
 # Running the app
@@ -14,11 +14,16 @@ HTTP API.
 |--------|-------------|
 | `npm install` | One-time dependency install, from the repo root |
 | `npm run dev` | API (3001) + UI dev server (4321) in parallel, via `concurrently --kill-others-on-fail` |
-| `npm run build` | `fmt:check` → `tsc` in `core` → `tsc` in `api` → `tsc --noEmit` in `ui` → `vite build`. The `core` and `api` steps typecheck and, since 2026-11-04, also emit `dist/` |
+| `npm run check` | `typecheck` (core and api with their tests, then ui) → `lint` → `format:check` → `check:conventions` (knip, dependency-cruiser, the house Base UI and structure checkers, both `--warn-only` for now) → `CI=1 vitest run`. Run before every hand-back |
+| `npm run check:fast` | `typecheck`, then ESLint on the files changed against `HEAD` and the untracked ones (`scripts/check-fast.mjs`). No tests. About 11 to 15 s warm |
+| `npm run typecheck` | `tsc -p core --noEmit`, `tsc -p api --noEmit`, then `tsc --noEmit` in `ui`; incremental, buildinfo under `node_modules/.tmp/` |
+| `npm run build` | `format:check` → `tsc` in `core` → `tsc` in `api` → `tsc --noEmit` in `ui` → `vite build`. The `core` and `api` steps typecheck and, since 2026-11-04, also emit `dist/` |
 | `npm test` | `vitest run` over `core/**`, `api/**` **and** `ui/**` `*.test.ts` |
-| `npm run lint` | ESLint over `core/src`, `api/src`, `ui/src` and `ui/vite.config.ts` |
-| `npm run fmt` | Prettier `--write` over the same three workspaces plus `ui/index.html` |
-| `npm run fmt:check` | The same set, read-only. `npm run build` runs this first and stops on it. |
+| `npm run lint` | `eslint .`, the house config: typed rules through the workspace tsconfigs, tests included |
+| `npm run format` | `prettier --write .`, the house format (120 columns), minus what `.prettierignore` lists |
+| `npm run format:check` | The same, read-only. `npm run build` runs this first and stops on it. |
+| `npm run gate` | `check`, then `build`, then `bash corpus/lint.sh` |
+| `npm run house-style:sync` | Refreshes `vendor/house-style/` from the skills library; `-- --check` compares without writing |
 | `npm run start --workspace=api` | The compiled API, `node --conditions=newspapper-built dist/server.js`. Run `npm run build` first; it loads no `.env`. See Production mode |
 | `npm run seed --workspace=api` | Create the local account named by `SEED_USERNAME` / `SEED_PASSWORD` (and `SEED_ROLE`, default `editor`) if it does not exist. Never resets one that does. Set them in the shell, not a file. |
 
@@ -27,7 +32,7 @@ Single test file: `npx vitest run core/src/path/to/file.test.ts`.
 **Each of those coverages is deliberate and was earned.** The UI is typechecked
 rather than merely bundled; `vitest`'s `include` names `ui/` explicitly; the
 linter's glob covers all three workspaces; the formatter has a config
-(`.prettierrc.json` — single quotes, 100 columns) and is enforced by the build.
+(`prettier.config.js`, the house format at 120 columns) and is enforced by the build.
 Every one of those was, at some point, silently doing nothing. Before you trust
 a green run here, read
 [green-because-nothing-ran.md](./green-because-nothing-ran.md).

@@ -1,6 +1,6 @@
 ---
-summary: The ten times a check in this repo reported success while reaching nothing — what each one was, how it was caught, and the cheap check that would have caught it sooner. Read before trusting a green command here.
-updated: 2026-10-09
+summary: The eleven times a check in this repo reported success while reaching nothing — what each one was, how it was caught, and the cheap check that would have caught it sooner. Read before trusting a green command here.
+updated: 2026-11-11
 ---
 
 # Green because nothing ran
@@ -8,7 +8,7 @@ updated: 2026-10-09
 **Most of this project's real defects were not in the code. They were in the
 things that were supposed to be checking it.**
 
-Ten separate times, a check in this repo passed while touching nothing it
+Eleven separate times, a check in this repo passed while touching nothing it
 was believed to touch. Not one was found by the tool that should have found it;
 every one was found by somebody asking, out loud, *what did that actually
 reach?*
@@ -17,7 +17,7 @@ They are collected here because an append-only [log](../log.md) buries a
 pattern, and this one is the most useful thing the project knows about itself.
 Each entry links back to its log entry for the full account.
 
-## The ten
+## The eleven
 
 | # | The tool | What it reached | Found by |
 |---|---|---|---|
@@ -31,6 +31,7 @@ Each entry links back to its log entry for the full account.
 | 8 | `api/src/routes/uploads.test.ts` | It imported `sharp` that `api/package.json` never declared, resolving against **the hoisted copy Astro pulled in as an optional dependency**. So it had been testing image handling against sharp 0.34.5 while production ran 0.35.4 — and the moment Astro was removed it contributed **zero** tests instead of fourteen. | An import error inside a two-agent wave, resolved by reading `git show HEAD:package-lock.json` rather than by argument |
 | 9 | `document.scrollWidth - clientWidth === 0`, checking the tray for overflow | It measured **the document**, not the tray's own scroll container. `ul.cells` *was* an `overflow-x` container — scrollWidth 312 against clientWidth 12 at 320px — so the check returned "no overflow" about an element it never looked at. Three routes were off-screen behind a 12px scroll window nobody could see or find. | The tray fix (2026-09-01) hit-testing `elementFromPoint` after `scrollIntoView`, instead of inferring |
 | 10 | `DOMPurify.isSupported` under happy-dom 20.14.5 | **A sanitizer that did not sanitize.** `isSupported` was `true`, yet happy-dom's `NodeIterator` does not adjust when the node it stands on is removed, so DOMPurify's walk stopped at the first removal: `<p>a</p><script>…</script><p onclick>` came back with the script and the handler intact. It mangles clean markup too (`<p>a</p><p>b</p>` → `a<p>b</p>`). A suite of one-bad-node inputs would have passed, since the bad node is the one removed first. The spec's own guard ("assert `isSupported` first") would have passed too. | The Reader work (2026-10-09) writing multi-node cases, then moving the test into real Chromium |
+| 11 | `tsc` in `core` and `api` | **Not the 49 test files** (40 in `core`, 9 in `api`): both tsconfigs excluded `**/*.test.ts`, so both workspaces typechecked green while 117 errors sat in the tests (a `RequestInfo` type the `ES2022` lib lacks, stubs missing `RssItem` fields, an `inject` helper that did not type-check against Fastify). Typed lint could not place the same files, so it skipped them too. | The house-style harness's measurement (2026-11-10), a scratch tsconfig with the exclusion dropped. The check that would have caught it: a tsconfig that includes the tests, which `tsc -p core`, `tsc -p api` and typed lint now read (the build uses `tsconfig.build.json`) |
 
 ## What generalises
 
@@ -43,6 +44,7 @@ Each entry links back to its log entry for the full account.
 - **A passing measurement of the wrong element is indistinguishable from a
   passing measurement.** Ask what the check is pointed at, not just what it
   returned. (9)
+- **A typecheck that excludes the tests has not checked them**, and the lint that rides on the same tsconfig skips them quietly. (11)
 - **A bundler is not a typechecker.** It only reaches what an entry point
   imports. And a config-level error can abort a checker before file one — zero
   errors and zero files checked look identical from outside. (4)
@@ -96,8 +98,9 @@ correct, and it was pointed at the wrong object. No amount of rigour downstream
 of a mis-aimed check recovers it. The tenth was a library vouching for itself
 inside a simulation of the place it would really run.
 
-The gates the project runs today — `npm run build` (which runs `fmt:check`
-first, then typechecks all three workspaces), `npm test`, `npm run lint` across
-all three, and `bash corpus/lint.sh` — are the shape they are because of these.
+The gates the project runs today — `npm run check` (the typecheck of all three
+workspaces with the tests, typed lint, `format:check`, knip, dependency-cruiser
+and the tests with `CI=1`), `npm run build` (which runs `format:check` first),
+and `bash corpus/lint.sh` — are the shape they are because of these.
  See [decisions-tooling.md](./decisions-tooling.md) for what each one is
 now required to cover, and [commands.md](./commands.md) for how to run them.

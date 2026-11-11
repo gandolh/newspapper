@@ -1,6 +1,6 @@
 ---
 summary: Dated snapshot (2026-11-07) of Newspapper, per area — the Wizard rebuild (2026-08-27 to 09-01), the 2026-09-27 improvements sweep (fixed 2026-10-02/03), local accounts with Ward as a second way in (2026-10-13), the Reader (2026-10-09, schema v6), the docs site on Docusaurus and the wax fix (2026-10-19), the API on built JavaScript under node (2026-11-04), the galley painting its own text selection (2026-11-05), feed fetches connecting only to the address they checked and text selections in non-photo blue (2026-11-06), the README's editing GIF retaken (2026-11-07); what is deployed (the accounts) and what may not be (the Reader), the owner's next steps, the green-because-nothing-ran thread, and the known strays.
-updated: 2026-11-09
+updated: 2026-11-11
 ---
 
 # Status — 2026-11-06
@@ -15,7 +15,7 @@ no GitHub CI, by the owner's choice (2026-10-04). Brief numbering restarted at
 filed on 2026-11-09 and is blocked since 2026-11-10: the owner wants no video
 export yet. Before it,
 brief 01 retook the README's editing GIF on 2026-11-07, after briefs 03 and 05
-changed how a selection paints. Brief 07 (Base UI 1.9.0) was built on 2026-11-10 and awaits a deploy. Briefs 07 to 11 (Base UI 1.9.0, the house-style harness, Base UI by the conventions, the UI on Tailwind, the API in the house structure) were filed on 2026-11-10 from the owner's calls of 2026-11-09, and were revised to the owner's grilling of 2026-11-10, with a redesign brief (12) added; see [../log.md](../log.md). Nothing is open in
+changed how a selection paints. Brief 07 (Base UI 1.9.0) was built on 2026-11-10 and awaits a deploy, and brief 08 (the house-style harness) on 2026-11-11. Briefs 07 to 11 (Base UI 1.9.0, the house-style harness, Base UI by the conventions, the UI on Tailwind, the API in the house structure) were filed on 2026-11-10 from the owner's calls of 2026-11-09, and were revised to the owner's grilling of 2026-11-10, with a redesign brief (12) added; see [../log.md](../log.md). Nothing is open in
 [open-questions.md](./open-questions.md): how a selection inside the waxed
 element shows was settled on 2026-11-06 (non-photo blue) and built the same day.
 
@@ -36,8 +36,15 @@ element shows was settled on 2026-11-06 (non-photo blue) and built the same day.
   element's wax, so a selected word inside the selected element shows its
   extent.
 - **Tooling** (2026-08-31). Vite + React replaced Astro; the formatter and the
-  linter actually run, and `npm run build` runs `fmt:check` first
-  ([decisions-tooling.md](./decisions-tooling.md)).
+  linter actually run, and `npm run build` runs `format:check` first
+  ([decisions-tooling.md](./decisions-tooling.md)). Since 2026-11-11 the repo is on the
+  house style: the vendored `house-style` 1.0.0 configs, one reformat (double quotes, width 120),
+  `tsc` reading the 49 test files it used to skip, named exports, and `npm run check` /
+  `check:fast`. Follow-up counts, measured 2026-11-11: `noUncheckedIndexedAccess` is off and
+  would report 80 errors in source (`core` 34, `api` 1, `ui` 45) and 245 in tests (171, 16, 58);
+  `exactOptionalPropertyTypes` would report 23 (`core` 5, `api` 12, `ui` 7). Both checkers run
+  `--warn-only`: `check-base-ui` reports 43 (rule 5: 42 CSS modules and `global.css`),
+  `check-structure` 50 errors (rule 2: 1, rule 3: 7, rule 6: 42) and 6 warnings (rule 11).
 - **Hosting.** It runs on the shared VPS at `/newspapper/` behind Caddy, which
   strips the prefix; the UI builds every browser URL with the base.
 - **The 2026-09-27 sweep** (fixed 2026-10-02 and 2026-10-03). The guard decides
