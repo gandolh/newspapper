@@ -111,7 +111,7 @@ before thumbnails existed, or null.
 
 | Method | Path | Body | SSE events |
 |--------|------|------|------------|
-| POST | `/api/posts/:id/render` | — | `progress: { done, total }` · `done: { post, render, files }` · `error: { message }` |
+| POST | `/api/posts/:id/render` | — | `progress: { done, total }` · `done: { post, render, files }` (`render` without its `outputDir`, since 2026-11-11) · `error: { message }` |
 
 Compiles the post's markup with the strict `compileDocument` path and renders
 every slide to JPEG. Post not found, unknown theme, markup that will not

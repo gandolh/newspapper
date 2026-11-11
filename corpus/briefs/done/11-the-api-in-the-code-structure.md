@@ -192,3 +192,28 @@ Follow the skill's migration method. One commit per step; after each, `CI=1 npm 
 
 - Brief 08's default-export change touches the 12 route plugins this brief moves; run 08 first. Its `no-process-env` warning becomes an error here.
 - The skills library should hear that this repo has no `shared/` workspace and no store layer, and that 7 of 37 routes are streams, before the other servers run the migration brief.
+
+## Outcome (2026-11-11)
+
+Built on `main` in 20 commits, `6f6f946` to `722b990`, ready for deploy. `CI=1 npm run check` exits 0 (961 tests; `api` 131 to 140), `npm run build` writes `api/dist/server.js` and `api/dist/app.js`, `bash corpus/lint.sh` is clean.
+
+- **check-structure**, for the library's table: before, 50 errors (rule 2: 1, rule 3: 7, rule 6: 42) and 3 warnings (rule 11, all in `ui`); after, strict, 0 errors and the same 3 warnings. The rule-3 baseline undercounts: `api/src/ward/config.ts` read `process.env` twice and passed by its file name. `--warn-only` went in `abe9137`, where it first reported 0.
+- **Acceptance greps:** `req.(body|query|params) as` prints nothing; `process.env` outside `*.test.ts` only in `config.ts` (the test helper uses `vi.stubEnv`); `listen(` only in `server.ts`. All 37 routes declare a schema: **31** declare a `response` (the brief said 30; the multipart upload's JSON reply is the 31st, as decision 3 says), and 6 don't: the three SSE streams, `export.zip`, `/uploads/:ref` and `/original`. `scripts/conventions.json` records those 7 exemptions (the 7th is the multipart body), each matching its own finding, and core's own readers of the environment.
+- **Reply capture:** 172 requests, signed in, on a scratch database, before and after every step (`log.md` has the list). 152 of the 171 baseline requests byte-identical at the end; the other 19 (and one request added after the search step) are deliberate and listed in the log entry.
+- **Measured** (step 1, decision 9): a two-slide render streams 1.4–1.6 s, a twelve-slide one 7.4–10.5 s, `export.zip` ~10 ms, publish ~170 ms. On a real socket `requestTimeout` never cuts a reply (it covers receiving the request); `connectionTimeout` does cut a stream that goes quiet. So the timeouts are `connectionTimeout` 35 s (above a ping's 30 s feed timeout), `requestTimeout` 60 s (a 10 MB upload at ~1.4 Mbit/s), `keepAliveTimeout` 125 s, and each stream turns its socket timeout off. `trustProxy` is loopback plus `AUTH_TRUSTED_PROXIES`, also handed to the auth plugin so the library no longer reads it itself; a bad entry stops the boot.
+- **The built server** on a real socket with every setting pinned: health, a 12-slide render to `done`, `export.zip` (351 KB, 4 files), search and refresh to `done`, SIGTERM exit 143; SIGTERM mid-render exits 143 in 0.04 s with the stream ended by an `error` event. `npm start` and `tsx src/server.ts` answer health. dependency-cruiser failed a deliberate cross-feature import and passes clean. The Dockerfile is unchanged (`CMD ["node", "api/dist/server.js"]`, `COPY api/vendor` resolves from `dist/plugins/auth/` three levels up); **no deploy edit is owed**. The image build was not run (local Docker fails); it is the owner's step.
+
+### Deviations
+
+- **The error handler had a bug the brief didn't know** (`98ad828`): set after the route plugins, it covered none of them, so a route's 500 sent its message and Fastify's 400s their own body. It is now registered first; [decisions-hardening.md](../../wiki/decisions-hardening.md) records it.
+- **A schema failure answers `{ error: <the first issue's message> }`, not `"<path>: <message>"`** (`api/src/plugins/errors.ts:24`). Each schema writes the handler's old message, so every existing 400 string stayed the same; the brief's format would have changed them all.
+- **Replies that changed on purpose**, beyond the error bodies: `outputDir` left publish's reply and the render stream's `done` event (a server path no client reads); a malformed body or query is a 400 where it was stored, ignored or a 500 (`limit=abc`, `enabled: "yes"`, `theme: 5`, `keywords: "tax"`, a JSON array to `PUT /api/settings`); a non-string `sourceId` to the refresh is a JSON 400 rather than an `error` event; unknown keys are dropped before `saveSettings` and `updateSource`; `?limit=` (blank) on the post list means no limit, not 0.
+- **The SSE close hook** (`5ca9e1c`, `api/src/plugins/sse.ts`) is new: without it a stream waiting on a slow feed held SIGTERM past close-with-grace's 10 s (a real-socket test proves it).
+- **`READER_REFRESH_MINUTES`** now stops the boot when it isn't a number ≥ 0 (`api/src/config.ts:49`); core's reader fell back to 30. `.env` loading stays core's `dotenv/config` and the dev script's flag: `config.ts` parses, it doesn't load.
+- **Skill over brief:** each feature has an `index.ts` (rule 5); zod is 4.6.7, the skill's pin and already the tree's one copy (the brief said 4.5.4).
+- **Tests changed beyond their imports:** the five files build through `testing/buildTestApp.ts`; `server.test.ts` split along its describes into the features' `routes.test.ts` through `testing/signedInApp.ts` (bodies unchanged); `bootOptions` became `loadConfig`; the auth test passes `NEWSPAPPER_BASE` as config; the bare-Fastify upload tests set the zod compilers.
+- **Pages:** the api/src layout is a new [modules-api.md](../../wiki/modules-api.md) (`modules.md` covers `core` and links it), the SSE protocol a new [sse.md](../../wiki/sse.md), and the decision [decisions-api.md](../../wiki/decisions-api.md), since `decisions-engineering.md` is at its cap.
+
+### Owner questions (on the board)
+
+Decision 12, whether `store.ts` applies when `core` is the data layer; decision 2, whether `accounts` and `readerSchedule` move to a `FeatureContext`.
