@@ -233,7 +233,13 @@ function SourceFormModal({ open, source, categories, onClose, onSaved }: SourceF
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={isEdit ? "Edit source" : "Add source"} width={520}>
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={isEdit ? "Edit source" : "Add source"}
+      width={520}
+      dismissOnBackdrop={false}
+    >
       <form onSubmit={(e) => void handleSubmit(e)} noValidate>
         <div className={styles.formFields}>
           <Input
@@ -242,7 +248,7 @@ function SourceFormModal({ open, source, categories, onClose, onSaved }: SourceF
             value={name}
             onChange={(e) => handleNameChange(e.target.value)}
             error={errors.name}
-            autoFocus
+            data-autofocus
           />
           <Input
             label="RSS URL"
