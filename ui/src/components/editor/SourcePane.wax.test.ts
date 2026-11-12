@@ -266,7 +266,7 @@ async function measure(source: string, range: [number, number] | null, margin = 
 
   const { clip, glyphs, family } = await page!.evaluate(
     ({ from, to, scale }) => {
-      const pre = document.querySelector('pre[class*="highlight"]');
+      const pre = document.querySelector('pre[data-testid="galley-highlight"]');
       if (!pre) throw new Error("SourcePane did not render the galley <pre>");
       const box = pre.getBoundingClientRect();
       const glyphs: Glyph[] = [];
@@ -314,7 +314,7 @@ async function measure(source: string, range: [number, number] | null, margin = 
 
   return {
     family,
-    waxCount: await page!.evaluate(() => document.querySelectorAll('pre [class*="wax"]').length),
+    waxCount: await page!.evaluate(() => document.querySelectorAll('pre [data-testid="galley-wax-run"]').length),
     waxPixels: { waxed: waxed.wax, control: control.wax },
     bluePixels: { waxed: waxed.blue, control: control.blue },
     /** The blue's bounding box in CSS pixels, page coordinates. */
@@ -399,7 +399,7 @@ describe("the selected-element wax in the galley (Chromium)", () => {
 /** The device-independent box of every line of the selection's ground. */
 const groundRects = () =>
   page!.evaluate(() =>
-    [...document.querySelectorAll('pre [class*="selectionGround"]')].flatMap((el) =>
+    [...document.querySelectorAll('pre [data-testid="galley-selection-ground"]')].flatMap((el) =>
       [...el.getClientRects()].map((r) => ({
         left: r.left,
         right: r.right,
@@ -415,11 +415,13 @@ const groundRects = () =>
 const tokenStyles = (from: number, to: number) =>
   page!.evaluate(
     ({ from, to }) => {
-      const pre = document.querySelector('pre[class*="highlight"]')!;
+      const pre = document.querySelector('pre[data-testid="galley-highlight"]')!;
       const out: Array<{ text: string; color: string; weight: string; inRun: boolean }> = [];
       let offset = 0;
       // The tokens only: the wax run's and the selection's wrappers hold them.
-      const tokens = pre.querySelectorAll('span:not([class*="waxRun"]):not([class*="selectionGround"])');
+      const tokens = pre.querySelectorAll(
+        'span:not([data-testid="galley-wax-run"]):not([data-testid="galley-selection-ground"])',
+      );
       for (const token of tokens) {
         const text = token.textContent ?? "";
         if (offset >= from && offset < to && text.trim()) {
@@ -428,7 +430,7 @@ const tokenStyles = (from: number, to: number) =>
             text,
             color: style.color,
             weight: style.fontWeight,
-            inRun: !!token.closest('[class*="waxRun"]'),
+            inRun: !!token.closest('[data-testid="galley-wax-run"]'),
           });
         }
         offset += text.length;
@@ -475,7 +477,7 @@ describe("a text selection in the galley (Chromium)", () => {
     // the selected characters, and stop where they do.
     const chars = await page!.evaluate(
       ({ start, end }) => {
-        const pre = document.querySelector('pre[class*="highlight"]')!;
+        const pre = document.querySelector('pre[data-testid="galley-highlight"]')!;
         const walker = document.createTreeWalker(pre, NodeFilter.SHOW_TEXT);
         const range = document.createRange();
         let offset = 0;
@@ -536,9 +538,9 @@ describe("a text selection in the galley (Chromium)", () => {
     expect(more).toEqual([]);
     const { run, chars, line } = await page!.evaluate(
       ({ start, end }) => {
-        const pre = document.querySelector('pre[class*="highlight"]')!;
+        const pre = document.querySelector('pre[data-testid="galley-highlight"]')!;
         const box = (r: DOMRect) => ({ left: r.left, right: r.right, height: r.height });
-        const run = pre.querySelector('[class*="waxRun"]')!.getBoundingClientRect();
+        const run = pre.querySelector('[data-testid="galley-wax-run"]')!.getBoundingClientRect();
         // The selected characters as the galley set them.
         const walker = document.createTreeWalker(pre, NodeFilter.SHOW_TEXT);
         const range = document.createRange();
@@ -586,7 +588,7 @@ describe("a text selection in the galley (Chromium)", () => {
     expect(await groundRects()).toHaveLength(1);
     await page!.evaluate(() => document.querySelector("textarea")!.blur());
     await page!.waitForFunction(
-      () => document.querySelectorAll('pre [class*="selectionGround"]').length === 0,
+      () => document.querySelectorAll('pre [data-testid="galley-selection-ground"]').length === 0,
       undefined,
       { timeout: 5000 },
     );

@@ -160,6 +160,7 @@ export function SourcePane({
       (run ?? out).push(
         <span
           key={`sel-${pickedStart}`}
+          data-testid="galley-selection-ground"
           className={run ? styles.selectionGround : `${styles.selectionGround} ${styles.offRun}`}
         >
           {picked}
@@ -171,7 +172,7 @@ export function SourcePane({
       if (!run) return;
       closePicked();
       out.push(
-        <span key={`wax-${runStart}`} className={`${WAX} ${styles.waxRun}`}>
+        <span key={`wax-${runStart}`} data-testid="galley-wax-run" className={`${WAX} ${styles.waxRun}`}>
           {run}
         </span>,
       );
@@ -233,7 +234,7 @@ export function SourcePane({
       </div>
 
       <div className={styles.code}>
-        <pre className={styles.highlight} ref={preRef} aria-hidden="true">
+        <pre data-testid="galley-highlight" className={styles.highlight} ref={preRef} aria-hidden="true">
           {galley}
           {"\n "}
         </pre>
