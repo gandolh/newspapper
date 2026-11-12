@@ -1,7 +1,6 @@
 import { createRoot } from "react-dom/client";
 import { Routes } from "./routes";
 import "./styles/index.css";
-import "./styles/global.css";
 
 /**
  * The single entry point. Astro mounted five separate `client:load` islands

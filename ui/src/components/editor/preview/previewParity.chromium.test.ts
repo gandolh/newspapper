@@ -53,7 +53,6 @@ import { createElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
 import ${JSON.stringify(here("../../../styles/index.css"))};
-import ${JSON.stringify(here("../../../styles/global.css"))};
 import { SlideCanvas } from ${JSON.stringify(here("./SlideCanvas.tsx"))};
 let root = null;
 export function mount(slide, theme) {

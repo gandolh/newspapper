@@ -14,9 +14,17 @@ import type { TNode, Theme } from "@newspapper/core/templates";
 import { TNodeView, type NodeGestures } from "./TNodeView.js";
 import type { SlotDescriptor } from "./slots.js";
 import { zoneKey, type MeasuredZone } from "../dragTypes.js";
-import styles from "./SlideCanvas.module.css";
+import { cn } from "../../../lib/cn";
 
 export const SLIDE_SIZE = 1080;
+
+const ZONE_EDGE: Record<MeasuredZone["edge"], string> = {
+  top: "shadow-[inset_0_3px_0_0_var(--color-graphite)]",
+  bottom: "shadow-[inset_0_-3px_0_0_var(--color-graphite)]",
+  left: "shadow-[inset_3px_0_0_0_var(--color-graphite)]",
+  right: "shadow-[inset_-3px_0_0_0_var(--color-graphite)]",
+  all: "shadow-[inset_0_0_0_3px_var(--color-graphite)]",
+};
 
 export interface SlideCanvasProps {
   slideKey: string;
@@ -120,11 +128,19 @@ export function SlideCanvas({
   return (
     <div
       ref={wrapperRef}
-      className={styles.wrapper}
+      // The artwork, pasted down. The wrapper is the paper edge; the crop marks and register targets around it
+      // belong to the stage, not to this file.
+      className="relative shrink-0 overflow-hidden bg-paper shadow-[0_0_0_1px_var(--color-hairline)]"
       style={{ width: inner, height: inner }}
       data-drag={dragActive ? "" : undefined}
     >
-      <div className={styles.canvas} style={{ width: SLIDE_SIZE, height: SLIDE_SIZE, transform: `scale(${scale})` }}>
+      <div // Inside here the chrome's design system stops and the slide theme starts: Inter, the theme's own tokens, and
+        // none of the board's type settings. The canvas resets what it inherits (the board sets tabular figures, a
+        // weight and a line height on body), so nothing global reaches the artwork; the preview-parity test holds
+        // it to the render.
+        className="flex origin-top-left overflow-hidden font-slide font-normal normal-nums leading-[normal] [letter-spacing:normal]"
+        style={{ width: SLIDE_SIZE, height: SLIDE_SIZE, transform: `scale(${scale})` }}
+      >
         <TNodeView
           node={slide}
           theme={theme}
@@ -135,11 +151,15 @@ export function SlideCanvas({
       </div>
 
       {dragActive && zones.length > 0 && (
-        <div className={styles.overlay}>
+        <div className="pointer-events-none absolute inset-0">
           {zones.map((zone) => (
             <div
               key={zone.key}
-              className={[styles.zone, activeZoneKey === zone.key ? styles.zoneActive : ""].filter(Boolean).join(" ")}
+              // Where the thing will land: a graphite rule on the edge it goes against.
+              className={cn(
+                "pointer-events-none absolute",
+                activeZoneKey === zone.key && ["bg-wax/28", ZONE_EDGE[zone.edge]],
+              )}
               data-edge={zone.edge}
               style={{
                 left: zone.local.left,

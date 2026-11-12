@@ -17,7 +17,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import type { WzdDiagnostic } from "@newspapper/core/wizard";
 import { Button, Finding, Mark, WAX } from "../ui";
 import { decorate, tokenize, type WzdRangeMark } from "./highlight.js";
-import styles from "./SourcePane.module.css";
+import { cn } from "../../lib/cn";
 
 const SELECTED_MARK = "selected";
 /** The textarea's own selection, while it has focus and spans a range. */
@@ -45,6 +45,38 @@ export interface SourcePaneProps {
   onFormat: () => void;
   formatted: boolean;
 }
+
+/**
+ * The highlight layer and the textarea share every metric. A line is 1.86 of 12.5px, about 23.25, held at 23px so lint
+ * marks and wax sit on a line without touching its neighbours, and the caret stays on the paint.
+ */
+const GALLEY_BOX =
+  "absolute inset-0 m-0 border-0 p-half font-galley text-galley leading-[23px] break-normal whitespace-pre [tab-size:2]";
+
+/** Syntax follows casing, not category (DESIGN.md section 5, The Galley): lowercase document tags recede,
+ * capitalised components are the structure, prop values are the one thing the markup itself names. */
+const KIND_INK: Record<string, string> = {
+  text: "text-graphite",
+  punct: "text-graphite-soft",
+  component: "text-graphite",
+  structure: "text-graphite-soft",
+  attr: "text-graphite-soft",
+  value: "text-process-blue",
+  comment: "text-graphite-soft",
+  binding: "text-process-blue",
+};
+
+const KIND_FONT: Record<string, string> = {
+  component: "font-bold",
+  comment: "italic",
+  binding: "font-bold",
+};
+
+/** Lint marks: the same rubylith, at galley weight. */
+const LINT: Record<string, string> = {
+  error: "bg-rubylith-wash-soft underline decoration-wavy decoration-rubylith underline-offset-4",
+  warning: "underline decoration-wavy decoration-graphite-tint underline-offset-4",
+};
 
 export function SourcePane({
   source,
@@ -161,7 +193,12 @@ export function SourcePane({
         <span
           key={`sel-${pickedStart}`}
           data-testid="galley-selection-ground"
-          className={run ? styles.selectionGround : `${styles.selectionGround} ${styles.offRun}`}
+          // A text selection is non-photo blue with graphite on it (DESIGN.md section 7), painted by the galley, not
+          // by the textarea: the textarea paints above the galley, so its own ::selection ground would cover the
+          // glyphs it selects. An inline box exactly the selected characters wide, no bleed. Off the wax run it sits
+          // behind the text the way the run does (-z-1 in the galley's stacking context), so it covers no
+          // neighbouring glyph; inside the run it is an ordinary inline box, painted after the run's wax.
+          className={cn("bg-non-photo-select", !run && "relative -z-1")}
         >
           {picked}
         </span>,
@@ -172,7 +209,14 @@ export function SourcePane({
       if (!run) return;
       closePicked();
       out.push(
-        <span key={`wax-${runStart}`} data-testid="galley-wax-run" className={`${WAX} ${styles.waxRun}`}>
+        <span
+          key={`wax-${runStart}`}
+          data-testid="galley-wax-run" // The selected element's tokens sit in one wrapper that alone paints the wax and its 0.35em bleed: with a bleed
+          // per token each would cover about half of the glyph before it. -z-2 puts it behind the text, one below an
+          // off-run selection ground, so a selection that ends where the run begins keeps its last 0.35em. `clone`
+          // gives each line of a run its own ends.
+          className={cn(WAX, "relative -z-2 [-webkit-box-decoration-break:clone] [box-decoration-break:clone]")}
+        >
           {run}
         </span>,
       );
@@ -181,12 +225,15 @@ export function SourcePane({
     for (const span of spans) {
       const selected = span.marks.includes(SELECTED_MARK);
       const inSelection = span.marks.includes(TEXT_SELECTION_MARK);
-      const ink = inSelection ? styles.onSelection : selected ? styles.onWax : null;
+      // One ink per token, chosen here rather than by cascade: graphite on a text selection (the paper inks don't hold
+      // on the blue), the wax's own ink on the selected element, else the hue of its kind. Weight and slope follow
+      // the kind whatever the ink, so the casing distinction survives the highlight.
+      const ink = inSelection ? "text-graphite" : selected ? "text-wax-ink" : KIND_INK[span.kind];
       const lint = span.marks.filter((m) => m !== SELECTED_MARK && m !== TEXT_SELECTION_MARK);
       const token = (
         <span
           key={`${span.start}-${span.end}`}
-          className={[styles[span.kind], ink, ...lint.map((m) => styles[m])].filter(Boolean).join(" ")}
+          className={cn(ink, KIND_FONT[span.kind], ...lint.map((m) => LINT[m]))}
           title={lint.length > 0 ? messageAt(span.start, span.end) : undefined}
         >
           {source.slice(span.start, span.end)}
@@ -219,28 +266,46 @@ export function SourcePane({
   const warnings = diagnostics.filter((d) => d.severity === "warning");
 
   return (
-    <div className={styles.pane}>
-      <div className={styles.bar}>
-        <span className={styles.barTitle}>post.wzd</span>
-        <span className={styles.barMarks}>
+    <div // The galley: the copy, waxed to the board beside the artwork. Paper, a hairline, the hard short shadow, and a
+      // graphite tab carrying the filename.
+      className="flex h-full min-h-0 min-w-0 flex-col bg-paper shadow-waxed"
+    >
+      <div // The tab is graphite; the rest of the rail stays paper, so the marks keep their ink.
+        className="flex h-unit shrink-0 items-stretch gap-half border-b border-hairline"
+      >
+        <span className="inline-flex shrink-0 items-center bg-graphite px-half font-galley text-field font-medium tracking-field text-board uppercase">
+          post.wzd
+        </span>
+        <span className="flex min-w-0 items-center gap-half overflow-hidden">
           {errors.length > 0 && <Mark tone="rubylith">{errors.length} errors</Mark>}
           {warnings.length > 0 && <Mark tone="ink">{warnings.length} warnings</Mark>}
           {errors.length === 0 && warnings.length === 0 && <Mark>Sets clean</Mark>}
         </span>
-        <span className={styles.barSpacer} />
+        <span className="flex-1" />
         <Button variant="ghost" size="sm" onClick={onFormat} disabled={formatted}>
           {formatted ? "Formatted" : "Format"}
         </Button>
       </div>
 
-      <div className={styles.code}>
-        <pre data-testid="galley-highlight" className={styles.highlight} ref={preRef} aria-hidden="true">
+      <div // The overlays and the textarea must agree on every metric that affects where a glyph lands, or the paint drifts
+        // from the caret.
+        className="relative min-h-0 flex-1 overflow-hidden"
+      >
+        <pre
+          data-testid="galley-highlight"
+          className={cn(GALLEY_BOX, "pointer-events-none z-0 overflow-hidden bg-transparent text-graphite")}
+          ref={preRef}
+          aria-hidden="true"
+        >
           {galley}
           {"\n "}
         </pre>
         <textarea
           ref={textRef}
-          className={styles.input}
+          className={cn(
+            GALLEY_BOX,
+            "resize-none overflow-auto bg-transparent text-transparent caret-graphite outline-none selection:bg-transparent selection:text-transparent focus-visible:outline-none",
+          )}
           value={source}
           spellCheck={false}
           wrap="off"
@@ -254,15 +319,15 @@ export function SourcePane({
         />
       </div>
 
-      <span className={styles.deckle} aria-hidden="true" />
+      <span className="h-hair shrink-0 deckle" aria-hidden="true" />
 
-      <ul className={styles.findings}>
+      <ul className="max-h-[34%] flex-none overflow-auto border-t border-hairline">
         {diagnostics.map((d, i) => (
           <li key={`${d.code}-${d.loc.start.offset}-${i}`}>
             <Button
               variant="ghost"
               size="sm"
-              className={styles.finding}
+              className="h-auto w-full justify-start px-hair py-[2px] text-left font-normal"
               onClick={() => {
                 const el = textRef.current;
                 if (!el) return;

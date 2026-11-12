@@ -40,7 +40,6 @@ import { createElement as h, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
 import ${JSON.stringify(here("../../styles/index.css"))};
-import ${JSON.stringify(here("../../styles/global.css"))};
 import { ToastProvider, useToast, Tabs } from ${JSON.stringify(here("./index.ts"))};
 const TABS = [
   { value: 'source', label: 'Source' },

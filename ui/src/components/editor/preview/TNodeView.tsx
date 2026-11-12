@@ -18,7 +18,7 @@ import { useDrag } from "@use-gesture/react";
 import type { TNode, Theme } from "@newspapper/core/templates";
 import { sourceOffsetOf, styleWithoutStamp } from "./compileTraced.js";
 import { childrenOf, resolveTolerant, toReactStyle } from "./resolve.js";
-import styles from "./TNodeView.module.css";
+import { cn } from "../../../lib/cn";
 
 export interface NodeGestures {
   onSelect: (offset: number) => void;
@@ -56,14 +56,18 @@ export function TNodeView(props: TNodeViewProps): ReactNode {
     { filterTaps: true, pointer: { keys: false } },
   );
 
-  const className = [
-    styles.node,
-    offset !== null ? styles.selectable : "",
-    selected ? styles.selected : "",
-    problems.length ? styles.warned : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
+  // Preview-only chrome. Nothing here may change layout: the node's own resolved style is the whole of its geometry,
+  // so selection and findings are painted with outline and box-shadow, which take no space.
+  const className = cn(
+    "-outline-offset-2",
+    offset !== null && "cursor-pointer touch-none hover:outline-1 hover:outline-dashed hover:outline-graphite-tint",
+    // Selected: the node lifts off the board, with the hard short half of the waxed shadow.
+    selected &&
+      "outline-2 outline-solid outline-graphite shadow-lifted hover:outline-2 hover:outline-solid hover:outline-graphite",
+    // Won't compile: the same rubylith that means "held out" everywhere else.
+    problems.length > 0 &&
+      "bg-rubylith-wash outline-2 outline-dashed outline-rubylith hover:bg-rubylith-wash hover:outline-2 hover:outline-dashed hover:outline-rubylith",
+  );
 
   // `bind()` recognizes the gesture on this node; every ancestor has its own
   // recognizer listening for the same bubbling pointerdown, so propagation is

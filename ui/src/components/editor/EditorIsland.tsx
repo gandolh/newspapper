@@ -42,7 +42,6 @@ import {
 } from "./edits.js";
 import { bodyPath, elementAtPath, elementPathAtOffset, samePath, slidePaths, type WzdPath } from "./paths.js";
 import { starterDocument } from "./starter.js";
-import styles from "./EditorIsland.module.css";
 import { withBase } from "@/lib/base";
 import { createSaveQueue, type SaveQueue } from "./saveQueue";
 import { ErrorBoundary } from "../ErrorBoundary";
@@ -531,7 +530,9 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
   );
 
   const inspectorPane = (
-    <div className={styles.rightColumn}>
+    <div // So the tissue's hinge is a real rotation about its top edge and not a flat skew (lib/motion.ts).
+      className="flex flex-col [perspective:900px]"
+    >
       <PalettePane
         onDragStart={(component) => setDrag({ kind: "new", component })}
         onDragMove={onDragMove}
@@ -561,9 +562,14 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
   );
 
   return (
-    <div className={styles.editor}>
-      <header className={styles.header}>
-        <h1 className={styles.title}>{doc.head["title"] || "Untitled post"}</h1>
+    <div // The board itself. No card, no radius, no frame around the whole thing: the tray closes the top and the panes
+      // are objects laid out on the surface.
+      className="flex h-[calc(100vh-var(--tray-h)-var(--spacing-double))] min-h-[calc(var(--spacing-unit)*18)] flex-col"
+    >
+      <header className="flex flex-wrap items-center gap-half border-b-[1.5px] border-graphite pb-half">
+        <h1 className="max-w-[40ch] overflow-hidden font-chrome text-board-title leading-board-title font-extrabold wdth-title tracking-board-title text-ellipsis whitespace-nowrap">
+          {doc.head["title"] || "Untitled post"}
+        </h1>
         <Mark tone={errorCount ? "rubylith" : "ink"}>
           {errorCount ? `${errorCount} ${errorCount === 1 ? "error" : "errors"}` : "Compiles"}
         </Mark>
@@ -578,7 +584,7 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
                   ? "Saved"
                   : "New post"}
         </Mark>
-        <span className={styles.spacer} />
+        <span className="flex-1" />
         <Select
           options={themes.filter((t) => t.tokens).map((t) => ({ value: t.name, label: t.name }))}
           value={themeName}
@@ -588,7 +594,7 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
             setDirty(true);
             setSaveState("dirty");
           }}
-          className={styles.themeSelect}
+          className="min-w-[calc(var(--spacing-unit)*7)]"
         />
         <Button variant="secondary" size="sm" onClick={() => void save()} disabled={!dirty || saveState === "saving"}>
           Save
@@ -612,26 +618,26 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
             tabs={PANE_TABS}
             value={pane}
             onValueChange={setPane}
-            className={styles.narrow}
-            listClassName={styles.tabs}
-            panelClassName={styles.singlePane}
+            className="flex min-h-0 flex-1 flex-col"
+            listClassName="flex gap-[4px] py-half"
+            panelClassName="min-h-0 flex-1 overflow-hidden"
           >
             {(name) => {
               if (name === "source") return sourcePane;
               if (name === "preview") return previewPane;
-              return <div className={styles.scroller}>{inspectorPane}</div>;
+              return <div className="h-full overflow-auto">{inspectorPane}</div>;
             }}
           </Tabs>
         </>
       )}
 
       {!loading && !narrow && (
-        <div className={styles.panes}>
-          <div className={styles.left} style={{ width: leftWidth }}>
+        <div className="flex min-h-0 flex-1 gap-0 pt-unit">
+          <div className="min-h-0 min-w-0 flex-none overflow-hidden" style={{ width: leftWidth }}>
             {sourcePane}
           </div>
           <Splitter width={leftWidth} min={240} max={800} label="Resize the source pane" onResize={setLeftWidth} />
-          <div className={styles.centre}>{previewPane}</div>
+          <div className="min-h-0 min-w-0 flex-1">{previewPane}</div>
           <Splitter
             width={rightWidth}
             min={260}
@@ -640,13 +646,18 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
             label="Resize the inspector pane"
             onResize={setRightWidth}
           />
-          <div className={styles.right} style={{ width: rightWidth }}>
-            <div className={styles.scroller}>{inspectorPane}</div>
+          <div className="min-h-0 min-w-0 flex-none overflow-hidden" style={{ width: rightWidth }}>
+            <div className="h-full overflow-auto">{inspectorPane}</div>
           </div>
         </div>
       )}
 
-      <div ref={ghostRef} className={styles.ghost} aria-hidden="true">
+      <div
+        ref={ghostRef} // The dragged component, on the pointer: a paper slip with the waxed shadow, because that is what it will be once
+        // it lands. JS moves it with an inline transform.
+        className="pointer-events-none invisible fixed top-0 left-0 z-ghost mt-half ml-half bg-paper px-hair py-[4px] font-galley text-mark font-bold tracking-mark text-graphite uppercase shadow-waxed [transform:translate3d(-1000px,-1000px,0)]"
+        aria-hidden="true"
+      >
         {drag?.component ?? ""}
       </div>
 

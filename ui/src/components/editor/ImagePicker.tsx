@@ -11,7 +11,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button, EmptyState, Modal, Skeleton } from "../ui";
 import { api, ApiError } from "@/lib/api";
-import styles from "./ImagePicker.module.css";
 import { withBase } from "@/lib/base";
 
 /** An upload's thumbnail URL. `upload.url` is the server's origin-relative
@@ -81,7 +80,7 @@ export function ImagePicker({ open, onClose, onChoose }: ImagePickerProps) {
 
   return (
     <Modal open={open} onClose={onClose} title="Choose an image" width={680}>
-      <div className={styles.toolbar}>
+      <div className="mb-half flex items-center gap-hair">
         <Button size="sm" loading={busy} onClick={() => fileRef.current?.click()}>
           Upload an image
         </Button>
@@ -92,7 +91,7 @@ export function ImagePicker({ open, onClose, onChoose }: ImagePickerProps) {
           ref={fileRef}
           type="file"
           accept="image/*"
-          className={styles.file}
+          className="absolute -m-px size-px overflow-hidden border-0 p-0 whitespace-nowrap [clip-path:inset(50%)]"
           onChange={(event) => {
             const file = event.target.files?.[0];
             event.target.value = "";
@@ -102,7 +101,10 @@ export function ImagePicker({ open, onClose, onChoose }: ImagePickerProps) {
       </div>
 
       {error && (
-        <p className={styles.error} role="alert">
+        <p
+          className="mb-half border-l-2 border-grease pl-half font-galley text-[10px] leading-[1.45] text-grease"
+          role="alert"
+        >
           {error}
         </p>
       )}
@@ -114,12 +116,14 @@ export function ImagePicker({ open, onClose, onChoose }: ImagePickerProps) {
       )}
 
       {uploads !== null && uploads.length > 0 && (
-        <ul className={styles.grid}>
+        <ul // Every thumbnail at one fixed scale on a shared baseline, so the grid is a true comparison (The Fixed Scale Rule).
+          className="grid max-h-[50vh] grid-cols-[repeat(auto-fill,minmax(130px,1fr))] gap-half overflow-auto"
+        >
           {uploads.map((upload) => (
             <li key={upload.id}>
               <Button
                 variant="ghost"
-                className={styles.tile}
+                className="h-auto w-full flex-col items-stretch gap-[4px] p-[4px] text-left"
                 onClick={() => {
                   onChoose(upload.src);
                   onClose();
@@ -130,10 +134,12 @@ export function ImagePicker({ open, onClose, onChoose }: ImagePickerProps) {
                   alt={upload.filename}
                   width={upload.width ?? undefined}
                   height={upload.height ?? undefined}
-                  className={styles.thumb}
+                  className="h-[104px] w-full bg-board object-cover shadow-[0_0_0_1px_var(--color-hairline)]"
                   loading="lazy"
                 />
-                <span className={styles.name}>{upload.filename}</span>
+                <span className="max-w-full overflow-hidden font-galley text-field tracking-field text-ellipsis whitespace-nowrap text-graphite-soft uppercase">
+                  {upload.filename}
+                </span>
               </Button>
             </li>
           ))}

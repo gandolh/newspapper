@@ -18,3 +18,12 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+/** The stylesheet test reads what Tailwind generated, as a string. */
+declare module "*.css?inline" {
+  const css: string;
+  export default css;
+}
+
+/** The one stylesheet, imported for its side effect (Vite handles the transform). */
+declare module "*.css";

@@ -69,7 +69,7 @@ export function Sidebar() {
             <Link
               href={href}
               className={cn(
-                "flex w-[104px] shrink-0 flex-col items-center justify-center gap-hair border-r border-rule px-half text-graphite-soft hover:text-graphite max-md:w-[78px] max-sm:w-full max-sm:overflow-hidden max-sm:px-hair",
+                "flex w-[104px] shrink-0 flex-col items-center no-underline justify-center gap-hair border-r border-rule px-half text-graphite-soft hover:text-graphite max-md:w-[78px] max-sm:w-full max-sm:overflow-hidden max-sm:px-hair",
                 // The compartment pulled forward: paper, waxed down.
                 isActive(href) && "bg-paper text-graphite shadow-waxed",
               )}

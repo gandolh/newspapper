@@ -61,7 +61,7 @@ interface ListState {
 
 const FILTER_ID = "reader-filter";
 const FILTER_DEBOUNCE_MS = 300;
-/** Mirrors the 1099px media query in ReaderIsland.module.css. */
+/** Mirrors the `reader-narrow` variant in styles/index.css (1099px). */
 const NARROW_QUERY = "(max-width: 1099px)";
 
 function selectionKey(scope: ReaderScope, narrow: Narrow, q: string): string {

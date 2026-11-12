@@ -4,7 +4,7 @@
  *
  * **Paint order is the whole bug, so this runs in real Chromium.** happy-dom
  * lays nothing out and paints nothing; a test there would pass on any CSS. The
- * shipped `SourcePane`, its CSS modules and `global.css` are bundled by Vite
+ * shipped `SourcePane`, and the app stylesheet (`index.css`) are bundled by Vite
  * and mounted in a Chromium page at a device scale of 3 (the 300%
  * zoom it was reported at), with the galley's own Spline Sans Mono served from `ui/public/fonts/`.
  * It goes through the same Chromium guard as the render tests: skipped with a
@@ -61,7 +61,6 @@ import { createElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
 import ${JSON.stringify(here("../../styles/index.css"))};
-import ${JSON.stringify(here("../../styles/global.css"))};
 import { SourcePane } from ${JSON.stringify(here("./SourcePane.tsx"))};
 let root = null;
 export function mount(source, range) {
@@ -621,7 +620,7 @@ describe("a text selection anywhere in the chrome (Chromium)", () => {
       document.body.append(p);
       const selection = getComputedStyle(p, "::selection");
       const out = {
-        token: getComputedStyle(document.documentElement).getPropertyValue("--non-photo-select").trim(),
+        token: getComputedStyle(document.documentElement).getPropertyValue("--color-non-photo-select").trim(),
         background: selection.backgroundColor,
         color: selection.color,
       };

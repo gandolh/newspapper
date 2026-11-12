@@ -33,7 +33,6 @@ import { Button, ChipRow, EmptyState, Input, Textarea } from "../ui";
 import { ancestorPaths, elementAtPath, type WzdPath } from "./paths.js";
 import { inheritedAlign, textOf } from "./props.js";
 import { hinge } from "@/lib/motion";
-import styles from "./InspectorPane.module.css";
 
 const HEAD_LABELS: Record<string, string> = {
   title: "Title",
@@ -155,12 +154,17 @@ export function InspectorPane(props: InspectorPaneProps) {
   const resolved = element ? resolveProps(element) : {};
 
   return (
-    <div className={styles.inspector} ref={sheetRef}>
-      <span className={styles.hinge} aria-hidden="true" />
+    <div // The tissue: a translucent overlay hinged over the board, carrying the notes that must never print. It stays
+      // translucent on purpose, because the non-photo grid has to read through it: an opaque sheet is a panel, and a
+      // panel is the wrong object. One of the system's two shadows.
+      className="flex origin-top flex-col gap-unit border-l-[1.5px] border-tissue-edge bg-tissue px-half py-unit shadow-hinged backdrop-blur-[1.2px]"
+      ref={sheetRef}
+    >
+      <span className="-mt-half h-0 border-t border-dashed border-tissue-edge" aria-hidden="true" />
 
-      <section className={styles.section}>
-        <h3 className={styles.sectionTitle}>Post</h3>
-        <p className={styles.sectionHint}>
+      <section className="flex flex-col gap-half">
+        <h3 className="font-galley text-field font-medium tracking-field text-graphite-soft uppercase">Post</h3>
+        <p className="font-galley text-[10px] leading-[1.45] text-graphite-soft">
           The <code>&lt;head&gt;</code> block. Title, description and keywords also drive the saved post's index
           columns.
         </p>
@@ -176,8 +180,8 @@ export function InspectorPane(props: InspectorPaneProps) {
         ))}
       </section>
 
-      <section className={styles.section}>
-        <h3 className={styles.sectionTitle}>Selection</h3>
+      <section className="flex flex-col gap-half">
+        <h3 className="font-galley text-field font-medium tracking-field text-graphite-soft uppercase">Selection</h3>
 
         {!element && (
           <EmptyState
@@ -188,7 +192,7 @@ export function InspectorPane(props: InspectorPaneProps) {
 
         {element && selectedPath && (
           <>
-            <nav className={styles.breadcrumb} aria-label="Ancestors">
+            <nav className="flex flex-wrap items-center gap-0" aria-label="Ancestors">
               {ancestorPaths(selectedPath).map((path) => {
                 const node = elementAtPath(doc as WzdDocument, path);
                 if (!node) return null;
@@ -197,7 +201,7 @@ export function InspectorPane(props: InspectorPaneProps) {
                     key={path.join(".")}
                     variant="ghost"
                     size="sm"
-                    className={styles.crumb}
+                    className="h-[18px] px-[4px] py-0 font-galley text-[9.5px] tracking-[0.06em] uppercase after:ml-[4px] after:text-graphite-soft after:content-['/'] last:after:content-['']"
                     onClick={() => onSelectPath(path)}
                   >
                     {node.type}
@@ -206,12 +210,14 @@ export function InspectorPane(props: InspectorPaneProps) {
               })}
             </nav>
 
-            <div className={styles.headline}>
-              <h4 className={styles.nodeName}>{element.type}</h4>
-              {spec && <span className={styles.description}>{spec.description}</span>}
+            <div className="flex flex-col gap-hair">
+              <h4 className="font-chrome text-board-title leading-board-title font-extrabold wdth-title tracking-board-title text-graphite">
+                {element.type}
+              </h4>
+              {spec && <span className="text-label leading-[1.4] text-graphite-soft">{spec.description}</span>}
             </div>
 
-            <div className={styles.actions}>
+            <div className="flex flex-wrap gap-[4px]">
               <Button variant="ghost" size="sm" disabled={disabled} onClick={() => onNudge(selectedPath, -1)}>
                 Move up
               </Button>
@@ -251,7 +257,7 @@ export function InspectorPane(props: InspectorPaneProps) {
                     ? inheritedAlign(doc as WzdDocument, selectedPath)
                     : (resolved[propSpec.name] ?? propSpec.default ?? "");
                 return (
-                  <div className={styles.prop} key={propSpec.name}>
+                  <div className="flex items-end gap-[4px] *:first:min-w-0 *:first:flex-1" key={propSpec.name}>
                     <ChipRow
                       kind="picker"
                       label={propSpec.name}
@@ -269,7 +275,7 @@ export function InspectorPane(props: InspectorPaneProps) {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className={styles.reset}
+                      className="shrink-0"
                       disabled={disabled || !isSet}
                       aria-label={`Reset ${propSpec.name} to the default`}
                       onClick={() => onSetProp(selectedPath, propSpec.name, null)}
@@ -282,7 +288,7 @@ export function InspectorPane(props: InspectorPaneProps) {
 
               if (element.type === "Image" && propSpec.name === "src") {
                 return (
-                  <div className={styles.prop} key={propSpec.name}>
+                  <div className="flex items-end gap-[4px] *:first:min-w-0 *:first:flex-1" key={propSpec.name}>
                     <Input
                       label="src"
                       value={written ?? ""}
@@ -292,7 +298,7 @@ export function InspectorPane(props: InspectorPaneProps) {
                     <Button
                       variant="secondary"
                       size="sm"
-                      className={styles.reset}
+                      className="shrink-0"
                       disabled={disabled}
                       onClick={() => onPickImage(selectedPath)}
                     >

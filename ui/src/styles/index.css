@@ -171,6 +171,9 @@
   --color-tissue-ink: #8d8a80;
 
   --shadow-waxed: 2px 3px 0 rgba(43, 43, 43, 0.14), 0 0 0 1px var(--color-hairline);
+  /* The hard short half of waxed, for a selected node in the preview: its 1px hairline ring would sit outside the
+     graphite outline and read as a smudge. */
+  --shadow-lifted: 2px 3px 0 rgba(43, 43, 43, 0.14);
   --shadow-hinged: -9px 0 22px rgba(43, 43, 43, 0.1);
 
   /* Spacing: one 26px grid, named only. */
@@ -212,7 +215,7 @@
 
   --z-index-pane: 1;
   --z-index-sticky: 50;
-  --z-index-tray: 60;
+  --z-index-ghost: 60;
   --z-index-overlay: 1000;
   --z-index-dialog: 1001;
   --z-index-popup: 1100;
@@ -238,6 +241,41 @@
 }
 @utility wdth-narrow {
   font-variation-settings: "wdth" var(--wdth-narrow);
+}
+
+/* The galley's torn bottom edge: the copy continues. A clip-path of 28 points, kept as one named utility. */
+@utility deckle {
+  background: repeating-linear-gradient(135deg, var(--color-paper) 0 4px, transparent 4px 5px), var(--color-hairline);
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% 40%,
+    96% 100%,
+    92% 30%,
+    88% 90%,
+    84% 25%,
+    80% 85%,
+    76% 35%,
+    72% 95%,
+    68% 30%,
+    64% 80%,
+    60% 25%,
+    56% 90%,
+    52% 35%,
+    48% 85%,
+    44% 30%,
+    40% 95%,
+    36% 25%,
+    32% 80%,
+    28% 35%,
+    24% 90%,
+    20% 30%,
+    16% 85%,
+    12% 25%,
+    8% 95%,
+    4% 35%,
+    0 80%
+  );
 }
 
 /* The reader's own root size stays; the app's size is on body (a pixel size on html would override the
