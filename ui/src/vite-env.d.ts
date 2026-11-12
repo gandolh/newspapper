@@ -27,3 +27,9 @@ declare module "*.css?inline" {
 
 /** The one stylesheet, imported for its side effect (Vite handles the transform). */
 declare module "*.css";
+
+/** A repo file read as text, by the tests that keep index.html and the stylesheet in step. */
+declare module "*?raw" {
+  const text: string;
+  export default text;
+}

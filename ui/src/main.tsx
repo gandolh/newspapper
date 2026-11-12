@@ -1,4 +1,5 @@
 import { createRoot } from "react-dom/client";
+import { initAppearance } from "./lib/appearance";
 import { Routes } from "./routes";
 import "./styles/index.css";
 
@@ -12,6 +13,8 @@ import "./styles/index.css";
  * change. It is worth doing on its own, once the effects it would flag are
  * settled.
  */
+initAppearance();
+
 const root = document.getElementById("root");
 if (!root) throw new Error("#root is missing from index.html");
 

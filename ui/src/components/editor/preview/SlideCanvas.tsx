@@ -130,7 +130,7 @@ export function SlideCanvas({
       ref={wrapperRef}
       // The artwork, pasted down. The wrapper is the paper edge; the crop marks and register targets around it
       // belong to the stage, not to this file.
-      className="relative shrink-0 overflow-hidden bg-paper shadow-[0_0_0_1px_var(--color-hairline)]"
+      className="relative shrink-0 overflow-hidden bg-slide-paper shadow-[0_0_0_1px_var(--color-hairline)]"
       style={{ width: inner, height: inner }}
       data-drag={dragActive ? "" : undefined}
     >
@@ -138,7 +138,7 @@ export function SlideCanvas({
         // none of the board's type settings. The canvas resets what it inherits (the board sets tabular figures, a
         // weight and a line height on body), so nothing global reaches the artwork; the preview-parity test holds
         // it to the render.
-        className="flex origin-top-left overflow-hidden font-slide font-normal normal-nums leading-[normal] [letter-spacing:normal]"
+        className="flex origin-top-left overflow-hidden font-slide text-slide-ink font-normal normal-nums leading-[normal] [letter-spacing:normal]"
         style={{ width: SLIDE_SIZE, height: SLIDE_SIZE, transform: `scale(${scale})` }}
       >
         <TNodeView

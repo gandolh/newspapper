@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type CSSProperties } from "react";
-import { Button, Card, PageHeader, Select, Skeleton, ToastProvider, useToast } from "../ui";
+import { Button, Card, ChipRow, PageHeader, Select, Skeleton, ToastProvider, useToast } from "../ui";
 import { api } from "@/lib/api";
+import { applyAppearance, readAppearance, type Appearance } from "@/lib/appearance";
 import { AccountSection } from "./AccountSection";
 import { SETTINGS } from "./settingsLooks";
 import type { Settings } from "@/lib/types";
@@ -112,12 +113,46 @@ function ThemeSection() {
   );
 }
 
+const APPEARANCES: { value: Appearance; label: string }[] = [
+  { value: "light", label: "Light" },
+  { value: "dark", label: "Dark" },
+  { value: "system", label: "System" },
+];
+
+/** Light, Dark or System for the app chrome, kept on this device. The slide themes are not affected. */
+function AppearanceSection() {
+  const [appearance, setAppearance] = useState<Appearance>(readAppearance);
+
+  return (
+    <Card>
+      <h2 className={SETTINGS.sectionTitle}>Appearance</h2>
+      <p className={SETTINGS.sectionHint}>
+        How the board looks on this device. It does not change the slides: their themes are set above and in the editor.
+        System follows your device.
+      </p>
+      <ChipRow
+        kind="filter"
+        ariaLabel="Appearance"
+        options={APPEARANCES}
+        value={appearance}
+        onValueChange={(next) => {
+          const choice = APPEARANCES.find((o) => o.value === next)?.value;
+          if (!choice) return;
+          setAppearance(choice);
+          applyAppearance(choice);
+        }}
+      />
+    </Card>
+  );
+}
+
 function SettingsPage() {
   return (
     <div className="mx-auto max-w-narrow">
       <PageHeader title="Settings" subtitle="The default a new post starts from, and how you sign in." />
       <div className="flex flex-col gap-unit">
         <ThemeSection />
+        <AppearanceSection />
         <AccountSection />
       </div>
     </div>

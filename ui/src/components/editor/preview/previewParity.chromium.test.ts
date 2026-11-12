@@ -234,6 +234,29 @@ const cases = WZD_SAMPLES.filter((s) => s.clean).flatMap((sample) => {
   }));
 });
 
+/** Every node of the mounted canvas: box, text and colour properties, as the browser computes them. */
+async function canvasFacts(): Promise<string> {
+  return page!.evaluate(() => {
+    const canvas = document.getElementById("host")!.firstElementChild!.firstElementChild!;
+    const props = [
+      "color",
+      "backgroundColor",
+      "fontFamily",
+      "fontWeight",
+      "lineHeight",
+      "letterSpacing",
+      "borderTopColor",
+    ];
+    return JSON.stringify(
+      [canvas, ...canvas.querySelectorAll("div")].map((el) => {
+        const cs = getComputedStyle(el) as unknown as Record<string, string>;
+        const r = el.getBoundingClientRect();
+        return { rect: [r.left, r.top, r.width, r.height], style: props.map((p) => cs[p]) };
+      }),
+    );
+  });
+}
+
 describe("the preview canvas matches the render", () => {
   it("has slides to compare", () => {
     expect(cases.length).toBeGreaterThan(5);
@@ -259,5 +282,27 @@ describe("the preview canvas matches the render", () => {
       await style.evaluate((el) => (el as Element).remove());
     }
     expect(await differences(sample.slide, sample.html)).toEqual([]);
+  });
+});
+
+describe("the slide canvas does not follow the Light / Dark / System switch", () => {
+  it("computes the same colours, fonts and boxes in dark as in light, and still matches the render", async (ctx) => {
+    if (!chromium.orSkip((note) => ctx.skip(note))) return;
+    const sample = cases.find((c) => c.name.startsWith("two columns"))!;
+    await page!.evaluate(() => (document.documentElement.dataset["theme"] = "light"));
+    expect(await differences(sample.slide, sample.html)).toEqual([]);
+    const light = await canvasFacts();
+    expect(light.length).toBeGreaterThan(100);
+
+    await page!.evaluate(() => (document.documentElement.dataset["theme"] = "dark"));
+    try {
+      // The chrome did change: the board is dark now (the control: the test can see a theme switch at all).
+      const board = await page!.evaluate(() => getComputedStyle(document.body).backgroundColor);
+      expect(board).toBe("rgb(27, 28, 31)");
+      expect(await canvasFacts()).toBe(light);
+      expect(await differences(sample.slide, sample.html)).toEqual([]);
+    } finally {
+      await page!.evaluate(() => (document.documentElement.dataset["theme"] = "light"));
+    }
   });
 });

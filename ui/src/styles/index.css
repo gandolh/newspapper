@@ -164,6 +164,9 @@
   --color-grease: #c0331f;
   --color-wax: #f5d97a;
   --color-wax-ink: #3d3416;
+  /* The slide canvas is artwork, not chrome: its ground and ink do not follow the Light / Dark / System switch. */
+  --color-slide-paper: #ffffff;
+  --color-slide-ink: #2b2b2b;
   --color-hairline: #e2e2dd;
   --color-rule: #cfcfca;
   --color-tick: #c4c1b8;
@@ -283,6 +286,41 @@
 @layer base {
   :root {
     color-scheme: light;
+  }
+
+  /* Dark: a first proposal derived from the closed palette (the board and paper go dark, the graphite ink goes light,
+     the marks keep their hue and are re-tuned only as far as contrast needs). The values are plain variables, so
+     every utility follows. appearance.ts keeps data-theme on <html>, and color-scheme follows it here, in the
+     same stylesheet, for the form controls and the scrollbars. */
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+
+    --color-board: #1b1c1f;
+    --color-paper: #26272b;
+    --color-tissue: rgba(38, 39, 43, 0.7);
+    --color-graphite: #ecebe6;
+    --color-graphite-deep: #fafaf7;
+    --color-graphite-soft: #a9a69d;
+    --color-graphite-tint: #8d8c85;
+    --color-process-blue: #72aae0;
+    --color-non-photo: rgba(127, 182, 232, 0.16);
+    --color-non-photo-select: #2f5b86;
+    --color-rubylith: #ff6a52;
+    --color-rubylith-wash: rgba(255, 106, 82, 0.3);
+    --color-rubylith-wash-soft: rgba(255, 106, 82, 0.16);
+    --color-rubylith-ink: #ff8b76;
+    --color-grease: #ff8b76;
+    --color-wax: #5c4c14;
+    --color-wax-ink: #f5d97a;
+    --color-hairline: #34353a;
+    --color-rule: #45464c;
+    --color-tick: #5d5e64;
+    --color-tissue-edge: #606167;
+    --color-tissue-ink: #9d9c96;
+    --shadow-waxed: 2px 3px 0 rgba(0, 0, 0, 0.5), 0 0 0 1px var(--color-hairline);
+    --shadow-lifted: 2px 3px 0 rgba(0, 0, 0, 0.5);
+    --shadow-hinged: -9px 0 22px rgba(0, 0, 0, 0.4);
+    --hatch: repeating-linear-gradient(45deg, transparent 0 5px, rgba(236, 235, 230, 0.09) 5px 10px);
   }
 
   *,
