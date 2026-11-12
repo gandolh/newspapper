@@ -17,6 +17,10 @@ describe("the stylesheet's closed system", () => {
     for (const probe of probes) expect(has(probe), probe).toBe(false);
   });
 
+  it("keeps zero as the one numeric spacing, since inset-0 and p-0 need it", () => {
+    for (const used of ["inset-0", "top-0", "p-0"]) expect(has(used), used).toBe(true);
+  });
+
   it("keeps the render's reset, and no Preflight", () => {
     expect(css).toMatch(/box-sizing:\s*border-box/);
     expect(css).not.toMatch(/border:\s*0 solid/);
