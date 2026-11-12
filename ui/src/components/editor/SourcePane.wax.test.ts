@@ -29,6 +29,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
+import tailwindcss from "@tailwindcss/vite";
 import { build, type Plugin, type Rollup } from "vite";
 import { getBrowser } from "../../../../core/src/render/browser.js";
 import { probeChromium, type ChromiumGuard } from "../../../../core/src/render/test-support/chromium.js";
@@ -59,6 +60,7 @@ function entry(): Plugin {
 import { createElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
+import ${JSON.stringify(here("../../styles/index.css"))};
 import ${JSON.stringify(here("../../styles/global.css"))};
 import { SourcePane } from ${JSON.stringify(here("./SourcePane.tsx"))};
 let root = null;
@@ -90,7 +92,7 @@ async function bundle(): Promise<{ js: string; css: string }> {
     configFile: false,
     logLevel: "silent",
     root: here("../../.."),
-    plugins: [entry()],
+    plugins: [tailwindcss(), entry()],
     // Under Vitest NODE_ENV is `test`, so Vite would emit `jsxDEV` calls, which
     // the production React this bundle defines has no implementation for.
     esbuild: { jsx: "automatic", jsxDev: false },
@@ -363,6 +365,21 @@ function covered(result: Awaited<ReturnType<typeof measure>>, ground: "wax" | "b
     .filter((g) => g.control > 0 && g.waxed < g.control * 0.85)
     .map((g) => `${JSON.stringify(g.char)}@${g.index} ${g.waxed}/${g.control}`);
 }
+
+describe("the stylesheet reached the galley (Chromium)", () => {
+  it("laid out the galley and the tokens: the pre is positioned, the textarea is set in the galley face", async (ctx) => {
+    if (!chromium.orSkip((note) => ctx.skip(note))) return;
+    await mount("<Slide>\n</Slide>", null);
+    const probe = await page!.evaluate(() => ({
+      position: getComputedStyle(document.querySelector('pre[data-testid="galley-highlight"]')!).position,
+      family: getComputedStyle(document.querySelector("textarea")!).fontFamily,
+      token: getComputedStyle(document.documentElement).getPropertyValue("--color-wax").trim(),
+    }));
+    expect(probe.position).toBe("absolute");
+    expect(probe.family).toContain("Spline Sans Mono");
+    expect(probe.token).toBe("#f5d97a");
+  });
+});
 
 describe("the selected-element wax in the galley (Chromium)", () => {
   it("runs: the galley font loaded, the wax painted, and every glyph has ink", async (ctx) => {

@@ -1,6 +1,7 @@
 import { fileURLToPath } from "node:url";
 import { defineConfig, type Plugin, type ProxyOptions } from "vite";
 import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 
 /**
  * The proof sheet is a dev route, never a shipped one.
@@ -27,7 +28,9 @@ import react from "@vitejs/plugin-react";
  * bundle. Instead the route reaches the proof sheet only through the virtual
  * module below, whose production body is literally `export default null` —
  * under `vite build` the real module is never resolved, never parsed, and
- * contributes no JS and no CSS.
+ * contributes no JS. It does leak a few bytes of CSS: Tailwind scans the source
+ * tree, not the import graph, so the utilities only the proof sheet uses are
+ * generated into the production stylesheet (the size is in corpus/log.md).
  */
 const proofEntry = fileURLToPath(new URL("./src/proof/KitchenSink.tsx", import.meta.url));
 
@@ -87,7 +90,7 @@ function devProxy(): Record<string, ProxyOptions> {
 
 export default defineConfig({
   base,
-  plugins: [react(), proofSheet()],
+  plugins: [react(), tailwindcss(), proofSheet()],
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),

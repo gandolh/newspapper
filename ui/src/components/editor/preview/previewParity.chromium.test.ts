@@ -20,6 +20,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { readFile as readFileAsync } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
+import tailwindcss from "@tailwindcss/vite";
 import { build, type Plugin, type Rollup } from "vite";
 import { compile, parse, WZD_SAMPLES } from "@newspapper/core/wizard";
 import { renderTemplate, type Theme } from "@newspapper/core/templates";
@@ -51,6 +52,7 @@ function entry(): Plugin {
 import { createElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
+import ${JSON.stringify(here("../../../styles/index.css"))};
 import ${JSON.stringify(here("../../../styles/global.css"))};
 import { SlideCanvas } from ${JSON.stringify(here("./SlideCanvas.tsx"))};
 let root = null;
@@ -85,7 +87,7 @@ async function bundle(): Promise<{ js: string; css: string }> {
     configFile: false,
     logLevel: "silent",
     root: here("../../../.."),
-    plugins: [entry()],
+    plugins: [tailwindcss(), entry()],
     esbuild: { jsx: "automatic", jsxDev: false },
     resolve: { alias: { "@": here("../../..") } },
     define: { "process.env.NODE_ENV": '"production"' },

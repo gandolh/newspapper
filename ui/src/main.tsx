@@ -1,5 +1,6 @@
 import { createRoot } from "react-dom/client";
 import { Routes } from "./routes";
+import "./styles/index.css";
 import "./styles/global.css";
 
 /**
