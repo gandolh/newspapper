@@ -8,8 +8,7 @@
  */
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { FeedItem, FeedItemSummary } from "@/lib/types";
-import { Button, EmptyState, Mark, Skeleton, Textarea } from "../ui";
-import buttonStyles from "../ui/Button.module.css";
+import { Button, buttonClasses, EmptyState, Mark, Skeleton, Textarea } from "../ui";
 import { BackControl } from "./BackControl";
 import { ItemBody } from "./ItemBody";
 import { formatDate } from "./format";
@@ -42,7 +41,7 @@ export interface ReadingPaneProps {
 }
 
 /** A button-shaped link: the same chip a `Button` prints, as a real `<a>`. */
-const LINK_BUTTON = [buttonStyles.btn, buttonStyles["btn--secondary"], buttonStyles["btn--sm"]].join(" ");
+const LINK_BUTTON = buttonClasses("secondary", "sm");
 
 export function ReadingPane(props: ReadingPaneProps) {
   const { summary, item, error, note } = props;

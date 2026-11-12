@@ -41,6 +41,11 @@ const SIZE: Record<ButtonSize, string> = {
   lg: "h-double px-double py-0 text-body",
 };
 
+/** The classes of a button, for a link that has to look like one. */
+export function buttonClasses(variant: ButtonVariant = "primary", size: ButtonSize = "md"): string {
+  return cn(BASE, VARIANT[variant], SIZE[size]);
+}
+
 /**
  * A control printed on the board.
  *
@@ -59,7 +64,7 @@ export function Button({
 }: ButtonProps) {
   return (
     <BaseButton
-      className={cn(BASE, VARIANT[variant], SIZE[size], loading && ["cursor-wait", HATCH], className)}
+      className={cn(buttonClasses(variant, size), loading && ["cursor-wait", HATCH], className)}
       disabled={disabled || loading}
       {...rest}
     >
