@@ -187,3 +187,14 @@ Follow the skill's `migrating-from-plain-css.md`. One commit per numbered step; 
 - Brief 09's renamed rules for `Modal`, `ConfirmDialog`, `Toast`, `ChipRow` and `Tabs` are migrated here like any other.
 - Brief 11 does not touch `ui/`. Both change `package-lock.json`, so run them one at a time.
 - Brief 12 (the redesign) comes after this brief: it changes the tokens, both themes' values and the layout, on the Tailwind and Base UI base left here.
+
+## Outcome (2026-11-12)
+
+Built end to end on `main` in 14 commits (`8c7e728` to `fc351e8`), one per step, nothing pushed. The numbers and the fixes are in [log.md](../../log.md) ("Brief 10") and the decisions in [decisions-ui.md](../../wiki/decisions-ui.md).
+
+- **Before/after:** 15 states (login plain and failed, editor with a post, a missing post, the narrow palette, posts, the delete confirm, the Reader's list, an open item, the key legend, Sources and its add dialog, Library, Settings, the proof sheet) at 1280 and 390 px, a frozen clock and a seeded scratch database. Identical in the light theme except Settings, which has the new Appearance section. Not shot: the "Sign in with Ward" button (no dummy issuer was set), the lint-finding and image-picker states, toast variants. The narrow Reader's click-through states did not reach their targets at 390 px in either pass.
+- **Preview-parity control:** a global `div { padding-top: 2px }` fails the test; the first run also caught the fallback font tail (the render's `sans-serif`, the app's system stack), which differs on purpose and is outside the comparison (first family compared).
+- **Wax control:** a wrong z-index (`z-10` for `-z-2`) fails five of the wax tests.
+- **Deviations from the brief:** (1) the numeric spacing step `--spacing-0` exists, because `inset-0` and `p-0` need it; (2) five tokens beyond the mapped 56: `graphite-deep`, `shadow-lifted`, `slide-paper`, `slide-ink` and the `ghost` z-index (every colour literal in the old modules became a token or an opacity modifier of one); (3) line heights are `leading-*` tokens, not paired to `text-*` (the old CSS combined them per use, so pairing would have changed rows); (4) `--tray-h` stays a plain variable (`h-(--tray-h)`), since Tailwind 4 has no `--height-*` namespace; (5) `check-base-ui` reports 0 without any exception, so `--swatch` and `Splitter` needed none in `conventions.json`; (6) `ui/src/css-modules.d.ts` is gone and its two remaining declarations (`*.css`, `*.css?inline`, `*?raw`) are in `vite-env.d.ts`; (7) the galley's torn edge is one `@utility deckle` (a 28-point clip-path), the only named galley rule.
+- **Contrast** (built tokens, text 4.5:1, UI parts 3:1): every text and icon pair clears in dark; in light the same values as before, with one pair under the bar, graphite-soft on the lint error wash, 4.36:1 (pre-existing, unchanged).
+- **Pre-existing findings:** none that need a brief.
