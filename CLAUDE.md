@@ -69,7 +69,7 @@ See [corpus/wiki/architecture.md](corpus/wiki/architecture.md) for the full flow
 
 The **slide themes** paint the 1080² artwork: `warm-industrial-1`, `-2`, `-3` — a family, not three designs, differing only in the primary colour. Tokens in `assets/design-systems/`. Inter lives in `assets/fonts/`, served to the render browser. See [design-systems.md](corpus/wiki/design-systems.md).
 
-The **app chrome** is The Mechanical, a paste-up board. Tokens in `ui/src/styles/global.css`, faces in `ui/public/fonts/`. The canonical spec is [design.md](corpus/wiki/design.md) (§1–§4) + [design-components.md](corpus/wiki/design-components.md) (§5–§9) — a source comment citing "DESIGN.md §5" means the latter. What shipped: [chrome.md](corpus/wiki/chrome.md).
+The **app chrome** is The Mechanical, a paste-up board. Tokens in `ui/src/styles/index.css` (Tailwind 4, `@theme`; light by default with a Light / Dark / System switch in Settings), faces in `ui/public/fonts/`. The canonical spec is [design.md](corpus/wiki/design.md) (§1–§4) + [design-components.md](corpus/wiki/design-components.md) (§5–§9) — a source comment citing "DESIGN.md §5" means the latter. What shipped: [chrome.md](corpus/wiki/chrome.md).
 
 The `digital-broadsheet` theme was removed in v2; Satori/resvg rendering in v3; the JSON template system and `/builder` on 2026-08-27.
 

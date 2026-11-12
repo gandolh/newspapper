@@ -18,12 +18,14 @@ the shipped chrome on 2026-08-31 and moved out of the repo-root `DESIGN.md` by
 the docs rewrite (2026-08-31). §2 records the five comp values that could not hold 4.5:1 as real
 text; §9 records what the chrome does not yet carry.
 
-- **Tokens** — `:root` in `ui/src/styles/global.css`. Board `#fbfbf9` under a
+- **Tokens** — `@theme` in `ui/src/styles/index.css` (Tailwind 4, one stylesheet: [decisions-ui.md](./decisions-ui.md)),
+  named for what they are (`bg-board`, `text-graphite-soft`, `p-unit`). Light by default, with a
+  Light / Dark / System switch in Settings. Board `#fbfbf9` under a
   26px non-photo blue lattice, paper for anything waxed onto it, 70% tissue
   for the inspector; graphite `#2b2b2b` text with `graphite-soft` `#6d6a62`
   the floor and `graphite-tint` `#7a7a76` for rules and ticks only. **No
   radius scale** — deleted, and nothing in `ui/` sets `border-radius`. Two
-  shadows, `--shadow-waxed` and `--shadow-hinged`, both physical.
+  shadows, `shadow-waxed` and `shadow-hinged`, both physical.
 - **Typefaces** — Archivo (variable `wdth`/`wght`) and Spline Sans Mono,
   self-hosted in `ui/public/fonts/`, served from Vite's public dir at
   `/fonts/*`. Inter is

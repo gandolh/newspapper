@@ -14,7 +14,7 @@ HTTP API.
 |--------|-------------|
 | `npm install` | One-time dependency install, from the repo root |
 | `npm run dev` | API (3001) + UI dev server (4321) in parallel, via `concurrently --kill-others-on-fail` |
-| `npm run check` | `typecheck` (core and api with their tests, then ui) → `lint` → `format:check` → `check:conventions` (knip, dependency-cruiser, the house Base UI and structure checkers, both `--warn-only` for now) → `CI=1 vitest run`. Run before every hand-back |
+| `npm run check` | `typecheck` (core and api with their tests, then ui) → `lint` → `format:check` → `check:conventions` (knip, dependency-cruiser, the house Base UI and structure checkers, both strict) → `CI=1 vitest run`. Run before every hand-back |
 | `npm run check:fast` | `typecheck`, then ESLint on the files changed against `HEAD` and the untracked ones (`scripts/check-fast.mjs`). No tests. About 11 to 15 s warm |
 | `npm run typecheck` | `tsc -p core --noEmit`, `tsc -p api --noEmit`, then `tsc --noEmit` in `ui`; incremental, buildinfo under `node_modules/.tmp/` |
 | `npm run build` | `format:check` → `tsc` in `core` → `tsc` in `api` → `tsc --noEmit` in `ui` → `vite build`. The `core` and `api` steps typecheck and, since 2026-11-04, also emit `dist/` |

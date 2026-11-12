@@ -1,6 +1,6 @@
 ---
 summary: The Mechanical, §1–§4 — the paste-up board's north star, the full colour palette with measured contrast, the Archivo/Spline type hierarchy, and the two shadows. Machine-readable tokens are in this page's frontmatter. §5–§9 continue in design-components.md.
-updated: 2026-11-06
+updated: 2026-11-12
 name: Newspapper
 description: A paste-up board for setting a news carousel — the workstation, not the slides it renders.
 colors:
@@ -192,6 +192,28 @@ legibility from marks and alignment, not from hue.
 - **Rule** (`#cfcfca`): internal dividers, tray compartment walls.
 - **Tick** (`#c4c1b8`): dimension lines, scale-chip borders, inactive edges.
 - **Tissue Edge** (`#b9b6ac`) / **Tissue Ink** (`#8d8a80`): the overlay's hinge line and its tick marks. **Not its labels** — tissue ink measures 3.31:1 on the 70% tissue, so the sheet writes in `graphite-soft` (5.17:1) like everything else. The Ink Floor Rule has no exception for being on tissue.
+
+### Dark (the Light / Dark / System switch, a first proposal, 2026-11-12)
+The chrome has a dark theme, chosen in Settings and kept on the device; light stays the default and the slide canvas
+never follows it ([decisions-ui.md](./decisions-ui.md)). The token names above are Tailwind's, prefixed `--color-`
+(`bg-board`, `text-graphite-soft`); `:root[data-theme="dark"]` in `ui/src/styles/index.css` overrides these, and brief 12
+re-tunes them on the board.
+
+| Token | Dark | Token | Dark |
+|---|---|---|---|
+| board | `#1b1c1f` | rubylith | `#ff6a52` |
+| paper | `#26272b` | rubylith-ink, grease | `#ff8b76` |
+| tissue | 70% `#26272b` | rubylith-wash / -soft | 30% / 16% rubylith |
+| graphite | `#ecebe6` | wax | `#5c4c14` |
+| graphite-deep (primary hover) | `#fafaf7` | wax-ink | `#f5d97a` |
+| graphite-soft (text floor) | `#a9a69d` | non-photo (the grid) | 16% `#7fb6e8` |
+| graphite-tint (rules, ticks) | `#8d8c85` | non-photo-select | `#2f5b86` |
+| process-blue | `#72aae0` | hairline, rule, tick | `#34353a`, `#45464c`, `#5d5e64` |
+| tissue-edge, tissue-ink | `#606167`, `#9d9c96` | shadows | black at 50% / 40% |
+
+Measured on the built tokens (text 4.5:1, UI parts 3:1): every text and icon pair clears in dark. In light, one pair is
+under, as it was before the move (values unchanged): graphite-soft on the lint error wash, 4.36:1. The slide canvas
+keeps `slide-paper` `#ffffff` and `slide-ink` `#2b2b2b` in both themes.
 
 ### Named Rules
 

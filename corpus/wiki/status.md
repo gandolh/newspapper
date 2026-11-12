@@ -43,9 +43,15 @@ element shows was settled on 2026-11-06 (non-photo blue) and built the same day.
   `check:fast`. Follow-up counts, measured 2026-11-11: `noUncheckedIndexedAccess` is off and
   would report 80 errors in source (`core` 34, `api` 1, `ui` 45) and 245 in tests (171, 16, 58);
   `exactOptionalPropertyTypes` would report 23 (`core` 5, `api` 12, `ui` 7). Both checkers run
-  `--warn-only`: `check-base-ui` reports 43 (rule 5: 42 CSS modules and `global.css`), still 43 after brief 09 (every other rule is 0),
+  `--warn-only`: `check-base-ui` reported 43 (rule 5) until brief 10, which took it to 0 and dropped the flag,
   `check-structure` reported 50 errors (rule 2: 1, rule 3: 7, rule 6: 42) and 6 warnings (rule 11) until
   brief 11, below.
+- **The UI is Tailwind 4** (2026-11-12, brief 10). All 43 stylesheets are gone: one `ui/src/styles/index.css`
+  over Base UI, the 56 tokens in a closed `@theme`, no Preflight, the root size on `body`. The looks are unchanged
+  (before and after screenshots at 1280 and 390 px), and the chrome has a Light / Dark / System switch in Settings
+  (light on a first visit, kept on the device; the slide canvas never follows). Built CSS 61.9 kB to 52.7 kB (11.1 to
+  10.4 kB gzipped), JS 206.7 to 217.2 kB gzipped. `check-base-ui` runs strict. Decisions:
+  [decisions-ui.md](./decisions-ui.md).
 - **The API's structure** (2026-11-11, brief 11). `api/src` is in the estate's
   code structure: `server.ts` listens, `app.ts` builds, `config.ts` alone reads
   the environment, the plugins are `fastify-plugin` wrapped, and each feature is a

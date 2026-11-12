@@ -185,4 +185,4 @@ The dialogs, the toast, the chip rows and the narrow editor's pane switcher foll
 - **A form dialog ignores an outside tap** (Q58): Add and Edit source pass `dismissOnBackdrop={false}`. `Modal` has the Escape guard and sends focus to `[data-autofocus]`, else the first field (a file input never counts), else the first button, else the dialog.
 - **An error toast stays until dismissed**, whatever duration a caller passes, and is announced at once. The viewport is in a `Toast.Portal`.
 - **`Tabs` activates on focus**, as the skill's rule 16 says; an inactive pane is not mounted, as before.
-- The guard: `no-restricted-imports` on the `@base-ui/react` root in `eslint.config.js`, and `check-base-ui`. It stays `--warn-only`, because rule 5 (43 CSS files) is brief 10's.
+- The guard: `no-restricted-imports` on the `@base-ui/react` root in `eslint.config.js`, and `check-base-ui`. It runs strict since 2026-11-12 (brief 10 moved the 43 CSS files to Tailwind).

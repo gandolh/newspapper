@@ -68,10 +68,14 @@ served both an Astro `<script>` and a React island; since the move to Vite + Rea
 only React components, and it has no opinion about how anything is styled.
 Rejected: **motion-primitives** and **smoothui**. Both are shadcn-style
 copy-paste React kits that require **Tailwind CSS** (v4 for smoothui) plus
-**Motion**, and this UI was then Astro islands + CSS Modules + Base UI, and is
-now React + CSS Modules + Base UI — no Tailwind either way. Adopting either means importing a second styling system to obtain
-animations, which is the wrong trade for a fixed component set. They stay useful
-as **pattern references** — read the interaction, reimplement it in CSS Modules.
+**Motion**. The rejection's reason was "a second styling system": the UI was
+CSS Modules + Base UI then. _2026-11-12_ — the Tailwind half no longer applies:
+the UI is Tailwind 4 by the owner's call of 2026-11-09 ([decisions-ui.md](./decisions-ui.md)),
+so a kit needing Tailwind is no longer a second system. The choice stands on its
+other half: the kits also need **Motion**, a second animation engine beside
+anime.js, which is the wrong trade for a fixed component set with two authored
+moments. They stay useful as **pattern references** — read the interaction,
+reimplement it on anime.js and the app's own tokens.
 Standing rules: one authored motion moment per surface rather than scattered
 hover effects, everything gated behind `prefers-reduced-motion`, and **no motion
 inside the slide canvas** — the preview must never move in a way the renderer
