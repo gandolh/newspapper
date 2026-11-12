@@ -49,7 +49,7 @@ export function LoginIsland() {
 
   return (
     <div className="w-[calc(var(--spacing-unit)*14)] max-w-full">
-      <h1 className="mb-hair font-chrome text-board-title leading-board-title font-extrabold wdth-title tracking-board-title text-graphite">
+      <h1 className="mb-hair font-chrome text-board-title leading-board-title font-extrabold tracking-board-title text-graphite wdth-title">
         newspapper
       </h1>
       <p className="mb-unit font-galley text-field font-medium tracking-field text-graphite-soft uppercase">

@@ -21,6 +21,9 @@ function isBlank(html: string): boolean {
   return html.replace(/<[^>]*>/g, "").replace(/&nbsp;|\s/g, "") === "";
 }
 
+/** A named block in styles/index.css, not a utility: the sanitized feed markup cannot take classes of its own. */
+const PROSE = "item-prose";
+
 export function ItemBody({ item, empty }: { item: Pick<FeedItem, "contentHtml" | "contentText">; empty: ReactNode }) {
   // The `{ __html }` object is memoized, not just the string: React 19 rewrites
   // `innerHTML` whenever the object is new, which replaces every text node and
@@ -35,7 +38,7 @@ export function ItemBody({ item, empty }: { item: Pick<FeedItem, "contentHtml" |
     const paragraphs = textParagraphs(item.contentText);
     if (paragraphs.length === 0) return <>{empty}</>;
     return (
-      <div className="item-prose">
+      <div className={PROSE}>
         {paragraphs.map((p, i) => (
           <p key={i}>{p}</p>
         ))}
@@ -44,5 +47,5 @@ export function ItemBody({ item, empty }: { item: Pick<FeedItem, "contentHtml" |
   }
 
   if (isBlank(markup.__html)) return <>{empty}</>;
-  return <div className="item-prose" dangerouslySetInnerHTML={markup} />;
+  return <div className={PROSE} dangerouslySetInnerHTML={markup} />;
 }

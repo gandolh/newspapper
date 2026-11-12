@@ -215,7 +215,7 @@ export function SourcePane({
           // per token each would cover about half of the glyph before it. -z-2 puts it behind the text, one below an
           // off-run selection ground, so a selection that ends where the run begins keeps its last 0.35em. `clone`
           // gives each line of a run its own ends.
-          className={cn(WAX, "relative -z-2 [-webkit-box-decoration-break:clone] [box-decoration-break:clone]")}
+          className={cn(WAX, "relative -z-2 [box-decoration-break:clone] [-webkit-box-decoration-break:clone]")}
         >
           {run}
         </span>,

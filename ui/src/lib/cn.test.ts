@@ -20,6 +20,6 @@ describe("cn", () => {
   });
 
   it("drops falsy values", () => {
-    expect(cn("a", false, null, undefined, "b")).toBe("a b");
+    expect(cn("px-hair", false, null, undefined, "py-hair")).toBe("px-hair py-hair");
   });
 });

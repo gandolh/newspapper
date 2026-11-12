@@ -106,7 +106,7 @@ export function ReadingPane(props: ReadingPaneProps) {
       <article className="flex-1 bg-paper p-unit shadow-waxed reader-narrow:p-half" aria-label={shown.title || "Item"}>
         <div ref={contentRef}>
           <header className="flex max-w-[70ch] flex-col gap-hair">
-            <h2 className="font-chrome text-board-title leading-[1.15] font-extrabold wdth-title tracking-board-title break-words text-graphite">
+            <h2 className="font-chrome text-board-title leading-[1.15] font-extrabold tracking-board-title break-words text-graphite wdth-title">
               {shown.title || "Untitled"}
             </h2>
             <p className="flex flex-wrap items-center gap-x-half gap-y-hair font-galley text-field leading-field font-medium tracking-field text-graphite-soft uppercase">

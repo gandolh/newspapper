@@ -29,7 +29,7 @@ export function Splitter({ width, min, max, direction = 1, label, onResize }: Sp
     <div
       {...bind()}
       // The gap between two things on the board: a rule, not a handle.
-      className="mx-hair basis-half shrink-0 grow-0 cursor-col-resize touch-none border-0 border-x border-rule bg-transparent p-0 hover:border-graphite focus-visible:border-graphite"
+      className="mx-hair shrink-0 grow-0 basis-half cursor-col-resize touch-none border-0 border-x border-rule bg-transparent p-0 hover:border-graphite focus-visible:border-graphite"
       role="separator"
       aria-orientation="vertical"
       aria-label={label}

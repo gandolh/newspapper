@@ -567,7 +567,7 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
       className="flex h-[calc(100vh-var(--tray-h)-var(--spacing-double))] min-h-[calc(var(--spacing-unit)*18)] flex-col"
     >
       <header className="flex flex-wrap items-center gap-half border-b-[1.5px] border-graphite pb-half">
-        <h1 className="max-w-[40ch] overflow-hidden font-chrome text-board-title leading-board-title font-extrabold wdth-title tracking-board-title text-ellipsis whitespace-nowrap">
+        <h1 className="max-w-[40ch] overflow-hidden font-chrome text-board-title leading-board-title font-extrabold tracking-board-title text-ellipsis whitespace-nowrap wdth-title">
           {doc.head["title"] || "Untitled post"}
         </h1>
         <Mark tone={errorCount ? "rubylith" : "ink"}>
@@ -655,7 +655,7 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
       <div
         ref={ghostRef} // The dragged component, on the pointer: a paper slip with the waxed shadow, because that is what it will be once
         // it lands. JS moves it with an inline transform.
-        className="pointer-events-none invisible fixed top-0 left-0 z-ghost mt-half ml-half bg-paper px-hair py-[4px] font-galley text-mark font-bold tracking-mark text-graphite uppercase shadow-waxed [transform:translate3d(-1000px,-1000px,0)]"
+        className="pointer-events-none invisible fixed top-0 left-0 z-ghost mt-half ml-half [transform:translate3d(-1000px,-1000px,0)] bg-paper px-hair py-[4px] font-galley text-mark font-bold tracking-mark text-graphite uppercase shadow-waxed"
         aria-hidden="true"
       >
         {drag?.component ?? ""}

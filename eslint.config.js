@@ -12,6 +12,9 @@ export default [
   ...houseStyle({
     root: import.meta.dirname,
     web: "ui/src",
+    // The app's one stylesheet, for the Tailwind rules: an unknown or deprecated class is an error, and so is a
+    // class list out of order.
+    tailwind: { css: "ui/src/styles/index.css", order: true },
     server: ["api/src", "core/src"],
     // Allowed to print: the seed CLI talks to the person running it, the server entry logs its
     // startup, the Chromium test guard prints its skip banner, and the two loggers are where the
@@ -41,6 +44,22 @@ export default [
     // the non-null assertions that indexed reads need.
     name: "newspapper/no-unnecessary-type-assertion-off",
     rules: { "@typescript-eslint/no-unnecessary-type-assertion": "off" },
+  },
+  {
+    // Tokens only (the closed palette, in styles/index.css): a class that names a colour literal is a lapse.
+    name: "newspapper/no-colour-literal-classes",
+    files: ["ui/src/**/*.{ts,tsx}"],
+    ignores: ["**/*.test.{ts,tsx}"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector:
+            "Literal[value=/(?:^|[\\s:])(?:bg|text|border|fill|stroke|ring|outline|shadow|caret|decoration|accent)-\\[(?:#|rgb|hsl|oklch)/]",
+          message: "Name a token from @theme (bg-paper, text-graphite), not a colour literal.",
+        },
+      ],
+    },
   },
   {
     // Base UI is imported through a part's subpath (`@base-ui/react/dialog`), never the package root

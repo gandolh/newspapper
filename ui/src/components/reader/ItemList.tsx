@@ -67,7 +67,7 @@ export function ItemList(props: ItemListProps) {
       <BackControl label="Feeds" onClick={props.onBack} />
 
       <header className="flex items-end justify-between gap-half border-b-[1.5px] border-graphite pb-hair">
-        <h2 className="min-w-0 overflow-hidden font-chrome text-label leading-unit font-extrabold wdth-brand tracking-brand text-ellipsis whitespace-nowrap uppercase">
+        <h2 className="min-w-0 overflow-hidden font-chrome text-label leading-unit font-extrabold tracking-brand text-ellipsis whitespace-nowrap uppercase wdth-brand">
           {props.heading}
         </h2>
         <ChipRow

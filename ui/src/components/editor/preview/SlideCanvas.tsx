@@ -138,7 +138,7 @@ export function SlideCanvas({
         // none of the board's type settings. The canvas resets what it inherits (the board sets tabular figures, a
         // weight and a line height on body), so nothing global reaches the artwork; the preview-parity test holds
         // it to the render.
-        className="flex origin-top-left overflow-hidden font-slide text-slide-ink font-normal normal-nums leading-[normal] [letter-spacing:normal]"
+        className="flex origin-top-left overflow-hidden font-slide leading-[normal] font-normal [letter-spacing:normal] text-slide-ink normal-nums"
         style={{ width: SLIDE_SIZE, height: SLIDE_SIZE, transform: `scale(${scale})` }}
       >
         <TNodeView

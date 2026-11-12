@@ -32,6 +32,8 @@ const SHOWINGS = {
   showSchematic: "font-galley text-[10px] font-medium tracking-[0.08em] text-graphite-soft uppercase",
 } as const;
 
+const DEFAULT_SHOWING = "showText" as const;
+
 const SHOWING: Record<string, keyof typeof SHOWINGS> = {
   Heading: "showHeading",
   Text: "showText",
@@ -108,9 +110,9 @@ function PaletteItem({
         className={cn(
           // Every compartment is a cell of the showing: a tick border, and inside it the component set the way it
           // sets (DESIGN.md section 3, The Showing Rule).
-          "h-auto min-h-unit px-hair py-[4px] touch-none",
+          "h-auto min-h-unit touch-none px-hair py-[4px]",
           dragging ? "cursor-grabbing" : "cursor-grab",
-          SHOWINGS[SHOWING[spec.name] ?? "showText"],
+          SHOWINGS[SHOWING[spec.name] ?? DEFAULT_SHOWING],
           // Nowhere to put it: the same rubylith idea the rest of the app uses for "held out", drawn as the 45°
           // hatch at this scale. The ink is unchanged: dimming a 9px caption would take it under 4.5:1.
           disabled && ["border-tick text-graphite-soft", HATCH],

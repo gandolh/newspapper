@@ -95,7 +95,7 @@ export function Rail(props: RailProps) {
   return (
     <nav className="flex flex-col gap-half pb-unit" aria-label="Reader">
       <div className="flex items-center justify-between gap-hair border-b-[1.5px] border-graphite pb-hair">
-        <h1 className="font-chrome text-board-title leading-unit font-extrabold wdth-title tracking-board-title">
+        <h1 className="font-chrome text-board-title leading-unit font-extrabold tracking-board-title wdth-title">
           Reader
         </h1>
         <Button size="sm" variant="secondary" loading={refresh !== null} onClick={props.onRefresh}>

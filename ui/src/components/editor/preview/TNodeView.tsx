@@ -60,13 +60,13 @@ export function TNodeView(props: TNodeViewProps): ReactNode {
   // so selection and findings are painted with outline and box-shadow, which take no space.
   const className = cn(
     "-outline-offset-2",
-    offset !== null && "cursor-pointer touch-none hover:outline-1 hover:outline-dashed hover:outline-graphite-tint",
+    offset !== null && "cursor-pointer touch-none hover:outline-1 hover:outline-graphite-tint hover:outline-dashed",
     // Selected: the node lifts off the board, with the hard short half of the waxed shadow.
     selected &&
-      "outline-2 outline-solid outline-graphite shadow-lifted hover:outline-2 hover:outline-solid hover:outline-graphite",
+      "shadow-lifted outline-2 outline-graphite outline-solid hover:outline-2 hover:outline-graphite hover:outline-solid",
     // Won't compile: the same rubylith that means "held out" everywhere else.
     problems.length > 0 &&
-      "bg-rubylith-wash outline-2 outline-dashed outline-rubylith hover:bg-rubylith-wash hover:outline-2 hover:outline-dashed hover:outline-rubylith",
+      "bg-rubylith-wash outline-2 outline-rubylith outline-dashed hover:bg-rubylith-wash hover:outline-2 hover:outline-rubylith hover:outline-dashed",
   );
 
   // `bind()` recognizes the gesture on this node; every ancestor has its own

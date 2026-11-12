@@ -51,7 +51,7 @@ export function Sidebar() {
     >
       <div className="flex shrink-0 flex-col justify-center gap-hair border-r border-rule px-unit text-graphite no-underline max-md:px-half max-sm:min-w-0 max-sm:overflow-hidden max-sm:border-r-0 max-sm:[grid-area:brand]">
         <Link href="/" className="flex flex-col gap-[2px] text-graphite no-underline" aria-label="newspapper home">
-          <span className="font-chrome text-brand leading-[1.2] font-extrabold wdth-brand tracking-brand uppercase">
+          <span className="font-chrome text-brand leading-[1.2] font-extrabold tracking-brand uppercase wdth-brand">
             newspapper
           </span>
           <span className="font-galley text-field font-medium tracking-field text-graphite-soft uppercase max-md:hidden">
@@ -69,7 +69,7 @@ export function Sidebar() {
             <Link
               href={href}
               className={cn(
-                "flex w-[104px] shrink-0 flex-col items-center no-underline justify-center gap-hair border-r border-rule px-half text-graphite-soft hover:text-graphite max-md:w-[78px] max-sm:w-full max-sm:overflow-hidden max-sm:px-hair",
+                "flex w-[104px] shrink-0 flex-col items-center justify-center gap-hair border-r border-rule px-half text-graphite-soft no-underline hover:text-graphite max-md:w-[78px] max-sm:w-full max-sm:overflow-hidden max-sm:px-hair",
                 // The compartment pulled forward: paper, waxed down.
                 isActive(href) && "bg-paper text-graphite shadow-waxed",
               )}

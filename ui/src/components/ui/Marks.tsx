@@ -199,7 +199,7 @@ export function Finding({ where, children, muted = false }: FindingProps) {
           "relative mt-[3px] h-[12px] shrink-0 grow-0 basis-unit",
           // The leader: a real 2px line out to the edge, tipped with an arrowhead.
           "before:absolute before:top-[5px] before:right-[5px] before:left-0 before:h-[2px]",
-          "after:absolute after:top-px after:right-0 after:border-[5px] after:border-transparent after:border-r-0",
+          "after:absolute after:top-px after:right-0 after:border-[5px] after:border-r-0 after:border-transparent",
           muted ? "before:bg-graphite-tint after:border-l-graphite-tint" : "before:bg-grease after:border-l-grease",
         )}
         aria-hidden="true"

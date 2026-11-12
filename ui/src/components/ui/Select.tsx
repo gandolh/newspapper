@@ -47,7 +47,7 @@ export function Select({
   const selectId = id ?? label?.toLowerCase().replace(/\s+/g, "-");
   const triggerCls = cn(
     "flex h-unit w-full cursor-pointer items-center justify-between gap-hair border border-tick bg-paper px-hair text-left font-galley text-galley text-graphite transition-[border-color] duration-[120ms] ease-[ease]",
-    "hover:border-graphite-tint data-popup-open:border-process-blue data-disabled:cursor-not-allowed data-disabled:bg-board data-disabled:text-graphite-soft",
+    "hover:border-graphite-tint data-disabled:cursor-not-allowed data-disabled:bg-board data-disabled:text-graphite-soft data-popup-open:border-process-blue",
     error && FIELD_ERROR_BORDER,
     className,
   );

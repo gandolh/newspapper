@@ -160,7 +160,7 @@ export function InspectorPane(props: InspectorPaneProps) {
       className="flex origin-top flex-col gap-unit border-l-[1.5px] border-tissue-edge bg-tissue px-half py-unit shadow-hinged backdrop-blur-[1.2px]"
       ref={sheetRef}
     >
-      <span className="-mt-half h-0 border-t border-tissue-edge [border-top-style:dashed]" aria-hidden="true" />
+      <span className="-mt-half h-0 border-t [border-top-style:dashed] border-tissue-edge" aria-hidden="true" />
 
       <section className="flex flex-col gap-half">
         <h3 className="font-galley text-field font-medium tracking-field text-graphite-soft uppercase">Post</h3>
@@ -211,7 +211,7 @@ export function InspectorPane(props: InspectorPaneProps) {
             </nav>
 
             <div className="flex flex-col gap-hair">
-              <h4 className="font-chrome text-board-title leading-board-title font-extrabold wdth-title tracking-board-title text-graphite">
+              <h4 className="font-chrome text-board-title leading-board-title font-extrabold tracking-board-title text-graphite wdth-title">
                 {element.type}
               </h4>
               {spec && <span className="text-label leading-[1.4] text-graphite-soft">{spec.description}</span>}
