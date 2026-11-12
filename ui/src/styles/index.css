@@ -121,6 +121,10 @@
 /* The chrome is light by default; the Light / Dark / System switch sets data-theme on <html> (appearance.ts). */
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
+/* The Reader's three panes stack below 1100px; no Tailwind breakpoint is that width. NARROW_QUERY in
+   ReaderIsland.tsx says the same number. */
+@custom-variant reader-narrow (@media (max-width: 1099px));
+
 /* Only the chrome's closed system exists: a component using bg-red-500, text-sm or rounded-md produces no CSS. */
 @theme static {
   --color-*: initial;
@@ -379,5 +383,122 @@
 /* The Reader's article is foreign markup (sanitized feed HTML), so utilities cannot reach it: its rules stay one
    named block. */
 @layer components {
-  /* .item-prose is filled in with ItemBody. */
+  /* An item's content in the reading pane: whatever survived the sanitizer, set at a comfortable measure (~70ch).
+     Every rule is scoped under .item-prose, so the feed's markup can only ever pick up these styles: it carries no
+     class or style of its own (sanitize.ts). */
+  .item-prose {
+    max-width: 70ch;
+    font-family: var(--font-chrome);
+    font-size: var(--text-body);
+    font-weight: 450;
+    line-height: 1.65;
+    color: var(--color-graphite);
+    overflow-wrap: break-word;
+    font-variant-numeric: normal;
+  }
+
+  .item-prose > * + * {
+    margin-top: var(--spacing-half);
+  }
+
+  .item-prose :where(h1, h2, h3, h4, h5, h6) {
+    margin-top: var(--spacing-unit);
+    font-weight: 800;
+    letter-spacing: var(--tracking-label);
+    line-height: 1.25;
+  }
+
+  .item-prose :where(h1, h2) {
+    font-size: 18px;
+  }
+
+  .item-prose h3 {
+    font-size: 16px;
+  }
+
+  .item-prose :where(h4, h5, h6) {
+    font-size: var(--text-body);
+  }
+
+  /* The global reset strips list markers; prose needs them back. */
+  .item-prose ul {
+    list-style: square;
+    padding-left: var(--spacing-unit);
+  }
+
+  .item-prose ol {
+    list-style: decimal;
+    padding-left: var(--spacing-unit);
+  }
+
+  .item-prose li + li {
+    margin-top: 4px;
+  }
+
+  .item-prose dt {
+    font-weight: 700;
+  }
+
+  .item-prose dd {
+    padding-left: var(--spacing-half);
+  }
+
+  /* A quotation is ruled off, not tinted. */
+  .item-prose blockquote {
+    padding-left: var(--spacing-half);
+    border-left: 2px solid var(--color-graphite);
+    color: var(--color-graphite);
+    font-style: italic;
+  }
+
+  .item-prose :where(code, kbd, samp) {
+    font-family: var(--font-galley);
+    font-size: 0.9em;
+  }
+
+  .item-prose pre {
+    padding: var(--spacing-hair) var(--spacing-half);
+    background: var(--color-board);
+    box-shadow: 0 0 0 1px var(--color-hairline);
+    font-size: var(--text-galley);
+    line-height: var(--leading-galley);
+    overflow-x: auto;
+    white-space: pre;
+  }
+
+  .item-prose pre code {
+    font-size: inherit;
+  }
+
+  .item-prose hr {
+    border: 0;
+    border-top: 1px solid var(--color-rule);
+  }
+
+  .item-prose figure {
+    margin-inline: 0;
+  }
+
+  /* Hotlinked from the publisher: never wider than the measure. */
+  .item-prose img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .item-prose figcaption {
+    margin-top: var(--spacing-hair);
+    font-family: var(--font-galley);
+    font-size: 10px;
+    line-height: 1.45;
+    color: var(--color-graphite-soft);
+  }
+
+  .item-prose a {
+    overflow-wrap: anywhere;
+  }
+
+  .item-prose :where(mark) {
+    background: var(--color-wax);
+    color: var(--color-wax-ink);
+  }
 }

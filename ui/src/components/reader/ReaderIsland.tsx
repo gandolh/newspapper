@@ -42,7 +42,7 @@ import { adjustUnread, itemsPath, unreadIn, type Narrow, type ReaderScope } from
 import { LibraryPanel } from "./views/LibraryPanel";
 import { SearchPanel } from "./views/SearchPanel";
 import { SourcesPanel } from "./views/SourcesPanel";
-import styles from "./ReaderIsland.module.css";
+import { cn } from "../../lib/cn";
 
 /** Which pane shows below the narrow breakpoint. */
 type Stage = "rail" | "list" | "article";
@@ -563,8 +563,20 @@ function ReaderPage() {
   const viewLabel = { read: "Reader", search: "Search", library: "Library", sources: "Sources" }[view];
 
   return (
-    <div className={styles.reader} data-stage={stage}>
-      <aside className={styles.rail}>
+    <div
+      className={cn(
+        // Rail (9 units), list (13 units), reading pane (the rest). Each pane scrolls on its own inside a sheet that
+        // fills the board under the tray, the way the editor does. The scroll boxes carry a few pixels of padding on
+        // the right and bottom so a waxed selection's hard shadow is not clipped. Below 1100px they stack and show
+        // one at a time (rail, list, article), each with a way back (BackControl), and the page scrolls as a
+        // document again. NARROW_QUERY says the same number.
+        "group/reader grid h-[calc(100vh-var(--tray-h)-var(--spacing-double))] min-h-[calc(var(--spacing-unit)*18)]",
+        "grid-cols-[calc(var(--spacing-unit)*9)_calc(var(--spacing-unit)*13)_minmax(0,1fr)] gap-half",
+        "reader-narrow:block reader-narrow:h-auto reader-narrow:min-h-0",
+      )}
+      data-stage={stage}
+    >
+      <aside className={cn(PANE, "reader-narrow:not-group-data-[stage=rail]/reader:hidden")}>
         <Rail
           view={view}
           scope={scope}
@@ -582,14 +594,14 @@ function ReaderPage() {
       </aside>
 
       {view !== "read" ? (
-        <section className={styles.view} aria-label={viewLabel}>
+        <section className={VIEW} aria-label={viewLabel}>
           <BackControl label="Feeds" onClick={() => setStage("rail")} />
           {view === "search" && <SearchPanel />}
           {view === "library" && <LibraryPanel />}
           {view === "sources" && <SourcesPanel />}
         </section>
       ) : noSources ? (
-        <section className={styles.view} aria-label="No feeds">
+        <section className={VIEW} aria-label="No feeds">
           <BackControl label="Feeds" onClick={() => setStage("rail")} />
           <EmptyState
             icon="⊕"
@@ -600,7 +612,7 @@ function ReaderPage() {
         </section>
       ) : (
         <>
-          <section className={styles.list} aria-label="Items">
+          <section className={cn(PANE, "reader-narrow:not-group-data-[stage=list]/reader:hidden")} aria-label="Items">
             <ItemList
               heading={heading}
               scope={scope}
@@ -625,7 +637,10 @@ function ReaderPage() {
               onBack={() => setStage("rail")}
             />
           </section>
-          <section className={styles.pane} aria-label="Reading pane">
+          <section
+            className={cn(PANE, "reader-narrow:not-group-data-[stage=article]/reader:hidden")}
+            aria-label="Reading pane"
+          >
             <ReadingPane
               summary={shown}
               item={item}
@@ -665,6 +680,11 @@ function ReaderPage() {
     </div>
   );
 }
+
+/** The three panes' shared box. */
+const PANE = "min-h-0 min-w-0 overflow-y-auto p-[1px_4px_4px_1px] reader-narrow:overflow-visible reader-narrow:p-0";
+/** The Search, Library, Sources and empty views take everything right of the rail; not shown at the rail stage. */
+const VIEW = cn(PANE, "col-[2/-1] flex flex-col gap-half reader-narrow:group-data-[stage=rail]/reader:hidden");
 
 export function ReaderIsland() {
   return (

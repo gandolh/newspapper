@@ -1,7 +1,12 @@
+import { cn } from "../../lib/cn";
 import { Link } from "@/router";
 import { useLogout, useSession } from "@/lib/auth";
 import { withBase } from "@/lib/base";
-import styles from "./SessionMenu.module.css";
+
+const SESSION = "flex items-center gap-hair font-galley text-field font-medium tracking-field uppercase";
+/** Sign in and sign out: a button or a link set as an underlined word. */
+const LINK =
+  "shrink-0 cursor-pointer border-none bg-transparent p-0 [font:inherit] [letter-spacing:inherit] [text-transform:inherit] text-graphite-soft underline decoration-1 underline-offset-[3px] hover:not-disabled:text-graphite";
 
 /**
  * Who is signed in, and the way out — the tray's session compartment.
@@ -23,8 +28,8 @@ export function SessionMenu() {
     // Nothing until the probe answers: no flash of "Sign in" on a signed-in page.
     if (session.status === "loading") return null;
     return (
-      <span className={styles.session}>
-        <Link className={styles.signIn} href="/login">
+      <span className={SESSION}>
+        <Link className={LINK} href="/login">
           Sign in
         </Link>
       </span>
@@ -36,11 +41,19 @@ export function SessionMenu() {
   }
 
   return (
-    <span className={styles.session}>
-      <span className={styles.username} title={session.user.username}>
+    <span className={SESSION}>
+      <span
+        className="overflow-hidden text-ellipsis whitespace-nowrap text-graphite max-md:hidden"
+        title={session.user.username}
+      >
         {session.user.username}
       </span>
-      <button type="button" className={styles.signOut} disabled={pending} onClick={() => void signOut()}>
+      <button
+        type="button"
+        className={cn(LINK, "disabled:cursor-default disabled:text-graphite-soft")}
+        disabled={pending}
+        onClick={() => void signOut()}
+      >
         Sign out
       </button>
     </span>

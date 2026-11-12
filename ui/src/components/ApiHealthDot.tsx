@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Mark } from "./ui";
 import { withBase } from "../lib/base";
-import styles from "./ApiHealthDot.module.css";
+import { cn } from "../lib/cn";
 
 type Status = "up" | "down";
 
@@ -56,7 +56,18 @@ export function ApiHealthDot() {
   const word = down ? "API down" : "API up";
 
   return (
-    <span className={[styles.probe, down ? "" : styles.up].filter(Boolean).join(" ")} title={label}>
+    <span
+      className={cn(
+        "inline-flex items-center",
+        // Below 640px, where the tray folds into two courses, the probe spends width only when it has something to
+        // say. Up is clipped, not removed: the word stays in the accessibility tree, so a screen reader keeps the
+        // signal the sighted narrow view is trading away. Down keeps the tick and the full word, because the word
+        // is the state and hue alone is no signal (DESIGN.md section 5).
+        !down &&
+          "max-sm:absolute max-sm:m-0 max-sm:size-px max-sm:overflow-hidden max-sm:p-0 max-sm:whitespace-nowrap max-sm:[clip-path:inset(50%)]",
+      )}
+      title={label}
+    >
       <Mark tone={down ? "rubylith" : "dim"} aria-label={label}>
         {word}
       </Mark>

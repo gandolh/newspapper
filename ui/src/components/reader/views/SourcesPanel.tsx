@@ -27,7 +27,8 @@ import {
 import { api, ApiError } from "@/lib/api";
 import type { Source } from "@/lib/types";
 import { formatDate } from "../format";
-import styles from "./SourcesPanel.module.css";
+import { cn } from "../../../lib/cn";
+import { CLIPPING } from "./clippingLooks";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -109,7 +110,7 @@ function RefreshMark({ source }: { source: Source }) {
   if (source.lastFetchedAt) {
     return <Mark>fetched {formatDate(source.lastFetchedAt)}</Mark>;
   }
-  return <span className={styles.unpinged}>—</span>;
+  return <span className="text-[12px] text-graphite-soft">—</span>;
 }
 
 // ---------------------------------------------------------------------------
@@ -127,11 +128,15 @@ function CopyableUrl({ url }: { url: string }) {
   }
 
   return (
-    <span className={styles.copyable}>
-      <span className={styles.copyableUrl} title={`Click to copy: ${url}`} onClick={handleCopy}>
+    <span className="inline-flex items-center gap-hair">
+      <span
+        className="cursor-pointer [font-family:monospace] text-[12px] text-graphite-soft"
+        title={`Click to copy: ${url}`}
+        onClick={handleCopy}
+      >
         {truncateUrl(url)}
       </span>
-      {copied && <span className={styles.copiedNote}>copied!</span>}
+      {copied && <span className="text-[11px] text-graphite">copied!</span>}
     </span>
   );
 }
@@ -241,7 +246,7 @@ function SourceFormModal({ open, source, categories, onClose, onSaved }: SourceF
       dismissOnBackdrop={false}
     >
       <form onSubmit={(e) => void handleSubmit(e)} noValidate>
-        <div className={styles.formFields}>
+        <div className="flex flex-col gap-[16px]">
           <Input
             label="Name"
             placeholder="BBC News"
@@ -287,7 +292,7 @@ function SourceFormModal({ open, source, categories, onClose, onSaved }: SourceF
             hint="Disabled feeds are skipped by Refresh and by Search"
           />
         </div>
-        <div className={styles.formActions}>
+        <div className="mt-[24px] flex justify-end gap-[8px]">
           <Button type="button" variant="ghost" onClick={onClose} disabled={loading}>
             Cancel
           </Button>
@@ -425,7 +430,7 @@ export function SourcesPanel() {
 
   if (loading) {
     return (
-      <div className={styles.loadingList}>
+      <div className={CLIPPING.loadingList}>
         <Skeleton height={78} />
         <Skeleton height={78} />
       </div>
@@ -462,12 +467,18 @@ export function SourcesPanel() {
         />
       ) : (
         <Card padding="none">
-          <div className={styles.tableScroll}>
-            <table className={styles.table}>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[640px] border-collapse text-[14px]">
               <thead>
-                <tr className={styles.headRow}>
+                <tr className="border-b border-hairline bg-board">
                   {COLUMNS.map((col) => (
-                    <th key={col.label} className={col.center ? `${styles.th} ${styles.thCenter}` : styles.th}>
+                    <th
+                      key={col.label}
+                      className={cn(
+                        "px-[16px] py-[10px] text-left text-[12px] font-semibold tracking-[0.05em] whitespace-nowrap text-graphite-soft uppercase",
+                        col.center && "text-center",
+                      )}
+                    >
                       {col.label}
                     </th>
                   ))}
@@ -475,33 +486,35 @@ export function SourcesPanel() {
               </thead>
               <tbody>
                 {sources.map((source) => (
-                  <tr key={source.id} className={styles.row}>
-                    <td className={styles.td}>
-                      <span className={styles.feedName}>{source.name}</span>
-                      <div className={styles.feedId}>{source.id}</div>
+                  <tr key={source.id} className="not-last:border-b not-last:border-hairline">
+                    <td className="px-[16px] py-[12px]">
+                      <span className="text-[14px] font-semibold">{source.name}</span>
+                      <div className="mt-[2px] text-[11px] text-graphite-soft">{source.id}</div>
                     </td>
-                    <td className={styles.td}>
+                    <td className="px-[16px] py-[12px]">
                       {source.category ? (
-                        <span className={styles.category}>{source.category}</span>
+                        <span className="font-galley text-field font-medium tracking-field text-graphite uppercase">
+                          {source.category}
+                        </span>
                       ) : (
-                        <span className={styles.unpinged}>—</span>
+                        <span className="text-[12px] text-graphite-soft">—</span>
                       )}
                     </td>
-                    <td className={styles.td}>
+                    <td className="px-[16px] py-[12px]">
                       <CopyableUrl url={source.rss} />
                     </td>
-                    <td className={`${styles.td} ${styles.tdCenter}`}>
+                    <td className="px-[16px] py-[12px] text-center">
                       <Toggle
                         checked={source.enabled}
                         onCheckedChange={(c) => void handleToggle(source, c)}
                         aria-label={`Enable ${source.name}`}
                       />
                     </td>
-                    <td className={styles.td}>
+                    <td className="px-[16px] py-[12px]">
                       {pings[source.id] ? <PingMark state={pings[source.id]} /> : <RefreshMark source={source} />}
                     </td>
-                    <td className={styles.td}>
-                      <div className={styles.rowActions}>
+                    <td className="px-[16px] py-[12px]">
+                      <div className="flex justify-end gap-hair">
                         <Button
                           size="sm"
                           variant="ghost"

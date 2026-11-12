@@ -20,7 +20,8 @@ import {
 import { api, sse } from "@/lib/api";
 import { withBase } from "@/lib/base";
 import type { PostStatus, PostSummary } from "@/lib/types";
-import styles from "./PostsIsland.module.css";
+// The flat file: a grid of boards, not a list (DESIGN.md section 5). Every board is the same board: the artwork
+// waxed at the top inside crop marks, then one rigid label block under it, and the marks do all the differentiating.
 
 /**
  * The editor URL for a post. A plain `<a>`, not the router's `<Link>`: the
@@ -202,13 +203,13 @@ function PostsPage() {
         actions={<Button onClick={() => window.location.assign(withBase("/"))}>New post</Button>}
       />
 
-      <div className={styles.filters}>
+      <div className="mb-half grid grid-cols-[calc(var(--spacing-unit)*8)_1fr] items-end gap-half max-md:grid-cols-[1fr]">
         <Select
           label="Status"
           options={STATUS_OPTIONS}
           value={status}
           onValueChange={(v) => setStatus(v as StatusFilter)}
-          className={styles.statusSelect}
+          className="w-full"
         />
         <Input
           label="Search"
@@ -221,7 +222,7 @@ function PostsPage() {
       {allKeywords.length > 0 && (
         <ChipRow
           kind="filter"
-          className={styles.keywords}
+          className="mb-unit"
           ariaLabel="Filter by keyword"
           wrap
           pad="hair"
@@ -232,7 +233,7 @@ function PostsPage() {
       )}
 
       {loading ? (
-        <div className={styles.list}>
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(min(calc(var(--spacing-unit)*13),100%),1fr))] gap-unit max-md:gap-half [&>li]:flex [&>li]:min-w-0">
           <Skeleton height={312} />
           <Skeleton height={312} />
           <Skeleton height={312} />
@@ -248,7 +249,10 @@ function PostsPage() {
           action={<Button onClick={() => window.location.assign(withBase("/"))}>New post</Button>}
         />
       ) : (
-        <ul className={styles.list} role="list">
+        <ul
+          className="grid grid-cols-[repeat(auto-fill,minmax(min(calc(var(--spacing-unit)*13),100%),1fr))] gap-unit max-md:gap-half [&>li]:flex [&>li]:min-w-0"
+          role="list"
+        >
           {posts.map((post) => {
             const render = renders.get(post.id);
             // The render's 220 px thumbnail, not the full 1080 px slide.
@@ -259,35 +263,47 @@ function PostsPage() {
 
             return (
               <li key={post.id}>
-                <Card className={styles.board}>
+                <Card className="flex min-w-0 flex-1 flex-col gap-half">
                   {post.status !== "published" && <TissueCorner />}
-                  <a className={styles.thumbLink} href={postHref(post.id)} aria-hidden="true" tabIndex={-1}>
+                  <a
+                    className="relative block h-[104px] w-[104px] bg-board shadow-[0_0_0_1px_var(--color-hairline)]"
+                    href={postHref(post.id)}
+                    aria-hidden="true"
+                    tabIndex={-1}
+                  >
                     {thumb ? (
-                      <img className={styles.thumb} src={withBase(thumb)} alt="" loading="lazy" />
+                      <img className="block size-full object-cover" src={withBase(thumb)} alt="" loading="lazy" />
                     ) : (
-                      <span className={styles.thumbEmpty}>Not set</span>
+                      <span className="flex size-full items-center justify-center font-galley text-field tracking-field text-graphite-soft uppercase">
+                        Not set
+                      </span>
                     )}
                     <CropMarks />
                   </a>
 
-                  <div className={styles.meta}>
-                    <div className={styles.titleLine}>
-                      <a className={styles.title} href={postHref(post.id)}>
+                  <div className="flex min-w-0 flex-col gap-hair">
+                    <div className="flex flex-wrap items-center gap-half">
+                      <a
+                        className="line-clamp-2 overflow-hidden font-chrome text-label leading-label font-bold tracking-label text-graphite no-underline hover:underline hover:underline-offset-[3px]"
+                        href={postHref(post.id)}
+                      >
                         {post.title}
                       </a>
                       {post.status === "published" ? <Stamp>Published</Stamp> : <Mark>Draft</Mark>}
                       {rendered ? <Mark bare>{render?.slideCount} slides</Mark> : <Mark bare>Not rendered</Mark>}
                     </div>
 
-                    {post.description && <p className={styles.description}>{post.description}</p>}
+                    {post.description && (
+                      <p className="line-clamp-2 overflow-hidden text-label text-graphite-soft">{post.description}</p>
+                    )}
 
-                    <p className={styles.dates}>
+                    <p className="font-galley text-field font-medium tracking-field text-graphite-soft uppercase tabular-nums">
                       Updated {formatDate(post.updatedAt)}
                       {post.publishedAt ? ` · published ${formatDate(post.publishedAt)}` : ""}
                     </p>
 
                     {post.keywords.length > 0 && (
-                      <div className={styles.tagRow}>
+                      <div className="flex flex-wrap gap-half">
                         {post.keywords.map((k) => (
                           <Mark key={k}>{k}</Mark>
                         ))}
@@ -295,7 +311,7 @@ function PostsPage() {
                     )}
 
                     {isRendering && (
-                      <div className={styles.progress}>
+                      <div className="mt-hair">
                         <ProgressBar
                           value={
                             renderProgress && renderProgress.total > 0
@@ -312,7 +328,7 @@ function PostsPage() {
                     )}
                   </div>
 
-                  <div className={styles.actions}>
+                  <div className="mt-auto flex flex-wrap items-center gap-[4px]">
                     <Button size="sm" variant="secondary" onClick={() => window.location.assign(postHref(post.id))}>
                       Open
                     </Button>

@@ -4,7 +4,6 @@ import { useLogin, useSession, useWardSignIn } from "@/lib/auth";
 import { nextFromSearch, withBase } from "@/lib/base";
 import { Redirect } from "@/router";
 import { authMessage, reasonMessage } from "./messages";
-import styles from "./LoginIsland.module.css";
 
 /**
  * The sign-in form, and "Sign in with Ward" when the server has Ward
@@ -49,20 +48,34 @@ export function LoginIsland() {
   }
 
   return (
-    <div className={styles.wrap}>
-      <h1 className={styles.brand}>newspapper</h1>
-      <p className={styles.tagline}>Sign in to continue.</p>
+    <div className="w-[calc(var(--spacing-unit)*14)] max-w-full">
+      <h1 className="mb-hair font-chrome text-board-title leading-board-title font-extrabold wdth-title tracking-board-title text-graphite">
+        newspapper
+      </h1>
+      <p className="mb-unit font-galley text-field font-medium tracking-field text-graphite-soft uppercase">
+        Sign in to continue.
+      </p>
 
       <Card padding="md">
-        <form className={styles.form} onSubmit={(e) => void handleSubmit(e)}>
-          {notice && !error && !ward.error && <p className={styles.note}>{notice}</p>}
+        <form className="flex flex-col gap-half" onSubmit={(e) => void handleSubmit(e)}>
+          {notice && !error && !ward.error && (
+            <p className="border-l-2 border-graphite-soft pl-half font-galley text-[10px] leading-[1.45] text-graphite-soft">
+              {notice}
+            </p>
+          )}
           {shownError && (
-            <p className={styles.error} role="alert">
+            <p
+              className="border-l-2 border-grease pl-half font-galley text-[10px] leading-[1.45] text-grease"
+              role="alert"
+            >
               {authMessage(shownError)}
             </p>
           )}
           {session.status === "error" && (
-            <p className={styles.error} role="alert">
+            <p
+              className="border-l-2 border-grease pl-half font-galley text-[10px] leading-[1.45] text-grease"
+              role="alert"
+            >
               Could not check whether you are signed in. Reload to try again.
             </p>
           )}
@@ -89,17 +102,19 @@ export function LoginIsland() {
             onChange={(e) => setPassword(e.target.value)}
           />
 
-          <Button className={styles.submit} type="submit" loading={pending}>
+          <Button className="mt-hair" type="submit" loading={pending}>
             Sign in
           </Button>
         </form>
 
         {wardEnabled && (
-          <div className={styles.ward}>
-            <p className={styles.rule}>or</p>
+          <div className="mt-half flex flex-col gap-half">
+            <p className="flex items-center gap-half font-galley text-field tracking-field text-graphite-soft uppercase before:h-px before:flex-1 before:bg-tick after:h-px after:flex-1 after:bg-tick">
+              or
+            </p>
             <Button
               variant="secondary"
-              className={styles.submit}
+              className="mt-hair"
               type="button"
               loading={ward.pending}
               onClick={() => {

@@ -12,7 +12,7 @@ import {
 import { withBase } from "@/lib/base";
 import { Redirect } from "@/router";
 import { authMessage } from "../auth/messages";
-import styles from "./SettingsIsland.module.css";
+import { SETTINGS } from "./settingsLooks";
 
 /**
  * The account half of Settings: who you are, the local password, the Ward link
@@ -29,7 +29,7 @@ export function AccountSection() {
   if (session.status === "loading") {
     return (
       <Card>
-        <div className={styles.loading}>
+        <div className={SETTINGS.loading}>
           <Skeleton height={26} width="40%" />
           <Skeleton height={26} />
         </div>
@@ -42,8 +42,8 @@ export function AccountSection() {
   if (session.status === "error") {
     return (
       <Card>
-        <h2 className={styles.sectionTitle}>Account</h2>
-        <p className={styles.problem} role="alert">
+        <h2 className={SETTINGS.sectionTitle}>Account</h2>
+        <p className={SETTINGS.problem} role="alert">
           {authMessage(session.error)}
         </p>
       </Card>
@@ -54,8 +54,8 @@ export function AccountSection() {
   return (
     <>
       <Card>
-        <h2 className={styles.sectionTitle}>Account</h2>
-        <p className={styles.sectionHint}>
+        <h2 className={SETTINGS.sectionTitle}>Account</h2>
+        <p className={SETTINGS.sectionHint}>
           Signed in as <strong>{user.username}</strong> ({user.role}),{" "}
           {info.origin === "ward" ? "through Ward" : "with your password"}.
         </p>
@@ -79,11 +79,11 @@ function SignOutRow({ viaWard }: { viaWard: boolean }) {
   return (
     <>
       {out.error && (
-        <p className={styles.problem} role="alert">
+        <p className={SETTINGS.problem} role="alert">
           {authMessage(out.error, "ward")}
         </p>
       )}
-      <div className={styles.actions}>
+      <div className={SETTINGS.actions}>
         <Button variant="secondary" loading={pending} onClick={() => void signOutHere()}>
           Sign out
         </Button>
@@ -116,14 +116,14 @@ function ChangePasswordCard() {
   return (
     <Card>
       <form onSubmit={(e) => void save(e)} noValidate>
-        <h2 className={styles.sectionTitle}>Password</h2>
-        <p className={styles.sectionHint}>Changing it signs out every other session of yours on this app.</p>
+        <h2 className={SETTINGS.sectionTitle}>Password</h2>
+        <p className={SETTINGS.sectionHint}>Changing it signs out every other session of yours on this app.</p>
         {error && (
-          <p className={styles.problem} role="alert">
+          <p className={SETTINGS.problem} role="alert">
             {authMessage(error, "password")}
           </p>
         )}
-        <div className={styles.fields}>
+        <div className={SETTINGS.fields}>
           <Input
             label="Current password"
             name="current-password"
@@ -141,7 +141,7 @@ function ChangePasswordCard() {
             onChange={(e) => setNext(e.target.value)}
           />
         </div>
-        <div className={styles.formActions}>
+        <div className={SETTINGS.formActions}>
           <Button type="submit" loading={pending} disabled={!current || !next}>
             Change password
           </Button>
@@ -178,20 +178,20 @@ function SetPasswordCard() {
   return (
     <Card>
       <form onSubmit={(e) => void save(e)} noValidate>
-        <h2 className={styles.sectionTitle}>Local password</h2>
-        <p className={styles.sectionHint}>
+        <h2 className={SETTINGS.sectionTitle}>Local password</h2>
+        <p className={SETTINGS.sectionHint}>
           You sign in with Ward and have no password here. Set one to get in while Ward is unreachable, and before you
           can unlink Ward.
         </p>
         {local.reauthenticated && !local.error && (
-          <p className={styles.note}>Confirmed with Ward. Set your password now.</p>
+          <p className={SETTINGS.note}>Confirmed with Ward. Set your password now.</p>
         )}
         {local.error && (
-          <p className={styles.problem} role="alert">
+          <p className={SETTINGS.problem} role="alert">
             {authMessage(local.error, "password")}
           </p>
         )}
-        <div className={styles.fields}>
+        <div className={SETTINGS.fields}>
           <Input
             label="New password"
             name="new-password"
@@ -201,7 +201,7 @@ function SetPasswordCard() {
             onChange={(e) => setNext(e.target.value)}
           />
         </div>
-        <div className={styles.formActions}>
+        <div className={SETTINGS.formActions}>
           {needsWard && (
             <Button
               type="button"
@@ -234,19 +234,19 @@ function WardCard({ linked, hasPassword }: { linked: boolean; hasPassword: boole
 
   return (
     <Card>
-      <h2 className={styles.sectionTitle}>Ward</h2>
-      <p className={styles.sectionHint}>
+      <h2 className={SETTINGS.sectionTitle}>Ward</h2>
+      <p className={SETTINGS.sectionHint}>
         {linked
           ? "Your Ward account is linked, so you can sign in with the Ward button."
           : "Link your Ward account to sign in with the Ward button. Nothing is linked by name: you confirm it at Ward."}
       </p>
-      {link.linked && !error && <p className={styles.note}>Ward is linked.</p>}
+      {link.linked && !error && <p className={SETTINGS.note}>Ward is linked.</p>}
       {error && (
-        <p className={styles.problem} role="alert">
+        <p className={SETTINGS.problem} role="alert">
           {authMessage(error, "ward")}
         </p>
       )}
-      <div className={styles.actions}>
+      <div className={SETTINGS.actions}>
         {linked ? (
           <Button
             variant="secondary"
@@ -269,7 +269,7 @@ function WardCard({ linked, hasPassword }: { linked: boolean; hasPassword: boole
         )}
       </div>
       {linked && !hasPassword && (
-        <p className={styles.sectionHint}>Set a local password above before you unlink Ward.</p>
+        <p className={SETTINGS.sectionHint}>Set a local password above before you unlink Ward.</p>
       )}
     </Card>
   );

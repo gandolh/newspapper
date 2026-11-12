@@ -16,7 +16,7 @@ import { Button, ChipRow, Finding, Input, Mark, Skeleton } from "../ui";
 import { BackControl } from "./BackControl";
 import { formatAge } from "./format";
 import type { ReaderScope } from "./query";
-import styles from "./ItemList.module.css";
+import { cn } from "../../lib/cn";
 
 export interface ItemListProps {
   heading: string;
@@ -63,11 +63,13 @@ export function ItemList(props: ItemListProps) {
   }, [selectedId]);
 
   return (
-    <div className={styles.list}>
+    <div className="flex min-h-full flex-col gap-half">
       <BackControl label="Feeds" onClick={props.onBack} />
 
-      <header className={styles.head}>
-        <h2 className={styles.heading}>{props.heading}</h2>
+      <header className="flex items-end justify-between gap-half border-b-[1.5px] border-graphite pb-hair">
+        <h2 className="min-w-0 overflow-hidden font-chrome text-label leading-unit font-extrabold wdth-brand tracking-brand text-ellipsis whitespace-nowrap uppercase">
+          {props.heading}
+        </h2>
         <ChipRow
           kind="filter"
           options={SCOPES}
@@ -78,7 +80,7 @@ export function ItemList(props: ItemListProps) {
         />
       </header>
 
-      <div className={styles.tools}>
+      <div className="flex items-start gap-hair *:first:min-w-0 *:first:flex-1">
         <Input
           id={props.filterId}
           // Not type="search": Chrome clears a search field on Esc, and Esc
@@ -107,16 +109,16 @@ export function ItemList(props: ItemListProps) {
       )}
 
       {props.loading ? (
-        <div className={styles.skeletons} role="status">
-          <span className={styles.srOnly}>Loading items</span>
+        <div className="flex flex-col gap-hair" role="status">
+          <span className="sr-only">Loading items</span>
           {Array.from({ length: 6 }, (_, i) => (
             <Skeleton key={i} height={52} />
           ))}
         </div>
       ) : props.error ? (
-        <div className={styles.error}>
+        <div className="flex flex-col items-start gap-hair py-half">
           <Mark tone="rubylith">The list did not load</Mark>
-          <p className={styles.errorText}>{props.error}</p>
+          <p className="font-galley text-[10px] text-rubylith-ink">{props.error}</p>
           <Button size="sm" variant="secondary" onClick={props.onRetry}>
             Try again
           </Button>
@@ -125,7 +127,7 @@ export function ItemList(props: ItemListProps) {
         props.empty
       ) : (
         <>
-          <ul className={styles.rows} ref={listRef}>
+          <ul className="flex flex-col" ref={listRef}>
             {rows.map((row) => {
               const selected = row.id === selectedId;
               return (
@@ -133,21 +135,37 @@ export function ItemList(props: ItemListProps) {
                   <button
                     type="button"
                     data-item-id={row.id}
-                    className={[styles.row, row.read ? styles.read : styles.unread, selected ? styles.selected : ""]
-                      .filter(Boolean)
-                      .join(" ")}
+                    className={cn(
+                      "flex w-full cursor-pointer items-start gap-hair border-0 border-b border-hairline bg-transparent px-hair pt-hair pb-[7px] text-left text-graphite hover:bg-graphite/4",
+                      // The open row is pulled forward: paper, waxed down, the same mark the tray's current
+                      // compartment and a selected node take.
+                      selected && "relative z-pane border-b-transparent bg-paper shadow-waxed hover:bg-paper",
+                    )}
                     aria-current={selected ? "true" : undefined}
                     onClick={() => props.onOpen(row.id)}
                   >
-                    <span className={styles.dot} aria-hidden="true" />
-                    <span className={styles.rowBody}>
-                      <span className={styles.srOnly}>{row.read ? "Read: " : "Unread: "}</span>
-                      <span className={styles.title}>{row.title || "Untitled"}</span>
-                      <span className={styles.meta}>
-                        <span className={styles.source}>{row.sourceName}</span>
+                    <span
+                      className={cn("mt-[6px] size-[7px] shrink-0", !row.read && "bg-graphite")}
+                      aria-hidden="true"
+                    />
+                    <span className="flex min-w-0 flex-1 flex-col gap-[2px]">
+                      <span className="sr-only">{row.read ? "Read: " : "Unread: "}</span>
+                      <span
+                        className={cn(
+                          "line-clamp-2 overflow-hidden font-chrome text-label leading-label tracking-label",
+                          row.read ? "font-medium text-graphite-soft" : "font-extrabold",
+                          selected && "text-graphite",
+                        )}
+                      >
+                        {row.title || "Untitled"}
+                      </span>
+                      <span className="flex min-w-0 items-center gap-hair font-galley text-field leading-field font-medium tracking-field text-graphite-soft uppercase tabular-nums">
+                        <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">
+                          {row.sourceName}
+                        </span>
                         <span>{formatAge(row.sortAt, props.now)}</span>
                         {row.saved && (
-                          <Mark tone="ink" className={styles.saved}>
+                          <Mark tone="ink" className="ml-auto">
                             Saved
                           </Mark>
                         )}
@@ -158,7 +176,7 @@ export function ItemList(props: ItemListProps) {
               );
             })}
           </ul>
-          <div className={styles.more}>
+          <div className="flex justify-center py-half">
             {props.nextCursor ? (
               <Button size="sm" variant="secondary" loading={props.loadingMore} onClick={props.onLoadMore}>
                 Load more

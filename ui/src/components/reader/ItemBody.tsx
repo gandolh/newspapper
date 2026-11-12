@@ -13,7 +13,6 @@
 import { useMemo, type ReactNode } from "react";
 import type { FeedItem } from "@/lib/types";
 import { sanitizeItemHtml, textParagraphs } from "./sanitize";
-import styles from "./ItemBody.module.css";
 
 /** Sanitized markup with no words and no picture in it. Read off markup the
  * sanitizer already produced, so a regex is only ever deciding a boolean. */
@@ -36,7 +35,7 @@ export function ItemBody({ item, empty }: { item: Pick<FeedItem, "contentHtml" |
     const paragraphs = textParagraphs(item.contentText);
     if (paragraphs.length === 0) return <>{empty}</>;
     return (
-      <div className={styles.prose}>
+      <div className="item-prose">
         {paragraphs.map((p, i) => (
           <p key={i}>{p}</p>
         ))}
@@ -45,5 +44,5 @@ export function ItemBody({ item, empty }: { item: Pick<FeedItem, "contentHtml" |
   }
 
   if (isBlank(markup.__html)) return <>{empty}</>;
-  return <div className={styles.prose} dangerouslySetInnerHTML={markup} />;
+  return <div className="item-prose" dangerouslySetInnerHTML={markup} />;
 }

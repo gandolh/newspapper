@@ -27,7 +27,7 @@ import {
   ConfirmDialog,
 } from "../../ui";
 import { excerpt, formatDate } from "../format";
-import styles from "./Clippings.module.css";
+import { CLIPPING } from "./clippingLooks";
 
 export function LibraryPanel() {
   const { addToast } = useToast();
@@ -108,10 +108,10 @@ export function LibraryPanel() {
   const sourceOptions = [{ value: "", label: "All sources" }, ...sources.map((s) => ({ value: s.id, label: s.name }))];
 
   return (
-    <div className={styles.panel}>
+    <div className={CLIPPING.panel}>
       <PageHeader title="Library" subtitle="What you saved to write from, and why you kept it." />
 
-      <div className={styles.filterBar}>
+      <div className="flex items-start gap-half *:first:flex-1">
         <Input
           placeholder="Search saved articles…"
           value={search}
@@ -122,7 +122,7 @@ export function LibraryPanel() {
       </div>
 
       {loading ? (
-        <div className={styles.loadingList}>
+        <div className={CLIPPING.loadingList}>
           <Skeleton height={78} />
           <Skeleton height={78} />
           <Skeleton height={78} />
@@ -134,29 +134,29 @@ export function LibraryPanel() {
           hint="Save an item from the Reader, or a Search result, to start building your library."
         />
       ) : (
-        <div className={styles.resultList}>
+        <div className={CLIPPING.resultList}>
           {articles.map((article) => (
-            <Card key={article.id} padding="sm" className={styles.resultCard}>
-              <div className={styles.resultMeta}>
+            <Card key={article.id} padding="sm" className={CLIPPING.resultCard}>
+              <div className={CLIPPING.resultMeta}>
                 <Mark>{article.sourceName || "Manual"}</Mark>
-                <span className={styles.metaText}>{formatDate(article.publishedAt)}</span>
+                <span className={CLIPPING.metaText}>{formatDate(article.publishedAt)}</span>
                 {article.url && (
                   <a
                     href={article.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={styles.externalLink}
+                    className={CLIPPING.externalLink}
                     aria-label="Open the original"
                   >
                     ↗
                   </a>
                 )}
               </div>
-              <div className={styles.resultTitle}>{article.title}</div>
-              {article.excerpt && <p className={styles.resultExcerpt}>{excerpt(article.excerpt)}</p>}
+              <div className={CLIPPING.resultTitle}>{article.title}</div>
+              {article.excerpt && <p className={CLIPPING.resultExcerpt}>{excerpt(article.excerpt)}</p>}
 
               {editing?.id === article.id ? (
-                <form className={styles.noteForm} onSubmit={(e) => void handleSaveNote(e)}>
+                <form className={CLIPPING.noteForm} onSubmit={(e) => void handleSaveNote(e)}>
                   <Textarea
                     id={`note-${article.id}`}
                     label="Note"
@@ -174,7 +174,7 @@ export function LibraryPanel() {
                       }
                     }}
                   />
-                  <div className={styles.resultActions}>
+                  <div className={CLIPPING.resultActions}>
                     <Button
                       type="button"
                       size="sm"
@@ -192,12 +192,14 @@ export function LibraryPanel() {
               ) : (
                 <>
                   {article.note && (
-                    <p className={styles.note}>
-                      <span className={styles.noteLabel}>Note</span>
+                    <p className="flex flex-col gap-[2px] border-l-2 border-graphite pl-hair text-label leading-[1.45] whitespace-pre-wrap text-graphite">
+                      <span className="font-galley text-field font-medium tracking-field text-graphite-soft uppercase">
+                        Note
+                      </span>
                       {article.note}
                     </p>
                   )}
-                  <div className={styles.resultActions}>
+                  <div className={CLIPPING.resultActions}>
                     <Button
                       size="sm"
                       variant="ghost"

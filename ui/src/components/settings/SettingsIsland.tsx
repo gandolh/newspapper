@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import { Button, Card, PageHeader, Select, Skeleton, ToastProvider, useToast } from "../ui";
 import { api } from "@/lib/api";
 import { AccountSection } from "./AccountSection";
+import { SETTINGS } from "./settingsLooks";
 import type { Settings } from "@/lib/types";
-import styles from "./SettingsIsland.module.css";
 
 /** `GET /api/themes` — `name` is the id on disk, `tokens.name` the display name. */
 interface ThemeItem {
@@ -60,7 +60,7 @@ function ThemeSection() {
   if (loading) {
     return (
       <Card>
-        <div className={styles.loading}>
+        <div className={SETTINGS.loading}>
           <Skeleton height={26} width="40%" />
           <Skeleton height={26} />
         </div>
@@ -73,13 +73,13 @@ function ThemeSection() {
   return (
     <Card>
       <form onSubmit={(e) => void save(e)} noValidate>
-        <h2 className={styles.sectionTitle}>Theme</h2>
-        <p className={styles.sectionHint}>
+        <h2 className={SETTINGS.sectionTitle}>Theme</h2>
+        <p className={SETTINGS.sectionHint}>
           The theme a new post starts on. The three warm-industrial palettes are identical apart from their accent
           colour, so that swatch is the whole difference.
         </p>
 
-        <div className={styles.themeRow}>
+        <div className="flex items-end gap-half">
           <Select
             label="Default theme"
             options={themes.map((t) => ({
@@ -88,19 +88,21 @@ function ThemeSection() {
             }))}
             value={defaultTheme}
             onValueChange={setDefaultTheme}
-            className={styles.themeSelect}
+            className="min-w-[calc(var(--spacing-unit)*9)]"
           />
           <span
-            className={styles.swatch}
-            style={{
-              background: selected?.tokens?.colors["primary"] ?? "transparent",
-            }}
+            // The slide theme's own ink, shown as a chip of the film it prints in. The colour is data, so it travels
+            // as a variable the class reads.
+            className="mb-0 size-unit shrink-0 bg-(--swatch) shadow-[0_0_0_1px_var(--color-tick)]"
+            style={{ "--swatch": selected?.tokens?.colors["primary"] ?? "transparent" } as CSSProperties}
             aria-hidden="true"
           />
-          <code className={styles.swatchValue}>{selected?.tokens?.colors["primary"] ?? "—"}</code>
+          <code className="mb-hair font-galley text-field tracking-field text-graphite-soft uppercase">
+            {selected?.tokens?.colors["primary"] ?? "—"}
+          </code>
         </div>
 
-        <div className={styles.formActions}>
+        <div className={SETTINGS.formActions}>
           <Button type="submit" loading={saving} disabled={!defaultTheme}>
             Save
           </Button>
@@ -112,9 +114,9 @@ function ThemeSection() {
 
 function SettingsPage() {
   return (
-    <div className={styles.page}>
+    <div className="mx-auto max-w-narrow">
       <PageHeader title="Settings" subtitle="The default a new post starts from, and how you sign in." />
-      <div className={styles.sections}>
+      <div className="flex flex-col gap-unit">
         <ThemeSection />
         <AccountSection />
       </div>

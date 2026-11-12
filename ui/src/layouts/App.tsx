@@ -8,7 +8,7 @@
  */
 import { useEffect, type ReactNode } from "react";
 import { Sidebar } from "../components/Sidebar";
-import styles from "./App.module.css";
+import { cn } from "../lib/cn";
 
 export function App({
   title = "newspapper",
@@ -23,14 +23,16 @@ export function App({
     document.title = `${title} — newspapper`;
   }, [title]);
 
-  const sheet = [styles.sheet, width === "fluid" ? styles["sheet--fluid"] : ""].filter(Boolean).join(" ");
+  // Every sheet lands on the same column, and the column is a whole number of grid units wide (The One Grid Rule).
+  // Fluid sheets, the editor, take the board.
+  const sheet = cn("mx-auto", width === "fluid" ? "max-w-none" : "max-w-content");
 
   return (
-    <div className={styles.board}>
+    <div className="flex min-h-screen flex-col">
       {/* The tray: a full-width strip across the top of the board. */}
       <Sidebar />
 
-      <main className={styles.work}>
+      <main className="min-w-0 flex-1 p-unit max-md:p-half">
         <div className={sheet}>{children}</div>
       </main>
     </div>

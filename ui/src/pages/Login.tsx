@@ -5,7 +5,6 @@
  */
 import { useEffect } from "react";
 import { LoginIsland } from "../components/auth/LoginIsland";
-import styles from "./Login.module.css";
 
 export function LoginPage() {
   useEffect(() => {
@@ -13,7 +12,7 @@ export function LoginPage() {
   }, []);
 
   return (
-    <main className={styles["login-shell"]}>
+    <main className="flex min-h-screen items-center justify-center p-unit">
       <LoginIsland />
     </main>
   );

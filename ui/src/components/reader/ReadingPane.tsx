@@ -13,7 +13,6 @@ import buttonStyles from "../ui/Button.module.css";
 import { BackControl } from "./BackControl";
 import { ItemBody } from "./ItemBody";
 import { formatDate } from "./format";
-import styles from "./ReadingPane.module.css";
 
 /** The inline note field under the actions. `save` saves the item with it;
  * `edit` replaces the saved article's note. */
@@ -74,7 +73,7 @@ export function ReadingPane(props: ReadingPaneProps) {
 
   if (!summary) {
     return (
-      <div className={styles.pane}>
+      <div className="flex min-h-full flex-col gap-half">
         {back}
         <EmptyState
           icon="—"
@@ -103,23 +102,25 @@ export function ReadingPane(props: ReadingPaneProps) {
   }
 
   return (
-    <div className={styles.pane}>
+    <div className="flex min-h-full flex-col gap-half">
       {back}
-      <article className={styles.sheet} aria-label={shown.title || "Item"}>
+      <article className="flex-1 bg-paper p-unit shadow-waxed reader-narrow:p-half" aria-label={shown.title || "Item"}>
         <div ref={contentRef}>
-          <header className={styles.head}>
-            <h2 className={styles.title}>{shown.title || "Untitled"}</h2>
-            <p className={styles.meta}>
+          <header className="flex max-w-[70ch] flex-col gap-hair">
+            <h2 className="font-chrome text-board-title leading-[1.15] font-extrabold wdth-title tracking-board-title break-words text-graphite">
+              {shown.title || "Untitled"}
+            </h2>
+            <p className="flex flex-wrap items-center gap-x-half gap-y-hair font-galley text-field leading-field font-medium tracking-field text-graphite-soft uppercase">
               {meta}
               {!shown.read && (
-                <Mark tone="ink" className={styles.metaMark}>
+                <Mark tone="ink" className="ml-hair">
                   Unread
                 </Mark>
               )}
             </p>
           </header>
 
-          <div className={styles.actions}>
+          <div className="mt-half flex flex-wrap items-center gap-hair border-b-[1.5px] border-graphite pb-half">
             {openOriginal}
             {shown.saved ? (
               <>
@@ -153,7 +154,7 @@ export function ReadingPane(props: ReadingPaneProps) {
           </div>
 
           {note && (
-            <form className={styles.noteForm} onSubmit={submit}>
+            <form className="mt-half flex max-w-[70ch] flex-col gap-hair" onSubmit={submit}>
               {note.loading ? (
                 <Skeleton height={52} />
               ) : (
@@ -178,7 +179,7 @@ export function ReadingPane(props: ReadingPaneProps) {
                   }}
                 />
               )}
-              <div className={styles.noteActions}>
+              <div className="flex justify-end gap-hair">
                 <Button type="button" size="sm" variant="ghost" onClick={props.onNoteCancel} disabled={note.busy}>
                   Cancel
                 </Button>
@@ -189,7 +190,7 @@ export function ReadingPane(props: ReadingPaneProps) {
             </form>
           )}
 
-          <div className={styles.body}>
+          <div className="mt-unit">
             {error ? (
               <EmptyState
                 icon="!"
@@ -202,8 +203,8 @@ export function ReadingPane(props: ReadingPaneProps) {
                 }
               />
             ) : loading ? (
-              <div className={styles.loading} role="status">
-                <span className={styles.srOnly}>Loading the item</span>
+              <div className="flex max-w-[70ch] flex-col gap-half" role="status">
+                <span className="sr-only">Loading the item</span>
                 <Skeleton height={26} width="60%" />
                 <Skeleton height={130} />
                 <Skeleton height={78} />

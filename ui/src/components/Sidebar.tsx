@@ -19,7 +19,7 @@
 import { ApiHealthDot } from "./ApiHealthDot";
 import { SessionMenu } from "./auth/SessionMenu";
 import { Link, usePathname } from "../router";
-import styles from "./Sidebar.module.css";
+import { cn } from "../lib/cn";
 
 const navLinks = [
   { href: "/", caption: "Editor", showing: "board" },
@@ -38,25 +38,47 @@ export function Sidebar() {
   }
 
   return (
-    <nav className={styles.tray} aria-label="Main navigation">
-      <div className={`${styles.cell} ${styles["cell--brand"]}`}>
-        <Link href="/" className={styles.brand} aria-label="newspapper home">
-          <span className={styles["brand-name"]}>newspapper</span>
-          <span className={styles["brand-caption"]}>paste-up board</span>
+    <nav
+      className={cn(
+        "sticky top-0 z-sticky flex h-(--tray-h) w-full items-stretch border-b-[1.5px] border-graphite bg-board",
+        // Below 640px one course stops fitting: the brand block, four 78px compartments and the session cell want
+        // more strip than a phone has. The strip stays 78px (3 x 26) and divides into two courses: one unit of head
+        // carrying the wordmark and the session, two units of compartments under it. A compartment is a share of
+        // its course, not a width it claims, so nothing is pushed off the edge.
+        "max-sm:grid max-sm:grid-cols-[minmax(0,1fr)_auto] max-sm:grid-rows-[var(--spacing-unit)_1fr] max-sm:[grid-template-areas:'brand_session'_'nav_nav']",
+      )}
+      aria-label="Main navigation"
+    >
+      <div className="flex shrink-0 flex-col justify-center gap-hair border-r border-rule px-unit text-graphite no-underline max-md:px-half max-sm:min-w-0 max-sm:overflow-hidden max-sm:border-r-0 max-sm:[grid-area:brand]">
+        <Link href="/" className="flex flex-col gap-[2px] text-graphite no-underline" aria-label="newspapper home">
+          <span className="font-chrome text-brand leading-[1.2] font-extrabold wdth-brand tracking-brand uppercase">
+            newspapper
+          </span>
+          <span className="font-galley text-field font-medium tracking-field text-graphite-soft uppercase max-md:hidden">
+            paste-up board
+          </span>
         </Link>
       </div>
 
-      <ul className={styles.cells} role="list">
+      <ul
+        className="flex min-w-0 flex-1 items-stretch overflow-x-auto max-sm:border-t max-sm:border-rule max-sm:[grid-area:nav]"
+        role="list"
+      >
         {navLinks.map(({ href, caption, showing }) => (
-          <li className={styles["cell-item"]} key={href}>
+          <li className="flex max-sm:min-w-double max-sm:flex-[1_1_0]" key={href}>
             <Link
               href={href}
-              className={[styles.cell, styles["cell--nav"], isActive(href) ? styles["cell--current"] : ""]
-                .filter(Boolean)
-                .join(" ")}
+              className={cn(
+                "flex w-[104px] shrink-0 flex-col items-center justify-center gap-hair border-r border-rule px-half text-graphite-soft hover:text-graphite max-md:w-[78px] max-sm:w-full max-sm:overflow-hidden max-sm:px-hair",
+                // The compartment pulled forward: paper, waxed down.
+                isActive(href) && "bg-paper text-graphite shadow-waxed",
+              )}
               aria-current={isActive(href) ? "page" : undefined}
             >
-              <span className={styles.showing} aria-hidden="true">
+              <span
+                className="block size-[30px] max-sm:size-unit [&_svg]:size-[30px] max-sm:[&_svg]:size-unit"
+                aria-hidden="true"
+              >
                 {showing === "board" && (
                   <svg viewBox="0 0 30 30" fill="none" stroke="currentColor" strokeWidth="1">
                     <path d="M6 3v3M3 6h3M24 3v3M27 6h-3M6 27v-3M3 24h3M24 27v-3M27 24h-3" />
@@ -85,13 +107,20 @@ export function Sidebar() {
                   </svg>
                 )}
               </span>
-              <span className={styles.caption}>{caption}</span>
+              <span
+                className={cn(
+                  "font-galley text-field font-medium tracking-field uppercase max-sm:max-w-full max-sm:overflow-hidden max-sm:text-ellipsis max-sm:whitespace-nowrap",
+                  isActive(href) && "font-bold text-graphite",
+                )}
+              >
+                {caption}
+              </span>
             </Link>
           </li>
         ))}
       </ul>
 
-      <div className={`${styles.cell} ${styles["cell--session"]}`}>
+      <div className="ml-auto flex min-w-[calc(var(--spacing-unit)*6)] shrink-0 flex-col justify-center gap-hair border-l border-rule px-half max-sm:ml-0 max-sm:min-w-0 max-sm:flex-row max-sm:items-center max-sm:gap-half max-sm:px-hair max-sm:[grid-area:session]">
         <SessionMenu />
         <ApiHealthDot />
       </div>

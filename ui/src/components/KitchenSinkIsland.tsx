@@ -33,7 +33,6 @@ import {
   useToast,
   WAX,
 } from "./ui";
-import styles from "./KitchenSinkIsland.module.css";
 
 const SIZE_SCALE = ["xs", "sm", "md", "lg", "xl"].map((value) => ({ value }));
 
@@ -46,7 +45,9 @@ const SELECT_OPTIONS = [
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <Card>
-      <h2 className={styles.sectionTitle}>{title}</h2>
+      <h2 className="mb-half border-b border-rule pb-[4px] font-galley text-field font-medium tracking-field text-graphite-soft uppercase">
+        {title}
+      </h2>
       {children}
     </Card>
   );
@@ -55,7 +56,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function ToastDemo() {
   const { addToast } = useToast();
   return (
-    <div className={styles.row}>
+    <div className="mb-half flex flex-wrap items-center gap-half">
       <Button size="sm" variant="secondary" onClick={() => addToast("Post saved.", "success")}>
         Toast done
       </Button>
@@ -79,15 +80,17 @@ export function KitchenSinkIsland() {
 
   return (
     <ToastProvider>
-      <div className={styles.sheet}>
+      <div className="flex max-w-narrow flex-col gap-unit">
         <PageHeader
           title="Proof sheet"
           subtitle="Every primitive and every mark, set once. If something here has a rounded corner or a coloured pill, the world has slipped."
         />
 
         <Section title="Marks">
-          <p className={styles.note}>One mark per idea. Rubylith is the only way this app says “held out”.</p>
-          <div className={styles.row}>
+          <p className="mb-half max-w-[66ch] text-label leading-[1.45] text-graphite-soft">
+            One mark per idea. Rubylith is the only way this app says “held out”.
+          </p>
+          <div className="mb-half flex flex-wrap items-center gap-half">
             <Mark>Draft</Mark>
             <Mark tone="ink">3 slides</Mark>
             <Mark tone="rubylith">2 errors</Mark>
@@ -95,25 +98,25 @@ export function KitchenSinkIsland() {
             <Mark bare>1 : 2</Mark>
             <Stamp>Published</Stamp>
           </div>
-          <div className={styles.row}>
-            <span className={styles.swatch}>
+          <div className="mb-half flex flex-wrap items-center gap-half">
+            <span className="text-body">
               Selected in the galley takes the <span className={WAX}>wax</span>.
             </span>
           </div>
-          <div className={styles.row}>
-            <HeldOut className={styles.heldOutDemo}>
+          <div className="mb-half flex flex-wrap items-center gap-half">
+            <HeldOut className="border border-tick px-half py-hair font-galley text-galley text-graphite">
               <span>Held out — the rubylith wash</span>
             </HeldOut>
-            <HeldOut hatch className={styles.heldOutDemo}>
+            <HeldOut hatch className="border border-tick px-half py-hair font-galley text-galley text-graphite">
               <span>Held out — the 45° hatch, at tray scale</span>
             </HeldOut>
           </div>
-          <div className={styles.row}>
-            <span className={styles.cornerDemo}>
+          <div className="mb-half flex flex-wrap items-center gap-half">
+            <span className="relative block border border-hairline py-half pr-double pl-half font-galley text-galley">
               Draft: the tissue corner
               <TissueCorner />
             </span>
-            <span className={styles.frameDemo}>
+            <span className="relative m-unit block size-double bg-paper shadow-[0_0_0_1px_var(--color-hairline)]">
               <CropMarks />
               <RegisterTargets />
             </span>
@@ -122,25 +125,25 @@ export function KitchenSinkIsland() {
         </Section>
 
         <Section title="Buttons">
-          <div className={styles.row}>
+          <div className="mb-half flex flex-wrap items-center gap-half">
             <Button variant="primary">Primary</Button>
             <Button variant="secondary">Secondary</Button>
             <Button variant="ghost">Ghost</Button>
             <Button variant="danger">Danger</Button>
           </div>
-          <div className={styles.row}>
+          <div className="mb-half flex flex-wrap items-center gap-half">
             <Button size="sm">Small</Button>
             <Button size="md">Medium</Button>
             <Button size="lg">Large</Button>
           </div>
-          <div className={styles.row}>
+          <div className="mb-half flex flex-wrap items-center gap-half">
             <Button loading>Rendering</Button>
             <Button disabled>Disabled</Button>
           </div>
         </Section>
 
         <Section title="Fields">
-          <div className={styles.fields}>
+          <div className="flex flex-col gap-half">
             <Input label="Title" placeholder="Today’s lead" hint="Sets the post’s index columns." />
             <Input label="Feed" defaultValue="not a url" error="That is not a URL." />
             <Textarea label="Caption" placeholder="What goes with the post…" />
@@ -175,10 +178,10 @@ export function KitchenSinkIsland() {
         </Section>
 
         <Section title="Progress and placeholders">
-          <div className={styles.fields}>
+          <div className="flex flex-col gap-half">
             <ProgressBar value={progress} label="Rendering slides" showPercent />
             <ProgressBar value={30} variant="error" label="Failed at slide 2" showPercent />
-            <div className={styles.row}>
+            <div className="mb-half flex flex-wrap items-center gap-half">
               <Button size="sm" variant="secondary" onClick={() => setProgress((p) => Math.max(0, p - 10))}>
                 −10
               </Button>
@@ -191,7 +194,7 @@ export function KitchenSinkIsland() {
         </Section>
 
         <Section title="Overlays">
-          <div className={styles.row}>
+          <div className="mb-half flex flex-wrap items-center gap-half">
             <Button variant="secondary" onClick={() => setModalOpen(true)}>
               Open modal
             </Button>
@@ -201,7 +204,7 @@ export function KitchenSinkIsland() {
           </div>
           <ToastDemo />
           <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Example modal">
-            <p className={styles.note}>
+            <p className="mb-half max-w-[66ch] text-label leading-[1.45] text-graphite-soft">
               A modal has to pick one of the two shadows. It is a slip waxed over the board, so it takes the hard short
               one.
             </p>

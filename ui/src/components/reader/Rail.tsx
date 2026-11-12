@@ -13,7 +13,7 @@
 import type { ReaderCounts, Source } from "@/lib/types";
 import { Button, HATCH, Mark, ProgressBar, Skeleton } from "../ui";
 import { groupSources, sameNarrow, unreadIn, type Narrow, type ReaderScope } from "./query";
-import styles from "./Rail.module.css";
+import { cn } from "../../lib/cn";
 
 export type ReaderView = "read" | "search" | "library" | "sources";
 
@@ -51,7 +51,9 @@ const VIEWS: Array<{ view: ReaderView; label: string; note: string }> = [
 ];
 
 function Count({ n }: { n: number | undefined }) {
-  return <span className={styles.count}>{n === undefined ? "" : n}</span>;
+  return (
+    <span className="font-galley text-[11px] font-bold text-graphite tabular-nums">{n === undefined ? "" : n}</span>
+  );
 }
 
 function ProgressMark({ p }: { p: SourceProgress | undefined }) {
@@ -70,6 +72,15 @@ function ProgressMark({ p }: { p: SourceProgress | undefined }) {
   ) : null;
 }
 
+/** One entry: a label, any marks, and a count on the right edge. Printed on the board, no paper, no shadow, like the
+ * tray: the current entry is the one pulled forward onto paper. */
+const ITEM =
+  "flex min-h-unit w-full cursor-pointer items-center gap-hair border-0 bg-transparent px-hair text-left font-chrome text-label font-semibold tracking-label text-graphite hover:bg-graphite/5 aria-[current=true]:relative aria-[current=true]:z-pane aria-[current=true]:bg-paper aria-[current=true]:font-extrabold aria-[current=true]:shadow-waxed";
+/** A category heading, set as a field label, still a button: it narrows the list to every source under it. */
+const CATEGORY =
+  "mt-hair border-b border-rule font-galley text-field font-bold tracking-mark text-graphite-soft uppercase aria-[current=true]:text-graphite";
+const LABEL = "min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap";
+
 export function Rail(props: RailProps) {
   const { sources, counts, refresh, view, narrow, scope } = props;
   const reading = view === "read";
@@ -82,16 +93,18 @@ export function Rail(props: RailProps) {
   }
 
   return (
-    <nav className={styles.rail} aria-label="Reader">
-      <div className={styles.head}>
-        <h1 className={styles.title}>Reader</h1>
+    <nav className="flex flex-col gap-half pb-unit" aria-label="Reader">
+      <div className="flex items-center justify-between gap-hair border-b-[1.5px] border-graphite pb-hair">
+        <h1 className="font-chrome text-board-title leading-unit font-extrabold wdth-title tracking-board-title">
+          Reader
+        </h1>
         <Button size="sm" variant="secondary" loading={refresh !== null} onClick={props.onRefresh}>
           Refresh
         </Button>
       </div>
 
       {refresh && (
-        <div className={styles.progress} aria-live="polite">
+        <div className="px-[2px]" aria-live="polite">
           <ProgressBar
             value={refresh.total ? Math.round((settled / refresh.total) * 100) : 0}
             label={`Fetching · ${settled} of ${refresh.total}`}
@@ -99,41 +112,41 @@ export function Rail(props: RailProps) {
         </div>
       )}
 
-      <ul className={styles.group}>
+      <ul className="flex flex-col">
         <li>
           <button
             type="button"
-            className={styles.item}
+            className={ITEM}
             aria-current={current(reading && narrow === null && scope === "unread")}
             onClick={() => props.onSelect("unread", null)}
           >
-            <span className={styles.label}>Unread</span>
+            <span className={LABEL}>Unread</span>
             <Count n={counts?.unread} />
           </button>
         </li>
         <li>
           <button
             type="button"
-            className={styles.item}
+            className={ITEM}
             aria-current={current(reading && narrow === null && scope === "all")}
             onClick={() => props.onSelect("all", null)}
           >
-            <span className={styles.label}>All</span>
+            <span className={LABEL}>All</span>
             <Count n={counts?.all} />
           </button>
         </li>
       </ul>
 
       {props.failed ? (
-        <div className={styles.failed}>
+        <div className="flex flex-col items-start gap-hair">
           <Mark tone="rubylith">Feeds did not load</Mark>
           <Button size="sm" variant="ghost" onClick={props.onRetry}>
             Try again
           </Button>
         </div>
       ) : sources === null ? (
-        <div className={styles.loading} role="status">
-          <span className={styles.srOnly}>Loading feeds</span>
+        <div className="flex flex-col gap-hair" role="status">
+          <span className="sr-only">Loading feeds</span>
           <Skeleton height={26} />
           <Skeleton height={26} />
           <Skeleton height={26} />
@@ -142,19 +155,19 @@ export function Rail(props: RailProps) {
         groups.map((group) => {
           const groupNarrow: Narrow = { kind: "category", category: group.category };
           return (
-            <section key={group.category ?? "\0"} className={styles.section}>
+            <section key={group.category ?? "\0"} className="flex flex-col">
               {categorized && (
                 <button
                   type="button"
-                  className={`${styles.item} ${styles.category}`}
+                  className={cn(ITEM, CATEGORY)}
                   aria-current={current(reading && sameNarrow(narrow, groupNarrow))}
                   onClick={() => props.onSelect(null, groupNarrow)}
                 >
-                  <span className={styles.label}>{group.category ?? "Uncategorized"}</span>
+                  <span className={LABEL}>{group.category ?? "Uncategorized"}</span>
                   <Count n={counts ? unreadIn(counts, groupNarrow, sources) : undefined} />
                 </button>
               )}
-              <ul className={styles.group}>
+              <ul className="flex flex-col">
                 {group.sources.map((source) => {
                   const sourceNarrow: Narrow = { kind: "source", sourceId: source.id };
                   const p = refresh?.progress[source.id];
@@ -163,9 +176,7 @@ export function Rail(props: RailProps) {
                     <li key={source.id}>
                       <button
                         type="button"
-                        className={[styles.item, styles.source, source.enabled ? "" : `${styles.disabled} ${HATCH}`]
-                          .filter(Boolean)
-                          .join(" ")}
+                        className={cn(ITEM, "pl-half font-medium", !source.enabled && HATCH)}
                         aria-current={current(reading && sameNarrow(narrow, sourceNarrow))}
                         title={
                           failing
@@ -176,7 +187,7 @@ export function Rail(props: RailProps) {
                         }
                         onClick={() => props.onSelect(null, sourceNarrow)}
                       >
-                        <span className={styles.label}>{source.name}</span>
+                        <span className={cn(LABEL, !source.enabled && "italic")}>{source.name}</span>
                         {failing && (
                           <Mark tone="rubylith" bare>
                             failing
@@ -194,27 +205,38 @@ export function Rail(props: RailProps) {
         })
       )}
 
-      <section className={styles.views} aria-label="Views">
-        <span className={styles.caption}>Views</span>
-        <ul className={styles.group}>
+      <section className="flex flex-col gap-[2px] border-t border-rule pt-half" aria-label="Views">
+        <span className="px-hair font-galley text-field font-medium tracking-field text-graphite-soft uppercase">
+          Views
+        </span>
+        <ul className="flex flex-col">
           {VIEWS.map((v) => (
             <li key={v.view}>
               <button
                 type="button"
-                className={styles.item}
+                className={ITEM}
                 aria-current={current(view === v.view)}
                 onClick={() => props.onView(v.view)}
               >
-                <span className={styles.label}>{v.label}</span>
-                <span className={styles.note}>{v.note}</span>
+                <span className={LABEL}>{v.label}</span>
+                <span className="font-galley text-field font-medium tracking-[0.04em] whitespace-nowrap text-graphite-soft">
+                  {v.note}
+                </span>
               </button>
             </li>
           ))}
         </ul>
       </section>
 
-      <button type="button" className={styles.legend} onClick={props.onLegend}>
-        Keyboard shortcuts <kbd className={styles.kbd}>?</kbd>
+      <button
+        type="button"
+        className="mt-hair inline-flex h-unit cursor-pointer items-center gap-hair self-start border border-transparent bg-transparent px-hair font-galley text-field font-medium tracking-field text-graphite-soft uppercase hover:border-tick hover:text-graphite"
+        onClick={props.onLegend}
+      >
+        Keyboard shortcuts{" "}
+        <kbd className="inline-flex h-[18px] min-w-[18px] items-center justify-center border border-tick bg-paper px-[4px] font-galley text-[10px] font-bold text-graphite">
+          ?
+        </kbd>
       </button>
     </nav>
   );

@@ -15,7 +15,7 @@ import { api, sse, ApiError } from "@/lib/api";
 import type { Article, ScrapedArticle } from "@/lib/types";
 import { Button, Card, Input, Mark, EmptyState, PageHeader, useToast } from "../../ui";
 import { excerpt, formatDate } from "../format";
-import styles from "./Clippings.module.css";
+import { CLIPPING } from "./clippingLooks";
 
 interface SourceProgress {
   status: "fetching" | "done" | "error";
@@ -118,13 +118,13 @@ export function SearchPanel() {
   const progressRows = Object.entries(progress);
 
   return (
-    <div className={styles.panel}>
+    <div className={CLIPPING.panel}>
       <PageHeader
         title="Search"
         subtitle="Search every enabled feed by keyword, live. Nothing is kept unless you save it."
       />
 
-      <form onSubmit={(e) => void handleSearch(e)} className={styles.searchForm}>
+      <form onSubmit={(e) => void handleSearch(e)} className="flex items-start gap-half *:first:flex-1">
         <Input
           placeholder="budget, economy, tax"
           hint="Comma-separated keywords. An article matching any one of them counts."
@@ -139,9 +139,9 @@ export function SearchPanel() {
       </form>
 
       {progressRows.length > 0 && (
-        <div className={styles.progressList}>
+        <div className="flex flex-wrap gap-half">
           {progressRows.map(([sourceId, p]) => (
-            <span key={sourceId} className={styles.progressItem}>
+            <span key={sourceId} className="inline-flex">
               <Mark tone={p.status === "error" ? "rubylith" : p.status === "done" ? "ink" : "dim"}>
                 {sourceId}
                 {p.status === "fetching" && " …"}
@@ -161,15 +161,15 @@ export function SearchPanel() {
         />
       )}
 
-      <div className={styles.resultList}>
+      <div className={CLIPPING.resultList}>
         {results.map((article) => {
           const saved = savedGuids.has(article.guid);
           return (
-            <Card key={`${article.sourceId}:${article.guid}`} padding="sm" className={styles.resultCard}>
-              <div className={styles.resultMeta}>
+            <Card key={`${article.sourceId}:${article.guid}`} padding="sm" className={CLIPPING.resultCard}>
+              <div className={CLIPPING.resultMeta}>
                 <Mark>{article.sourceName}</Mark>
-                <span className={styles.metaText}>{formatDate(article.publishedAt)}</span>
-                <span className={styles.metaText}>
+                <span className={CLIPPING.metaText}>{formatDate(article.publishedAt)}</span>
+                <span className={CLIPPING.metaText}>
                   {article.matchCount} match
                   {article.matchCount === 1 ? "" : "es"}
                 </span>
@@ -178,16 +178,16 @@ export function SearchPanel() {
                     href={article.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={styles.externalLink}
+                    className={CLIPPING.externalLink}
                     aria-label="Open the original"
                   >
                     ↗
                   </a>
                 )}
               </div>
-              <div className={styles.resultTitle}>{article.title}</div>
-              {article.body && <p className={styles.resultExcerpt}>{excerpt(article.body)}</p>}
-              <div className={styles.resultActions}>
+              <div className={CLIPPING.resultTitle}>{article.title}</div>
+              {article.body && <p className={CLIPPING.resultExcerpt}>{excerpt(article.body)}</p>}
+              <div className={CLIPPING.resultActions}>
                 <Button
                   size="sm"
                   variant={saved ? "secondary" : "primary"}
