@@ -451,12 +451,22 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
         setDirty(false);
         setSaveState("clean");
       } catch (err) {
-        addToast(err instanceof ApiError ? err.message : "Could not open that post.", "error");
+        // Through the ref, not `addToast`: showing a toast changes the toast
+        // manager, and with it `addToast`'s identity, so listing it here ran this
+        // effect again, fetched again and failed again, for as long as the page
+        // stayed open.
+        const message =
+          err instanceof ApiError && err.status === 404
+            ? "That post no longer exists."
+            : err instanceof ApiError
+              ? err.message
+              : "Could not open that post.";
+        addToastRef.current(message, "error");
       } finally {
         setLoading(false);
       }
     })();
-  }, [propPostId, initialMarkup, addToast]);
+  }, [propPostId, initialMarkup]);
 
   useEffect(() => {
     if (!dirty || loading) return;
