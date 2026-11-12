@@ -13,7 +13,7 @@ import {
 } from "../../../vendor/ward/ward-auth.js";
 import { SESSION_COOKIE } from "./paths.js";
 import { createAppAccounts, seedFromEnv } from "./index.js";
-import { createFakeWard, signInCookie, TEST_ISSUER, type FakeWard } from "../../testing/ward.js";
+import { createFakeWard, signInCookie, testAccounts, TEST_ISSUER, type FakeWard } from "../../testing/ward.js";
 
 /**
  * Accounts, the guard and the Ward routes, end to end through a real Fastify
@@ -51,8 +51,8 @@ describe("local sign-in", () => {
   beforeEach(async () => {
     await boot();
     // The database lives for the whole file, so the second test finds her already there.
-    if (!(await app.accounts.findUserByUsername("ada"))) {
-      await app.accounts.createUser({ username: "ada", password: PASSWORD, role: "editor" });
+    if (!(await testAccounts().findUserByUsername("ada"))) {
+      await testAccounts().createUser({ username: "ada", password: PASSWORD, role: "editor" });
     }
   });
 
@@ -113,7 +113,7 @@ describe("local sign-in", () => {
   });
 
   it("signs out: the cookie stops opening the API", async () => {
-    const { cookies } = await signInCookie(app);
+    const { cookies } = await signInCookie();
     const out = await app.inject({ method: "POST", url: "/api/auth/logout", cookies });
     expect(out.statusCode).toBe(204);
     const after = await app.inject({ method: "GET", url: "/api/posts", cookies });
@@ -163,13 +163,13 @@ describe("the guard", () => {
   });
 
   it("opens uploads to a signed-in session", async () => {
-    const { cookies } = await signInCookie(app);
+    const { cookies } = await signInCookie();
     // Past the guard, the handler finds no such upload.
     expect((await app.inject({ method: "GET", url: "/uploads/some-ref", cookies })).statusCode).toBe(404);
   });
 
   it("serves the session probe to a signed-in user with their role", async () => {
-    const { cookies } = await signInCookie(app, { role: "admin" });
+    const { cookies } = await signInCookie({ role: "admin" });
     const res = await app.inject({ method: "GET", url: "/api/auth/session", cookies });
     expect(res.json()).toMatchObject({ user: { role: "admin" }, session: { origin: "local" } });
   });
@@ -198,7 +198,7 @@ describe("the database", () => {
 describe("Ward routes", () => {
   it("are absent, and the button off, when Ward is not configured", async () => {
     await boot({ wardClient: null });
-    const { cookies } = await signInCookie(app);
+    const { cookies } = await signInCookie();
     const res = await app.inject({
       method: "POST",
       url: "/api/auth/ward/start",
@@ -247,7 +247,7 @@ describe("Ward routes", () => {
 
     /** A Ward-originated session for a user linked to subject `sub-1`. */
     async function wardSession(username: string) {
-      const accounts = app.accounts;
+      const accounts = testAccounts();
       const identities = createWardIdentities({ accounts });
       const user = await identities.createLinkedUser({
         subject: `sub-${username}`,
@@ -259,7 +259,7 @@ describe("Ward routes", () => {
     }
 
     it("lets Settings link Ward: a signed-in local user gets Ward’s URL back", async () => {
-      const { cookies } = await signInCookie(app);
+      const { cookies } = await signInCookie();
       const res = await app.inject({ method: "POST", url: "/api/auth/ward/link", cookies });
       expect(res.statusCode).toBe(200);
       expect(res.json<{ url: string }>().url.startsWith(`${TEST_ISSUER}/auth?`)).toBe(true);
@@ -289,7 +289,7 @@ describe("Ward routes", () => {
       expect(unstamped.json()).toMatchObject({ error: "reauthentication_required" });
 
       // What a successful reauthentication with Ward leaves on the session.
-      const store = app.accounts.store as WardAuthStore;
+      const store = testAccounts().store as WardAuthStore;
       await store.setSessionReauthenticatedAt(hashSessionToken(cookies[SESSION_COOKIE]), Date.now());
       const set = await app.inject({
         method: "POST",
@@ -298,7 +298,7 @@ describe("Ward routes", () => {
         payload: { newPassword: "a brand new password" },
       });
       expect(set.statusCode).toBe(204);
-      expect(await app.accounts.verifyCredentials("hedy", "a brand new password")).toBeDefined();
+      expect(await testAccounts().verifyCredentials("hedy", "a brand new password")).toBeDefined();
 
       // Now Ward can be unlinked; the session that began with Ward ends with it.
       const unlink = await app.inject({ method: "POST", url: "/api/auth/ward/unlink", cookies });
@@ -329,7 +329,7 @@ describe("Ward routes", () => {
 
     it("refuses Ward sessions with ward_unavailable while Ward is down, and keeps local ones working", async () => {
       const wardCookies = await wardSession("linus");
-      const local = (await signInCookie(app)).cookies;
+      const local = (await signInCookie()).cookies;
       expect((await app.inject({ method: "GET", url: "/api/posts", cookies: wardCookies })).statusCode).toBe(200);
 
       ward.setStatus("down");
@@ -348,13 +348,13 @@ describe("Ward routes", () => {
 
   it("refuses Ward-originated sessions when the app has no Ward configured", async () => {
     await boot({ wardClient: null });
-    const identities = createWardIdentities({ accounts: app.accounts });
+    const identities = createWardIdentities({ accounts: testAccounts() });
     const user = await identities.createLinkedUser({
       subject: "sub-orphan",
       username: "orphan",
       role: "editor",
     });
-    const { token } = await app.accounts.startSession(user.id, { origin: "ward", wardSid: "f" });
+    const { token } = await testAccounts().startSession(user.id, { origin: "ward", wardSid: "f" });
     const res = await app.inject({
       method: "GET",
       url: "/api/posts",

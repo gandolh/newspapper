@@ -38,10 +38,13 @@ api/src/
   encodes with zod; `errors` before anything, so every route inherits the
   handler; `sse`; CORS; `auth` before every route its guard covers; `static`;
   then the features, each through its `index.ts`.
-- **Plugin options, not decorators.** The render routes take `{ port }` and the
-  Reader `{ refresh }`. Two decorators stay, both app-wide services read at
-  request time: `accounts` (the guard and the tests' `signInCookie`) and
-  `readerSchedule`.
+- **Plugin options, not decorators.** The render routes take `{ port }`, the
+  Reader `{ refresh }` and the auth plugin `{ accounts, ... }`; `buildApp` builds
+  `accounts` and the Reader's schedule itself and decorates nothing. The guard
+  never read `accounts` at request time, and the SSE route never read the
+  schedule (the old note here said both did; only tests did). A test seeds
+  users and sessions through `testAccounts()` in `testing/ward.ts`, which opens
+  the accounts on the same database file.
 - **Schemas** live beside their routes, since the UI keeps its own copy of the
   types ([decision](./decisions-engineering.md)); a feature that answers with
   another's shape imports it through that feature's `index.ts` (the Reader's

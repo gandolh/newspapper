@@ -13,7 +13,7 @@ export interface TestAppOptions extends Omit<BuildAppOptions, "server"> {
  *
  *     const app = await buildTestApp();
  *     await app.ready();
- *     const session = (await signInCookie(app)).cookies;
+ *     const session = (await signInCookie()).cookies;
  *     const res = await app.inject({ method: "GET", url: "/api/posts", cookies: session });
  *     await app.close();
  */

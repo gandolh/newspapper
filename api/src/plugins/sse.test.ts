@@ -118,7 +118,7 @@ describe("closing the server", () => {
     };
     const app = await buildTestApp({ readerRefresh: { deps } });
     await app.listen({ port: 0, host: "127.0.0.1" });
-    const { cookies } = await signInCookie(app);
+    const { cookies } = await signInCookie();
     const { port } = app.server.address() as AddressInfo;
     const res = await fetch(`http://127.0.0.1:${port}/api/reader/refresh`, {
       method: "POST",

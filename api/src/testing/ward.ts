@@ -14,9 +14,10 @@
  * it; it lives beside the code it fakes so the two drift loudly.
  */
 import { generateKeyPairSync } from "node:crypto";
-import type { FastifyInstance } from "fastify";
 
-import { createWardClient, type WardClient } from "../../vendor/ward/ward-auth.js";
+import { db } from "../lib/db.js";
+import { createAppAccounts } from "../plugins/auth/index.js";
+import { createWardClient, type Accounts, type WardClient } from "../../vendor/ward/ward-auth.js";
 import { SESSION_COOKIE } from "../plugins/auth/paths.js";
 
 export const TEST_ISSUER = "http://localhost:8792/ward-api/oidc";
@@ -25,20 +26,27 @@ export const TEST_REDIRECT = "http://localhost:4321/newspapper/api/auth/ward/cal
 let counter = 0;
 
 /**
- * A user and a live local session on `app`'s accounts. Returns the cookies to
- * pass to `app.inject`, plus the user.
+ * The accounts a test uses to seed a user or a session. They sit on the same
+ * database file the app under test opens, which holds all of their state; the
+ * app builds its own from that file, so nothing is shared through the app.
  */
-export async function signInCookie(
-  app: FastifyInstance,
-  options: { username?: string; role?: string; password?: string | null } = {},
-) {
+export function testAccounts(): Accounts {
+  return createAppAccounts(db());
+}
+
+/**
+ * A user and a live local session on the test database's accounts. Returns the
+ * cookies to pass to `app.inject`, plus the user.
+ */
+export async function signInCookie(options: { username?: string; role?: string; password?: string | null } = {}) {
   counter += 1;
-  const user = await app.accounts.createUser({
+  const accounts = testAccounts();
+  const user = await accounts.createUser({
     username: options.username ?? `tester${counter}`,
     password: options.password === undefined ? "a long enough password" : options.password,
     role: options.role ?? "editor",
   });
-  const { token } = await app.accounts.startSession(user.id);
+  const { token } = await accounts.startSession(user.id);
   return { cookies: { [SESSION_COOKIE]: token }, token, user };
 }
 

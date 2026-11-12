@@ -1,5 +1,5 @@
 import { startReaderSchedule } from "@newspapper/core";
-import type { ReaderSchedule, RefreshOptions } from "@newspapper/core";
+import type { RefreshOptions } from "@newspapper/core";
 import { serializerCompiler, validatorCompiler } from "@fastify/type-provider-zod";
 import Fastify, { type FastifyServerOptions } from "fastify";
 import cors from "@fastify/cors";
@@ -18,7 +18,7 @@ import { auth, createAppAccounts, wardClientFrom } from "./plugins/auth/index.js
 import { errors } from "./plugins/errors.js";
 import { sse } from "./plugins/sse.js";
 import { staticFiles } from "./plugins/static.js";
-import type { Accounts, WardClient } from "../vendor/ward/ward-auth.js";
+import type { WardClient } from "../vendor/ward/ward-auth.js";
 import type { Config } from "./config.js";
 
 /** Fastify's options that belong to the process. `server.ts` sets them; a test leaves them out. */
@@ -51,15 +51,6 @@ export interface BuildAppOptions {
   readerRefresh?: Pick<RefreshOptions, "deps" | "now">;
 }
 
-declare module "fastify" {
-  interface FastifyInstance {
-    /** The local accounts and sessions. A test mints a session with `startSession`. */
-    accounts: Accounts;
-    /** The Reader's background loop. Stopped in `onClose`. */
-    readerSchedule: ReaderSchedule;
-  }
-}
-
 /**
  * The app, ready to listen and not listening: `server.ts` listens, and tests inject. It registers in a
  * fixed order: the zod compilers, the error handler, so every route inherits it; the SSE streams' close hook;
@@ -87,7 +78,6 @@ export async function buildApp(config: Config, options: BuildAppOptions = {}) {
    * `onRequest` hook, and only routes registered after it are covered.
    */
   const accounts = createAppAccounts(db());
-  fastify.decorate("accounts", accounts);
   const wardClient =
     options.wardClient === undefined ? await wardClientFrom(config.auth.ward) : (options.wardClient ?? undefined);
   await fastify.register(auth, {
@@ -128,7 +118,6 @@ export async function buildApp(config: Config, options: BuildAppOptions = {}) {
     onResult: ({ newCount, errors, purged }) =>
       fastify.log.info({ newCount, failedSources: errors.length, purged }, "reader refresh"),
   });
-  fastify.decorate("readerSchedule", schedule);
   fastify.addHook("onClose", async () => {
     await schedule.stop();
   });

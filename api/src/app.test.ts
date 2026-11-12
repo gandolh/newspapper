@@ -65,7 +65,7 @@ describe("the global error handler", () => {
   // The routes are plugins registered inside buildApp. Until 2026-11-11 the handler was set after
   // them, so they kept Fastify's default handler, which sends a 500's message.
   it("keeps a real route's 500 detail out of the body too", async () => {
-    const session = (await signInCookie(app)).cookies;
+    const session = (await signInCookie()).cookies;
     appDb().exec("ALTER TABLE articles RENAME TO articles_gone");
     try {
       const res = await app.inject({ method: "GET", url: "/api/articles", cookies: session });
@@ -78,7 +78,7 @@ describe("the global error handler", () => {
   });
 
   it("answers Fastify's own 400 for a body that is not JSON in the same body", async () => {
-    const session = (await signInCookie(app)).cookies;
+    const session = (await signInCookie()).cookies;
     const res = await app.inject({
       method: "POST",
       url: "/api/articles",
@@ -98,7 +98,7 @@ describe("a reply its response schema refuses", () => {
     const app = await buildTestApp();
     await app.ready();
     try {
-      const session = (await signInCookie(app)).cookies;
+      const session = (await signInCookie()).cookies;
       const created = await app.inject({
         method: "POST",
         url: "/api/posts",

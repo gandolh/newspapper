@@ -40,7 +40,7 @@ afterAll(() => {
 beforeEach(async () => {
   app = await buildTestApp();
   await app.ready();
-  session = (await signInCookie(app)).cookies;
+  session = (await signInCookie()).cookies;
 });
 
 afterEach(async () => {

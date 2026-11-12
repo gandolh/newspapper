@@ -54,9 +54,14 @@ request only, enough for a 10 MB upload at about 1.4 Mbit/s. `keepAliveTimeout`
 125 s outlives Caddy's two-minute idle upstream connection. `trustProxy` is
 loopback plus `AUTH_TRUSTED_PROXIES`, the list the login lockout reads too.
 
+**The two decorators are gone (2026-11-12).** `accounts` and `readerSchedule`
+left the Fastify instance. `accounts` is an option of the auth plugin; the
+schedule is local to `buildApp`, stopped in `onClose`. No route read either, so
+the `FeatureContext` the owner asked for would have carried nothing, and was
+not built; tests reach the accounts through `testAccounts()`.
+
 **Still open for the owner:**
 
 - Does the skill's `store.ts` rule apply to a repo whose data layer is a
   workspace library, or does `core` count as the store?
-- Move the two app-wide decorators (`accounts`, `readerSchedule`) to a
-  `FeatureContext`, as Almanac's are?
+

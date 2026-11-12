@@ -69,7 +69,7 @@ beforeEach(async () => {
   fetchSpy.mockClear();
   app = await buildTestApp({ readerRefresh: { deps } });
   await app.ready();
-  session = (await signInCookie(app)).cookies;
+  session = (await signInCookie()).cookies;
 });
 
 afterEach(async () => {
@@ -438,8 +438,18 @@ describe("POST /api/reader/refresh (SSE)", () => {
 });
 
 describe("the background loop", () => {
-  it("is off unless asked for, which is how every test builds the app", () => {
-    expect(app.readerSchedule.active).toBe(false);
+  it("is off unless asked for, which is how every test builds the app", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    try {
+      const quiet = await buildTestApp({ readerRefresh: { deps } });
+      await quiet.ready();
+      expect(vi.getTimerCount()).toBe(0);
+      await vi.advanceTimersByTimeAsync(2 * 60 * 60_000);
+      expect(fetchSpy).not.toHaveBeenCalled();
+      await quiet.close();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("boots from READER_REFRESH_MINUTES: 30 by default, 0 for off", () => {
@@ -456,7 +466,7 @@ describe("the background loop", () => {
         readerRefresh: { deps },
       });
       await looped.ready();
-      expect(looped.readerSchedule.active).toBe(true);
+      expect(vi.getTimerCount()).toBeGreaterThan(0);
       expect(fetchSpy).not.toHaveBeenCalled();
 
       // The first run waits 15 s after boot, then fetches the enabled feeds.
