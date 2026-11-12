@@ -160,7 +160,7 @@ export function InspectorPane(props: InspectorPaneProps) {
       className="flex origin-top flex-col gap-unit border-l-[1.5px] border-tissue-edge bg-tissue px-half py-unit shadow-hinged backdrop-blur-[1.2px]"
       ref={sheetRef}
     >
-      <span className="-mt-half h-0 border-t border-dashed border-tissue-edge" aria-hidden="true" />
+      <span className="-mt-half h-0 border-t border-tissue-edge [border-top-style:dashed]" aria-hidden="true" />
 
       <section className="flex flex-col gap-half">
         <h3 className="font-galley text-field font-medium tracking-field text-graphite-soft uppercase">Post</h3>
