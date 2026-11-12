@@ -1,9 +1,0 @@
-/* A block that is ruled but not yet set: board, inside a hairline, with the
-   galley's line pitch drawn across it. It does not shimmer — nothing in this
-   world animates except the compile and the hinge — and it does not take the
-   45° hatch, because the hatch already means "held out" and this is not that. */
-.skeleton {
-  background-color: var(--board);
-  background-image: repeating-linear-gradient(to bottom, transparent 0 22px, var(--hairline) 22px 23px);
-  box-shadow: 0 0 0 1px var(--hairline);
-}

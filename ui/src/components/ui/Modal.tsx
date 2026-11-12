@@ -1,6 +1,6 @@
 import { useRef, type ReactNode } from "react";
 import { Dialog } from "@base-ui/react/dialog";
-import styles from "./Modal.module.css";
+import { DIALOG_LOOKS } from "./dialogLooks";
 
 export interface ModalProps {
   open: boolean;
@@ -23,7 +23,8 @@ const FIELDS = "input:not(:disabled):not([type=file]), select:not(:disabled), te
 const BUTTONS = "button:not(:disabled)";
 
 /**
- * Modal — Base UI `Dialog` as a slip waxed over the board.
+ * Modal — Base UI `Dialog` as a slip waxed over the board. A modal has to pick one of the two shadows: it takes the
+ * hard short one, never an ambient glow.
  * Base UI provides the focus trap, scroll lock, outside-press dismissal and
  * portal. Two things are added here (the base-ui skill's rule 12):
  *
@@ -51,10 +52,10 @@ export function Modal({ open, onClose, title, children, width = 480, dismissOnBa
       }}
     >
       <Dialog.Portal>
-        <Dialog.Backdrop className={styles.backdrop} />
+        <Dialog.Backdrop className={DIALOG_LOOKS.backdrop} />
         <Dialog.Popup
           ref={popupRef}
-          className={styles.dialog}
+          className={DIALOG_LOOKS.popup}
           style={{ width: typeof width === "number" ? `${width}px` : width }}
           initialFocus={() =>
             popupRef.current?.querySelector<HTMLElement>("[data-autofocus]") ??
@@ -64,13 +65,16 @@ export function Modal({ open, onClose, title, children, width = 480, dismissOnBa
             true
           }
         >
-          <div className={styles.header}>
-            <Dialog.Title className={styles.title}>{title}</Dialog.Title>
-            <Dialog.Close className={styles.close} aria-label="Close dialog">
+          <div className={DIALOG_LOOKS.header}>
+            <Dialog.Title className={DIALOG_LOOKS.title}>{title}</Dialog.Title>
+            <Dialog.Close
+              className="flex size-unit cursor-pointer items-center justify-center border border-transparent bg-transparent text-[12px] text-graphite-soft hover:border-tick hover:text-graphite"
+              aria-label="Close dialog"
+            >
               ✕
             </Dialog.Close>
           </div>
-          <div ref={bodyRef} className={styles.body}>
+          <div ref={bodyRef} className={DIALOG_LOOKS.body}>
             {children}
           </div>
         </Dialog.Popup>

@@ -1,6 +1,6 @@
 import { Switch } from "@base-ui/react/switch";
 import { HATCH } from "./Marks";
-import styles from "./Toggle.module.css";
+import { cn } from "../../lib/cn";
 
 export interface ToggleProps {
   checked?: boolean;
@@ -28,18 +28,23 @@ export function Toggle({
   hint,
   id,
   name,
-  className = "",
+  className,
   "aria-label": ariaLabel,
 }: ToggleProps) {
   const toggleId = id ?? label?.toLowerCase().replace(/\s+/g, "-");
   const labelId = toggleId ? `${toggleId}-label` : undefined;
 
   return (
-    <div className={[styles.field, className].filter(Boolean).join(" ")}>
-      <div className={styles.toggle}>
+    <div className={cn("flex flex-col gap-hair", className)}>
+      <div className="inline-flex items-center gap-half select-none">
         <Switch.Root
           id={toggleId}
-          className={[styles.track, disabled ? HATCH : ""].filter(Boolean).join(" ")}
+          className={cn(
+            // A two-position slide switch on a machined track. Square, both ends.
+            "group relative inline-flex h-[14px] w-unit shrink-0 cursor-pointer items-center border border-tick bg-paper p-0 transition-[background,border-color] duration-[120ms] ease-[ease]",
+            "data-checked:border-graphite data-checked:bg-graphite data-disabled:cursor-not-allowed",
+            disabled && HATCH,
+          )}
           checked={checked}
           defaultChecked={defaultChecked}
           onCheckedChange={(c) => onCheckedChange?.(c)}
@@ -48,15 +53,19 @@ export function Toggle({
           aria-label={ariaLabel}
           aria-labelledby={label && !ariaLabel ? labelId : undefined}
         >
-          <Switch.Thumb className={styles.thumb} />
+          <Switch.Thumb className="absolute top-px left-px size-[10px] bg-graphite-tint transition-[transform,background] duration-[120ms] ease-[ease] group-data-checked:translate-x-[12px] group-data-checked:bg-board" />
         </Switch.Root>
         {label && (
-          <label id={labelId} htmlFor={toggleId} className={styles.label}>
+          <label id={labelId} htmlFor={toggleId} className="cursor-pointer text-body text-graphite">
             {label}
           </label>
         )}
       </div>
-      {hint && <span className={styles.hint}>{hint}</span>}
+      {hint && (
+        <span className="ml-[calc(var(--spacing-unit)+var(--spacing-half))] font-galley text-[10px] leading-[1.45] text-graphite-soft">
+          {hint}
+        </span>
+      )}
     </div>
   );
 }

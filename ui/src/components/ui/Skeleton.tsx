@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import styles from "./Skeleton.module.css";
+import { cn } from "../../lib/cn";
 
 export interface SkeletonProps {
   /** Width — number (px) or any CSS length. Defaults to 100%. */
@@ -17,6 +17,13 @@ export interface SkeletonProps {
  */
 export function Skeleton({ width = "100%", height = 26, className, style }: SkeletonProps) {
   return (
-    <div className={`${styles.skeleton} ${className ?? ""}`} style={{ width, height, ...style }} aria-hidden="true" />
+    <div
+      className={cn(
+        "bg-board bg-[repeating-linear-gradient(to_bottom,transparent_0_22px,var(--color-hairline)_22px_23px)] shadow-[0_0_0_1px_var(--color-hairline)]",
+        className,
+      )}
+      style={{ width, height, ...style }}
+      aria-hidden="true"
+    />
   );
 }

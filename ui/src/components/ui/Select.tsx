@@ -1,5 +1,6 @@
 import { Select as BaseSelect } from "@base-ui/react/select";
-import styles from "./Select.module.css";
+import { cn } from "../../lib/cn";
+import { FIELD_ERROR, FIELD_ERROR_BORDER, FIELD_HINT, FIELD_LABEL } from "./fieldLooks";
 
 export interface SelectOption {
   value: string;
@@ -40,17 +41,22 @@ export function Select({
   disabled,
   name,
   id,
-  className = "",
-  popupClassName = "",
+  className,
+  popupClassName,
 }: SelectProps) {
   const selectId = id ?? label?.toLowerCase().replace(/\s+/g, "-");
-  const triggerCls = [styles.trigger, error ? styles["select--error"] : "", className].filter(Boolean).join(" ");
+  const triggerCls = cn(
+    "flex h-unit w-full cursor-pointer items-center justify-between gap-hair border border-tick bg-paper px-hair text-left font-galley text-galley text-graphite transition-[border-color] duration-[120ms] ease-[ease]",
+    "hover:border-graphite-tint data-popup-open:border-process-blue data-disabled:cursor-not-allowed data-disabled:bg-board data-disabled:text-graphite-soft",
+    error && FIELD_ERROR_BORDER,
+    className,
+  );
   const describedBy = error ? `${selectId}-err` : hint ? `${selectId}-hint` : undefined;
 
   return (
-    <div className={styles.field}>
+    <div className="flex flex-col gap-hair">
       {label && (
-        <label className={styles.label} htmlFor={selectId}>
+        <label className={FIELD_LABEL} htmlFor={selectId}>
           {label}
         </label>
       )}
@@ -66,18 +72,31 @@ export function Select({
           <BaseSelect.Value>
             {(val) => {
               const opt = options.find((o) => o.value === val);
-              return opt ? opt.label : <span className={styles.placeholder}>{placeholder ?? ""}</span>;
+              return opt ? opt.label : <span className="text-graphite-soft">{placeholder ?? ""}</span>;
             }}
           </BaseSelect.Value>
-          <BaseSelect.Icon className={styles.chevron}>▾</BaseSelect.Icon>
+          <BaseSelect.Icon className="flex shrink-0 items-center text-[10px] text-graphite-soft">▾</BaseSelect.Icon>
         </BaseSelect.Trigger>
         <BaseSelect.Portal>
-          <BaseSelect.Positioner className={styles.positioner} sideOffset={4} alignItemWithTrigger={false}>
-            <BaseSelect.Popup className={[styles.popup, popupClassName].filter(Boolean).join(" ")}>
+          <BaseSelect.Positioner className="z-popup" sideOffset={4} alignItemWithTrigger={false}>
+            <BaseSelect.Popup
+              className={cn(
+                "max-h-[min(calc(var(--spacing-double)*6),var(--available-height))] min-w-(--anchor-width) overflow-y-auto bg-paper p-0 shadow-waxed",
+                popupClassName,
+              )}
+            >
               {options.map((opt) => (
-                <BaseSelect.Item key={opt.value} value={opt.value} className={styles.item}>
-                  <BaseSelect.ItemText className={styles.itemText}>{opt.label}</BaseSelect.ItemText>
-                  <BaseSelect.ItemIndicator className={styles.indicator}>✓</BaseSelect.ItemIndicator>
+                <BaseSelect.Item
+                  key={opt.value}
+                  value={opt.value}
+                  className="flex h-unit cursor-pointer items-center justify-between gap-hair border-b border-hairline px-hair font-galley text-galley text-graphite outline-none select-none last:border-b-0 data-highlighted:not-data-selected:bg-board data-selected:bg-graphite data-selected:text-board"
+                >
+                  <BaseSelect.ItemText className="overflow-hidden text-ellipsis whitespace-nowrap">
+                    {opt.label}
+                  </BaseSelect.ItemText>
+                  <BaseSelect.ItemIndicator className="flex shrink-0 items-center text-[10px]">
+                    ✓
+                  </BaseSelect.ItemIndicator>
                 </BaseSelect.Item>
               ))}
             </BaseSelect.Popup>
@@ -85,12 +104,12 @@ export function Select({
         </BaseSelect.Portal>
       </BaseSelect.Root>
       {error && (
-        <span id={`${selectId}-err`} className={styles.error} role="alert">
+        <span id={`${selectId}-err`} className={FIELD_ERROR} role="alert">
           {error}
         </span>
       )}
       {!error && hint && (
-        <span id={`${selectId}-hint`} className={styles.hint}>
+        <span id={`${selectId}-hint`} className={FIELD_HINT}>
           {hint}
         </span>
       )}

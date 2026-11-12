@@ -14,6 +14,7 @@
  */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { fileURLToPath } from "node:url";
+import tailwindcss from "@tailwindcss/vite";
 import { build, type Plugin, type Rollup } from "vite";
 import { getBrowser } from "../../../../core/src/render/browser.js";
 import { probeChromium, type ChromiumGuard } from "../../../../core/src/render/test-support/chromium.js";
@@ -38,6 +39,8 @@ function entry(): Plugin {
 import { createElement as h, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
+import ${JSON.stringify(here("../../styles/index.css"))};
+import ${JSON.stringify(here("../../styles/global.css"))};
 import { ToastProvider, useToast, Tabs } from ${JSON.stringify(here("./index.ts"))};
 const TABS = [
   { value: 'source', label: 'Source' },
@@ -68,7 +71,7 @@ async function bundle(): Promise<{ js: string; css: string }> {
     configFile: false,
     logLevel: "silent",
     root: here("../../.."),
-    plugins: [entry()],
+    plugins: [tailwindcss(), entry()],
     esbuild: { jsx: "automatic", jsxDev: false },
     resolve: { alias: { "@": here("../..") } },
     define: { "process.env.NODE_ENV": '"production"' },

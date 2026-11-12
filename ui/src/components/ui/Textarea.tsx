@@ -1,5 +1,6 @@
 import { useEffect, useRef, type TextareaHTMLAttributes } from "react";
-import styles from "./Textarea.module.css";
+import { cn } from "../../lib/cn";
+import { FIELD_CONTROL, FIELD_ERROR, FIELD_ERROR_BORDER, FIELD_HINT, FIELD_LABEL } from "./fieldLooks";
 
 export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
@@ -13,7 +14,7 @@ export function Textarea({
   hint,
   error,
   autoGrow = true,
-  className = "",
+  className,
   id,
   value,
   defaultValue,
@@ -33,12 +34,17 @@ export function Textarea({
     resize();
   });
 
-  const cls = [styles.textarea, error ? styles["textarea--error"] : "", className].filter(Boolean).join(" ");
+  const cls = cn(
+    "min-h-double resize-y overflow-hidden p-hair leading-[1.55] focus-visible:resize-none",
+    FIELD_CONTROL,
+    error && FIELD_ERROR_BORDER,
+    className,
+  );
 
   return (
-    <div className={styles.field}>
+    <div className="flex flex-col gap-hair">
       {label && (
-        <label className={styles.label} htmlFor={textareaId}>
+        <label className={FIELD_LABEL} htmlFor={textareaId}>
           {label}
         </label>
       )}
@@ -56,12 +62,12 @@ export function Textarea({
         {...rest}
       />
       {error && (
-        <span id={`${textareaId}-err`} className={styles.error} role="alert">
+        <span id={`${textareaId}-err`} className={FIELD_ERROR} role="alert">
           {error}
         </span>
       )}
       {!error && hint && (
-        <span id={`${textareaId}-hint`} className={styles.hint}>
+        <span id={`${textareaId}-hint`} className={FIELD_HINT}>
           {hint}
         </span>
       )}

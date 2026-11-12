@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import styles from "./PageHeader.module.css";
 
 export interface PageHeaderProps {
   /** Page title (Display type — 26px/800). */
@@ -17,12 +16,14 @@ export interface PageHeaderProps {
  */
 export function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
   return (
-    <div className={styles.header}>
-      <div className={styles.titleBlock}>
-        <h1 className={styles.title}>{title}</h1>
-        {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
+    <div className="mb-unit flex flex-wrap items-end justify-between gap-half border-b-[1.5px] border-graphite pb-half">
+      <div className="min-w-0">
+        <h1 className="font-chrome text-board-title leading-board-title font-extrabold wdth-title tracking-board-title text-graphite">
+          {title}
+        </h1>
+        {subtitle && <p className="mt-hair max-w-[70ch] text-body text-graphite-soft">{subtitle}</p>}
       </div>
-      {actions && <div className={styles.actions}>{actions}</div>}
+      {actions && <div className="flex flex-wrap items-center gap-hair">{actions}</div>}
     </div>
   );
 }

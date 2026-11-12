@@ -1,6 +1,6 @@
 import { useCallback, useMemo, type ReactNode } from "react";
 import { Toast } from "@base-ui/react/toast";
-import styles from "./Toast.module.css";
+import { cn } from "../../lib/cn";
 
 export type ToastVariant = "success" | "error" | "info";
 
@@ -27,7 +27,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <Toast.Provider>
       {children}
       <Toast.Portal>
-        <Toast.Viewport className={styles.region}>
+        <Toast.Viewport className="fixed right-unit bottom-unit z-toast flex w-[calc(100vw-var(--spacing-double))] max-w-[calc(var(--spacing-unit)*15)] flex-col gap-half">
           <ToastList />
         </Toast.Viewport>
       </Toast.Portal>
@@ -53,6 +53,19 @@ export function useToast(): ToastContextValue {
 }
 
 /** The kind, said as a word in the mark face. Never colour alone. */
+/** The left rule and the mark word carry the kind; the slip stays paper. */
+const RULE: Record<ToastVariant, string> = {
+  success: "border-l-graphite",
+  error: "border-l-rubylith-ink",
+  info: "border-l-process-blue",
+};
+
+const MARK_INK: Record<ToastVariant, string> = {
+  success: "",
+  error: "text-rubylith-ink",
+  info: "text-process-blue",
+};
+
 const MARKS: Record<ToastVariant, string> = {
   success: "Done",
   error: "Failed",
@@ -67,13 +80,25 @@ function ToastList() {
       <Toast.Root
         key={toast.id}
         toast={toast}
-        className={[styles.toast, styles[`toast--${variant}`]].filter(Boolean).join(" ")}
+        className={cn(
+          "flex items-start gap-half border-l-[3px] bg-paper p-half text-graphite shadow-waxed",
+          RULE[variant],
+        )}
       >
-        <span className={styles.toastIcon} aria-hidden="true">
+        <span
+          className={cn(
+            "shrink-0 pt-[2px] font-galley text-mark font-bold tracking-mark text-graphite-soft uppercase",
+            MARK_INK[variant],
+          )}
+          aria-hidden="true"
+        >
           {MARKS[variant] ?? "Note"}
         </span>
-        <Toast.Title className={styles.toastMessage} />
-        <Toast.Close className={styles.toastClose} aria-label="Dismiss">
+        <Toast.Title className="min-w-0 flex-1 text-label leading-[1.45]" />
+        <Toast.Close
+          className="flex shrink-0 cursor-pointer items-center justify-center border-none bg-transparent p-[2px] text-[11px] text-graphite-soft hover:text-graphite"
+          aria-label="Dismiss"
+        >
           ✕
         </Toast.Close>
       </Toast.Root>

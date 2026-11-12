@@ -1,8 +1,7 @@
 import { useRef } from "react";
 import { AlertDialog } from "@base-ui/react/alert-dialog";
 import { Button } from "./Button";
-import modalStyles from "./Modal.module.css";
-import styles from "./ConfirmDialog.module.css";
+import { DIALOG_LOOKS } from "./dialogLooks";
 
 export interface ConfirmDialogProps {
   open: boolean;
@@ -48,16 +47,19 @@ export function ConfirmDialog({
       }}
     >
       <AlertDialog.Portal>
-        <AlertDialog.Backdrop className={modalStyles.backdrop} />
-        <AlertDialog.Popup className={modalStyles.dialog} style={{ width: "400px" }} initialFocus={cancelRef}>
-          <div className={modalStyles.header}>
-            <AlertDialog.Title className={modalStyles.title}>{title}</AlertDialog.Title>
+        <AlertDialog.Backdrop className={DIALOG_LOOKS.backdrop} />
+        <AlertDialog.Popup className={DIALOG_LOOKS.popup} style={{ width: "400px" }} initialFocus={cancelRef}>
+          <div className={DIALOG_LOOKS.header}>
+            <AlertDialog.Title className={DIALOG_LOOKS.title}>{title}</AlertDialog.Title>
           </div>
-          <div className={modalStyles.body}>
-            <AlertDialog.Description render={<p />} className={styles.message}>
+          <div className={DIALOG_LOOKS.body}>
+            <AlertDialog.Description
+              render={<p />}
+              className="mb-unit max-w-[62ch] text-body leading-body text-graphite"
+            >
               {message}
             </AlertDialog.Description>
-            <div className={styles.actions}>
+            <div className="flex justify-end gap-hair">
               <AlertDialog.Close
                 ref={cancelRef}
                 render={

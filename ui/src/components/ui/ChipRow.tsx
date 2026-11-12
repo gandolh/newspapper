@@ -2,7 +2,8 @@ import { Radio } from "@base-ui/react/radio";
 import { RadioGroup } from "@base-ui/react/radio-group";
 import { Toggle } from "@base-ui/react/toggle";
 import { ToggleGroup } from "@base-ui/react/toggle-group";
-import styles from "./ChipRow.module.css";
+import { cn } from "../../lib/cn";
+import { FIELD_LABEL } from "./fieldLooks";
 
 export interface ChipOption {
   value: string;
@@ -67,18 +68,30 @@ export function ChipRow({
   wrap,
   pad = "half",
   ariaLabel,
-  className = "",
+  className,
   id,
 }: ChipRowProps) {
   const rowId = id ?? label?.toLowerCase().replace(/\s+/g, "-");
   const hintId = hint && rowId ? `${rowId}-hint` : undefined;
   const labelId = label && rowId ? `${rowId}-label` : undefined;
 
-  const fieldCls = [styles.field, className].filter(Boolean).join(" ");
-  const rowCls = [styles.row, wrap ? styles["row--wrap"] : ""].filter(Boolean).join(" ");
-  const chipCls = [styles.chip, equal ? styles["chip--equal"] : "", pad === "hair" ? styles["chip--hair"] : ""]
-    .filter(Boolean)
-    .join(" ");
+  const rowCls = cn("flex gap-[4px]", wrap && "flex-wrap");
+  // The scale chip row (DESIGN.md section 5, Fields): equal chips, a 1px tick edge, mono uppercase, zero radius, 4px
+  // gutters. The active chip inverts to solid graphite on board, the same inversion `Button` `primary` makes. The
+  // state variants (data-pressed, data-checked) come after `hover:` in the cascade, so the active chip cannot go
+  // graphite-on-graphite the moment you point at it. A held-out chip takes no pointer, so the active one stays
+  // legible while the row is unusable.
+  const chipCls = cn(
+    "h-unit cursor-pointer appearance-none border border-tick bg-paper px-half font-galley text-field font-medium tracking-field whitespace-nowrap text-graphite-soft uppercase",
+    "hover:border-graphite hover:text-graphite",
+    "data-checked:border-graphite data-checked:bg-graphite data-checked:text-board data-pressed:border-graphite data-pressed:bg-graphite data-pressed:text-board",
+    "disabled:pointer-events-none disabled:cursor-not-allowed data-disabled:pointer-events-none data-disabled:cursor-not-allowed",
+    "data-disabled:not-data-checked:not-data-pressed:border-tick data-disabled:not-data-checked:not-data-pressed:bg-board data-disabled:not-data-checked:not-data-pressed:text-graphite-soft",
+    // A row with many chips in it (the keyword filter) buys its width back from the gutters rather than from the type.
+    pad === "hair" && "px-hair",
+    // "Equal chips": the row is a scale, so every step gets the same width regardless of how long its name is.
+    equal && "min-w-0 flex-[1_1_0] overflow-hidden p-0 text-ellipsis",
+  );
   const groupProps = {
     className: rowCls,
     disabled,
@@ -88,9 +101,9 @@ export function ChipRow({
   } as const;
 
   return (
-    <div className={fieldCls}>
+    <div className={cn("flex flex-col gap-hair", className)}>
       {label && (
-        <span className={styles.label} id={labelId}>
+        <span className={FIELD_LABEL} id={labelId}>
           {label}
         </span>
       )}
@@ -133,7 +146,7 @@ export function ChipRow({
         </ToggleGroup>
       )}
       {hint && (
-        <span id={hintId} className={styles.hint}>
+        <span id={hintId} className="font-galley text-[10px] leading-[1.45] text-graphite-soft">
           {hint}
         </span>
       )}
