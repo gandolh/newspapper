@@ -16,6 +16,10 @@ export default [
     // class list out of order.
     tailwind: { css: "ui/src/styles/index.css", order: true },
     server: ["api/src", "core/src"],
+    // The browser specs and their stubbed API: Playwright, not vitest. The config and the shots spec read the
+    // environment for the port, the browser and the screenshot folder.
+    playwright: ["e2e/**/*.spec.ts"],
+    env: ["**/config.ts", "e2e/playwright.config.ts", "e2e/shots.spec.ts"],
     // Allowed to print: the seed CLI talks to the person running it, the server entry logs its
     // startup, the Chromium test guard prints its skip banner, and the two loggers are where the
     // app's output goes (core's logger, and the error boundary, which has no logger to call).
