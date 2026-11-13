@@ -9,6 +9,8 @@ How each image was made, so the next refresh is a re-run. Re-take an image when 
 | posts.webp | The posts list with three cards, one published | `/newspapper/posts` after the demo posts are rendered and post 2 is published | 1440×700 @2x | made-up posts | 2026-10-09 |
 | slides.gif | The four JPEGs a render wrote for post 1, 1.6 s each | built from `output/<run>/slide-01.jpg` … `slide-04.jpg` with ffmpeg | 540×540 with a 1 px border | made-up posts | 2026-10-09 |
 
+> The chrome was redrawn on 2026-11-13 (the Contact sheet), so every image in the table above shows the old look and is stale until it is retaken. Screenshots of the new screens come from `e2e/shots.spec.ts` (`SHOTS_DIR=<folder> npx playwright test -c e2e/playwright.config.ts shots`), which runs on the stubbed API of `e2e/fixtures.ts` and needs none of the data below.
+
 ## Demo data
 
 The screenshots never use the owner's database or the old runs in `output/`. Those runs date from June 2026, before the Wizard rebuild: they are PNGs from the v3 pipeline, which had a model write the slides, and they name a real politician. So the captures use a throwaway database, filled by hand with made-up posts about "Sample City":

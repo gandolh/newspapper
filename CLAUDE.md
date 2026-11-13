@@ -26,6 +26,8 @@ npm run dev --workspace=api      # API only
 npm test                         # vitest over core/**, api/** and ui/**
 npm run format                   # prettier, whole repo (house style, 120 columns)
 bash corpus/lint.sh              # corpus health check (add --index to regenerate)
+npx playwright test -c e2e/playwright.config.ts   # the browser specs (the Floor), on a stubbed API; see corpus/wiki/commands.md
+node scripts/contrast.mjs        # contrast of the built tokens in both themes
 
 # Single test file
 npx vitest run core/src/path/to/file.test.ts

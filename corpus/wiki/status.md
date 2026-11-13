@@ -1,6 +1,6 @@
 ---
-summary: Dated snapshot (2026-11-07) of Newspapper, per area — the Wizard rebuild (2026-08-27 to 09-01), the 2026-09-27 improvements sweep (fixed 2026-10-02/03), local accounts with Ward as a second way in (2026-10-13), the Reader (2026-10-09, schema v6), the docs site on Docusaurus and the wax fix (2026-10-19), the API on built JavaScript under node (2026-11-04), the galley painting its own text selection (2026-11-05), feed fetches connecting only to the address they checked and text selections in non-photo blue (2026-11-06), the README's editing GIF retaken (2026-11-07), the API in the house code structure (2026-11-11); what is deployed (the accounts) and what may not be (the Reader), the owner's next steps, the green-because-nothing-ran thread, and the known strays.
-updated: 2026-11-11
+summary: Dated snapshot (2026-11-07) of Newspapper, per area — the Wizard rebuild (2026-08-27 to 09-01), the 2026-09-27 improvements sweep (fixed 2026-10-02/03), local accounts with Ward as a second way in (2026-10-13), the Reader (2026-10-09, schema v6), the docs site on Docusaurus and the wax fix (2026-10-19), the API on built JavaScript under node (2026-11-04), the galley painting its own text selection (2026-11-05), feed fetches connecting only to the address they checked and text selections in non-photo blue (2026-11-06), the README's editing GIF retaken (2026-11-07), the API in the house code structure (2026-11-11); what is deployed (the accounts) and what may not be (the Reader), the owner's next steps, the green-because-nothing-ran thread, and the known strays. The Contact sheet redesign (brief 12, built 2026-11-13: a paper band, one working slide over a contact strip, a phone bottom bar, 12px sentence-case labels, the grid under the stage only) awaits a deploy.
+updated: 2026-11-13
 ---
 
 # Status — 2026-11-06
@@ -52,6 +52,17 @@ element shows was settled on 2026-11-06 (non-photo blue) and built the same day.
   (light on a first visit, kept on the device; the slide canvas never follows). Built CSS 61.9 kB to 52.7 kB (11.1 to
   10.4 kB gzipped), JS 206.7 to 217.2 kB gzipped. `check-base-ui` runs strict. Decisions:
   [decisions-ui.md](./decisions-ui.md).
+- **The Contact sheet** (2026-11-13, brief 12; the owner approved the direction on the estate redesign board). The chrome
+  is redrawn inside The Mechanical: tokens first (a deeper board, the `field-edge`, the 4/8 spacing names, a 56px tray), then
+  one commit per screen. The tray and the document bar are one paper band, with a bottom bar of the four places on a phone
+  (below 860px); the editor shows one working slide at an integer scale over a strip of 1:8 thumbnails, with the galley,
+  stage and a self-scrolling right column sized to the viewport; Posts and the Reader are card pages. Labels are 12px
+  sentence-case Archivo, with icons for states; the grid prints under the stage only. The slide canvas, the preview and
+  the render are untouched, and `SourcePane.wax.test.ts` and the preview-parity test pass in both themes. Contrast: 25
+  pairs, text minimum 5.05:1 light and 6.04:1 dark (`scripts/contrast.mjs`). The Floor is a Playwright suite in `e2e/`
+  ([commands.md](./commands.md)). Built CSS 56.7 kB (11.5 kB gzipped), JS 221.1 kB gzipped. Decisions:
+  [decisions-ui.md](./decisions-ui.md); the system: [design.md](./design.md), [design-components.md](./design-components.md).
+  The README's images show the old chrome and are stale; a retake is an owner step. Awaits a deploy (`server`).
 - **The API's structure** (2026-11-11, brief 11). `api/src` is in the estate's
   code structure: `server.ts` listens, `app.ts` builds, `config.ts` alone reads
   the environment, the plugins are `fastify-plugin` wrapped, and each feature is a

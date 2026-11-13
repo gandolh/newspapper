@@ -1,6 +1,6 @@
 ---
 summary: What each workspace depends on and why that package was chosen over the alternatives.
-updated: 2026-11-11
+updated: 2026-11-13
 ---
 
 # Dependencies
@@ -14,7 +14,8 @@ Per-workspace. Versions are locked in `package-lock.json`.
 | `better-sqlite3` | Synchronous SQLite for posts, sources, articles, feed items, settings. |
 | `dotenv` | Loads `.env` at startup. |
 | `fflate` | Pure-JS zip for `zipRun()` (no native binary needed). |
-| `playwright` | Headless Chromium for 1080×1080 slide screenshots. |
+| `playwright` | Headless Chromium for 1080×1080 slide screenshots. Pinned to `1.60.0` in `core`. |
+| `@playwright/test` | The browser specs in `e2e/` (dev dependency, root, `1.63.0` since 2026-11-13): the Floor checks and the screenshot run. It brings its own `playwright` 1.63.0 beside core's 1.60.0; both use the cached Chromium 1243. |
 | `rss-parser` | RSS/Atom feed parsing (normalized items, zero-config). |
 | `sharp` | Image normalization for uploads (auto-orient, downscale to 2160px, strip EXIF) and the optimization pass on publish. Pinned to `0.35.4`. Added 2026-08-27, when [the v2-era ban was lifted](./decisions.md#sharp-is-allowed-for-images-only) — that rule existed because the project had no images to process, and images are now a first-class component. The rest of the forbidden list (canvas, cheerio, Handlebars, inquirer, ora, axios, Satori) still stands. |
 

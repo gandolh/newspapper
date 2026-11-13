@@ -1,9 +1,15 @@
 ---
 summary: The Mechanical — the app chrome as shipped: tokens, the mark set, the tray and its two-course narrow layout, the health probe's two states, the two authored animations, why it shares nothing with the slide themes, and the states a once-per-element contrast sweep cannot see.
-updated: 2026-11-06
+updated: 2026-11-13
 ---
 
 # The app chrome — The Mechanical
+
+**Since 2026-11-13 it is drawn as the Contact sheet** (brief 12): a paper band (the tray at 56px and, under it, each page's
+document bar through `DocBar`), a bottom bar of the four places below 860px, cards on a deeper board, the grid under the
+stage only, 12px sentence-case labels with stroke icons (`ui/Icon.tsx`) where a dash stood for state. The sections
+below describe the Mechanical's construction; where they name the 78px tray, the 9px capitals or the two-course tray,
+[design-components.md](./design-components.md) and [decisions-ui.md](./decisions-ui.md) hold the current line.
 
 A paste-up board, chosen by the owner on 2026-08-27 after two direction rounds
 and built in the chrome build (2026-08-31). It shares no token, colour or typeface with the

@@ -52,12 +52,12 @@ untouched and gains two sibling palettes. The **app chrome** — the workstation
 the operator sits in — is replaced outright, because it was designed around a
 four-step pipeline that no longer exists, and its signature components (the
 stepper, the wizard shell, the builder toolbar) have nothing left to describe.
-Rejected: polishing the incumbent chrome, which would spend effort making a
-wizard look better at being a wizard.
+Rejected: polishing the incumbent chrome, which would only make a wizard better at being a wizard.
 
 **The world is The Mechanical** — a paste-up board: a 26px non-photo blue grid
-under everything, the slide inside crop marks and register targets, the markup
-waxed on as a galley, the inspector on a tissue overlay that hinges off the
+under everything (_changed 2026-11-13: under the stage only, see
+[decisions-ui.md](./decisions-ui.md#the-contact-sheet-reopens-four-lines-of-the-mechanical)_), the slide inside crop
+marks and register targets, the markup waxed on as a galley, the inspector on a tissue overlay that hinges off the
 canvas. Zero radius anywhere; state is a **mark** (rubylith, wax, stamp, tissue
 corner, hatch), never a coloured badge. Chosen 2026-08-27 from two rounds of
 fully-drawn editor screens, over The Forme (letterpress lock-up), The Wire Desk

@@ -1,6 +1,6 @@
 ---
-summary: The Mechanical, §5–§9 — the component vocabulary (board, the two-course tray, the galley and its wax ink, stage, tissue, marks), the two authored animations, browser surfaces (text selections in non-photo blue since 2026-11-06), the do/don't list, and what the shipped chrome does not yet carry. §1–§4 and the tokens are in design.md.
-updated: 2026-11-06
+summary: The Mechanical as the Contact sheet shipped it, §5–§9 — the component vocabulary (board, the paper band with its tray and bottom bar, the galley and its wax ink, stage and strip, the palette, the inspector sheet, marks, the post cards and the Reader), the two authored animations, browser surfaces (text selections in non-photo blue since 2026-11-06), the do/don't list, and what the shipped chrome does not yet carry. §1–§4 and the tokens are in design.md.
+updated: 2026-11-13
 ---
 
 # Design System: Newspapper — components, motion, rules
@@ -15,33 +15,35 @@ What was actually built against this spec is [chrome.md](./chrome.md).
 ## 5. Components
 
 ### The Board
-The app ground. `#fbfbf9` under a 26px non-photo blue lattice drawn as two `repeating-linear-gradient`s at 40% alpha. Every region, slip, thumbnail and galley aligns to that pitch at every breakpoint.
+The app ground, `#e9e8e3`, plain. Every zone sits on it as a card (paper, hairline, waxed shadow). The 26px non-photo blue lattice prints on the **stage only** (32% in light, 14% in dark); Posts and the Reader sit on the plain, deeper board, as no paste-up happens there. Pages cap at 1440px with a 28px gutter (16px on a phone).
 
-### The Tray (component palette / nav)
-A full-width strip at the top of the board, 78px, closed by a 1.5px graphite rule. Compartments divided by 1px `rule`, each holding one component as a **showing** plus a 8.5px mono caption. An unavailable compartment takes a 45° hatch (`repeating-linear-gradient(45deg, transparent 0 5px, rgba(43,43,43,.07) 5px 10px)`) — the same "held out" idea as rubylith, at tray scale. The comps also dropped it to 42% opacity; that puts a 9px caption at ~3.1:1, so the ink stays full and the hatch carries the state on its own.
+### The Band (tray and document bar)
+The tray and the document bar are **one paper band** with the waxed shadow. The tray is 56px: the wordmark and "paste-up board", the four places (an icon and its label each; the current one on board ground with a 2px graphite rule under it), then the session (account name, Sign out) and the API state (a pulse icon and `API up` or `API down` in grease). The document bar under it holds the page's title (26px, `wdth` 125, set on two lines before it is cut), its states, and its actions, with at most one solid action: Render in the editor, New post on Posts, the chosen pane where a switch is open. A page puts its bar there with `DocBar`; the tray stays mounted across navigation.
 
-**A compartment's width is a share, not a multiple.** The strip is 78px (3 × 26) at every width. Below 640px, where one course no longer holds the brand block, four compartments and the session cell, it divides into **two courses** — one unit of head carrying the wordmark and the session, two units of compartments under it — and each compartment takes an equal share of the course, floored at 2 × 26, below which the course scrolls. Every route stays reachable down to 240px. Fixing the compartment width at a grid multiple is what made the tray unusable on a phone from 2026-08-31 to 2026-09-01: see [chrome.md](./chrome.md), *grid-conformance is not fitting*.
+**On a phone (below 860px)** the tray thins to a 48px bar (wordmark, API state, Sign out) and the four places move to a **64px bottom bar** with the same labels, plus the gesture inset. The editor's status marks share a row with the slide theme select, Save and Render share a 48px row, and every control is 48px or taller (`--target`). The bottom bar is a decision of 2026-11-13: a labelled bar is what the genre uses, and a place is never reached by recognising a shape alone.
+
+### Held out
+One mark, three scales: the rubylith wash over a surface, and at control scale the **135° hatch** (7px clear, 1px `hairline`) with a dashed `graphite-tint` edge: a disabled button, a palette chip with nowhere to go, Export ZIP and Publish before a render, a disabled source.
 
 ### The Galley (source pane)
-A **waxed** paper strip, 372px, top-aligned, with a graphite tab carrying the filename. The bottom edge is torn, not cut — a clip-path deckle that says the copy continues. Syntax colour follows **casing**: lowercase document tags in `graphite-soft`, capitalised components in graphite 700, prop values in `process-blue`. (The comps set the document tags in `#9d9d97`, which is 2.6:1 on paper — recede by weight and case, not by dropping below the ink floor.) The selected element is waxed (`#f5d97a`, bled 0.35em, about 4px, past the text on both sides, laid once per run and under the glyphs so it covers none of them); a lint-flagged line takes a 16% rubylith wash. (The comps said 20px. In a galley 7.5px to the character that is nearly three characters of yellow either side, which reads as selecting the neighbouring tokens; the wax-run fix (2026-10-19) settled on the shipped 0.35em.)
+A paper card, top-aligned, with a graphite tab (44px, `post.wzd` in mono) and the state beside it (a blue check and `Sets clean`, or the errors in `grease` with an alert icon), and **Formatted** as a small outlined button. The bottom edge is a 10px diagonal hatch that says the copy continues. The galley is 13px mono on a 24px line; the textarea and its highlight layer share every metric, and the textarea shows an inset focus ring. Syntax colour follows **casing**: lowercase document tags in `graphite-soft`, capitalised components in graphite 700, prop values in `process-blue`. (The comps set the document tags in `#9d9d97`, which is 2.6:1 on paper — recede by weight and case, not by dropping below the ink floor.) The selected element is waxed (`#f5d97a`, bled 0.35em, about 4px, past the text on both sides, laid once per run and under the glyphs so it covers none of them); a lint-flagged line takes a 16% rubylith wash. (The comps said 20px. In a galley 7.5px to the character that is nearly three characters of yellow either side, which reads as selecting the neighbouring tokens; the wax-run fix (2026-10-19) settled on the shipped 0.35em.)
 
 **On wax the galley writes in `wax-ink`.** Wax is a surface, and a surface has its own ink: every token on the selected run takes `#3d3416` (8.87:1 on wax), because the paper inks do not hold 4.5:1 on it — `graphite-soft` measures 3.88:1 and `process-blue` 4.43:1. The casing distinction survives the highlight in weight and slope, not in hue: components stay 700, comments stay italic. Hue pools, and the one hue that carried meaning — `process-blue` on prop values — pools for the one element the tissue is displaying in full while it is selected. The token colours are written at zero specificity (`:where()`) so the wax ink wins on merit rather than on which CSS module the bundler emitted last. A text selection is not wax (2026-11-06): it is `non-photo-select` (`#99c5ed`) under graphite (7.8:1), painted by the galley rather than by the textarea, exactly the selected characters wide and the text's height, no bleed. Inside the selected element it lies over the wax, so it shows where it starts and ends; components stay 700 and comments italic on it too ([chrome.md](./chrome.md)).
 
-### The Stage (canvas)
-The 1080² slide inside 30px of clearance, with **crop marks** — 1px L-ticks at each corner — and a **register target** (a 22px crosshair inside a circle) at each of the four corners. A dimension line across the top states the real size. The slide itself is warm-industrial and untouched by this system.
+### The Stage and the Strip
+The stage is one card: a 44px head (Preview, the scale `1 : 4` in mono, Add slide), the current slide's name with the **slide tools** as one segmented control (move up, move down, add after, delete), the **working slide**, and the **contact strip**.
 
-The preview scales by **integer factors only** (½, ¼). A fractionally resampled preview is not a preview.
+The working slide takes the largest integer scale its frame holds (½, ¼, ⅛; a fractionally resampled preview is not a preview), centred, with 1px graphite crop marks, a `1080 × 1080` leader over it and register targets in the stage's corners (the targets go below 1280px). The artwork is untouched. The slide containing the selection is the working slide; with none selected it is the one last picked on the strip, and only the working slide takes drop targets.
 
-### The Strip (slide thumbnails)
-52px squares at one **fixed scale on a shared baseline**, ordinals bottom-right in 8px mono. The current slide takes a 2px graphite outline at 2px offset. A held-out slide takes the rubylith wash. Two slides can be laid over each other in a **registered overlay** to check they read as siblings.
+The strip is the other half of the direction: every slide at **1:8**, 135px, in its own small crop marks, with a caption (`Slide 2`). The current slide has a 2px graphite frame and a filled caption tab; clicking a thumbnail selects its Slide node through the ordinary click-to-select. From a fourth slide it scrolls sideways (8px gaps and a 24px fade from 1100 to 1279). Thumbnails reuse `SlideCanvas` and take no gestures and no drop zones.
 
-### The Tissue (inspector)
-282px, hinged from the top with a dashed hinge line, `rgba(252,250,242,.70)` over the board so the grid reads through. It carries: the selected node's name at Board Title size, its path in 9.5px mono, the prop fields, and the grease-pencil notes.
+### The Right Column (palette and inspector)
+From 1100px the galley (400px; 560px from 1400), the stage and the right column (300px) are cards sized to the viewport, so the page never scrolls; the right column scrolls alone, with a 16px fade at its foot and a thin `tick` thumb. Under 1100 the palette and inspector drop beneath the stage. Splitters sit in the 24px gaps and show a graphite rule when hovered or focused; the widths are the operator's once dragged.
 
-**It lifts.** Focus the source and the tissue hinges up off the board, uncovering the whole stage; select a node and it drops back with the notes already on it.
+The **palette** is a card: a hint, then four collapsible groups (Content open; Structure, Accents and Generated collapsed to their name and a row of working words). The **inspector** is a sheet, `rgba(251,249,241,.9)` with a 1px `tissue-edge` and the hinged shadow, headed by `Post` (Title as a two-line field, Description, Keywords, Date, Caption, Hashtags) and `Selection` after a dashed rule: the selected node's name at Head size, its path, the prop fields and the grease-pencil notes. Selecting a node still hinges the sheet down (a rotation about its top edge); the Floor's reduced-motion path is the end state.
 
 ### Fields (constrained props)
-A **scale chip row** — equal chips, 1px `tick` border, 9.5px mono, zero radius, 4px gutters. The active chip inverts to solid graphite on board. A destructive or masking value (`Hold out`) inverts to solid rubylith instead. There is **no raw CSS field** and no "advanced" section; adding one is a regression.
+A field is paper with a 1px `field-edge` ring, Archivo 500 at 14px, 38px tall (48 on a phone), with its 12px label above. A **scale chip row** has equal chips with the same ring, 13px bold, 6px gutters; the active chip inverts to solid graphite on board. A masking value (`Hold out`) has no scale that uses it, so there is no chip for it. There is **no raw CSS field** and no "advanced" section; adding one is a regression.
 
 ### Marks (the state system)
 State is carried by mark, never by a coloured badge:
@@ -50,36 +52,28 @@ State is carried by mark, never by a coloured badge:
 |---|---|
 | Selected (in source) | Wax highlight, bled past the text |
 | Selected (node) | Lifts off the board with its waxed shadow |
-| Draft | Tissue corner folded over the board's top-right |
+| Draft | A pencil icon and the word, and the dog-ear over the card's top-right corner |
 | Published | Rubylith rubber stamp, 2px `rubylith` outline, `rubylith-ink` word, rotated -7° |
-| Held out / disabled / won't compile | Rubylith wash, or 45° hatch at tray scale |
+| Held out / disabled / won't compile | Rubylith wash, or the 135° hatch at control scale |
 | Finding | Grease-pencil note on the tissue **plus a leader line** to the node |
+| Not rendered | A dashed-box icon and the word |
 | Render frame | Crop marks |
 | Alignment | Register targets |
 
-**The API probe is the one mark that reports its own absence.** Two states, not
+**The API probe has two states, not
 three — a check in flight renders as *up*, because a state that resolves in
 milliseconds and cannot be acted on does not earn a form here. Above 640px it is
-a tick and a word in the tray's session cell. **Below 640px it renders nothing
-when the API is up, and a tick with `API DOWN` when it is not.**
-
-That is a deliberate exception to *state is carried by mark*, and it exists
-because the mark has no room to carry anything else: the tick is 6 × 1px, so
-hatching it, filling it or changing its form is invisible, and hiding the word —
-which is what shipped from 2026-08-31 to 2026-09-01 — left hue as the only signal. The
-word is the state. Spending width on it only when there is something to say is
-the way to keep it at the width where it would otherwise be dropped.
-
-The cost, accepted: *up* becomes absence, so a healthy API and a crashed probe
-look alike. In a single-account loopback tool where a dead API means every
-action is already erroring, that is a thin loss against losing the signal
-entirely.
+a pulse icon and a word in the session cell, on the phone's top bar too (the word is the state; the icon is
+process-blue when up and grease when down).
 
 ### Notes and findings
-A finding is a grease-pencil block on the tissue: a 9px mono heading, the note in 10px mono `grease`, and a **2px leader line** running from the tissue's edge to the node it concerns, tipped with a small arrowhead. The note states the measurement — "Heading runs 3 characters past the measure at xl" — not a severity word.
+A finding is a grease-pencil block on the tissue: a 12px label, the note in 13px `grease`, and a **2px leader line** running from the tissue's edge to the node it concerns, tipped with a small arrowhead. The note states the measurement — "Heading runs 3 characters past the measure at xl" — not a severity word.
 
-### The Flat File (`/posts`)
-Boards in a grid, each a waxed card: crop marks around the slide thumbnail, then **one rigid label block, identical on every board** — title (2 lines, clamped), then two mono rows of theme / slide count and date / state. Drafts keep their tissue corner; published boards carry the stamp; a board that will not compile wears the same rubylith the editor uses. No board is styled differently from another; the marks do all the differentiating.
+### The Post Cards (`/posts`)
+The band carries the title, the subtitle and **New post**, the one solid action (full width only under 600px). Status and Search sit on their own card with visible labels. Each post is its own card: the crop-marked 104px thumbnail beside the title (16px, 800, `wdth` 112, never clamped), the state marks (Draft with a pencil, or the Published stamp; Not rendered with a dashed box, or `N slides`) and the update date, then a hairline and the actions: Open, Render, Export ZIP and Publish (both hatched until rendered), and **Delete**, the only red, right-aligned on its own row (half width and 48px on a phone). Drafts keep the dog-ear. A list with no post says `No posts yet` or `Nothing matches` on a card of its own.
+
+### The Reader
+The band carries the title and **Refresh** on one row at every width. Feeds (264px), items (360px) and the reading pane are three cards, each scrolling on its own. The current feed is a tinted row with a 3px graphite bar; categories are 12px labels with their unread counts. Item titles are whole at about a 66px pitch (8 rows at 1280x800, 7 at 390x844, 6 at 360x800); in All an unread row carries a 6px graphite square and a read row drops to medium weight. Under 1100px one pane shows at a time, with a labelled `Feeds` back control and Unread / All beside it. Search, Library, Sources, the add-source dialog and the key legend sit in the same cards with the same tokens.
 
 ### Named Rules
 
@@ -87,7 +81,7 @@ Boards in a grid, each a waxed card: crop marks around the slide thumbnail, then
 
 **The Measured Note Rule.** A finding pins to its node on a leader line and states the number. "Warning" is not a note.
 
-**The Fixed Scale Rule.** Every slide thumbnail in a set renders at one scale on a shared baseline, so the strip and the flat file are true comparisons.
+**The Fixed Scale Rule.** Every thumbnail in the strip renders at 1:8 on a shared baseline, and the working slide at an integer scale, so a slide is never resampled.
 
 **The One Grid Rule.** 26px, everywhere, at every breakpoint. Elements snap to it; the grid never carries information. **Corollary — grid-conformance is not fitting.** A multiple of 26 is a legal size, never a proof that the size fits: a row of them can still be wider than the viewport. Anything sized in units along an axis that holds several of them is measured in a browser at the narrowest width it claims, or it is not measured.
 

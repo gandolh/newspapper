@@ -1,6 +1,6 @@
 ---
 summary: Every npm script — what each one actually covers, in what order, and what it does not cover — plus ports, production mode, and the Playwright install step.
-updated: 2026-11-11
+updated: 2026-11-13
 ---
 
 # Running the app
@@ -16,7 +16,7 @@ HTTP API.
 | `npm run dev` | API (3001) + UI dev server (4321) in parallel, via `concurrently --kill-others-on-fail` |
 | `npm run check` | `typecheck` (core and api with their tests, then ui) → `lint` → `format:check` → `check:conventions` (knip, dependency-cruiser, the house Base UI and structure checkers, both strict) → `CI=1 vitest run`. Run before every hand-back |
 | `npm run check:fast` | `typecheck`, then ESLint on the files changed against `HEAD` and the untracked ones (`scripts/check-fast.mjs`). No tests. About 11 to 15 s warm |
-| `npm run typecheck` | `tsc -p core --noEmit`, `tsc -p api --noEmit`, then `tsc --noEmit` in `ui`; incremental, buildinfo under `node_modules/.tmp/` |
+| `npm run typecheck` | `tsc -p core --noEmit`, `tsc -p api --noEmit`, `tsc -p e2e --noEmit`, then `tsc --noEmit` in `ui`; incremental, buildinfo under `node_modules/.tmp/` |
 | `npm run build` | `format:check` → `tsc` in `core` → `tsc` in `api` → `tsc --noEmit` in `ui` → `vite build`. The `core` and `api` steps typecheck and, since 2026-11-04, also emit `dist/` |
 | `npm test` | `vitest run` over `core/**`, `api/**` **and** `ui/**` `*.test.ts` |
 | `npm run lint` | `eslint .`, the house config: typed rules through the workspace tsconfigs, tests included |
@@ -28,6 +28,8 @@ HTTP API.
 | `npm run seed --workspace=api` | Create the local account named by `SEED_USERNAME` / `SEED_PASSWORD` (and `SEED_ROLE`, default `editor`) if it does not exist. Never resets one that does. Set them in the shell, not a file. |
 
 Single test file: `npx vitest run core/src/path/to/file.test.ts`.
+
+**The browser specs** (`e2e/`, Playwright 1.63.0, since 2026-11-13) are not in `npm run check`: `npx playwright test -c e2e/playwright.config.ts` starts the Vite dev server on `E2E_PORT` (4781) and runs `floor.spec.ts` (focus ring on every Tab stop, no running motion under reduced motion, no sideways overflow at 390 and 360, the Light / Dark / System switch) on every screen. They need no API and no account: `e2e/fixtures.ts` stubs `/api/*` with made-up Sample City data and aborts the Reader's refresh and live search. At most two workers; `E2E_CHROMIUM` names another browser. `SHOTS_DIR=<folder> npx playwright test -c e2e/playwright.config.ts shots` writes a PNG per screen, theme and width. `node scripts/contrast.mjs` measures 25 colour pairs over the built tokens in both themes and exits 1 on a failure.
 
 **Each of those coverages is deliberate and was earned.** The UI is typechecked
 rather than merely bundled; `vitest`'s `include` names `ui/` explicitly; the
