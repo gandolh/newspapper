@@ -69,7 +69,8 @@ export function ItemList(props: ItemListProps) {
       value={props.scope}
       onValueChange={(v) => props.onScopeChange(v as ReaderScope)}
       ariaLabel="Show"
-      pad="hair"
+      equal
+      className="w-[146px] flex-none"
     />
   );
 
