@@ -208,7 +208,7 @@ function PostsPage() {
           </p>
         </div>
         <Button
-          className="self-center max-[599px]:h-(--target) max-[599px]:self-stretch"
+          className="self-center max-[599px]:h-(--target) max-[599px]:self-stretch min-[600px]:max-[859px]:self-end"
           onClick={() => window.location.assign(withBase("/"))}
         >
           <Icon name="plus" />

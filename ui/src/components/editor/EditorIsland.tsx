@@ -606,7 +606,12 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
           />
         </div>
         <div className="flex items-center gap-[10px] self-end phone:self-stretch phone:*:flex-1">
-          <Button variant="secondary" onClick={() => void save()} disabled={!dirty || saveState === "saving"}>
+          <Button
+            variant="secondary"
+            className="disabled:border-solid disabled:border-field-edge disabled:bg-none disabled:text-graphite-soft"
+            onClick={() => void save()}
+            disabled={!dirty || saveState === "saving"}
+          >
             Save
           </Button>
           <Button loading={rendering} disabled={!postId || errorCount > 0 || dirty} onClick={() => void render()}>
@@ -650,8 +655,8 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
             } as CSSProperties
           }
         >
-          <div className="min-h-0 min-w-0 max-[1099px]:h-[620px]">{sourcePane}</div>
-          <div className="min-h-0 min-w-0 max-[1099px]:h-[620px]">{previewPane}</div>
+          <div className="min-h-0 min-w-0 max-[1099px]:h-[640px]">{sourcePane}</div>
+          <div className="min-h-0 min-w-0 max-[1099px]:h-[640px]">{previewPane}</div>
           <aside
             aria-label="Palette and inspector"
             className="-mr-tight min-h-0 [scrollbar-width:thin] overflow-x-hidden overflow-y-auto [mask-image:linear-gradient(to_bottom,var(--color-graphite)_calc(100%-16px),transparent)] pr-tight pb-card max-[1099px]:col-span-full max-[1099px]:mr-0 max-[1099px]:overflow-visible max-[1099px]:[mask-image:none] max-[1099px]:pr-0 max-[1099px]:pb-0"

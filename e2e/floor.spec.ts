@@ -28,6 +28,7 @@ test.describe("focus ring", () => {
       await open(page, screen);
       const bare: string[] = [];
       let stops = 0;
+      let wrapped = false;
       for (let i = 0; i < 80; i += 1) {
         await page.keyboard.press("Tab");
         const stop = await page.evaluate(() => {
@@ -39,10 +40,15 @@ test.describe("focus ring", () => {
           const label = `${el.tagName.toLowerCase()} ${el.getAttribute("aria-label") ?? el.textContent?.trim().slice(0, 24) ?? ""}`;
           return { ring, label };
         });
-        if (stop === null) break;
+        if (stop === null) {
+          wrapped = true;
+          break;
+        }
         stops += 1;
         if (!stop.ring) bare.push(stop.label);
       }
+      // The loop ended because focus left the page, not because the cap was reached.
+      expect(wrapped).toBe(true);
       expect(stops).toBeGreaterThan(1);
       expect(bare).toEqual([]);
     });
@@ -74,8 +80,8 @@ test.describe("reduced motion", () => {
   }
 });
 
-test.describe("phone widths", () => {
-  for (const width of [390, 360]) {
+test.describe("narrow widths", () => {
+  for (const width of [390, 360, 768, 1024, 1100]) {
     for (const screen of SCREENS) {
       test(`${screen.name} at ${width}: no sideways overflow`, async ({ page }) => {
         await page.setViewportSize({ width, height: 800 });
@@ -88,6 +94,19 @@ test.describe("phone widths", () => {
       });
     }
   }
+});
+
+test.describe("the palette", () => {
+  test("a word in a collapsed group adds its component to the galley", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await stubApi(page);
+    await page.goto("/?post=1");
+    await settle(page);
+    const galley = page.getByRole("textbox", { name: "Wizard markup" });
+    const before = (await galley.inputValue()).split("<Kicker>").length;
+    await page.getByRole("button", { name: "Kicker", exact: true }).click();
+    await expect.poll(async () => (await galley.inputValue()).split("<Kicker>").length).toBe(before + 1);
+  });
 });
 
 test.describe("the Light / Dark / System switch", () => {

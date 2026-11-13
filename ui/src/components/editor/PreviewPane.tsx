@@ -78,7 +78,7 @@ function startsWith(path: WzdPath, prefix: WzdPath): boolean {
 }
 
 const TOOL =
-  "grid size-[34px] cursor-pointer place-items-center border-0 bg-transparent p-0 text-graphite phone:size-(--target) disabled:cursor-not-allowed disabled:text-graphite-soft disabled:bg-(image:--hatch) active:enabled:bg-board";
+  "grid size-[34px] cursor-pointer place-items-center border-0 bg-transparent p-0 text-graphite phone:size-(--target) disabled:cursor-not-allowed disabled:text-graphite-soft active:enabled:bg-board";
 
 export function PreviewPane(props: PreviewPaneProps) {
   const {
@@ -259,7 +259,7 @@ export function PreviewPane(props: PreviewPaneProps) {
 
           <div
             ref={frameBoxRef}
-            className="relative flex min-h-0 flex-1 flex-col items-center justify-center gap-tight overflow-auto pt-[10px] pb-[22px] phone:min-h-[306px] phone:pt-[4px] phone:pb-tight"
+            className="relative flex min-h-0 flex-1 flex-col items-center justify-center gap-tight overflow-auto py-[4px] phone:min-h-[306px]"
           >
             <RegisterTargets />
             <div

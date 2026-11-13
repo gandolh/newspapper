@@ -45,12 +45,12 @@ function parse(value) {
   throw new Error(`cannot read ${value}`);
 }
 
-/** The solid colour a token paints over the board. */
-function solid(map, name) {
+/** The solid colour a token paints over a base token (the board unless the pair says another). */
+function solid(map, name, base = "board") {
   const { rgb, a } = parse(map[name]);
   if (a === 1) return rgb;
-  const board = parse(map["board"]).rgb;
-  return rgb.map((c, i) => Math.round(c * a + board[i] * (1 - a)));
+  const ground = solid(map, base);
+  return rgb.map((c, i) => Math.round(c * a + ground[i] * (1 - a)));
 }
 
 function luminance([r, g, b]) {
@@ -66,7 +66,7 @@ function ratio(fg, bg) {
   return (a + 0.05) / (b + 0.05);
 }
 
-// [what it is, foreground token, background token, the ratio it needs]
+// [what it is, foreground token, background token, the ratio it needs, the token a translucent background sits on]
 const PAIRS = [
   ["graphite on paper (galley, body)", "graphite", "paper", 4.5],
   ["graphite on board (leader, slide name)", "graphite", "board", 4.5],
@@ -89,6 +89,23 @@ const PAIRS = [
   ["focus ring (process-blue) on paper", "process-blue", "paper", 3],
   ["focus ring (process-blue) on tissue", "process-blue", "tissue", 3],
   ["graphite-tint on paper (hatch, dashed edges; UI part)", "graphite-tint", "paper", 3],
+  ["graphite on the lint error wash (rubylith-wash-soft over paper)", "graphite", "rubylith-wash-soft", 4.5, "paper"],
+  [
+    "graphite-soft on the lint error wash (punctuation in an errored range)",
+    "graphite-soft",
+    "rubylith-wash-soft",
+    4.5,
+    "paper",
+  ],
+  [
+    "process-blue on the lint error wash (a prop value in an errored range)",
+    "process-blue",
+    "rubylith-wash-soft",
+    4.5,
+    "paper",
+  ],
+  ["graphite on non-photo-select (a text selection)", "graphite", "non-photo-select", 4.5, "paper"],
+  ["rubylith on board (the film as a border and the stamp's edge: a UI part, never a letter)", "rubylith", "board", 3],
   ["tissue-edge on board (the inspector's edge; needs 1.3)", "tissue-edge", "board", 1.3],
   ["paper on board (a card against the page; needs 1.09 or an edge)", "paper", "board", 1.09],
   ["tissue on board (needs 1.09 or an edge)", "tissue", "board", 1.09],
@@ -96,9 +113,9 @@ const PAIRS = [
 ];
 
 let failures = 0;
-const rows = PAIRS.map(([label, fg, bg, need]) => {
-  const l = ratio(solid(light, fg), solid(light, bg));
-  const d = ratio(solid(dark, fg), solid(dark, bg));
+const rows = PAIRS.map(([label, fg, bg, need, base]) => {
+  const l = ratio(solid(light, fg), solid(light, bg, base));
+  const d = ratio(solid(dark, fg), solid(dark, bg, base));
   const ok = l >= need && d >= need;
   if (!ok) failures += 1;
   console.log(`${ok ? "ok  " : "FAIL"} ${l.toFixed(2).padStart(5)} ${d.toFixed(2).padStart(5)}  >= ${need}  ${label}`);

@@ -190,8 +190,8 @@ legibility from marks and alignment, not from hue.
 - **Process Blue** (`#1a5c9e`): prop values, links, the check and pulse icons, and the focus ring (6.84:1 on paper). (`#1d63a8`): prop values, hashtags, links — the things the markup itself names. 6.3:1 on paper.
 
 ### Marks
-- **Non-Photo Blue** (`#7fb6e8` at 32%): the 26px grid, on the stage only. Since 2026-11-06 also, as **Non-Photo Select** (`#99c5ed`, the same blue at 80% over paper, solid), the ground of a text selection, with graphite on it (7.8:1). Nothing else.
-- **Rubylith** (`#e8452e`): the masking film. Held-out slides, disabled sorts, the published stamp. Applied as a 34% wash over the thing it masks, or as a 2px outline for the stamp. **The film is 3.81:1 on board and cannot carry a word** — not as ink (3.81:1), not inverted with graphite on it (3.59:1), not inverted with paper on it (3.95:1). It is a wash and a border, never a letter.
+- **Non-Photo Blue** (`#7fb6e8` at 32%): the 26px grid, on the stage only. Since 2026-11-06 also, as **Non-Photo Select** (`#99c5ed`, the same blue at 80% over paper, solid), the ground of a text selection, with graphite on it (8.66:1 light, 6.10:1 dark). Nothing else.
+- **Rubylith** (`#e8452e`): the masking film. Held-out slides, disabled sorts, the published stamp. Applied as a 34% wash over the thing it masks, or as a 2px outline for the stamp. **The film is 3.22:1 on the board and cannot carry a word** — not as ink (3.22:1 light), not inverted with graphite on it (3.99:1), not inverted with paper on it (3.95:1). It is a wash and a border, never a letter.
 - **Rubylith Ink** (`#b52f1d`): the darker draw of the same ink, and the only rubylith that may be text — 5.05:1 on board, 6.20:1 on paper. Every rubylith *word* is set in it: the stamp, an error line, a destructive control. (It is the same value as `grease`; they are one ink used for two jobs, and both are named so a later change to one does not silently move the other.)
 - **Grease** (`#b52f1d`): the one red of the chrome: Delete, error lines and alert icons, and the leader line pointing at what a note is about.
 - **Wax** (`#f5d97a`) with **Wax Ink** (`#3d3416`): the current selection in the galley. Wax is the one warm note in the system and it means exactly one thing.
@@ -221,8 +221,9 @@ below were re-tuned on 2026-11-13 with the Contact sheet.
 | process-blue | `#82b5e8` | hairline, rule, tick | `#3a3b41`, `#4a4b52`, `#5d5e64` |
 | tissue-edge | `#66676e` | field-edge | `#7a7b82` |
 
-Measured by `scripts/contrast.mjs` on the built tokens (25 pairs, 4.5:1 for text, 3:1 for UI parts): the text minimum is
-5.05:1 in light and 6.04:1 in dark; UI parts and the focus ring 3.13:1 and 3.45:1. Paper on board is 1.23 and 1.20, so a
+Measured by `scripts/contrast.mjs` on the built tokens (30 pairs, 4.5:1 for text, 3:1 for UI parts, the lint error wash and the selection included; the lint wash pair that
+fell short before, graphite-soft on it at 4.36:1, now measures 5.63:1): the text minimum is
+5.05:1 in light and 5.30:1 in dark; UI parts and the focus ring 3.13:1 and 3.45:1. Paper on board is 1.23 and 1.20, so a
 card's edge and its shadow do the separating. The slide canvas keeps `slide-paper` `#ffffff` and `slide-ink` `#2b2b2b`
 in both themes.
 

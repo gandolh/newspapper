@@ -58,8 +58,8 @@ element shows was settled on 2026-11-06 (non-photo blue) and built the same day.
   (below 860px); the editor shows one working slide at an integer scale over a strip of 1:8 thumbnails, with the galley,
   stage and a self-scrolling right column sized to the viewport; Posts and the Reader are card pages. Labels are 12px
   sentence-case Archivo, with icons for states; the grid prints under the stage only. The slide canvas, the preview and
-  the render are untouched, and `SourcePane.wax.test.ts` and the preview-parity test pass in both themes. Contrast: 25
-  pairs, text minimum 5.05:1 light and 6.04:1 dark (`scripts/contrast.mjs`). The Floor is a Playwright suite in `e2e/`
+  the render are untouched, and `SourcePane.wax.test.ts` and the preview-parity test pass in both themes. Contrast: 30
+  pairs, text minimum 5.05:1 light and 5.30:1 dark (`scripts/contrast.mjs`). The Floor is a Playwright suite in `e2e/`
   ([commands.md](./commands.md)). Built CSS 56.7 kB (11.5 kB gzipped), JS 221.1 kB gzipped. Decisions:
   [decisions-ui.md](./decisions-ui.md); the system: [design.md](./design.md), [design-components.md](./design-components.md).
   The README's images show the old chrome and are stale; a retake is an owner step. Awaits a deploy (`server`).
