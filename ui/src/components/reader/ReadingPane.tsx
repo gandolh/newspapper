@@ -8,7 +8,7 @@
  */
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { FeedItem, FeedItemSummary } from "@/lib/types";
-import { Button, buttonClasses, EmptyState, Mark, Skeleton, Textarea } from "../ui";
+import { Button, buttonClasses, EmptyState, Icon, Mark, Skeleton, Textarea } from "../ui";
 import { BackControl } from "./BackControl";
 import { ItemBody } from "./ItemBody";
 import { formatDate } from "./format";
@@ -43,6 +43,14 @@ export interface ReadingPaneProps {
 /** A button-shaped link: the same chip a `Button` prints, as a real `<a>`. */
 const LINK_BUTTON = buttonClasses("secondary", "sm");
 
+function Kbd({ children }: { children: string }) {
+  return (
+    <kbd className="mx-[2px] inline-grid h-[22px] min-w-[22px] place-items-center border border-field-edge bg-paper px-[4px] font-galley text-label leading-[16px] font-bold text-graphite">
+      {children}
+    </kbd>
+  );
+}
+
 export function ReadingPane(props: ReadingPaneProps) {
   const { summary, item, error, note } = props;
   const contentRef = useRef<HTMLDivElement>(null);
@@ -72,12 +80,17 @@ export function ReadingPane(props: ReadingPaneProps) {
 
   if (!summary) {
     return (
-      <div className="flex min-h-full flex-col gap-half">
+      <div className="flex min-h-full flex-col gap-snug p-card reader-narrow:p-snug">
         {back}
         <EmptyState
-          icon="—"
+          className="flex-1"
+          icon={<Icon name="lines" size={28} />}
           title="Nothing open"
-          hint="Pick an item from the list, or press j to open the first one. Press ? for every key."
+          hint={
+            <>
+              Pick an item from the list, or press <Kbd>j</Kbd> to open the first one. Press <Kbd>?</Kbd> for every key.
+            </>
+          }
         />
       </div>
     );
@@ -101,15 +114,15 @@ export function ReadingPane(props: ReadingPaneProps) {
   }
 
   return (
-    <div className="flex min-h-full flex-col gap-half">
+    <div className="flex min-h-full flex-col gap-snug p-card reader-narrow:p-snug">
       {back}
-      <article className="flex-1 bg-paper p-unit shadow-waxed reader-narrow:p-half" aria-label={shown.title || "Item"}>
+      <article className="flex-1" aria-label={shown.title || "Item"}>
         <div ref={contentRef}>
           <header className="flex max-w-[70ch] flex-col gap-hair">
-            <h2 className="font-chrome text-board-title leading-[1.15] font-extrabold tracking-board-title break-words text-graphite wdth-title">
+            <h2 className="font-chrome text-board-title leading-board-title font-extrabold tracking-board-title break-words text-graphite-deep wdth-title phone:text-[22px] phone:leading-[26px]">
               {shown.title || "Untitled"}
             </h2>
-            <p className="flex flex-wrap items-center gap-x-half gap-y-hair font-galley text-field leading-field font-medium tracking-field text-graphite-soft uppercase">
+            <p className="flex flex-wrap items-center gap-x-snug gap-y-hair text-label leading-label font-semibold text-graphite-soft">
               {meta}
               {!shown.read && (
                 <Mark tone="ink" className="ml-hair">
@@ -119,11 +132,13 @@ export function ReadingPane(props: ReadingPaneProps) {
             </p>
           </header>
 
-          <div className="mt-half flex flex-wrap items-center gap-hair border-b-[1.5px] border-graphite pb-half">
+          <div className="mt-snug flex flex-wrap items-center gap-tight border-b border-hairline pb-snug">
             {openOriginal}
             {shown.saved ? (
               <>
-                <Mark tone="ink">Saved</Mark>
+                <Mark tone="ink" icon="bookmark">
+                  Saved
+                </Mark>
                 <Button size="sm" variant="ghost" onClick={props.onSave} disabled={loading}>
                   Edit note
                 </Button>
@@ -189,10 +204,10 @@ export function ReadingPane(props: ReadingPaneProps) {
             </form>
           )}
 
-          <div className="mt-unit">
+          <div className="mt-card">
             {error ? (
               <EmptyState
-                icon="!"
+                icon={<Icon name="alert" size={28} />}
                 title="This item did not load"
                 hint={error}
                 action={
@@ -213,7 +228,7 @@ export function ReadingPane(props: ReadingPaneProps) {
                 item={item}
                 empty={
                   <EmptyState
-                    icon="↗"
+                    icon={<Icon name="info" size={28} />}
                     title="No text in the feed"
                     hint="This feed sends a title and a link, and nothing to read here."
                     action={openOriginal}

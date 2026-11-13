@@ -11,7 +11,7 @@
  * board's "held out" at this scale.
  */
 import type { ReaderCounts, Source } from "@/lib/types";
-import { Button, HATCH, Mark, ProgressBar, Skeleton } from "../ui";
+import { Button, HATCH, Icon, Mark, ProgressBar, Skeleton, type IconName } from "../ui";
 import { groupSources, sameNarrow, unreadIn, type Narrow, type ReaderScope } from "./query";
 import { cn } from "../../lib/cn";
 
@@ -37,23 +37,20 @@ export interface RailProps {
   counts: ReaderCounts | null;
   failed: boolean;
   refresh: RefreshState | null;
-  onRefresh: () => void;
   onRetry: () => void;
   onSelect: (scope: ReaderScope | null, narrow: Narrow) => void;
   onView: (view: ReaderView) => void;
   onLegend: () => void;
 }
 
-const VIEWS: Array<{ view: ReaderView; label: string; note: string }> = [
-  { view: "search", label: "Search", note: "live keyword search" },
-  { view: "library", label: "Library", note: "saved, with notes" },
-  { view: "sources", label: "Sources", note: "feeds and categories" },
+const VIEWS: Array<{ view: ReaderView; label: string; note: string; icon: IconName }> = [
+  { view: "search", label: "Search", note: "live keyword search", icon: "search" },
+  { view: "library", label: "Library", note: "saved, with notes", icon: "bookmark" },
+  { view: "sources", label: "Sources", note: "feeds and categories", icon: "rss" },
 ];
 
 function Count({ n }: { n: number | undefined }) {
-  return (
-    <span className="font-galley text-[11px] font-bold text-graphite tabular-nums">{n === undefined ? "" : n}</span>
-  );
+  return <span className="text-hint leading-hint font-semibold tabular-nums">{n === undefined ? "" : n}</span>;
 }
 
 function ProgressMark({ p }: { p: SourceProgress | undefined }) {
@@ -63,13 +60,13 @@ function ProgressMark({ p }: { p: SourceProgress | undefined }) {
   return p.count ? <Mark tone="ink">+{p.count}</Mark> : null;
 }
 
-/** One entry: a label, any marks, and a count on the right edge. Printed on the board, no paper, no shadow, like the
- * tray: the current entry is the one pulled forward onto paper. */
+/** One entry: a label, any marks, and a count on the right edge, 28px (48 on a phone). The current entry is the
+ * tinted row with a 3px graphite bar on its left edge. */
 const ITEM =
-  "flex min-h-unit w-full cursor-pointer items-center gap-hair border-0 bg-transparent px-hair text-left font-chrome text-label font-semibold tracking-label text-graphite hover:bg-graphite/5 aria-[current=true]:relative aria-[current=true]:z-pane aria-[current=true]:bg-paper aria-[current=true]:font-extrabold aria-[current=true]:shadow-waxed";
-/** A category heading, set as a field label, still a button: it narrows the list to every source under it. */
+  "flex min-h-[28px] w-full cursor-pointer items-center justify-between gap-tight border-0 border-l-[3px] border-l-transparent bg-transparent px-card text-left font-chrome text-body leading-body font-semibold tracking-label text-graphite hover:bg-graphite/5 aria-[current=true]:border-l-graphite aria-[current=true]:bg-board aria-[current=true]:font-extrabold phone:min-h-(--target) [&_.count]:text-graphite-soft aria-[current=true]:[&_.count]:text-graphite";
+/** A category heading, set as a label, still a button: it narrows the list to every source under it. */
 const CATEGORY =
-  "mt-hair border-b border-rule font-galley text-field font-bold tracking-mark text-graphite-soft uppercase aria-[current=true]:text-graphite";
+  "mt-[4px] min-h-[24px] border-t border-t-hairline pt-snug pb-[2px] text-label leading-label font-semibold text-graphite-soft aria-[current=true]:font-extrabold aria-[current=true]:text-graphite phone:min-h-(--target)";
 const LABEL = "min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap";
 
 export function Rail(props: RailProps) {
@@ -84,18 +81,9 @@ export function Rail(props: RailProps) {
   }
 
   return (
-    <nav className="flex flex-col gap-half pb-unit" aria-label="Reader">
-      <div className="flex items-center justify-between gap-hair border-b-[1.5px] border-graphite pb-hair">
-        <h1 className="font-chrome text-board-title leading-unit font-extrabold tracking-board-title wdth-title">
-          Reader
-        </h1>
-        <Button size="sm" variant="secondary" loading={refresh !== null} onClick={props.onRefresh}>
-          Refresh
-        </Button>
-      </div>
-
+    <nav className="flex flex-col pt-tight pb-snug" aria-label="Feeds">
       {refresh && (
-        <div className="px-[2px]" aria-live="polite">
+        <div className="px-card pb-tight" aria-live="polite">
           <ProgressBar
             value={refresh.total ? Math.round((settled / refresh.total) * 100) : 0}
             label={`Fetching · ${settled} of ${refresh.total}`}
@@ -112,7 +100,9 @@ export function Rail(props: RailProps) {
             onClick={() => props.onSelect("unread", null)}
           >
             <span className={LABEL}>Unread</span>
-            <Count n={counts?.unread} />
+            <span className="count">
+              <Count n={counts?.unread} />
+            </span>
           </button>
         </li>
         <li>
@@ -123,39 +113,45 @@ export function Rail(props: RailProps) {
             onClick={() => props.onSelect("all", null)}
           >
             <span className={LABEL}>All</span>
-            <Count n={counts?.all} />
+            <span className="count">
+              <Count n={counts?.all} />
+            </span>
           </button>
         </li>
       </ul>
 
       {props.failed ? (
-        <div className="flex flex-col items-start gap-hair">
-          <Mark tone="rubylith">Feeds did not load</Mark>
-          <Button size="sm" variant="ghost" onClick={props.onRetry}>
+        <div className="flex flex-col items-start gap-hair px-card pt-snug">
+          <Mark tone="rubylith" icon="alert">
+            Feeds did not load
+          </Mark>
+          <Button size="sm" variant="secondary" onClick={props.onRetry}>
             Try again
           </Button>
         </div>
       ) : sources === null ? (
-        <div className="flex flex-col gap-hair" role="status">
+        <div className="flex flex-col gap-hair px-card pt-snug" role="status">
           <span className="sr-only">Loading feeds</span>
           <Skeleton height={26} />
           <Skeleton height={26} />
           <Skeleton height={26} />
         </div>
       ) : (
-        groups.map((group) => {
+        groups.map((group, index) => {
           const groupNarrow: Narrow = { kind: "category", category: group.category };
           return (
             <section key={group.category ?? "\0"} className="flex flex-col">
               {categorized && (
                 <button
                   type="button"
-                  className={cn(ITEM, CATEGORY)}
+                  className={cn(ITEM, CATEGORY, index === 0 && "mt-0 border-t-transparent")}
                   aria-current={current(reading && sameNarrow(narrow, groupNarrow))}
                   onClick={() => props.onSelect(null, groupNarrow)}
                 >
                   <span className={LABEL}>{group.category ?? "Uncategorized"}</span>
-                  <Count n={counts ? unreadIn(counts, groupNarrow, sources) : undefined} />
+                  <span className="count">
+                    <Count n={counts ? unreadIn(counts, groupNarrow, sources) : undefined} />
+                  </span>
                 </button>
               )}
               <ul className="flex flex-col">
@@ -167,7 +163,7 @@ export function Rail(props: RailProps) {
                     <li key={source.id}>
                       <button
                         type="button"
-                        className={cn(ITEM, "pl-half font-medium", !source.enabled && HATCH)}
+                        className={cn(ITEM, "pl-[28px] font-medium", !source.enabled && HATCH)}
                         aria-current={current(reading && sameNarrow(narrow, sourceNarrow))}
                         title={
                           failing
@@ -181,7 +177,9 @@ export function Rail(props: RailProps) {
                         <span className={cn(LABEL, !source.enabled && "italic")}>{source.name}</span>
                         {failing && <Mark tone="rubylith">failing</Mark>}
                         <ProgressMark p={p} />
-                        <Count n={counts?.unreadBySource[source.id]} />
+                        <span className="count">
+                          <Count n={counts?.unreadBySource[source.id]} />
+                        </span>
                       </button>
                     </li>
                   );
@@ -192,8 +190,8 @@ export function Rail(props: RailProps) {
         })
       )}
 
-      <section className="flex flex-col gap-[2px] border-t border-rule pt-half" aria-label="Views">
-        <span className="px-hair font-galley text-field font-medium tracking-field text-graphite-soft uppercase">
+      <section className="mt-[4px] flex flex-col border-t border-hairline" aria-label="Views">
+        <span className="px-card pt-snug pb-[2px] font-chrome text-label leading-label font-semibold text-graphite-soft">
           Views
         </span>
         <ul className="flex flex-col">
@@ -201,12 +199,13 @@ export function Rail(props: RailProps) {
             <li key={v.view}>
               <button
                 type="button"
-                className={ITEM}
+                className={cn(ITEM, "justify-start gap-snug")}
                 aria-current={current(view === v.view)}
                 onClick={() => props.onView(v.view)}
               >
-                <span className={LABEL}>{v.label}</span>
-                <span className="font-galley text-field font-medium tracking-[0.04em] whitespace-nowrap text-graphite-soft">
+                <Icon name={v.icon} />
+                <span className="whitespace-nowrap">{v.label}</span>
+                <span className="ml-auto text-label leading-label font-medium whitespace-nowrap text-graphite-soft">
                   {v.note}
                 </span>
               </button>
@@ -215,16 +214,17 @@ export function Rail(props: RailProps) {
         </ul>
       </section>
 
-      <button
-        type="button"
-        className="mt-hair inline-flex h-unit cursor-pointer items-center gap-hair self-start border border-transparent bg-transparent px-hair font-galley text-field font-medium tracking-field text-graphite-soft uppercase hover:border-tick hover:text-graphite"
-        onClick={props.onLegend}
-      >
-        Keyboard shortcuts{" "}
-        <kbd className="inline-flex h-[18px] min-w-[18px] items-center justify-center border border-tick bg-paper px-[4px] font-galley text-[10px] font-bold text-graphite">
+      <div className="mt-tight flex items-center gap-[10px] border-t border-hairline px-card pt-snug font-chrome text-label leading-label font-semibold text-graphite-soft">
+        <span>Keyboard shortcuts</span>
+        <button
+          type="button"
+          className="inline-grid size-[28px] cursor-pointer place-items-center border border-field-edge bg-paper font-galley text-hint leading-[16px] font-bold text-graphite phone:size-[44px]"
+          aria-label="Keyboard shortcuts"
+          onClick={props.onLegend}
+        >
           ?
-        </kbd>
-      </button>
+        </button>
+      </div>
     </nav>
   );
 }

@@ -29,7 +29,7 @@ import type {
   ReaderCounts,
   Source,
 } from "@/lib/types";
-import { Button, ConfirmDialog, EmptyState, ToastProvider, useToast } from "../ui";
+import { BoardTitle, Button, ConfirmDialog, DocBar, EmptyState, Icon, ToastProvider, useToast } from "../ui";
 import { BackControl } from "./BackControl";
 import { ItemList } from "./ItemList";
 import { KeyLegend } from "./KeyLegend";
@@ -525,7 +525,7 @@ function ReaderPage() {
     if (list?.q) {
       return (
         <EmptyState
-          icon="⌕"
+          icon={<Icon name="search" size={28} />}
           title="Nothing matches"
           hint={`No ${scope === "unread" ? "unread " : ""}item in ${heading} has “${list.q}” in its title or text. Comma-separated terms: any one matches.`}
         />
@@ -534,7 +534,7 @@ function ReaderPage() {
     if (scope === "unread") {
       return (
         <EmptyState
-          icon="✓"
+          icon={<Icon name="check" size={28} />}
           title="All caught up"
           hint={`Nothing unread in ${heading}.`}
           action={
@@ -547,7 +547,7 @@ function ReaderPage() {
     }
     return (
       <EmptyState
-        icon="↻"
+        icon={<Icon name="refresh" size={28} />}
         title="Nothing fetched yet"
         hint="Refresh fetches every enabled feed now. The server also refreshes on its own."
         action={
@@ -563,128 +563,138 @@ function ReaderPage() {
   const viewLabel = { read: "Reader", search: "Search", library: "Library", sources: "Sources" }[view];
 
   return (
-    <div
-      className={cn(
-        // Rail (9 units), list (13 units), reading pane (the rest). Each pane scrolls on its own inside a sheet that
-        // fills the board under the tray, the way the editor does. The scroll boxes carry a few pixels of padding on
-        // the right and bottom so a waxed selection's hard shadow is not clipped. Below 1100px they stack and show
-        // one at a time (rail, list, article), each with a way back (BackControl), and the page scrolls as a
-        // document again. NARROW_QUERY says the same number.
-        "group/reader grid h-[calc(100vh-var(--tray-h)-var(--spacing-double))] min-h-[calc(var(--spacing-unit)*18)]",
-        "grid-cols-[calc(var(--spacing-unit)*9)_calc(var(--spacing-unit)*13)_minmax(0,1fr)] gap-half",
-        "reader-narrow:block reader-narrow:h-auto reader-narrow:min-h-0",
-      )}
-      data-stage={stage}
-    >
-      <aside className={cn(PANE, "reader-narrow:not-group-data-[stage=rail]/reader:hidden")}>
-        <Rail
-          view={view}
-          scope={scope}
-          narrow={narrow}
-          sources={sources}
-          counts={counts}
-          failed={railFailed}
-          refresh={refresh}
-          onRefresh={() => void runRefresh()}
-          onRetry={() => setRailEpoch((e) => e + 1)}
-          onSelect={select}
-          onView={selectView}
-          onLegend={() => setLegendOpen(true)}
-        />
-      </aside>
+    <>
+      <DocBar className="phone:flex-row phone:items-center">
+        <BoardTitle className="flex-1">Reader</BoardTitle>
+        <Button variant="secondary" loading={refresh !== null} onClick={() => void runRefresh()}>
+          <Icon name="refresh" />
+          Refresh
+        </Button>
+      </DocBar>
 
-      {view !== "read" ? (
-        <section className={VIEW} aria-label={viewLabel}>
-          <BackControl label="Feeds" onClick={() => setStage("rail")} />
-          {view === "search" && <SearchPanel />}
-          {view === "library" && <LibraryPanel />}
-          {view === "sources" && <SourcesPanel />}
-        </section>
-      ) : noSources ? (
-        <section className={VIEW} aria-label="No feeds">
-          <BackControl label="Feeds" onClick={() => setStage("rail")} />
-          <EmptyState
-            icon="⊕"
-            title="No feeds yet"
-            hint="The Reader stores what your RSS feeds publish. Add one under Sources, then Refresh."
-            action={<Button onClick={() => selectView("sources")}>Add a source</Button>}
+      <div
+        className={cn(
+          // Feeds (264), items (360) and the reading pane (the rest): three cards, each scrolling on its own inside
+          // a sheet that fills the window under the band, the way the editor does. Below 1100px they stack and show
+          // one at a time (feeds, items, article), each with a way back (BackControl), and the page scrolls as a
+          // document again. NARROW_QUERY says the same number.
+          "group/reader grid min-h-0 flex-1 grid-cols-[264px_360px_minmax(0,1fr)] grid-rows-[minmax(0,1fr)] gap-column px-gutter py-card",
+          "reader-narrow:block reader-narrow:min-h-0 reader-narrow:px-card reader-narrow:pt-0 reader-narrow:pb-[40px]",
+        )}
+        data-stage={stage}
+      >
+        <aside className={cn(PANE, "reader-narrow:not-group-data-[stage=rail]/reader:hidden")}>
+          <Rail
+            view={view}
+            scope={scope}
+            narrow={narrow}
+            sources={sources}
+            counts={counts}
+            failed={railFailed}
+            refresh={refresh}
+            onRetry={() => setRailEpoch((e) => e + 1)}
+            onSelect={select}
+            onView={selectView}
+            onLegend={() => setLegendOpen(true)}
           />
-        </section>
-      ) : (
-        <>
-          <section className={cn(PANE, "reader-narrow:not-group-data-[stage=list]/reader:hidden")} aria-label="Items">
-            <ItemList
-              heading={heading}
-              scope={scope}
-              onScopeChange={(s) => select(s, narrow)}
-              filterId={FILTER_ID}
-              filterInput={filterInput}
-              onFilterChange={setFilterInput}
-              rows={rows}
-              loading={listLoading}
-              error={list && !listLoading ? list.error : null}
-              onRetry={() => setListEpoch((e) => e + 1)}
-              nextCursor={list && !listLoading ? list.nextCursor : null}
-              loadingMore={loadingMore}
-              onLoadMore={() => void loadMore()}
-              selectedId={selectedId}
-              onOpen={(id) => void openItem(id)}
-              now={list?.loadedAt ?? 0}
-              canMarkAllRead={canMarkAllRead}
-              onMarkAllRead={() => setConfirmMarkAll(true)}
-              failing={narrowedSource?.lastError ? narrowedSource : null}
-              empty={emptyList()}
-              onBack={() => setStage("rail")}
+        </aside>
+
+        {view !== "read" ? (
+          <section className={VIEW} aria-label={viewLabel}>
+            <BackControl label="Feeds" onClick={() => setStage("rail")} />
+            {view === "search" && <SearchPanel />}
+            {view === "library" && <LibraryPanel />}
+            {view === "sources" && <SourcesPanel />}
+          </section>
+        ) : noSources ? (
+          <section className={VIEW} aria-label="No feeds">
+            <BackControl label="Feeds" onClick={() => setStage("rail")} />
+            <EmptyState
+              icon={<Icon name="plus" size={28} />}
+              title="No feeds yet"
+              hint="The Reader stores what your RSS feeds publish. Add one under Sources, then Refresh."
+              action={<Button onClick={() => selectView("sources")}>Add a source</Button>}
             />
           </section>
-          <section
-            className={cn(PANE, "reader-narrow:not-group-data-[stage=article]/reader:hidden")}
-            aria-label="Reading pane"
-          >
-            <ReadingPane
-              summary={shown}
-              item={item}
-              error={itemError}
-              note={note}
-              onSave={() => void startSave()}
-              onNoteChange={(text) => setNote((n) => n && { ...n, text })}
-              onNoteSubmit={() => void submitNote()}
-              onNoteCancel={() => setNote(null)}
-              onToggleRead={() => void toggleRead()}
-              onCopyLink={copyLink}
-              onCopyQuote={copyQuote}
-              onRetry={() => selectedId !== null && void openItem(selectedId)}
-              onBack={() => setStage("list")}
-            />
-          </section>
-        </>
-      )}
+        ) : (
+          <>
+            <section className={cn(PANE, "reader-narrow:not-group-data-[stage=list]/reader:hidden")} aria-label="Items">
+              <ItemList
+                heading={heading}
+                scope={scope}
+                onScopeChange={(s) => select(s, narrow)}
+                filterId={FILTER_ID}
+                filterInput={filterInput}
+                onFilterChange={setFilterInput}
+                rows={rows}
+                loading={listLoading}
+                error={list && !listLoading ? list.error : null}
+                onRetry={() => setListEpoch((e) => e + 1)}
+                nextCursor={list && !listLoading ? list.nextCursor : null}
+                loadingMore={loadingMore}
+                onLoadMore={() => void loadMore()}
+                selectedId={selectedId}
+                onOpen={(id) => void openItem(id)}
+                now={list?.loadedAt ?? 0}
+                canMarkAllRead={canMarkAllRead}
+                onMarkAllRead={() => setConfirmMarkAll(true)}
+                failing={narrowedSource?.lastError ? narrowedSource : null}
+                empty={emptyList()}
+                onBack={() => setStage("rail")}
+              />
+            </section>
+            <section
+              className={cn(PANE, "reader-narrow:not-group-data-[stage=article]/reader:hidden")}
+              aria-label="Reading pane"
+            >
+              <ReadingPane
+                summary={shown}
+                item={item}
+                error={itemError}
+                note={note}
+                onSave={() => void startSave()}
+                onNoteChange={(text) => setNote((n) => n && { ...n, text })}
+                onNoteSubmit={() => void submitNote()}
+                onNoteCancel={() => setNote(null)}
+                onToggleRead={() => void toggleRead()}
+                onCopyLink={copyLink}
+                onCopyQuote={copyQuote}
+                onRetry={() => selectedId !== null && void openItem(selectedId)}
+                onBack={() => setStage("list")}
+              />
+            </section>
+          </>
+        )}
 
-      <ConfirmDialog
-        open={confirmMarkAll}
-        onClose={() => setConfirmMarkAll(false)}
-        onConfirm={() => void confirmMarkAllRead()}
-        title="Mark all read?"
-        message={
-          filterActive
-            ? `Mark the ${plural(rows.filter((r) => !r.read).length, "loaded item")} matching “${list?.q}” as read? Items the filter hid stay as they are.`
-            : `Mark everything unread in ${heading}, up to the newest item loaded, as read? Items that arrive after this list loaded stay unread.`
-        }
-        confirmLabel="Mark read"
-        cancelLabel="Keep them"
-        variant="primary"
-        loading={marking}
-      />
+        <ConfirmDialog
+          open={confirmMarkAll}
+          onClose={() => setConfirmMarkAll(false)}
+          onConfirm={() => void confirmMarkAllRead()}
+          title="Mark all read?"
+          message={
+            filterActive
+              ? `Mark the ${plural(rows.filter((r) => !r.read).length, "loaded item")} matching “${list?.q}” as read? Items the filter hid stay as they are.`
+              : `Mark everything unread in ${heading}, up to the newest item loaded, as read? Items that arrive after this list loaded stay unread.`
+          }
+          confirmLabel="Mark read"
+          cancelLabel="Keep them"
+          variant="primary"
+          loading={marking}
+        />
 
-      <KeyLegend open={legendOpen} onClose={() => setLegendOpen(false)} />
-    </div>
+        <KeyLegend open={legendOpen} onClose={() => setLegendOpen(false)} />
+      </div>
+    </>
   );
 }
 
-/** The three panes' shared box. */
-const PANE = "min-h-0 min-w-0 overflow-y-auto p-[1px_4px_4px_1px] reader-narrow:overflow-visible reader-narrow:p-0";
+/** The three panes' shared box: a card that scrolls on its own. */
+const PANE = "min-h-0 min-w-0 overflow-y-auto bg-paper shadow-waxed reader-narrow:overflow-visible";
 /** The Search, Library, Sources and empty views take everything right of the rail; not shown at the rail stage. */
-const VIEW = cn(PANE, "col-[2/-1] flex flex-col gap-half reader-narrow:group-data-[stage=rail]/reader:hidden");
+const VIEW = cn(
+  PANE,
+  "col-[2/-1] flex flex-col gap-snug p-card reader-narrow:p-snug reader-narrow:group-data-[stage=rail]/reader:hidden",
+);
 
 export function ReaderIsland() {
   return (
