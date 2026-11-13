@@ -47,11 +47,11 @@ export interface SourcePaneProps {
 }
 
 /**
- * The highlight layer and the textarea share every metric. A line is 1.86 of 12.5px, about 23.25, held at 23px so lint
- * marks and wax sit on a line without touching its neighbours, and the caret stays on the paint.
+ * The highlight layer and the textarea share every metric. A line is 13px on 24 (1.846), so lint marks and wax sit on
+ * a line without touching its neighbours, and the caret stays on the paint.
  */
 const GALLEY_BOX =
-  "absolute inset-0 m-0 border-0 p-half font-galley text-galley leading-[23px] break-normal whitespace-pre [tab-size:2]";
+  "absolute inset-0 m-0 border-0 px-card pt-[10px] pb-snug font-galley text-galley leading-[24px] break-normal whitespace-pre [tab-size:2]";
 
 /** Syntax follows casing, not category (DESIGN.md section 5, The Galley): lowercase document tags recede,
  * capitalised components are the structure, prop values are the one thing the markup itself names. */
@@ -266,23 +266,42 @@ export function SourcePane({
   const warnings = diagnostics.filter((d) => d.severity === "warning");
 
   return (
-    <div // The galley: the copy, waxed to the board beside the artwork. Paper, a hairline, the hard short shadow, and a
-      // graphite tab carrying the filename.
+    <section // The galley: the copy, laid on the board beside the artwork. A card, with a graphite tab carrying the
+      // filename.
+      aria-label="Source"
       className="flex h-full min-h-0 min-w-0 flex-col bg-paper shadow-waxed"
     >
       <div // The tab is graphite; the rest of the rail stays paper, so the marks keep their ink.
-        className="flex h-unit shrink-0 items-stretch gap-half border-b border-hairline"
+        className="flex h-[44px] shrink-0 items-center gap-snug border-b border-hairline"
       >
-        <span className="inline-flex shrink-0 items-center bg-graphite px-half font-galley text-field font-medium tracking-field text-board uppercase">
+        <span className="inline-flex h-full shrink-0 items-center bg-graphite px-card font-galley text-[13px] leading-[16px] font-bold text-board">
           post.wzd
         </span>
-        <span className="flex min-w-0 items-center gap-half overflow-hidden">
-          {errors.length > 0 && <Mark tone="rubylith">{errors.length} errors</Mark>}
-          {warnings.length > 0 && <Mark tone="ink">{warnings.length} warnings</Mark>}
-          {errors.length === 0 && warnings.length === 0 && <Mark>Sets clean</Mark>}
+        <span className="flex min-w-0 items-center gap-snug overflow-hidden">
+          {errors.length > 0 && (
+            <Mark tone="rubylith" icon="alert">
+              {errors.length} {errors.length === 1 ? "error" : "errors"}
+            </Mark>
+          )}
+          {warnings.length > 0 && (
+            <Mark tone="ink">
+              {warnings.length} {warnings.length === 1 ? "warning" : "warnings"}
+            </Mark>
+          )}
+          {errors.length === 0 && warnings.length === 0 && (
+            <Mark icon="check" className="[&>svg]:text-process-blue">
+              Sets clean
+            </Mark>
+          )}
         </span>
         <span className="flex-1" />
-        <Button variant="ghost" size="sm" onClick={onFormat} disabled={formatted}>
+        <Button
+          variant="secondary"
+          size="sm"
+          className="mr-tight disabled:border-solid disabled:border-field-edge disabled:bg-none disabled:text-graphite"
+          onClick={onFormat}
+          disabled={formatted}
+        >
           {formatted ? "Formatted" : "Format"}
         </Button>
       </div>
@@ -319,7 +338,10 @@ export function SourcePane({
         />
       </div>
 
-      <span className="h-hair shrink-0 deckle" aria-hidden="true" />
+      <span
+        className="h-[10px] shrink-0 bg-[repeating-linear-gradient(135deg,var(--color-graphite-tint)_0_1px,transparent_1px_5px)] opacity-60"
+        aria-hidden="true"
+      />
 
       <ul className="max-h-[34%] flex-none overflow-auto border-t border-hairline">
         {diagnostics.map((d, i) => (
@@ -327,7 +349,7 @@ export function SourcePane({
             <Button
               variant="ghost"
               size="sm"
-              className="h-auto w-full justify-start px-hair py-[2px] text-left font-normal"
+              className="h-auto w-full justify-start px-snug py-[2px] text-left font-normal"
               onClick={() => {
                 const el = textRef.current;
                 if (!el) return;
@@ -346,6 +368,6 @@ export function SourcePane({
           </li>
         ))}
       </ul>
-    </div>
+    </section>
   );
 }

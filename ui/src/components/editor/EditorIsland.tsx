@@ -14,18 +14,18 @@
  * element's own `loc`.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { format, isFormatted, lintSource, parse, WZD_RENDERABLE_NAMES } from "@newspapper/core/wizard";
 import type { Theme } from "@newspapper/core/templates";
-import { Button, Mark, Select, Skeleton, Tabs, ToastProvider, useToast } from "../ui";
+import { BoardTitle, Button, DocBar, Mark, Select, Skeleton, Tabs, ToastProvider, useToast } from "../ui";
 import { api, ApiError, sse } from "@/lib/api";
 import type { Post, Settings } from "@/lib/types";
 import { SourcePane } from "./SourcePane.js";
 import { PreviewPane } from "./PreviewPane.js";
 import { InspectorPane } from "./InspectorPane.js";
 import { PalettePane } from "./PalettePane.js";
-import { ImagePicker } from "./ImagePicker.js";
 import { Splitter } from "./Splitter.js";
+import { ImagePicker } from "./ImagePicker.js";
 import { compileTraced } from "./preview/compileTraced.js";
 import { canContain } from "./preview/slots.js";
 import { zoneAt, type DragPayload, type MeasuredZone } from "./dragTypes.js";
@@ -58,7 +58,8 @@ export function previewCompileOptions(): { uploadBaseUrl: string } {
 
 const PREVIEW_DEBOUNCE_MS = 200;
 const AUTOSAVE_DEBOUNCE_MS = 900;
-const NARROW_PX = 1180;
+/** Below this width the editor shows one pane at a time and the tray becomes a bottom bar (the `phone` variant). */
+const PHONE_PX = 860;
 
 /** Everything the palette can offer. `Slide` has its own controls. */
 const PALETTE_NAMES = WZD_RENDERABLE_NAMES.filter((name) => name !== "Slide");
@@ -125,10 +126,11 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
   const [pickerOpen, setPickerOpen] = useState(false);
   const pendingImage = useRef<{ path: WzdPath } | { insert: InsertionPoint } | null>(null);
 
-  // Both on the 26px grid: 15 and 13 units.
-  const [leftWidth, setLeftWidth] = useState(390);
-  const [rightWidth, setRightWidth] = useState(338);
-  const [narrow, setNarrow] = useState(false);
+  // The two column widths, once the operator drags a splitter; until then the stylesheet's own (400, or 560 from
+  // 1400px, and 300).
+  const [leftWidth, setLeftWidth] = useState<number | null>(null);
+  const [rightWidth, setRightWidth] = useState<number | null>(null);
+  const [phone, setPhone] = useState(false);
   const [pane, setPane] = useState<Pane>("preview");
   const [rendering, setRendering] = useState(false);
 
@@ -489,7 +491,7 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
   // ---- layout ------------------------------------------------------------
 
   useEffect(() => {
-    const update = (): void => setNarrow(window.innerWidth < NARROW_PX);
+    const update = (): void => setPhone(window.innerWidth < PHONE_PX);
     update();
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
@@ -529,9 +531,9 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
     />
   );
 
-  const inspectorPane = (
+  const sidePane = (
     <div // So the tissue's hinge is a real rotation about its top edge and not a flat skew (lib/motion.ts).
-      className="flex flex-col [perspective:900px]"
+      className="flex flex-col gap-card [perspective:900px] max-[1099px]:flex-row max-[1099px]:flex-wrap max-[1099px]:items-start max-[1099px]:*:flex-[1_1_300px] phone:flex-col phone:*:flex-none"
     >
       <PalettePane
         onDragStart={(component) => setDrag({ kind: "new", component })}
@@ -562,100 +564,124 @@ function Editor({ postId: propPostId, initialMarkup, initialTheme }: EditorIslan
   );
 
   return (
-    <div // The board itself. No card, no radius, no frame around the whole thing: the tray closes the top and the panes
-      // are objects laid out on the surface.
-      className="flex h-[calc(100vh-var(--tray-h)-var(--spacing-double))] min-h-[calc(var(--spacing-unit)*18)] flex-col"
-    >
-      <header className="flex flex-wrap items-center gap-half border-b-[1.5px] border-graphite pb-half">
-        <h1 className="max-w-[40ch] overflow-hidden font-chrome text-board-title leading-board-title font-extrabold tracking-board-title text-ellipsis whitespace-nowrap wdth-title">
+    <div className="flex min-h-0 flex-1 flex-col">
+      <DocBar>
+        <BoardTitle className="min-w-0 flex-[1_1_380px] phone:flex-none">
           {doc.head["title"] || "Untitled post"}
-        </h1>
-        <Mark tone={errorCount ? "rubylith" : "ink"}>
-          {errorCount ? `${errorCount} ${errorCount === 1 ? "error" : "errors"}` : "Compiles"}
-        </Mark>
-        <Mark tone={saveState === "error" ? "rubylith" : "dim"}>
-          {saveState === "saving"
-            ? "Saving…"
-            : saveState === "dirty"
-              ? "Unsaved"
-              : saveState === "error"
-                ? "Save failed"
-                : postId
-                  ? "Saved"
-                  : "New post"}
-        </Mark>
-        <span className="flex-1" />
-        <Select
-          options={themes.filter((t) => t.tokens).map((t) => ({ value: t.name, label: t.name }))}
-          value={themeName}
-          placeholder="Theme"
-          onValueChange={(value) => {
-            setThemeName(value);
-            setDirty(true);
-            setSaveState("dirty");
-          }}
-          className="min-w-[calc(var(--spacing-unit)*7)]"
-        />
-        <Button variant="secondary" size="sm" onClick={() => void save()} disabled={!dirty || saveState === "saving"}>
-          Save
-        </Button>
-        <Button
-          size="sm"
-          loading={rendering}
-          disabled={!postId || errorCount > 0 || dirty}
-          onClick={() => void render()}
-        >
-          Render
-        </Button>
-      </header>
-
-      {loading && <Skeleton height={320} />}
-
-      {!loading && narrow && (
-        <>
-          <Tabs
-            label="Editor pane"
-            tabs={PANE_TABS}
-            value={pane}
-            onValueChange={setPane}
-            className="flex min-h-0 flex-1 flex-col"
-            listClassName="flex gap-[4px] py-half"
-            panelClassName="min-h-0 flex-1 overflow-hidden"
-          >
-            {(name) => {
-              if (name === "source") return sourcePane;
-              if (name === "preview") return previewPane;
-              return <div className="h-full overflow-auto">{inspectorPane}</div>;
+        </BoardTitle>
+        <div className="flex flex-wrap items-end gap-card phone:items-center phone:gap-tight">
+          <div className="flex h-[38px] items-center gap-[14px] self-end font-chrome text-body leading-body font-semibold text-graphite-soft phone:h-(--target) phone:gap-snug phone:self-auto">
+            <Mark
+              tone={errorCount ? "rubylith" : "ink"}
+              icon={errorCount ? "alert" : "check"}
+              className="text-graphite-soft [&>svg]:text-process-blue"
+            >
+              {errorCount ? `${errorCount} ${errorCount === 1 ? "error" : "errors"}` : "Compiles"}
+            </Mark>
+            <Mark tone={saveState === "error" ? "rubylith" : "dim"} icon={saveState === "error" ? "alert" : "disk"}>
+              {saveState === "saving"
+                ? "Saving…"
+                : saveState === "dirty"
+                  ? "Unsaved"
+                  : saveState === "error"
+                    ? "Save failed"
+                    : postId
+                      ? "Saved"
+                      : "New post"}
+            </Mark>
+          </div>
+          <Select
+            label="Slide theme"
+            labelClassName="phone:sr-only"
+            options={themes.filter((t) => t.tokens).map((t) => ({ value: t.name, label: t.name }))}
+            value={themeName}
+            placeholder="Theme"
+            onValueChange={(value) => {
+              setThemeName(value);
+              setDirty(true);
+              setSaveState("dirty");
             }}
-          </Tabs>
-        </>
+            className="min-w-[190px]"
+            wrapperClassName="phone:min-w-0 phone:flex-[1_1_150px]"
+          />
+        </div>
+        <div className="flex items-center gap-[10px] self-end phone:self-stretch phone:*:flex-1">
+          <Button variant="secondary" onClick={() => void save()} disabled={!dirty || saveState === "saving"}>
+            Save
+          </Button>
+          <Button loading={rendering} disabled={!postId || errorCount > 0 || dirty} onClick={() => void render()}>
+            Render
+          </Button>
+        </div>
+      </DocBar>
+
+      {loading && (
+        <div className="p-card">
+          <Skeleton height={320} />
+        </div>
       )}
 
-      {!loading && !narrow && (
-        <div className="flex min-h-0 flex-1 gap-0 pt-unit">
-          <div className="min-h-0 min-w-0 flex-none overflow-hidden" style={{ width: leftWidth }}>
-            {sourcePane}
-          </div>
-          <Splitter width={leftWidth} min={240} max={800} label="Resize the source pane" onResize={setLeftWidth} />
-          <div className="min-h-0 min-w-0 flex-1">{previewPane}</div>
+      {!loading && phone && (
+        <Tabs
+          label="Editor pane"
+          tabs={PANE_TABS}
+          value={pane}
+          onValueChange={setPane}
+          className="flex min-h-0 flex-1 flex-col"
+          listClassName="flex gap-[6px] px-card py-tight"
+          panelClassName="min-h-0 flex-1 px-card pb-card"
+        >
+          {(name) => {
+            if (name === "source")
+              return <div className="h-[calc(100dvh-var(--bottom-bar-h)-220px)] min-h-[320px]">{sourcePane}</div>;
+            if (name === "preview") return <div className="min-h-0">{previewPane}</div>;
+            return sidePane;
+          }}
+        </Tabs>
+      )}
+
+      {!loading && !phone && (
+        <div
+          className="relative grid min-h-0 flex-1 grid-cols-[var(--left,400px)_minmax(0,1fr)_var(--right,300px)] grid-rows-[minmax(0,1fr)] items-stretch gap-column px-gutter py-card max-[1099px]:grid-cols-[var(--left,380px)_minmax(0,1fr)] max-[1099px]:grid-rows-none max-[1099px]:pb-[40px] min-[1400px]:grid-cols-[var(--left,560px)_minmax(0,1fr)_var(--right,300px)]"
+          style={
+            {
+              ...(leftWidth !== null && { "--left": `${leftWidth}px` }),
+              ...(rightWidth !== null && { "--right": `${rightWidth}px` }),
+            } as CSSProperties
+          }
+        >
+          <div className="min-h-0 min-w-0 max-[1099px]:h-[620px]">{sourcePane}</div>
+          <div className="min-h-0 min-w-0 max-[1099px]:h-[620px]">{previewPane}</div>
+          <aside
+            aria-label="Palette and inspector"
+            className="-mr-tight min-h-0 [scrollbar-width:thin] overflow-x-hidden overflow-y-auto [mask-image:linear-gradient(to_bottom,var(--color-graphite)_calc(100%-16px),transparent)] pr-tight pb-card max-[1099px]:col-span-full max-[1099px]:mr-0 max-[1099px]:overflow-visible max-[1099px]:[mask-image:none] max-[1099px]:pr-0 max-[1099px]:pb-0"
+          >
+            {sidePane}
+          </aside>
           <Splitter
-            width={rightWidth}
+            width={leftWidth ?? (window.innerWidth >= 1400 ? 560 : 400)}
+            min={240}
+            max={800}
+            label="Resize the source pane"
+            onResize={setLeftWidth}
+            className="left-[calc(var(--spacing-gutter)+var(--left,400px))] min-[1400px]:left-[calc(var(--spacing-gutter)+var(--left,560px))]"
+          />
+          <Splitter
+            width={rightWidth ?? 300}
             min={260}
             max={620}
             direction={-1}
             label="Resize the inspector pane"
             onResize={setRightWidth}
+            className="right-[calc(var(--spacing-gutter)+var(--right,300px)+var(--spacing-column))]"
           />
-          <div className="min-h-0 min-w-0 flex-none overflow-hidden" style={{ width: rightWidth }}>
-            <div className="h-full overflow-auto">{inspectorPane}</div>
-          </div>
         </div>
       )}
 
       <div
-        ref={ghostRef} // The dragged component, on the pointer: a paper slip with the waxed shadow, because that is what it will be once
-        // it lands. JS moves it with an inline transform.
-        className="pointer-events-none invisible fixed top-0 left-0 z-ghost mt-half ml-half [transform:translate3d(-1000px,-1000px,0)] bg-paper px-hair py-[4px] font-galley text-mark font-bold tracking-mark text-graphite uppercase shadow-waxed"
+        ref={ghostRef} // The dragged component, on the pointer: a paper card with the waxed shadow, because that is what it
+        // will be once it lands. JS moves it with an inline transform.
+        className="pointer-events-none invisible fixed top-0 left-0 z-ghost mt-half ml-half [transform:translate3d(-1000px,-1000px,0)] bg-paper px-snug py-[4px] font-chrome text-hint leading-hint font-bold text-graphite shadow-waxed"
         aria-hidden="true"
       >
         {drag?.component ?? ""}

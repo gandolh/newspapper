@@ -4,6 +4,7 @@
  */
 
 import { useDrag } from "@use-gesture/react";
+import { cn } from "../../lib/cn";
 
 export interface SplitterProps {
   width: number;
@@ -13,9 +14,11 @@ export interface SplitterProps {
   direction?: 1 | -1;
   label: string;
   onResize: (width: number) => void;
+  /** Where the handle sits: the caller places it in the gap between two cards. */
+  className?: string;
 }
 
-export function Splitter({ width, min, max, direction = 1, label, onResize }: SplitterProps) {
+export function Splitter({ width, min, max, direction = 1, label, onResize, className }: SplitterProps) {
   const bind = useDrag(
     ({ movement: [dx], memo }) => {
       const start = typeof memo === "number" ? memo : width;
@@ -28,8 +31,11 @@ export function Splitter({ width, min, max, direction = 1, label, onResize }: Sp
   return (
     <div
       {...bind()}
-      // The gap between two things on the board: a rule, not a handle.
-      className="mx-hair shrink-0 grow-0 basis-half cursor-col-resize touch-none border-0 border-x border-rule bg-transparent p-0 hover:border-graphite focus-visible:border-graphite"
+      // The gap between two cards on the board: nothing until it is hovered or focused, then a graphite rule.
+      className={cn(
+        "absolute inset-y-0 z-pane w-column cursor-col-resize touch-none bg-transparent p-0 before:absolute before:inset-y-card before:left-1/2 before:w-px before:bg-transparent hover:before:bg-graphite focus-visible:before:bg-graphite max-[1099px]:hidden",
+        className,
+      )}
       role="separator"
       aria-orientation="vertical"
       aria-label={label}

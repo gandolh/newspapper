@@ -1,5 +1,5 @@
 /**
- * The specimen showing — the component palette.
+ * The component palette: three groups collapsed and Content open.
  *
  * Every item is draggable into a slot and clickable for the same result, so
  * the whole post can be assembled without a pointer gesture — and so a drag
@@ -7,48 +7,26 @@
  * from the catalogue; nothing here restates what a component is or takes.
  */
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useDrag } from "@use-gesture/react";
 import { WZD_COMPONENTS, type WzdComponentSpec } from "@newspapper/core/wizard";
-import { Button, HATCH } from "../ui";
+import { Icon } from "../ui";
 import { cn } from "../../lib/cn";
 
 /**
- * Each component renders as the thing it produces (The Showing Rule): a
- * `Heading` is set at heading weight, a `Kicker` in tracked mono caps, a
- * `Quote` in italic, a `Stat` as a heavy numeral. Structure has no type of
- * its own, so it shows its shape instead.
+ * Each component renders as the thing it produces (The Showing Rule): a `Heading` is set at heading weight and
+ * width, a `Stat` as a heavy wide numeral, a `Quote` in italic. Everything else is the plain chip.
  */
 const SHOWINGS = {
-  showHeading: "text-[17px] font-extrabold wdth-title tracking-[-0.02em]",
-  showText: "text-[12px] font-normal",
-  showList: "text-[12px] font-normal before:text-graphite-soft before:content-['—_']",
-  showQuote: "text-[13px] font-medium italic",
-  showStat: "text-[20px] font-black tracking-[-0.03em]",
-  showKicker: "font-galley text-field font-bold tracking-field uppercase",
-  showSource: "font-galley text-field font-medium tracking-field text-graphite-soft uppercase",
-  showCounter: "font-galley text-[11px] font-medium tabular-nums",
-  // Structure produces a shape, not a run of type, so it shows one.
-  showSchematic: "font-galley text-[10px] font-medium tracking-[0.08em] text-graphite-soft uppercase",
+  showHeading: "py-[2px] text-head leading-head font-extrabold wdth-head",
+  showStat: "py-[2px] text-head leading-head font-extrabold wdth-title",
+  showQuote: "italic",
 } as const;
 
-const DEFAULT_SHOWING = "showText" as const;
-
-const SHOWING: Record<string, keyof typeof SHOWINGS> = {
+const SHOWING: Partial<Record<string, keyof typeof SHOWINGS>> = {
   Heading: "showHeading",
-  Text: "showText",
-  List: "showList",
-  Item: "showList",
   Quote: "showQuote",
   Stat: "showStat",
-  Kicker: "showKicker",
-  Source: "showSource",
-  PageCounter: "showCounter",
-  Image: "showSchematic",
-  Stack: "showSchematic",
-  Row: "showSchematic",
-  Divider: "showSchematic",
-  Spacer: "showSchematic",
 };
 
 const GROUP_LABELS: Record<string, string> = {
@@ -57,6 +35,21 @@ const GROUP_LABELS: Record<string, string> = {
   accent: "Accents",
   generated: "Generated",
 };
+
+/** Content is open; the other three start collapsed, and each stays as the operator left it. */
+const DEFAULT_OPEN: readonly string[] = ["content"];
+const OPEN_KEY = "newspapper-palette-open";
+
+function readOpen(): Set<string> {
+  try {
+    const stored = localStorage.getItem(OPEN_KEY);
+    const parsed: unknown = stored ? JSON.parse(stored) : null;
+    if (Array.isArray(parsed)) return new Set(parsed.filter((g): g is string => typeof g === "string"));
+  } catch {
+    // Storage blocked or damaged: the defaults apply.
+  }
+  return new Set(DEFAULT_OPEN);
+}
 
 export interface PalettePaneProps {
   onDragStart: (component: string) => void;
@@ -73,6 +66,7 @@ function PaletteItem({
   spec,
   disabled,
   dragging,
+  word,
   onDragStart,
   onDragMove,
   onDragEnd,
@@ -81,6 +75,8 @@ function PaletteItem({
   spec: WzdComponentSpec;
   disabled: boolean;
   dragging: boolean;
+  /** A word in a collapsed group: the same working chip, set as a plain word until it is hovered. */
+  word: boolean;
   onDragStart: (component: string) => void;
   onDragMove: (x: number, y: number) => void;
   onDragEnd: () => void;
@@ -100,22 +96,26 @@ function PaletteItem({
     { filterTaps: true, pointer: { keys: false } },
   );
 
+  const showing = SHOWING[spec.name];
+
   return (
     <li>
-      <Button
+      <button
         {...bind()}
-        variant="secondary"
-        size="sm"
+        type="button"
         disabled={disabled}
         className={cn(
-          // Every compartment is a cell of the showing: a tick border, and inside it the component set the way it
-          // sets (DESIGN.md section 3, The Showing Rule).
-          "h-auto min-h-unit touch-none px-hair py-[4px]",
+          "touch-none font-chrome text-graphite-soft",
           dragging ? "cursor-grabbing" : "cursor-grab",
-          SHOWINGS[SHOWING[spec.name] ?? DEFAULT_SHOWING],
-          // Nowhere to put it: the same rubylith idea the rest of the app uses for "held out", drawn as the 45°
-          // hatch at this scale. The ink is unchanged: dimming a 9px caption would take it under 4.5:1.
-          disabled && ["border-tick text-graphite-soft", HATCH],
+          word
+            ? "min-h-[28px] border-0 border-b border-transparent bg-transparent px-[4px] text-label leading-label font-semibold hover:border-b-field-edge hover:text-graphite phone:min-h-(--target) phone:px-snug"
+            : [
+                // A cell of the showing: a field-edge ring, and inside it the component set the way it sets.
+                "min-h-[28px] border border-field-edge bg-paper px-[9px] py-[3px] text-hint leading-[18px] font-semibold text-graphite phone:min-h-(--target) phone:px-snug",
+                showing && SHOWINGS[showing],
+              ],
+          // Nowhere to put it: the hatch and a dashed edge, the one "held out" mark.
+          disabled && "cursor-not-allowed border-dashed border-graphite-tint bg-(image:--hatch) text-graphite-soft",
         )}
         title={spec.description}
         onKeyDown={(event) => {
@@ -126,7 +126,7 @@ function PaletteItem({
         }}
       >
         {spec.name}
-      </Button>
+      </button>
     </li>
   );
 }
@@ -152,32 +152,73 @@ export function PalettePane({
     return [...out];
   }, []);
 
+  const [open, setOpen] = useState<Set<string>>(readOpen);
+  function toggle(group: string): void {
+    setOpen((current) => {
+      const next = new Set(current);
+      if (next.has(group)) next.delete(group);
+      else next.add(group);
+      try {
+        localStorage.setItem(OPEN_KEY, JSON.stringify([...next]));
+      } catch {
+        // The state is kept for this visit only.
+      }
+      return next;
+    });
+  }
+
   return (
-    <div className="flex flex-col gap-half bg-paper p-half shadow-waxed">
-      <p className="font-galley text-[10px] leading-[1.45] text-graphite-soft">
+    <section aria-label="Palette" className="bg-paper px-card pt-tight pb-[6px] shadow-waxed">
+      <p className="font-chrome text-hint leading-[16px] font-medium text-graphite-soft">
         {disabled ? "Fix the markup before adding components." : "Drag into a slot, or click to add to the selection."}
       </p>
-      {groups.map(([group, specs]) => (
-        <section key={group} className="flex flex-col gap-[4px]">
-          <h3 className="border-b border-rule pb-[2px] font-galley text-field font-medium tracking-field text-graphite-soft uppercase">
-            {GROUP_LABELS[group] ?? group}
-          </h3>
-          <ul className="flex flex-wrap gap-[4px]">
-            {specs.map((spec) => (
-              <PaletteItem
-                key={spec.name}
-                spec={spec}
-                disabled={disabled || unavailable.has(spec.name)}
-                dragging={dragging === spec.name}
-                onDragStart={onDragStart}
-                onDragMove={onDragMove}
-                onDragEnd={onDragEnd}
-                onInsert={onInsert}
-              />
-            ))}
-          </ul>
-        </section>
-      ))}
-    </div>
+      {groups.map(([group, specs]) => {
+        const expanded = open.has(group);
+        const items = specs.map((spec) => (
+          <PaletteItem
+            key={spec.name}
+            spec={spec}
+            word={!expanded}
+            disabled={disabled || unavailable.has(spec.name)}
+            dragging={dragging === spec.name}
+            onDragStart={onDragStart}
+            onDragMove={onDragMove}
+            onDragEnd={onDragEnd}
+            onInsert={onInsert}
+          />
+        ));
+        const header = (
+          <button
+            type="button"
+            className="flex min-h-[32px] w-full cursor-pointer items-center gap-tight border-0 bg-transparent p-0 text-left font-chrome text-label leading-label font-semibold text-graphite-soft phone:min-h-(--target)"
+            aria-expanded={expanded}
+            onClick={() => toggle(group)}
+          >
+            <Icon
+              name="chevronRight"
+              size={14}
+              className={cn("transition-transform duration-150", expanded && "rotate-90")}
+            />
+            <span className="text-graphite">{GROUP_LABELS[group] ?? group}</span>
+            {expanded && <span className="ml-auto tabular-nums">{specs.length}</span>}
+          </button>
+        );
+        return (
+          <div key={group} className="border-t border-hairline first:border-t-0">
+            {expanded ? (
+              <>
+                {header}
+                <ul className="flex flex-wrap gap-[6px] pb-snug">{items}</ul>
+              </>
+            ) : (
+              <div className="flex min-h-[32px] flex-wrap items-center phone:min-h-(--target)">
+                <div className="shrink-0 pr-[6px] [&>button]:w-auto">{header}</div>
+                <ul className="flex flex-wrap items-center">{items}</ul>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </section>
   );
 }

@@ -1,5 +1,5 @@
 /**
- * The tissue: the `<head>` block, and the selected component's props.
+ * The tissue: the `<head>` block, and the selected component's props, on a sheet at 90% over the board.
  *
  * It hinges. Selecting a node swings the sheet down about its top edge and it
  * comes to rest with the notes already on it — the one authored moment this
@@ -29,7 +29,7 @@ import {
   WZD_HEAD_FIELDS,
   type WzdDocument,
 } from "@newspapper/core/wizard";
-import { Button, ChipRow, EmptyState, Input, Textarea } from "../ui";
+import { Button, ChipRow, Icon, Input, Textarea } from "../ui";
 import { ancestorPaths, elementAtPath, type WzdPath } from "./paths.js";
 import { inheritedAlign, textOf } from "./props.js";
 import { hinge } from "@/lib/motion";
@@ -53,6 +53,8 @@ function DraftField({
   value,
   hint,
   multiline,
+  singleLine,
+  className,
   disabled,
   onCommit,
 }: {
@@ -60,6 +62,9 @@ function DraftField({
   value: string;
   hint?: string;
   multiline?: boolean;
+  /** A field that is one line of text but shown on two, so none of it is cut: Enter commits instead of breaking. */
+  singleLine?: boolean;
+  className?: string;
   disabled?: boolean;
   onCommit: (next: string) => void;
 }) {
@@ -88,9 +93,20 @@ function DraftField({
         hint={hint}
         value={draft}
         disabled={disabled}
-        rows={3}
+        rows={2}
+        className={className}
         onChange={(event) => setDraft(event.target.value)}
         onBlur={commit}
+        onKeyDown={
+          singleLine
+            ? (event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  event.currentTarget.blur();
+                }
+              }
+            : undefined
+        }
       />
     );
   }
@@ -154,40 +170,47 @@ export function InspectorPane(props: InspectorPaneProps) {
   const resolved = element ? resolveProps(element) : {};
 
   return (
-    <div // The tissue: a translucent overlay hinged over the board, carrying the notes that must never print. It stays
-      // translucent on purpose, because the non-photo grid has to read through it: an opaque sheet is a panel, and a
-      // panel is the wrong object. One of the system's two shadows.
-      className="flex origin-top flex-col gap-unit border-l-[1.5px] border-tissue-edge bg-tissue px-half py-unit shadow-hinged backdrop-blur-[1.2px]"
+    <section // The tissue: a translucent sheet hinged over the board, carrying the notes that must never print. It reads
+      // as a sheet (90% over the board), not as glass. One of the system's two shadows.
+      aria-label="Inspector"
+      className="flex origin-top flex-col border border-tissue-edge bg-tissue px-card py-snug shadow-hinged"
       ref={sheetRef}
     >
-      <span className="-mt-half h-0 border-t [border-top-style:dashed] border-tissue-edge" aria-hidden="true" />
-
-      <section className="flex flex-col gap-half">
-        <h3 className="font-galley text-field font-medium tracking-field text-graphite-soft uppercase">Post</h3>
-        <p className="font-galley text-[10px] leading-[1.45] text-graphite-soft">
-          The <code>&lt;head&gt;</code> block. Title, description and keywords also drive the saved post's index
-          columns.
-        </p>
+      <h2 className="mb-[4px] font-chrome text-section leading-section font-extrabold text-graphite-deep wdth-head">
+        Post
+      </h2>
+      <p className="mb-[6px] font-chrome text-hint leading-[18px] font-medium text-graphite-soft">
+        The <code>&lt;head&gt;</code> block. Title, description and keywords also drive the saved post's index columns.
+      </p>
+      <div className="flex flex-col gap-[6px]">
         {WZD_HEAD_FIELDS.map((field) => (
           <DraftField
             key={field}
             label={HEAD_LABELS[field] ?? field}
             value={doc?.head[field] ?? ""}
             disabled={disabled}
-            multiline={field === "caption" || field === "description"}
+            multiline={field === "caption" || field === "description" || field === "title"}
+            singleLine={field === "title"}
+            className={field === "description" ? "min-h-[44px]" : undefined}
             onCommit={(next) => onSetHead(field, next)}
           />
         ))}
-      </section>
+      </div>
 
-      <section className="flex flex-col gap-half">
-        <h3 className="font-galley text-field font-medium tracking-field text-graphite-soft uppercase">Selection</h3>
-
+      <h2 className="mt-card mb-[4px] border-t border-dashed border-tissue-edge pt-[14px] font-chrome text-section leading-section font-extrabold text-graphite-deep wdth-head">
+        Selection
+      </h2>
+      <div className="flex flex-col gap-snug">
         {!element && (
-          <EmptyState
-            title="Nothing selected"
-            hint="Click a node in the preview, or put the cursor inside one in the source."
-          />
+          <>
+            <div className="flex items-center gap-tight font-chrome text-body leading-body font-bold text-graphite">
+              <Icon name="pointer" />
+              Nothing selected
+            </div>
+            <p className="font-chrome text-hint leading-[18px] font-medium text-graphite-soft">
+              Click a node in the preview, or put the cursor inside one in the source.
+            </p>
+          </>
         )}
 
         {element && selectedPath && (
@@ -201,7 +224,7 @@ export function InspectorPane(props: InspectorPaneProps) {
                     key={path.join(".")}
                     variant="ghost"
                     size="sm"
-                    className="h-[18px] px-[4px] py-0 font-galley text-[9.5px] tracking-[0.06em] uppercase after:ml-[4px] after:text-graphite-soft after:content-['/'] last:after:content-['']"
+                    className="h-[24px] px-[4px] py-0 text-label after:ml-[4px] after:text-graphite-soft after:content-['/'] last:after:content-['']"
                     onClick={() => onSelectPath(path)}
                   >
                     {node.type}
@@ -210,21 +233,23 @@ export function InspectorPane(props: InspectorPaneProps) {
               })}
             </nav>
 
-            <div className="flex flex-col gap-hair">
-              <h4 className="font-chrome text-board-title leading-board-title font-extrabold tracking-board-title text-graphite wdth-title">
+            <div className="flex flex-col gap-[2px]">
+              <h3 className="font-chrome text-head leading-head font-extrabold text-graphite-deep wdth-head">
                 {element.type}
-              </h4>
-              {spec && <span className="text-label leading-[1.4] text-graphite-soft">{spec.description}</span>}
+              </h3>
+              {spec && (
+                <span className="text-hint leading-hint font-medium text-graphite-soft">{spec.description}</span>
+              )}
             </div>
 
-            <div className="flex flex-wrap gap-[4px]">
-              <Button variant="ghost" size="sm" disabled={disabled} onClick={() => onNudge(selectedPath, -1)}>
+            <div className="flex flex-wrap gap-[6px]">
+              <Button variant="secondary" size="sm" disabled={disabled} onClick={() => onNudge(selectedPath, -1)}>
                 Move up
               </Button>
-              <Button variant="ghost" size="sm" disabled={disabled} onClick={() => onNudge(selectedPath, 1)}>
+              <Button variant="secondary" size="sm" disabled={disabled} onClick={() => onNudge(selectedPath, 1)}>
                 Move down
               </Button>
-              <Button variant="ghost" size="sm" disabled={disabled} onClick={() => onDuplicate(selectedPath)}>
+              <Button variant="secondary" size="sm" disabled={disabled} onClick={() => onDuplicate(selectedPath)}>
                 Duplicate
               </Button>
               <Button variant="danger" size="sm" disabled={disabled} onClick={() => onRemove(selectedPath)}>
@@ -257,7 +282,7 @@ export function InspectorPane(props: InspectorPaneProps) {
                     ? inheritedAlign(doc as WzdDocument, selectedPath)
                     : (resolved[propSpec.name] ?? propSpec.default ?? "");
                 return (
-                  <div className="flex items-end gap-[4px] *:first:min-w-0 *:first:flex-1" key={propSpec.name}>
+                  <div className="flex items-end gap-[6px] *:first:min-w-0 *:first:flex-1" key={propSpec.name}>
                     <ChipRow
                       kind="picker"
                       label={propSpec.name}
@@ -288,7 +313,7 @@ export function InspectorPane(props: InspectorPaneProps) {
 
               if (element.type === "Image" && propSpec.name === "src") {
                 return (
-                  <div className="flex items-end gap-[4px] *:first:min-w-0 *:first:flex-1" key={propSpec.name}>
+                  <div className="flex items-end gap-[6px] *:first:min-w-0 *:first:flex-1" key={propSpec.name}>
                     <Input
                       label="src"
                       value={written ?? ""}
@@ -321,7 +346,7 @@ export function InspectorPane(props: InspectorPaneProps) {
             })}
           </>
         )}
-      </section>
-    </div>
+      </div>
+    </section>
   );
 }
