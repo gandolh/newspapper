@@ -50,7 +50,11 @@ const VIEWS: Array<{ view: ReaderView; label: string; note: string; icon: IconNa
 ];
 
 function Count({ n }: { n: number | undefined }) {
-  return <span className="text-hint leading-hint font-semibold tabular-nums">{n === undefined ? "" : n}</span>;
+  return (
+    <span className="text-hint leading-hint font-semibold text-graphite-soft tabular-nums group-aria-[current=true]/row:text-graphite">
+      {n === undefined ? "" : n}
+    </span>
+  );
 }
 
 function ProgressMark({ p }: { p: SourceProgress | undefined }) {
@@ -63,7 +67,7 @@ function ProgressMark({ p }: { p: SourceProgress | undefined }) {
 /** One entry: a label, any marks, and a count on the right edge, 28px (48 on a phone). The current entry is the
  * tinted row with a 3px graphite bar on its left edge. */
 const ITEM =
-  "flex min-h-[28px] w-full cursor-pointer items-center justify-between gap-tight border-0 border-l-[3px] border-l-transparent bg-transparent px-card text-left font-chrome text-body leading-body font-semibold tracking-label text-graphite hover:bg-graphite/5 aria-[current=true]:border-l-graphite aria-[current=true]:bg-board aria-[current=true]:font-extrabold phone:min-h-(--target) [&_.count]:text-graphite-soft aria-[current=true]:[&_.count]:text-graphite";
+  "group/row flex min-h-[28px] w-full cursor-pointer items-center justify-between gap-tight border-0 border-l-[3px] border-l-transparent bg-transparent px-card text-left font-chrome text-body leading-body font-semibold tracking-label text-graphite hover:bg-graphite/5 aria-[current=true]:border-l-graphite aria-[current=true]:bg-board aria-[current=true]:font-extrabold phone:min-h-(--target)";
 /** A category heading, set as a label, still a button: it narrows the list to every source under it. */
 const CATEGORY =
   "mt-[4px] min-h-[24px] border-t border-t-hairline pt-snug pb-[2px] text-label leading-label font-semibold text-graphite-soft aria-[current=true]:font-extrabold aria-[current=true]:text-graphite phone:min-h-(--target)";
@@ -100,9 +104,7 @@ export function Rail(props: RailProps) {
             onClick={() => props.onSelect("unread", null)}
           >
             <span className={LABEL}>Unread</span>
-            <span className="count">
-              <Count n={counts?.unread} />
-            </span>
+            <Count n={counts?.unread} />
           </button>
         </li>
         <li>
@@ -113,9 +115,7 @@ export function Rail(props: RailProps) {
             onClick={() => props.onSelect("all", null)}
           >
             <span className={LABEL}>All</span>
-            <span className="count">
-              <Count n={counts?.all} />
-            </span>
+            <Count n={counts?.all} />
           </button>
         </li>
       </ul>
@@ -149,9 +149,7 @@ export function Rail(props: RailProps) {
                   onClick={() => props.onSelect(null, groupNarrow)}
                 >
                   <span className={LABEL}>{group.category ?? "Uncategorized"}</span>
-                  <span className="count">
-                    <Count n={counts ? unreadIn(counts, groupNarrow, sources) : undefined} />
-                  </span>
+                  <Count n={counts ? unreadIn(counts, groupNarrow, sources) : undefined} />
                 </button>
               )}
               <ul className="flex flex-col">
@@ -177,9 +175,7 @@ export function Rail(props: RailProps) {
                         <span className={cn(LABEL, !source.enabled && "italic")}>{source.name}</span>
                         {failing && <Mark tone="rubylith">failing</Mark>}
                         <ProgressMark p={p} />
-                        <span className="count">
-                          <Count n={counts?.unreadBySource[source.id]} />
-                        </span>
+                        <Count n={counts?.unreadBySource[source.id]} />
                       </button>
                     </li>
                   );

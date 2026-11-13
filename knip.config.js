@@ -5,5 +5,6 @@ import preset from "./vendor/house-style/knip.json" with { type: "json" };
 export default {
   ...preset,
   ignoreWorkspaces: ["docs"],
-  workspaces: { ".": { entry: ["scripts/*.mjs"] } },
+  // The Playwright config is read by the `playwright` CLI, not imported: it is an entry.
+  workspaces: { ".": { entry: ["scripts/*.mjs", "e2e/playwright.config.ts"] } },
 };
