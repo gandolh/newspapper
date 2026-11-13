@@ -27,6 +27,12 @@ interface Screen {
   options?: Parameters<typeof stubApi>[1];
 }
 
+/** Below 1100px the Reader opens on the items; the rail is one tap back. */
+async function openRail(page: Page): Promise<void> {
+  const back = page.getByRole("button", { name: "Feeds", exact: true });
+  if (await back.isVisible()) await back.click();
+}
+
 export const SCREENS: Screen[] = [
   { name: "editor", path: "/?post=1" },
   {
@@ -45,11 +51,106 @@ export const SCREENS: Screen[] = [
       await page.getByRole("tab", { name: "Source" }).click();
     },
   },
+  {
+    name: "editor-slide-selected",
+    path: "/?post=1",
+    prepare: async (page) => {
+      await page.getByRole("button", { name: "Slide 2", exact: true }).click();
+    },
+  },
+  {
+    name: "editor-toast",
+    path: "/?post=1",
+    prepare: async (page) => {
+      await page.getByRole("button", { name: "Render", exact: true }).click();
+      await page.getByText("Rendered.").waitFor();
+    },
+  },
+  {
+    name: "editor-image-picker",
+    path: "/?post=1",
+    widths: [1280],
+    prepare: async (page) => {
+      await page.getByRole("button", { name: "Image", exact: true }).click();
+      await page.getByRole("dialog").waitFor();
+    },
+  },
   { name: "posts", path: "/posts" },
   { name: "posts-empty", path: "/posts", options: { posts: [] } },
+  {
+    name: "posts-delete-confirm",
+    path: "/posts",
+    prepare: async (page) => {
+      await page.getByRole("button", { name: "Delete" }).first().click();
+      await page.getByRole("alertdialog").waitFor();
+    },
+  },
   { name: "reader", path: "/reader" },
+  {
+    name: "reader-item",
+    path: "/reader",
+    prepare: async (page) => {
+      await page.getByRole("button", { name: /Item 2:/ }).click();
+      await page.getByRole("heading", { name: /Item 2:/ }).waitFor();
+    },
+  },
+  {
+    name: "reader-all",
+    path: "/reader",
+    prepare: async (page) => {
+      await page.getByRole("radio", { name: "All", exact: true }).first().click();
+      await page.getByRole("button", { name: /Item 1:/ }).waitFor();
+    },
+  },
+  {
+    name: "reader-sources",
+    path: "/reader",
+    prepare: async (page) => {
+      await openRail(page);
+      await page.getByRole("button", { name: /^Sources/ }).click();
+      await page.getByRole("heading", { name: "Sources" }).waitFor();
+    },
+  },
+  {
+    name: "reader-add-source",
+    path: "/reader",
+    prepare: async (page) => {
+      await openRail(page);
+      await page.getByRole("button", { name: /^Sources/ }).click();
+      await page.getByRole("button", { name: /Add source/ }).click();
+      await page.getByRole("dialog").waitFor();
+    },
+  },
+  {
+    name: "reader-library",
+    path: "/reader",
+    prepare: async (page) => {
+      await openRail(page);
+      await page.getByRole("button", { name: /^Library/ }).click();
+      await page.getByRole("heading", { name: "Library" }).waitFor();
+    },
+  },
+  {
+    name: "reader-search",
+    path: "/reader",
+    prepare: async (page) => {
+      await openRail(page);
+      await page.getByRole("button", { name: /^Search/ }).click();
+      await page.getByRole("heading", { name: "Search" }).waitFor();
+    },
+  },
+  {
+    name: "reader-legend",
+    path: "/reader",
+    prepare: async (page) => {
+      await openRail(page);
+      await page.getByRole("button", { name: "Keyboard shortcuts" }).click();
+      await page.getByRole("dialog").waitFor();
+    },
+  },
   { name: "settings", path: "/settings" },
   { name: "login", path: "/login", options: { signedOut: true } },
+  { name: "kitchen-sink", path: "/kitchen-sink" },
 ];
 
 test.describe("shots", () => {

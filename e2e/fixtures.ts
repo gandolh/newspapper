@@ -104,10 +104,11 @@ export const SOURCES = [
   { id: "politica", name: "Politica la Minut", rss: "https://feeds.example.test/politica.xml", category: null },
 ].map((s) => ({ ...s, enabled: true, lastFetchedAt: "2026-11-13T08:00:00.000Z", lastError: null as string | null }));
 
+/** From item 2 the feeds cycle Harbour, Tech, Loose, Metro; item 1 is Metro. */
 const ITEM_SOURCES = ["harbour", "tech", "loose", "metro"];
-const HOURS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24];
-/** Items 1 and 6 and four more are read: 24 in all, 19 unread (Harbour 5, Metro 4, Tech 5, Loose 5). */
-const READ = new Set([1, 6, 11, 16, 21]);
+const IDS = Array.from({ length: 24 }, (_, i) => i + 1);
+/** Five of the 24 items are read, so 19 are unread (Harbour 5, Metro 4, Tech 5, Loose 5). */
+const READ = new Set([1, 6, 21, 23, 24]);
 
 function sourceName(id: string): string {
   return SOURCES.find((s) => s.id === id)!.name;
@@ -127,10 +128,9 @@ export interface Item {
   excerpt: string;
 }
 
-export const ITEMS: Item[] = HOURS.map((h, i) => {
-  const id = i + 1;
-  const sourceId = ITEM_SOURCES[i % ITEM_SOURCES.length];
-  const at = new Date(Date.parse("2026-11-13T09:00:00.000Z") - h * 3_600_000).toISOString();
+export const ITEMS: Item[] = IDS.map((id) => {
+  const sourceId = ITEM_SOURCES[(((id - 2) % 4) + 4) % 4];
+  const at = new Date(Date.parse("2026-11-13T09:00:00.000Z") - (id === 1 ? 30 : id - 1) * 3_600_000).toISOString();
   return {
     id,
     sourceId,
