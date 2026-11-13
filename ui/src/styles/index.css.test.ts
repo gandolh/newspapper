@@ -6,7 +6,16 @@ const has = (name: string): boolean => new RegExp(`\\.${name.replace(/[^\w-]/g, 
 
 describe("the stylesheet's closed system", () => {
   it("defines the chrome's own tokens", () => {
-    for (const token of ["--color-board", "--color-wax", "--spacing-unit", "--text-label", "--tracking-field"]) {
+    for (const token of [
+      "--color-board",
+      "--color-wax",
+      "--spacing-unit",
+      "--text-label",
+      "--tracking-field",
+      "--color-field-edge",
+      "--text-head",
+      "--spacing-card",
+    ]) {
       expect(css, token).toContain(`${token}:`);
     }
   });

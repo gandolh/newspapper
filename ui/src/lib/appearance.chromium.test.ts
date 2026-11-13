@@ -97,7 +97,7 @@ async function open(options: {
     return route.fulfill({
       contentType: "text/html",
       body:
-        '<!doctype html><html><head><meta name="theme-color" content="#fbfbf9" />' +
+        '<!doctype html><html><head><meta name="theme-color" content="#e9e8e3" />' +
         `<script>${inlineScript}</script><style>${css}</style></head><body><p id="p">Board</p>${bundle}</body></html>`,
     });
   });
@@ -119,11 +119,11 @@ const read = (page: Page) =>
 const LIGHT = {
   theme: "light",
   scheme: "light",
-  board: "rgb(251, 251, 249)",
-  ink: "rgb(43, 43, 43)",
-  token: "#2b2b2b",
+  board: "rgb(233, 232, 227)",
+  ink: "rgb(35, 35, 34)",
+  token: "#232322",
 };
-const DARK = { theme: "dark", scheme: "dark", board: "rgb(27, 28, 31)", ink: "rgb(236, 235, 230)", token: "#ecebe6" };
+const DARK = { theme: "dark", scheme: "dark", board: "rgb(18, 19, 21)", ink: "rgb(239, 238, 233)", token: "#efeee9" };
 
 describe("the Light / Dark / System switch (Chromium)", () => {
   it("a first visit shows the light theme, though the browser asks for dark", async (ctx) => {
@@ -188,7 +188,7 @@ describe("the Light / Dark / System switch (Chromium)", () => {
       expect(await page.evaluate(() => typeof (window as unknown as { appearance?: unknown }).appearance)).toBe(
         "undefined",
       );
-      expect(await page.getAttribute('meta[name="theme-color"]', "content")).toBe("#1b1c1f");
+      expect(await page.getAttribute('meta[name="theme-color"]', "content")).toBe("#121315");
     } finally {
       await page.close();
     }

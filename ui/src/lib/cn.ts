@@ -12,17 +12,17 @@ import { extendTailwindMerge } from "tailwind-merge";
 const twMerge = extendTailwindMerge<"wdth">({
   extend: {
     theme: {
-      text: ["board-title", "brand", "body", "label", "galley", "field", "mark", "caption"],
-      leading: ["board-title", "body", "label", "galley", "field"],
+      text: ["board-title", "head", "section", "brand", "body", "hint", "label", "galley", "field", "mark", "caption"],
+      leading: ["board-title", "head", "section", "body", "hint", "label", "galley", "field"],
       tracking: ["board-title", "brand", "label", "field", "mark"],
       shadow: ["waxed", "lifted", "hinged"],
       font: ["chrome", "galley", "slide"],
-      spacing: ["hair", "half", "unit", "double"],
+      spacing: ["hair", "half", "unit", "double", "tight", "snug", "card", "column", "gutter"],
       container: ["content", "narrow"],
     },
     classGroups: {
       z: [{ z: ["pane", "sticky", "ghost", "overlay", "dialog", "popup", "toast"] }],
-      wdth: [{ wdth: ["title", "brand", "narrow"] }],
+      wdth: [{ wdth: ["title", "head", "brand", "narrow"] }],
     },
   },
   override: {

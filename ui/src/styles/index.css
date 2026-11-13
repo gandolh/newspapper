@@ -125,6 +125,10 @@
    ReaderIsland.tsx says the same number. */
 @custom-variant reader-narrow (@media (max-width: 1099px));
 
+/* The phone layout: the tray becomes a bottom bar and the editor shows one pane at a time. The comps switch at a
+   page width of 860px. NARROW_QUERY in layouts/App.tsx says the same number. */
+@custom-variant phone (@media (max-width: 859px));
+
 /* Only the chrome's closed system exists: a component using bg-red-500, text-sm or rounded-md produces no CSS. */
 @theme static {
   --color-*: initial;
@@ -142,78 +146,91 @@
   --inset-shadow-*: initial;
   --text-shadow-*: initial;
 
-  /* Ground */
-  /* Ink. graphite-soft is the FLOOR for text (5.21:1 on board). graphite-tint measures 4.16:1: rules and ticks only. */
-  /* Marks. non-photo-select is the ground of every text selection: non-photo blue at 80% over paper, solid.
-     rubylith-ink is the darker draw of the rubylith that can carry a word (5.43:1 on board). */
-  /* Rules and edges: never text */
-  --color-board: #fbfbf9;
+  /* Colour. graphite-soft is the FLOOR for text (5.69:1 on board, 6.99 on paper). graphite-tint measures 4.16:1 on
+     paper: ticks and the hatch only. non-photo-select is the ground of every text selection. rubylith-ink is the
+     darker draw of the rubylith that can carry a word. field-edge is the 3:1 edge of a control (3.84:1 on paper). */
+  --color-board: #e9e8e3;
   --color-paper: #ffffff;
-  --color-tissue: rgba(252, 250, 242, 0.7);
-  --color-graphite: #2b2b2b;
-  --color-graphite-deep: #171717;
-  --color-graphite-soft: #6d6a62;
+  --color-tissue: rgba(251, 249, 241, 0.9);
+  --color-tissue-edge: #a29f95;
+  --color-tissue-ink: #8d8a80;
+  --color-graphite: #232322;
+  --color-graphite-deep: #1a1a1a;
+  --color-graphite-soft: #5c5952;
   --color-graphite-tint: #7a7a76;
-  --color-process-blue: #1d63a8;
-  --color-non-photo: rgba(127, 182, 232, 0.4);
+  --color-process-blue: #1a5c9e;
+  --color-non-photo: rgba(127, 182, 232, 0.32);
   --color-non-photo-select: #99c5ed;
   --color-rubylith: #e8452e;
   --color-rubylith-wash: rgba(232, 69, 46, 0.34);
   --color-rubylith-wash-soft: rgba(232, 69, 46, 0.16);
-  --color-rubylith-ink: #c0331f;
-  --color-grease: #c0331f;
+  --color-rubylith-ink: #b52f1d;
+  --color-grease: #b52f1d;
   --color-wax: #f5d97a;
   --color-wax-ink: #3d3416;
   /* The slide canvas is artwork, not chrome: its ground and ink do not follow the Light / Dark / System switch. */
   --color-slide-paper: #ffffff;
   --color-slide-ink: #2b2b2b;
-  --color-hairline: #e2e2dd;
-  --color-rule: #cfcfca;
-  --color-tick: #c4c1b8;
-  --color-tissue-edge: #b9b6ac;
-  --color-tissue-ink: #8d8a80;
+  --color-hairline: #c8c7bf;
+  --color-rule: #c6c5bd;
+  --color-tick: #b5b2a9;
+  --color-field-edge: #85827a;
 
-  --shadow-waxed: 2px 3px 0 rgba(43, 43, 43, 0.14), 0 0 0 1px var(--color-hairline);
+  /* Two shadows, both hard-edged. Waxed carries every card and the band; hinged is the inspector tissue. */
+  --shadow-waxed: 2px 3px 0 rgba(35, 35, 34, 0.16), 0 0 0 1px var(--color-hairline);
   /* The hard short half of waxed, for a selected node in the preview: its 1px hairline ring would sit outside the
      graphite outline and read as a smudge. */
-  --shadow-lifted: 2px 3px 0 rgba(43, 43, 43, 0.14);
-  --shadow-hinged: -9px 0 22px rgba(43, 43, 43, 0.1);
+  --shadow-lifted: 2px 3px 0 rgba(35, 35, 34, 0.16);
+  --shadow-hinged: -9px 0 22px rgba(35, 35, 34, 0.12);
 
-  /* Spacing: one 26px grid, named only. */
+  /* Spacing: the 26px grid names (stage grid, artwork constants) and a 4/8 scale beside them for the layout. */
   /* The one numeric step: top-0, inset-0, p-0 and m-0 need it, and nothing else of the default scale exists. */
   --spacing-0: 0px;
   --spacing-hair: 6px;
   --spacing-half: 13px;
   --spacing-unit: 26px;
   --spacing-double: 52px;
+  --spacing-tight: 8px;
+  --spacing-snug: 12px;
+  --spacing-card: 16px;
+  --spacing-column: 24px;
+  --spacing-gutter: 28px;
 
   --font-chrome: "Archivo", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-galley: "Spline Sans Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
   /* Artwork only: the one place it is applied is the slide canvas. */
   --font-slide: "Inter", system-ui, -apple-system, sans-serif;
 
-  --text-board-title: 23px;
-  --text-brand: 14px;
+  /* Labels are 12px sentence-case Archivo at 600; mono stays in the galley and the measured marks. The field, mark
+     and caption sizes stay until the last screen that sets them is restyled. */
+  --text-board-title: 26px; /* 22px on a phone, set with a max-md variant */
+  --text-head: 20px;
+  --text-section: 16px;
+  --text-brand: 17px;
   --text-body: 14px;
-  --text-label: 13px;
-  --text-galley: 12.5px;
+  --text-hint: 13px;
+  --text-label: 12px;
+  --text-galley: 13px;
   --text-field: 9px;
   --text-mark: 9px;
   --text-caption: 11px;
 
-  --leading-board-title: 1.1;
-  --leading-body: 1.5;
-  --leading-label: 1.22;
-  --leading-galley: 1.86;
+  --leading-board-title: 1.154;
+  --leading-head: 1.2;
+  --leading-section: 1.25;
+  --leading-body: 1.43;
+  --leading-hint: 1.385;
+  --leading-label: 1.333;
+  --leading-galley: 1.846;
   --leading-field: 1.4;
 
-  --tracking-board-title: -0.02em;
-  --tracking-brand: 0.05em;
-  --tracking-label: -0.01em;
+  --tracking-board-title: 0em;
+  --tracking-brand: 0.06em;
+  --tracking-label: 0em;
   --tracking-field: 0.17em;
   --tracking-mark: 0.14em;
 
-  --container-content: 1092px; /* 42 x 26 */
+  --container-content: 1440px; /* pages cap here, with a 28px gutter */
   --container-narrow: 728px; /* 28 x 26 */
 
   --z-index-pane: 1;
@@ -228,16 +245,22 @@
 /* Plain variables: not utilities' names. */
 :root {
   --grid: 26px;
-  --tray-h: 78px;
-  --wdth-title: 112;
+  --tray-h: 56px;
+  --bottom-bar-h: 64px; /* the phone's bottom bar, plus the gesture inset */
+  --target: 48px; /* the phone's touch target */
+  --wdth-title: 125;
+  --wdth-head: 112;
   --wdth-brand: 115;
   --wdth-narrow: 92;
-  --hatch: repeating-linear-gradient(45deg, transparent 0 5px, rgba(43, 43, 43, 0.07) 5px 10px);
+  --hatch: repeating-linear-gradient(135deg, transparent 0 7px, var(--color-hairline) 7px 8px);
 }
 
 /* The width axis of Archivo, one utility per named width. */
 @utility wdth-title {
   font-variation-settings: "wdth" var(--wdth-title);
+}
+@utility wdth-head {
+  font-variation-settings: "wdth" var(--wdth-head);
 }
 @utility wdth-brand {
   font-variation-settings: "wdth" var(--wdth-brand);
@@ -295,32 +318,33 @@
   :root[data-theme="dark"] {
     color-scheme: dark;
 
-    --color-board: #1b1c1f;
-    --color-paper: #26272b;
-    --color-tissue: rgba(38, 39, 43, 0.7);
-    --color-graphite: #ecebe6;
+    --color-board: #121315;
+    --color-paper: #232428;
+    --color-tissue: rgba(42, 43, 48, 0.9);
+    --color-tissue-edge: #66676e;
+    --color-tissue-ink: #9d9c96;
+    --color-graphite: #efeee9;
     --color-graphite-deep: #fafaf7;
-    --color-graphite-soft: #a9a69d;
+    --color-graphite-soft: #adaaa2;
     --color-graphite-tint: #8d8c85;
-    --color-process-blue: #72aae0;
-    --color-non-photo: rgba(127, 182, 232, 0.16);
+    --color-process-blue: #82b5e8;
+    --color-non-photo: rgba(127, 182, 232, 0.14);
     --color-non-photo-select: #2f5b86;
     --color-rubylith: #ff6a52;
     --color-rubylith-wash: rgba(255, 106, 82, 0.3);
     --color-rubylith-wash-soft: rgba(255, 106, 82, 0.16);
-    --color-rubylith-ink: #ff8b76;
-    --color-grease: #ff8b76;
+    --color-rubylith-ink: #ff917d;
+    --color-grease: #ff917d;
     --color-wax: #5c4c14;
     --color-wax-ink: #f5d97a;
-    --color-hairline: #34353a;
-    --color-rule: #45464c;
+    --color-hairline: #3a3b41;
+    --color-rule: #4a4b52;
     --color-tick: #5d5e64;
-    --color-tissue-edge: #606167;
-    --color-tissue-ink: #9d9c96;
+    --color-field-edge: #7a7b82;
     --shadow-waxed: 2px 3px 0 rgba(0, 0, 0, 0.5), 0 0 0 1px var(--color-hairline);
     --shadow-lifted: 2px 3px 0 rgba(0, 0, 0, 0.5);
-    --shadow-hinged: -9px 0 22px rgba(0, 0, 0, 0.4);
-    --hatch: repeating-linear-gradient(45deg, transparent 0 5px, rgba(236, 235, 230, 0.09) 5px 10px);
+    --shadow-hinged: -9px 0 22px rgba(0, 0, 0, 0.45);
+    --hatch: repeating-linear-gradient(135deg, transparent 0 7px, var(--color-hairline) 7px 8px);
   }
 
   *,
@@ -343,12 +367,6 @@
     line-height: var(--leading-body);
     color: var(--color-graphite);
     background-color: var(--color-board);
-    /* The 26px non-photo blue lattice, printed under everything. It carries alignment and nothing else
-       (DESIGN.md, The Non-Photo Rule). */
-    background-image:
-      repeating-linear-gradient(to right, var(--color-non-photo) 0 1px, transparent 1px var(--grid)),
-      repeating-linear-gradient(to bottom, var(--color-non-photo) 0 1px, transparent 1px var(--grid));
-    background-attachment: fixed;
     /* A workstation reads columns of digits: slide counts, ordinals, offsets, dimensions. The artwork resets this. */
     font-variant-numeric: tabular-nums;
     -webkit-font-smoothing: antialiased;

@@ -298,7 +298,7 @@ describe("the slide canvas does not follow the Light / Dark / System switch", ()
     try {
       // The chrome did change: the board is dark now (the control: the test can see a theme switch at all).
       const board = await page!.evaluate(() => getComputedStyle(document.body).backgroundColor);
-      expect(board).toBe("rgb(27, 28, 31)");
+      expect(board).toBe("rgb(18, 19, 21)");
       expect(await canvasFacts()).toBe(light);
       expect(await differences(sample.slide, sample.html)).toEqual([]);
     } finally {

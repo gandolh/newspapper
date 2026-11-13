@@ -38,7 +38,7 @@ const theme = () => document.documentElement.dataset["theme"];
 beforeEach(() => {
   window.localStorage.clear();
   delete document.documentElement.dataset["theme"];
-  document.head.innerHTML = '<meta name="theme-color" content="#fbfbf9" />';
+  document.head.innerHTML = '<meta name="theme-color" content="#e9e8e3" />';
 });
 
 afterEach(() => {
@@ -128,7 +128,7 @@ describe("the inline script in index.html", () => {
     window.localStorage.clear();
     if (stored !== null) window.localStorage.setItem(APPEARANCE_KEY, stored);
     delete document.documentElement.dataset["theme"];
-    document.head.innerHTML = '<meta name="theme-color" content="#fbfbf9" />';
+    document.head.innerHTML = '<meta name="theme-color" content="#e9e8e3" />';
     new Function(script)();
     return {
       theme: theme(),

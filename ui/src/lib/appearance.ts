@@ -17,7 +17,7 @@ export const DARK_QUERY = "(prefers-color-scheme: dark)";
 
 /** The browser chrome's colour (`<meta name="theme-color">`): the board's, in each theme. styles/index.css holds
  * the same two values as `--color-board`, and a test keeps all three equal. */
-export const THEME_COLOR: Record<ResolvedTheme, string> = { light: "#fbfbf9", dark: "#1b1c1f" };
+export const THEME_COLOR: Record<ResolvedTheme, string> = { light: "#e9e8e3", dark: "#121315" };
 
 function isAppearance(value: unknown): value is Appearance {
   return value === "light" || value === "dark" || value === "system";

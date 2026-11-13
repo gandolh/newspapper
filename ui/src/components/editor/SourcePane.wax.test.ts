@@ -456,8 +456,8 @@ const tokenStyles = (from: number, to: number) =>
     { from, to },
   );
 
-// --graphite is #2b2b2b, --wax-ink #3d3416.
-const GRAPHITE = "rgb(43, 43, 43)";
+// --graphite is #232322, --wax-ink #3d3416.
+const GRAPHITE = "rgb(35, 35, 34)";
 const WAX_INK = "rgb(61, 52, 22)";
 
 describe("a text selection in the galley (Chromium)", () => {
