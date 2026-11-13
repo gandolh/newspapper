@@ -1,6 +1,7 @@
 import { useCallback, useMemo, type ReactNode } from "react";
 import { Toast } from "@base-ui/react/toast";
 import { cn } from "../../lib/cn";
+import { Icon } from "./Icon";
 
 export type ToastVariant = "success" | "error" | "info";
 
@@ -27,7 +28,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <Toast.Provider>
       {children}
       <Toast.Portal>
-        <Toast.Viewport className="fixed right-unit bottom-unit z-toast flex w-[calc(100vw-var(--spacing-double))] max-w-[calc(var(--spacing-unit)*15)] flex-col gap-half">
+        <Toast.Viewport className="fixed right-card bottom-card z-toast flex w-[calc(100vw-var(--spacing-card)*2)] max-w-[calc(var(--spacing-unit)*15)] flex-col gap-half phone:bottom-[calc(var(--bottom-bar-h)+var(--spacing-card))]">
           <ToastList />
         </Toast.Viewport>
       </Toast.Portal>
@@ -56,13 +57,13 @@ export function useToast(): ToastContextValue {
 /** The left rule and the mark word carry the kind; the slip stays paper. */
 const RULE: Record<ToastVariant, string> = {
   success: "border-l-graphite",
-  error: "border-l-rubylith-ink",
+  error: "border-l-grease",
   info: "border-l-process-blue",
 };
 
 const MARK_INK: Record<ToastVariant, string> = {
   success: "",
-  error: "text-rubylith-ink",
+  error: "text-grease",
   info: "text-process-blue",
 };
 
@@ -81,25 +82,25 @@ function ToastList() {
         key={toast.id}
         toast={toast}
         className={cn(
-          "flex items-start gap-half border-l-[3px] bg-paper p-half text-graphite shadow-waxed",
+          "flex items-start gap-snug border-l-[3px] bg-paper p-snug text-graphite shadow-waxed",
           RULE[variant],
         )}
       >
         <span
           className={cn(
-            "shrink-0 pt-[2px] font-galley text-mark font-bold tracking-mark text-graphite-soft uppercase",
+            "shrink-0 font-chrome text-label leading-label font-bold text-graphite-soft",
             MARK_INK[variant],
           )}
           aria-hidden="true"
         >
           {MARKS[variant] ?? "Note"}
         </span>
-        <Toast.Title className="min-w-0 flex-1 text-label leading-[1.45]" />
+        <Toast.Title className="min-w-0 flex-1 text-body leading-body font-medium" />
         <Toast.Close
-          className="flex shrink-0 cursor-pointer items-center justify-center border-none bg-transparent p-[2px] text-[11px] text-graphite-soft hover:text-graphite"
+          className="flex shrink-0 cursor-pointer items-center justify-center border-none bg-transparent p-[2px] text-graphite-soft hover:text-graphite"
           aria-label="Dismiss"
         >
-          ✕
+          <Icon name="close" />
         </Toast.Close>
       </Toast.Root>
     );

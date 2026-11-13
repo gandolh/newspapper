@@ -1,25 +1,16 @@
 import { useEffect, useState } from "react";
-import { Mark } from "./ui";
+import { Icon } from "./ui";
 import { withBase } from "../lib/base";
 import { cn } from "../lib/cn";
 
 type Status = "up" | "down";
 
 /**
- * Whether the API answers. Said as a mark — a tick and a word — not as a
- * coloured dot: a hue on its own is not a state in this system.
+ * Whether the API answers. Said as a pulse icon and a word, never as a coloured dot: a hue on its own is not a
+ * state in this system. Up is graphite with a blue pulse; down is grease with the same pulse, and the word changes.
  *
- * Two states, not three (DESIGN.md §5). A check in flight renders as *up*:
- * a state that resolves in milliseconds and cannot be acted on does not earn
- * a form here, and `loading` never had one — it shared `dim` with `online`,
- * so only the word ever told them apart.
- *
- * Below 640px — where the tray folds into two courses — the probe spends
- * width only when it has something to say: nothing when the API is up, the
- * tick and the full word when it is not. The word is the state; the tick is
- * 6 × 1px and can carry nothing on its own. The clipped-not-removed branch
- * in the stylesheet is what keeps the word in the accessibility tree at the
- * width where the sighted view gives it up.
+ * Two states, not three (DESIGN.md §5). A check in flight renders as *up*: a state that resolves in milliseconds
+ * and cannot be acted on does not earn a form here.
  */
 export function ApiHealthDot() {
   const [status, setStatus] = useState<Status>("up");
@@ -58,19 +49,13 @@ export function ApiHealthDot() {
   return (
     <span
       className={cn(
-        "inline-flex items-center",
-        // Below 640px, where the tray folds into two courses, the probe spends width only when it has something to
-        // say. Up is clipped, not removed: the word stays in the accessibility tree, so a screen reader keeps the
-        // signal the sighted narrow view is trading away. Down keeps the tick and the full word, because the word
-        // is the state and hue alone is no signal (DESIGN.md section 5).
-        !down &&
-          "max-sm:absolute max-sm:m-0 max-sm:size-px max-sm:overflow-hidden max-sm:p-0 max-sm:whitespace-nowrap max-sm:[clip-path:inset(50%)]",
+        "inline-flex items-center gap-[6px] font-chrome text-body leading-body font-semibold phone:text-hint",
+        down ? "text-grease" : "text-graphite",
       )}
       title={label}
     >
-      <Mark tone={down ? "rubylith" : "dim"} aria-label={label}>
-        {word}
-      </Mark>
+      <Icon name="pulse" className={down ? "text-grease" : "text-process-blue"} />
+      {word}
     </span>
   );
 }

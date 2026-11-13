@@ -1,13 +1,15 @@
 /**
- * The board — the shell every route but /login renders inside.
+ * The board: the shell every route but /login renders inside.
  *
- * Was `App.astro`. The two Astro-shaped things it carried are gone rather
- * than replaced: `<ClientRouter/>` and the tray's `transition:persist` both
- * existed to keep the tray mounted across a navigation, and in an SPA the
- * tray is simply never unmounted.
+ * The paper band (the tray and, under it, the page's document bar) sits across the top; the page's own content
+ * fills the rest. On a phone the tray folds into a thin top bar and the four places move to a bottom bar.
+ *
+ * The tray is rendered here, above every route, so navigation swaps the sheet under it and never unmounts it: the
+ * health probe keeps running for the life of the tab.
  */
 import { useEffect, type ReactNode } from "react";
-import { Sidebar } from "../components/Sidebar";
+import { BottomBar, Sidebar } from "../components/Sidebar";
+import { BandProvider, useBandSlot } from "../components/ui";
 import { cn } from "../lib/cn";
 
 export function App({
@@ -23,18 +25,30 @@ export function App({
     document.title = `${title} — newspapper`;
   }, [title]);
 
-  // Every sheet lands on the same column, and the column is a whole number of grid units wide (The One Grid Rule).
-  // Fluid sheets, the editor, take the board.
-  const sheet = cn("mx-auto", width === "fluid" ? "max-w-none" : "max-w-content");
+  const [slot, setSlot] = useBandSlot();
 
   return (
-    <div className="flex min-h-screen flex-col">
-      {/* The tray: a full-width strip across the top of the board. */}
-      <Sidebar />
+    <div
+      className={cn(
+        "flex min-h-dvh flex-col",
+        // The editor and the Reader fill the window: their cards are sized to the viewport and scroll inside.
+        width === "fluid" && "h-dvh min-h-[720px] phone:h-auto",
+      )}
+    >
+      <header className="relative z-sticky border-b border-rule bg-paper text-graphite shadow-waxed">
+        <Sidebar />
+        <div ref={setSlot} />
+      </header>
 
-      <main className="min-w-0 flex-1 p-unit max-md:p-half">
-        <div className={sheet}>{children}</div>
-      </main>
+      <BandProvider slot={slot}>
+        <main
+          className={cn("min-h-0 min-w-0 flex-1", width === "fluid" ? "flex flex-col" : "mx-auto w-full max-w-content")}
+        >
+          {children}
+        </main>
+      </BandProvider>
+
+      <BottomBar />
     </div>
   );
 }

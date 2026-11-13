@@ -3,13 +3,14 @@ import { Link } from "@/router";
 import { useLogout, useSession } from "@/lib/auth";
 import { withBase } from "@/lib/base";
 
-const SESSION = "flex items-center gap-hair font-galley text-field font-medium tracking-field uppercase";
+const SESSION =
+  "flex items-center gap-[18px] font-chrome text-body leading-body font-semibold phone:gap-snug phone:text-hint";
 /** Sign in and sign out: a button or a link set as an underlined word. */
 const LINK =
-  "shrink-0 cursor-pointer border-none bg-transparent p-0 [font:inherit] [letter-spacing:inherit] [text-transform:inherit] text-graphite-soft underline decoration-1 underline-offset-[3px] hover:not-disabled:text-graphite";
+  "shrink-0 cursor-pointer border-none bg-transparent p-0 [font:inherit] text-graphite underline decoration-1 underline-offset-[3px] hover:not-disabled:text-graphite-deep phone:flex phone:min-h-[44px] phone:items-center";
 
 /**
- * Who is signed in, and the way out — the tray's session compartment.
+ * Who is signed in, and the way out: the tray's session compartment.
  *
  * With no session it shows the way in: a link to the app's own login page.
  * Signing out ends this app's session only. Ending the Ward session as well
@@ -43,7 +44,7 @@ export function SessionMenu() {
   return (
     <span className={SESSION}>
       <span
-        className="overflow-hidden text-ellipsis whitespace-nowrap text-graphite max-md:hidden"
+        className="overflow-hidden text-ellipsis whitespace-nowrap text-graphite-soft phone:hidden"
         title={session.user.username}
       >
         {session.user.username}

@@ -35,14 +35,14 @@ export function Textarea({
   });
 
   const cls = cn(
-    "min-h-double resize-y overflow-hidden p-hair leading-[1.55] focus-visible:resize-none",
+    "min-h-[58px] resize-y overflow-hidden px-[10px] py-[8px] focus-visible:resize-none",
     FIELD_CONTROL,
     error && FIELD_ERROR_BORDER,
     className,
   );
 
   return (
-    <div className="flex flex-col gap-hair">
+    <div className="flex flex-col gap-[3px]">
       {label && (
         <label className={FIELD_LABEL} htmlFor={textareaId}>
           {label}

@@ -1,6 +1,7 @@
 import { useRef, type ReactNode } from "react";
 import { Dialog } from "@base-ui/react/dialog";
 import { DIALOG_LOOKS } from "./dialogLooks";
+import { Icon } from "./Icon";
 
 export interface ModalProps {
   open: boolean;
@@ -23,7 +24,7 @@ const FIELDS = "input:not(:disabled):not([type=file]), select:not(:disabled), te
 const BUTTONS = "button:not(:disabled)";
 
 /**
- * Modal — Base UI `Dialog` as a slip waxed over the board. A modal has to pick one of the two shadows: it takes the
+ * Modal — Base UI `Dialog` as a card laid over the board. A modal has to pick one of the two shadows: it takes the
  * hard short one, never an ambient glow.
  * Base UI provides the focus trap, scroll lock, outside-press dismissal and
  * portal. Two things are added here (the base-ui skill's rule 12):
@@ -68,10 +69,10 @@ export function Modal({ open, onClose, title, children, width = 480, dismissOnBa
           <div className={DIALOG_LOOKS.header}>
             <Dialog.Title className={DIALOG_LOOKS.title}>{title}</Dialog.Title>
             <Dialog.Close
-              className="flex size-unit cursor-pointer items-center justify-center border border-transparent bg-transparent text-[12px] text-graphite-soft hover:border-tick hover:text-graphite"
+              className="flex size-[32px] cursor-pointer items-center justify-center border border-transparent bg-transparent text-graphite-soft hover:border-field-edge hover:text-graphite phone:size-(--target)"
               aria-label="Close dialog"
             >
-              ✕
+              <Icon name="close" />
             </Dialog.Close>
           </div>
           <div ref={bodyRef} className={DIALOG_LOOKS.body}>

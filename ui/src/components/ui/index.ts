@@ -50,3 +50,9 @@ export type { ProgressBarProps } from "./ProgressBar";
 
 export { ConfirmDialog } from "./ConfirmDialog";
 export type { ConfirmDialogProps } from "./ConfirmDialog";
+
+export { BandProvider, DocBar, BoardTitle, useBandSlot } from "./Band";
+export type { DocBarProps } from "./Band";
+
+export { Icon } from "./Icon";
+export type { IconName, IconProps } from "./Icon";

@@ -7,7 +7,7 @@ import { FIELD_LABEL } from "./fieldLooks";
 
 export interface ChipOption {
   value: string;
-  /** Defaults to `value`. The chip sets it uppercase either way. */
+  /** Defaults to `value`. */
   label?: string;
 }
 
@@ -34,7 +34,7 @@ export interface ChipRowProps {
   equal?: boolean;
   /** Chips run onto a second line instead of squeezing. */
   wrap?: boolean;
-  /** Horizontal padding inside a chip. `half` (13px) is the default. */
+  /** Horizontal padding inside a chip: `half` (12px) is the default, `hair` a tighter 8px. */
   pad?: "hair" | "half";
   /** Labels the row when there is no visible `label`. */
   ariaLabel?: string;
@@ -75,22 +75,22 @@ export function ChipRow({
   const hintId = hint && rowId ? `${rowId}-hint` : undefined;
   const labelId = label && rowId ? `${rowId}-label` : undefined;
 
-  const rowCls = cn("flex gap-[4px]", wrap && "flex-wrap");
-  // The scale chip row (DESIGN.md section 5, Fields): equal chips, a 1px tick edge, mono uppercase, zero radius, 4px
-  // gutters. The active chip inverts to solid graphite on board, the same inversion `Button` `primary` makes. The
+  const rowCls = cn("flex gap-[6px]", wrap && "flex-wrap");
+  // The scale chip row (DESIGN.md section 5, Fields): equal chips, a 1px field edge, Archivo bold at 13, zero radius,
+  // 6px gutters. The active chip inverts to solid graphite on board, the same inversion `Button` `primary` makes. The
   // state variants (data-pressed, data-checked) come after `hover:` in the cascade, so the active chip cannot go
   // graphite-on-graphite the moment you point at it. A held-out chip takes no pointer, so the active one stays
   // legible while the row is unusable.
   const chipCls = cn(
-    "h-unit cursor-pointer appearance-none border border-tick bg-paper px-half font-galley text-field font-medium tracking-field whitespace-nowrap text-graphite-soft uppercase",
-    "hover:border-graphite hover:text-graphite",
+    "h-[32px] cursor-pointer appearance-none border border-field-edge bg-paper px-snug font-chrome text-hint leading-hint font-bold whitespace-nowrap text-graphite phone:h-(--target)",
+    "hover:border-graphite",
     "data-checked:border-graphite data-checked:bg-graphite data-checked:text-board data-pressed:border-graphite data-pressed:bg-graphite data-pressed:text-board",
     "disabled:pointer-events-none disabled:cursor-not-allowed data-disabled:pointer-events-none data-disabled:cursor-not-allowed",
-    "data-disabled:not-data-checked:not-data-pressed:border-tick data-disabled:not-data-checked:not-data-pressed:bg-board data-disabled:not-data-checked:not-data-pressed:text-graphite-soft",
+    "data-disabled:not-data-checked:not-data-pressed:border-dashed data-disabled:not-data-checked:not-data-pressed:border-graphite-tint data-disabled:not-data-checked:not-data-pressed:bg-(image:--hatch) data-disabled:not-data-checked:not-data-pressed:text-graphite-soft",
     // A row with many chips in it (the keyword filter) buys its width back from the gutters rather than from the type.
-    pad === "hair" && "px-hair",
+    pad === "hair" && "px-tight",
     // "Equal chips": the row is a scale, so every step gets the same width regardless of how long its name is.
-    equal && "min-w-0 flex-[1_1_0] overflow-hidden p-0 text-ellipsis",
+    equal && "min-w-0 flex-[1_1_0] overflow-hidden px-0 text-ellipsis",
   );
   const groupProps = {
     className: rowCls,
@@ -146,7 +146,7 @@ export function ChipRow({
         </ToggleGroup>
       )}
       {hint && (
-        <span id={hintId} className="font-galley text-[10px] leading-[1.45] text-graphite-soft">
+        <span id={hintId} className="font-chrome text-label leading-label font-medium text-graphite-soft">
           {hint}
         </span>
       )}

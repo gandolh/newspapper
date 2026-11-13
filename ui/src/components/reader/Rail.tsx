@@ -58,18 +58,9 @@ function Count({ n }: { n: number | undefined }) {
 
 function ProgressMark({ p }: { p: SourceProgress | undefined }) {
   if (!p) return null;
-  if (p.status === "fetching") return <Mark bare>…</Mark>;
-  if (p.status === "error")
-    return (
-      <Mark tone="rubylith" bare>
-        failed
-      </Mark>
-    );
-  return p.count ? (
-    <Mark tone="ink" bare>
-      +{p.count}
-    </Mark>
-  ) : null;
+  if (p.status === "fetching") return <Mark>…</Mark>;
+  if (p.status === "error") return <Mark tone="rubylith">failed</Mark>;
+  return p.count ? <Mark tone="ink">+{p.count}</Mark> : null;
 }
 
 /** One entry: a label, any marks, and a count on the right edge. Printed on the board, no paper, no shadow, like the
@@ -188,11 +179,7 @@ export function Rail(props: RailProps) {
                         onClick={() => props.onSelect(null, sourceNarrow)}
                       >
                         <span className={cn(LABEL, !source.enabled && "italic")}>{source.name}</span>
-                        {failing && (
-                          <Mark tone="rubylith" bare>
-                            failing
-                          </Mark>
-                        )}
+                        {failing && <Mark tone="rubylith">failing</Mark>}
                         <ProgressMark p={p} />
                         <Count n={counts?.unreadBySource[source.id]} />
                       </button>

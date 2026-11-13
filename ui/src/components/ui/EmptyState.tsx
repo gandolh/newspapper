@@ -9,17 +9,15 @@ export interface EmptyStateProps {
 
 export function EmptyState({ icon, title, hint, action }: EmptyStateProps) {
   return (
-    <div className="flex min-h-[calc(var(--spacing-unit)*12)] flex-col items-center justify-center gap-half px-unit py-double text-center outline-1 outline-offset-[calc(var(--spacing-half)*-1)] outline-tick outline-dashed">
+    <div className="flex min-h-[calc(var(--spacing-unit)*9)] flex-col items-center justify-center gap-tight border border-dashed border-graphite-tint px-column py-[48px] text-center">
       {icon && (
-        <span className="font-galley text-[26px] leading-none text-graphite-soft" aria-hidden="true">
+        <span className="text-graphite-soft" aria-hidden="true">
           {icon}
         </span>
       )}
-      <h2 className="font-chrome text-board-title leading-board-title font-extrabold tracking-board-title text-graphite wdth-title">
-        {title}
-      </h2>
-      {hint && <p className="max-w-[44ch] text-body text-graphite-soft">{hint}</p>}
-      {action && <div className="mt-half">{action}</div>}
+      <h2 className="font-chrome text-head leading-head font-extrabold text-graphite-deep wdth-head">{title}</h2>
+      {hint && <p className="max-w-[44ch] text-body leading-body text-graphite-soft">{hint}</p>}
+      {action && <div className="mt-tight">{action}</div>}
     </div>
   );
 }

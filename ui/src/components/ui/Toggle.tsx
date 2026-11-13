@@ -41,7 +41,7 @@ export function Toggle({
           id={toggleId}
           className={cn(
             // A two-position slide switch on a machined track. Square, both ends.
-            "group relative inline-flex h-[14px] w-unit shrink-0 cursor-pointer items-center border border-tick bg-paper p-0 transition-[background,border-color] duration-[120ms] ease-[ease]",
+            "group relative inline-flex h-[14px] w-unit shrink-0 cursor-pointer items-center border border-field-edge bg-paper p-0 transition-[background,border-color] duration-[120ms] ease-[ease]",
             "data-checked:border-graphite data-checked:bg-graphite data-disabled:cursor-not-allowed",
             disabled && HATCH,
           )}
@@ -53,7 +53,7 @@ export function Toggle({
           aria-label={ariaLabel}
           aria-labelledby={label && !ariaLabel ? labelId : undefined}
         >
-          <Switch.Thumb className="absolute top-px left-px size-[10px] bg-graphite-tint transition-[transform,background] duration-[120ms] ease-[ease] group-data-checked:translate-x-[12px] group-data-checked:bg-board" />
+          <Switch.Thumb className="absolute top-px left-px size-[10px] bg-field-edge transition-[transform,background] duration-[120ms] ease-[ease] group-data-checked:translate-x-[12px] group-data-checked:bg-board" />
         </Switch.Root>
         {label && (
           <label id={labelId} htmlFor={toggleId} className="cursor-pointer text-body text-graphite">
@@ -62,7 +62,7 @@ export function Toggle({
         )}
       </div>
       {hint && (
-        <span className="ml-[calc(var(--spacing-unit)+var(--spacing-half))] font-galley text-[10px] leading-[1.45] text-graphite-soft">
+        <span className="ml-[calc(var(--spacing-unit)+var(--spacing-half))] font-chrome text-label leading-label font-medium text-graphite-soft">
           {hint}
         </span>
       )}

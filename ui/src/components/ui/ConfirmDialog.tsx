@@ -55,7 +55,7 @@ export function ConfirmDialog({
           <div className={DIALOG_LOOKS.body}>
             <AlertDialog.Description
               render={<p />}
-              className="mb-unit max-w-[62ch] text-body leading-body text-graphite"
+              className="mb-card max-w-[62ch] text-body leading-body text-graphite"
             >
               {message}
             </AlertDialog.Description>

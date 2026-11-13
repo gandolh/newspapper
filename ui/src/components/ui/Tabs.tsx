@@ -22,8 +22,8 @@ export interface TabsProps<Value extends string> {
 }
 
 /**
- * Tabs — Base UI `Tabs`, each tab drawn as a small `Button` (primary when it is
- * the one on screen, ghost otherwise).
+ * Tabs — Base UI `Tabs`, each tab drawn as a `Button` (solid when it is
+ * the one on screen, outlined otherwise); the row is the phone's pane switch.
  *
  * For a row that switches which panel is on screen (the base-ui skill's rule
  * 16): Tab enters the row, and the arrow keys move and choose
@@ -55,7 +55,7 @@ export function Tabs<Value extends string>({
             key={tab.value}
             value={tab.value}
             render={(props, state) => (
-              <Button variant={state.active ? "primary" : "ghost"} size="sm" {...props}>
+              <Button variant={state.active ? "primary" : "secondary"} className="flex-1" {...props}>
                 {tab.label}
               </Button>
             )}

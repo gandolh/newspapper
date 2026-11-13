@@ -16,12 +16,10 @@ export function ProgressBar({ value, label, showPercent = false, variant = "defa
       {(label || showPercent) && (
         <div className="flex items-baseline justify-between gap-hair">
           {label && (
-            <span className="font-galley text-field font-medium tracking-field text-graphite-soft uppercase">
-              {label}
-            </span>
+            <span className="font-chrome text-label leading-label font-semibold text-graphite-soft">{label}</span>
           )}
           {showPercent && (
-            <span className="font-galley text-field font-bold tracking-mark text-graphite tabular-nums">
+            <span className="font-chrome text-label leading-label font-bold text-graphite tabular-nums">
               {clamped}%
             </span>
           )}
@@ -38,7 +36,7 @@ export function ProgressBar({ value, label, showPercent = false, variant = "defa
         <div
           className={cn(
             "h-full transition-[width] duration-200 ease-[ease]",
-            variant === "error" ? "bg-rubylith-ink" : "bg-graphite",
+            variant === "error" ? "bg-grease" : "bg-graphite",
           )}
           style={{ width: `${clamped}%` }}
         />

@@ -112,10 +112,11 @@ describe("the tray on /reader", () => {
     expect(current.map((a) => a.textContent)).toEqual(["Reader"]);
   });
 
-  it("keeps the clipping as the Reader compartment’s showing", async () => {
+  it("draws the Reader compartment’s icon beside its label", async () => {
     await mountAt("/reader");
     const reader = compartments()[2];
-    expect(reader.querySelector("svg path")?.getAttribute("d")).toBe("M3 6h24M3 11h18M3 16h21M3 21h11");
+    expect(reader.querySelector("svg path")?.getAttribute("d")).toBe("M4 5h16");
+    expect(reader.textContent).toBe("Reader");
   });
 
   it("is not current on another sheet", async () => {

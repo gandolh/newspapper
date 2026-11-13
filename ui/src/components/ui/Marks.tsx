@@ -7,10 +7,10 @@
  *
  * | State                                | Mark                              |
  * |--------------------------------------|-----------------------------------|
- * | a state word                         | `<Mark>`                          |
+ * | a state word (with its icon)           | `<Mark>`                          |
  * | published                            | `<Stamp>`                         |
  * | draft                                | `<TissueCorner>`                  |
- * | held out / disabled / won't compile  | `<HeldOut>` — or `HATCH` at tray scale |
+ * | held out / disabled / won't compile  | `<HeldOut>` — or `HATCH` at control scale |
  * | selected, in the source              | `WAX` (the class, applied to a span) |
  * | render frame                         | `<CropMarks>`                     |
  * | alignment                            | `<RegisterTargets>`               |
@@ -28,45 +28,46 @@
 
 import type { HTMLAttributes, ReactNode } from "react";
 import { cn } from "../../lib/cn";
+import { Icon, type IconName } from "./Icon";
 
 /** Wax highlight for the selected run in the galley. Bled past the text on both sides, which is what makes it read
  * as wax rather than as a text background. Put it on ONE box per run, never on each token of a run: inline boxes
  * paint in tree order, so a token's bleed covers the last glyph of the token before it. The galley wraps the run and
  * lays it under the text (SourcePane.tsx, the wax run). */
 export const WAX = "bg-wax text-wax-ink shadow-[-0.35em_0_0_var(--color-wax),0.35em_0_0_var(--color-wax)]";
-/** The 45° hatch — "held out", at a scale too small for the wash. Text under it keeps its full ink: dropping the
- * opacity would take a 9px caption below 4.5:1. */
+/** The 135° hatch — "held out", at a scale too small for the wash. Text under it keeps its full ink: dropping the
+ * opacity would take a small label below 4.5:1. */
 export const HATCH = "relative after:pointer-events-none after:absolute after:inset-0 after:bg-(image:--hatch)";
 
 export type MarkTone = "dim" | "ink" | "rubylith" | "blue";
 
 export interface MarkProps extends HTMLAttributes<HTMLSpanElement> {
-  /** The ink. Never the only signal — the word says it too. */
+  /** The ink. Never the only signal: the word says it too. */
   tone?: MarkTone;
-  /** Drop the leading tick, for a word that already sits behind a rule. */
-  bare?: boolean;
+  /** A stroke icon before the word (a check for Compiles, a disk for Saved, an alert for an error). */
+  icon?: IconName;
   children: ReactNode;
 }
 
 const TONE: Record<MarkTone, string> = {
-  dim: "",
-  ink: "text-graphite before:bg-graphite",
-  rubylith: "text-rubylith-ink before:bg-rubylith-ink",
-  blue: "text-process-blue before:bg-process-blue",
+  dim: "text-graphite-soft",
+  ink: "text-graphite",
+  rubylith: "text-grease",
+  blue: "text-process-blue",
 };
 
-/** A state word: not a pill, no fill, no radius, no outline. A tick, then the word, set in the mark face. Tone is
- * the ink, and the ink is never the only signal — every tone has its own word. 9px mono, uppercase, tracked. */
-export function Mark({ tone = "dim", bare = false, children, className, ...rest }: MarkProps) {
+/** A state word: not a pill, no fill, no radius, no outline. An icon where there is one, then the word, a 12px
+ * sentence-case Archivo label at 600. Tone is the ink, and the ink is never the only signal: every tone has its own
+ * word, and the icon says it a second way. */
+export function Mark({ tone = "dim", icon, children, className, ...rest }: MarkProps) {
   const cls = cn(
-    "inline-flex items-center gap-hair font-galley text-mark leading-field font-bold tracking-mark whitespace-nowrap text-graphite-soft uppercase",
-    "before:h-px before:w-hair before:shrink-0 before:bg-tick",
+    "inline-flex items-center gap-[6px] font-chrome text-label leading-label font-semibold tracking-label whitespace-nowrap",
     TONE[tone],
-    bare && "before:hidden",
     className,
   );
   return (
     <span className={cls} {...rest}>
+      {icon && <Icon name={icon} />}
       {children}
     </span>
   );
@@ -77,7 +78,7 @@ export function Stamp({ children = "Published", className, ...rest }: Partial<Ma
   return (
     <span
       className={cn(
-        "inline-flex origin-center -rotate-7 items-center border-2 border-rubylith bg-transparent px-[7px] py-[2px] font-galley text-mark leading-field font-bold tracking-mark whitespace-nowrap text-rubylith-ink uppercase",
+        "inline-flex origin-center -rotate-7 items-center border-2 border-rubylith bg-transparent px-[7px] py-[2px] font-chrome text-label leading-label font-bold tracking-label whitespace-nowrap text-grease",
         className,
       )}
       {...rest}
@@ -88,18 +89,13 @@ export function Stamp({ children = "Published", className, ...rest }: Partial<Ma
 }
 
 /**
- * Draft: a sheet of tissue turned back over the board's top-right corner.
- * Absolutely positioned — the thing it marks must be a positioned box.
+ * Draft: a sheet turned back over the card's top-right corner, the dog-ear. Absolutely positioned: the thing it
+ * marks must be a positioned box.
  */
 export function TissueCorner({ title = "Draft" }: { title?: string }) {
   return (
     <span
-      className={cn(
-        "pointer-events-none absolute top-0 right-0 size-unit",
-        // The underside, then the fold: two triangles.
-        "before:absolute before:inset-0 before:border-t before:border-r before:border-tissue-edge before:bg-tissue before:[clip-path:polygon(100%_0,100%_100%,0_0)]",
-        "after:absolute after:inset-0 after:bg-[linear-gradient(to_bottom_left,color-mix(in_srgb,var(--color-graphite)_10%,transparent)_0_50%,transparent_50%)] after:[clip-path:polygon(100%_0,100%_100%,0_0)]",
-      )}
+      className="pointer-events-none absolute top-0 right-0 size-unit bg-[linear-gradient(225deg,var(--color-board)_0_50%,var(--color-tissue-edge)_50%_100%)]"
       title={title}
       aria-hidden="true"
     />
@@ -129,61 +125,75 @@ export function HeldOut({
   );
 }
 
-const CROP_TICK =
-  "absolute size-half before:absolute before:h-px before:w-half before:bg-graphite-tint after:absolute after:h-half after:w-px after:bg-graphite-tint";
 const CROP_CORNER = {
-  tl: "top-0 left-0 before:top-0 before:left-0 after:top-0 after:left-0",
-  tr: "top-0 right-0 before:top-0 before:right-0 after:top-0 after:right-0",
-  bl: "bottom-0 left-0 before:bottom-0 before:left-0 after:bottom-0 after:left-0",
-  br: "bottom-0 right-0 before:right-0 before:bottom-0 after:right-0 after:bottom-0",
+  tl: "top-[-6px] left-[-6px] border-t border-l",
+  tr: "top-[-6px] right-[-6px] border-t border-r",
+  bl: "bottom-[-6px] left-[-6px] border-b border-l",
+  br: "right-[-6px] bottom-[-6px] border-r border-b",
+} as const;
+const CROP_CORNER_SMALL = {
+  tl: "top-[-5px] left-[-5px] border-t border-l",
+  tr: "top-[-5px] right-[-5px] border-t border-r",
+  bl: "bottom-[-5px] left-[-5px] border-b border-l",
+  br: "right-[-5px] bottom-[-5px] border-r border-b",
 } as const;
 
-/** The render frame: 1px L-ticks at each corner of the artwork. */
-export function CropMarks() {
+/** The render frame: 1px graphite L-ticks hanging off each corner of the artwork's box, which must be positioned.
+ * `small` is the contact strip's and the post card's size. */
+export function CropMarks({ small = false }: { small?: boolean }) {
   return (
-    <span className="pointer-events-none absolute -inset-hair" aria-hidden="true">
+    <span className="pointer-events-none absolute inset-0" aria-hidden="true">
       {(["tl", "tr", "bl", "br"] as const).map((corner) => (
-        <span key={corner} className={cn(CROP_TICK, CROP_CORNER[corner])} />
+        <span
+          key={corner}
+          className={cn(
+            "absolute border-graphite",
+            small ? "size-[9px]" : "size-[14px]",
+            (small ? CROP_CORNER_SMALL : CROP_CORNER)[corner],
+          )}
+        />
       ))}
     </span>
   );
 }
 
-function Target() {
-  return (
-    <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" strokeWidth="1" aria-hidden="true">
-      <circle cx="11" cy="11" r="6.5" />
-      <path d="M11 0v22M0 11h22" />
-    </svg>
-  );
-}
-
 const REGISTER_CORNER = {
-  tl: "top-0 left-0",
-  tr: "top-0 right-0",
-  bl: "bottom-0 left-0",
-  br: "right-0 bottom-0",
+  tl: "top-[6px] left-[12px]",
+  tr: "top-[6px] right-[12px]",
+  bl: "bottom-[12px] left-[12px]",
+  br: "right-[12px] bottom-[12px]",
 } as const;
 
-/** Alignment: a crosshair-in-a-circle at each corner. */
+/** Alignment: a crosshair-in-a-circle in each corner of the stage, which must be positioned. They go below 1280px,
+ * where the stage has no room to spare. */
 export function RegisterTargets() {
   return (
-    <span className="pointer-events-none absolute -inset-unit text-tick" aria-hidden="true">
+    <span className="pointer-events-none absolute inset-0 text-graphite-soft max-[1279px]:hidden" aria-hidden="true">
       {(["tl", "tr", "bl", "br"] as const).map((corner) => (
-        <span key={corner} className={cn("absolute size-[22px]", REGISTER_CORNER[corner])}>
-          <Target />
-        </span>
+        <svg
+          key={corner}
+          viewBox="0 0 24 24"
+          width="22"
+          height="22"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.2"
+          className={cn("absolute", REGISTER_CORNER[corner])}
+        >
+          <circle cx="12" cy="12" r="6" />
+          <path d="M12 1v22M1 12h22" />
+        </svg>
       ))}
     </span>
   );
 }
 
 export interface FindingProps {
-  /** Where it is — a line:column, a path, a source name. */
+  /** Where it is: a line:column, a path, a source name. */
   where?: ReactNode;
   /** The note. State the measurement, not a severity word. */
   children: ReactNode;
-  /** Draw it in graphite instead of grease — a note, not a finding. */
+  /** Draw it in graphite instead of grease: a note, not a finding. */
   muted?: boolean;
 }
 
@@ -206,11 +216,13 @@ export function Finding({ where, children, muted = false }: FindingProps) {
       />
       <span className="flex min-w-0 flex-col gap-[2px] text-left">
         {where && (
-          <span className="font-galley text-field font-medium tracking-field text-graphite-soft uppercase">
+          <span className="font-chrome text-label leading-label font-semibold tracking-label text-graphite-soft">
             {where}
           </span>
         )}
-        <span className={cn("font-galley text-[10px] leading-[1.45]", muted ? "text-graphite-soft" : "text-grease")}>
+        <span
+          className={cn("font-chrome text-hint leading-hint font-medium", muted ? "text-graphite-soft" : "text-grease")}
+        >
           {children}
         </span>
       </span>

@@ -1,18 +1,17 @@
-/** The pieces `Input` and `Textarea` share. */
+/** The pieces `Input`, `Textarea` and `Select` share. */
 
-/** Field label: 9px mono, uppercase, tracked. A dimension callout, not a sentence. */
-export const FIELD_LABEL =
-  "font-galley text-field leading-field font-medium tracking-field text-graphite-soft uppercase";
+/** Field label: 12px sentence-case Archivo at 600, graphite-soft. */
+export const FIELD_LABEL = "font-chrome text-label leading-label font-semibold tracking-label text-graphite-soft";
 
-/** The value is data, so it is set in the galley face. */
+/** A field: a 1px field-edge ring (a 3:1 UI part), paper, Archivo at 14. 38px tall, 48 on a phone. */
 export const FIELD_CONTROL = [
-  "w-full border border-tick bg-paper font-galley text-galley text-graphite transition-[border-color] duration-[120ms] ease-[ease]",
+  "w-full border border-field-edge bg-paper font-chrome text-body leading-body font-medium text-graphite transition-[border-color] duration-[120ms] ease-[ease]",
   "placeholder:text-graphite-soft placeholder:opacity-100",
-  "enabled:hover:border-graphite-tint focus-visible:border-process-blue",
+  "enabled:hover:border-graphite focus-visible:border-process-blue",
   "disabled:cursor-not-allowed disabled:bg-board disabled:text-graphite-soft",
 ].join(" ");
 
-export const FIELD_ERROR_BORDER = "border-rubylith";
+export const FIELD_ERROR_BORDER = "border-grease";
 
-export const FIELD_ERROR = "font-galley text-[10px] leading-[1.45] text-rubylith-ink";
-export const FIELD_HINT = "font-galley text-[10px] leading-[1.45] text-graphite-soft";
+export const FIELD_ERROR = "font-chrome text-label leading-label font-semibold text-grease";
+export const FIELD_HINT = "font-chrome text-label leading-label font-medium text-graphite-soft";

@@ -95,7 +95,7 @@ export function KitchenSinkIsland() {
             <Mark tone="ink">3 slides</Mark>
             <Mark tone="rubylith">2 errors</Mark>
             <Mark tone="blue">warm-industrial-1</Mark>
-            <Mark bare>1 : 2</Mark>
+            <Mark>1 : 2</Mark>
             <Stamp>Published</Stamp>
           </div>
           <div className="mb-half flex flex-wrap items-center gap-half">

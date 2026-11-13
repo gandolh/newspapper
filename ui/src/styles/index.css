@@ -269,39 +269,14 @@
   font-variation-settings: "wdth" var(--wdth-narrow);
 }
 
-/* The galley's torn bottom edge: the copy continues. A clip-path of 28 points, kept as one named utility. */
-@utility deckle {
-  background: repeating-linear-gradient(135deg, var(--color-paper) 0 4px, transparent 4px 5px), var(--color-hairline);
-  clip-path: polygon(
-    0 0,
-    100% 0,
-    100% 40%,
-    96% 100%,
-    92% 30%,
-    88% 90%,
-    84% 25%,
-    80% 85%,
-    76% 35%,
-    72% 95%,
-    68% 30%,
-    64% 80%,
-    60% 25%,
-    56% 90%,
-    52% 35%,
-    48% 85%,
-    44% 30%,
-    40% 95%,
-    36% 25%,
-    32% 80%,
-    28% 35%,
-    24% 90%,
-    20% 30%,
-    16% 85%,
-    12% 25%,
-    8% 95%,
-    4% 35%,
-    0 80%
-  );
+/* The stage's blue lattice: the one place the non-photo grid prints. It carries alignment and nothing else
+   (DESIGN.md, The Non-Photo Rule). */
+@utility stage-grid {
+  background-image:
+    linear-gradient(var(--color-non-photo) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-non-photo) 1px, transparent 1px);
+  background-size: var(--grid) var(--grid);
+  background-position: -1px -1px;
 }
 
 /* The reader's own root size stays; the app's size is on body (a pixel size on html would override the

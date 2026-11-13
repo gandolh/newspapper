@@ -1,8 +1,8 @@
 /**
- * The tray folds with Tailwind's own breakpoints: `max-sm:` (below 640px) into two courses, `max-md:` (below
- * 768px) into narrower compartments. Tailwind compiles them to `width < 40rem` and `width < 48rem`, so the exact
- * boundary pixel (640 and 768) shows the wide layout: a one-pixel edge the owner accepts (the old CSS folded at
- * `max-width: 640px`, inclusive). The test pins both sides of each edge in real Chromium, on the shipped Sidebar.
+ * The tray and the bottom bar swap at 860px: below it (`phone:`, a `max-width: 859px` query) the tray thins to a
+ * 48px bar with no places and the 64px bottom bar shows the four places, each with its label; from 860 up the tray
+ * is 56px with the places and the bottom bar is gone. The test pins both sides of the edge in real Chromium, on the
+ * shipped Sidebar and BottomBar.
  */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { fileURLToPath } from "node:url";
@@ -29,8 +29,8 @@ function entry(): Plugin {
         ? `import { createElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import ${JSON.stringify(here("../styles/index.css"))};
-import { Sidebar } from ${JSON.stringify(here("./Sidebar.tsx"))};
-createRoot(document.getElementById('host')).render(createElement(Sidebar));`
+import { BottomBar, Sidebar } from ${JSON.stringify(here("./Sidebar.tsx"))};
+createRoot(document.getElementById('host')).render(createElement('div', null, createElement(Sidebar), createElement(BottomBar)));`
         : null,
   };
 }
@@ -82,24 +82,32 @@ afterAll(async () => {
 async function tray(width: number) {
   await page!.setViewportSize({ width, height: 600 });
   return page!.evaluate(() => {
-    const nav = document.querySelector("nav[aria-label='Main navigation']")!;
-    const link = nav.querySelector("ul a") as HTMLElement;
-    return { display: getComputedStyle(nav).display, navWidth: Math.round(link.getBoundingClientRect().width) };
+    const visible = (el: Element): boolean => getComputedStyle(el).display !== "none";
+    const places = document.querySelector("nav[aria-label='Main navigation']")!;
+    const bottom = document.querySelector("nav[aria-label='Places']")!;
+    const bar = places.parentElement!;
+    return {
+      places: visible(places),
+      bottom: visible(bottom),
+      bottomHeight: Math.round(bottom.getBoundingClientRect().height),
+      trayHeight: Math.round(bar.getBoundingClientRect().height),
+      labels: Array.from(bottom.querySelectorAll("a")).map((a) => a.textContent?.trim()),
+    };
   });
 }
 
-describe("the tray folds at Tailwind's breakpoints (Chromium)", () => {
-  it("is two courses below 640px, and one strip from 640px (the accepted one-pixel edge)", async (ctx) => {
+describe("the tray and the bottom bar swap at 860px (Chromium)", () => {
+  it("is a 48px bar with a 64px bottom bar below 860px, and a 56px tray from 860px", async (ctx) => {
     if (!chromium.orSkip((note) => ctx.skip(note))) return;
-    expect((await tray(639)).display).toBe("grid");
-    expect((await tray(640)).display).toBe("flex");
-    expect((await tray(1000)).display).toBe("flex");
+    const phone = await tray(859);
+    expect(phone).toMatchObject({ places: false, bottom: true, trayHeight: 48, bottomHeight: 64 });
+    const desktop = await tray(860);
+    expect(desktop).toMatchObject({ places: true, bottom: false, trayHeight: 56 });
+    expect((await tray(1280)).places).toBe(true);
   });
 
-  it("narrows its compartments from 104px to 78px below 768px (the same edge at 768)", async (ctx) => {
+  it("names the four places on the bottom bar", async (ctx) => {
     if (!chromium.orSkip((note) => ctx.skip(note))) return;
-    expect((await tray(769)).navWidth).toBe(104);
-    expect((await tray(768)).navWidth).toBe(104);
-    expect((await tray(767)).navWidth).toBe(78);
+    expect((await tray(390)).labels).toEqual(["Editor", "Posts", "Reader", "Settings"]);
   });
 });
