@@ -147,7 +147,7 @@ export function ItemList(props: ItemListProps) {
                     type="button"
                     data-item-id={row.id}
                     className={cn(
-                      "flex w-full cursor-pointer items-start gap-tight border-0 border-b border-hairline bg-transparent px-card py-[6px] text-left text-graphite hover:bg-graphite/4 phone:py-snug",
+                      "flex w-full cursor-pointer items-start gap-tight border-0 border-b border-hairline bg-transparent px-card py-[6px] text-left text-graphite hover:bg-graphite/4",
                       selected && "bg-board shadow-[inset_3px_0_0_var(--color-graphite)] hover:bg-board",
                     )}
                     aria-current={selected ? "true" : undefined}
