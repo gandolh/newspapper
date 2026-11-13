@@ -2000,3 +2000,7 @@ All 43 stylesheets (4,367 lines) are gone: `ui/src/styles/index.css` is the one 
 ## [2026-11-13] decision | The owner approved the redesign direction "Contact sheet" (brief 12)
 
 The owner approved the redesign direction "Contact sheet" on the estate redesign board, with every question on the board standing as proposed: the 9 px mono capitals retire for 12 px sentence-case Archivo labels, the blue grid paints under the stage only, one working slide over a contact strip replaces the column of every slide, and the phone's four places move to a bottom bar. The build follows, one commit per step, on `main`.
+
+## [2026-11-13] done | Brief 12: the Contact sheet redesign
+
+The chrome was redrawn as the Contact sheet, the direction the owner approved: tokens, a paper band with a phone bottom bar, one working slide over a 1:8 strip, card pages for Posts and the Reader, 12px sentence-case labels with icons, the grid under the stage only. Recorded in `wiki/design.md`, `wiki/design-components.md` and `wiki/decisions-ui.md` (four reopened lines kept as history). Added `e2e/` (Playwright 1.63.0, stubbed API) and `scripts/contrast.mjs` (30 pairs, 0 fail). `CI=1 npm run check` passed. Awaits a deploy (`server`); the README images are stale.

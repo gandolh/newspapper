@@ -85,3 +85,13 @@ Answered 2026-11-10: Q39 (Hallmark, with taste-skill 2.5's useful parts; approva
 - Brief 10 owns the stylesheet, the tokens' names and the theme switch; this brief changes their values and the layout. Brief 09's wrappers are restyled through the tokens, not rewritten.
 - Brief 08's formatter and lint run on every redesign commit.
 - Brief 11 changes the API only. A redesign needs nothing from it.
+
+## Outcome (2026-11-13)
+
+Built as the Contact sheet, on `main`, one commit per step, not pushed. Tokens first, then the shared parts and the shell, the editor, Posts, the Reader, Settings and sign in, the undrawn views, the Floor specs and the docs. The slide canvas, the preview and the render are untouched (the only edit under `editor/preview/` is a board-colour literal in a theme test).
+
+- **Contrast** (`scripts/contrast.mjs`, 30 pairs, both themes, 0 fail): text minimum 5.05:1 light and 5.30:1 dark; UI parts and the focus ring 3.13:1 and 3.45:1; the lint error wash and the selection included.
+- **Floor** (`e2e/`, Playwright 1.63.0, stubbed API): focus ring on every Tab stop, no running motion under reduced motion, no overflow at 390, 360, 768, 1024 and 1100, the Light / Dark / System switch with a light first visit, and the first-screen counts (Reader 8, 7 and 6 whole items at 1280x800, 390x844 and 360x800; at 390x844 slide 1 ends at 699 against a bottom bar at 780, and the strip starts at 723). `CI=1 npm run check` exit 0 (96 files, 1040 tests).
+- **Invented figures:** none shown; fixtures hold made-up Sample City data only.
+- **Owner steps:** deploy with `node cli.ts newspapper server`; retake the README images (stale).
+- Details of deviations are in the brief-12 hand-off report; decisions are in `wiki/decisions-ui.md`.
