@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 export interface PageHeaderProps {
-  /** Page title (Display type — 26px/800). */
+  /** Section title (20px, 800, width 112). */
   title: ReactNode;
   /** Optional one-line description under the title. */
   subtitle?: ReactNode;
@@ -10,20 +10,17 @@ export interface PageHeaderProps {
 }
 
 /**
- * The standard top-of-page header: a Display title, optional subtitle, and an
- * optional actions slot. Used by History, Sources, and Settings so the
- * page-top vocabulary stays identical across the app.
+ * The header of a view inside a card: a title, an optional subtitle, and an optional actions slot. The page's own
+ * title lives in the band (`DocBar`).
  */
 export function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
   return (
-    <div className="mb-unit flex flex-wrap items-end justify-between gap-half border-b-[1.5px] border-graphite pb-half">
+    <div className="mb-snug flex flex-wrap items-end justify-between gap-snug border-b border-hairline pb-snug">
       <div className="min-w-0">
-        <h1 className="font-chrome text-board-title leading-board-title font-extrabold tracking-board-title text-graphite wdth-title">
-          {title}
-        </h1>
-        {subtitle && <p className="mt-hair max-w-[70ch] text-body text-graphite-soft">{subtitle}</p>}
+        <h2 className="font-chrome text-head leading-head font-extrabold text-graphite-deep wdth-head">{title}</h2>
+        {subtitle && <p className="mt-[2px] max-w-[70ch] text-body leading-body text-graphite-soft">{subtitle}</p>}
       </div>
-      {actions && <div className="flex flex-wrap items-center gap-hair">{actions}</div>}
+      {actions && <div className="flex flex-wrap items-center gap-tight">{actions}</div>}
     </div>
   );
 }

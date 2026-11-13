@@ -49,23 +49,21 @@ export function LoginIsland() {
 
   return (
     <div className="w-[calc(var(--spacing-unit)*14)] max-w-full">
-      <h1 className="mb-hair font-chrome text-board-title leading-board-title font-extrabold tracking-board-title text-graphite wdth-title">
+      <h1 className="mb-[4px] font-chrome text-board-title leading-board-title font-extrabold tracking-board-title text-graphite-deep wdth-title">
         newspapper
       </h1>
-      <p className="mb-unit font-galley text-field font-medium tracking-field text-graphite-soft uppercase">
-        Sign in to continue.
-      </p>
+      <p className="mb-card text-body leading-body font-medium text-graphite-soft">Sign in to continue.</p>
 
       <Card padding="md">
-        <form className="flex flex-col gap-half" onSubmit={(e) => void handleSubmit(e)}>
+        <form className="flex flex-col gap-snug" onSubmit={(e) => void handleSubmit(e)}>
           {notice && !error && !ward.error && (
-            <p className="border-l-2 border-graphite-soft pl-half font-galley text-[10px] leading-[1.45] text-graphite-soft">
+            <p className="border-l-2 border-graphite-soft pl-snug font-chrome text-hint leading-hint font-medium text-graphite-soft">
               {notice}
             </p>
           )}
           {shownError && (
             <p
-              className="border-l-2 border-grease pl-half font-galley text-[10px] leading-[1.45] text-grease"
+              className="border-l-2 border-grease pl-snug font-chrome text-hint leading-hint font-medium text-grease"
               role="alert"
             >
               {authMessage(shownError)}
@@ -73,7 +71,7 @@ export function LoginIsland() {
           )}
           {session.status === "error" && (
             <p
-              className="border-l-2 border-grease pl-half font-galley text-[10px] leading-[1.45] text-grease"
+              className="border-l-2 border-grease pl-snug font-chrome text-hint leading-hint font-medium text-grease"
               role="alert"
             >
               Could not check whether you are signed in. Reload to try again.
@@ -108,8 +106,8 @@ export function LoginIsland() {
         </form>
 
         {wardEnabled && (
-          <div className="mt-half flex flex-col gap-half">
-            <p className="flex items-center gap-half font-galley text-field tracking-field text-graphite-soft uppercase before:h-px before:flex-1 before:bg-tick after:h-px after:flex-1 after:bg-tick">
+          <div className="mt-snug flex flex-col gap-snug">
+            <p className="flex items-center gap-snug text-label leading-label font-semibold text-graphite-soft before:h-px before:flex-1 before:bg-rule after:h-px after:flex-1 after:bg-rule">
               or
             </p>
             <Button

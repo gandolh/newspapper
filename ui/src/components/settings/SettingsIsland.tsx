@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type CSSProperties } from "react";
-import { Button, Card, ChipRow, PageHeader, Select, Skeleton, ToastProvider, useToast } from "../ui";
+import { BoardTitle, Button, Card, ChipRow, DocBar, Select, Skeleton, ToastProvider, useToast } from "../ui";
 import { api } from "@/lib/api";
 import { applyAppearance, readAppearance, type Appearance } from "@/lib/appearance";
 import { AccountSection } from "./AccountSection";
@@ -80,7 +80,7 @@ function ThemeSection() {
           colour, so that swatch is the whole difference.
         </p>
 
-        <div className="flex items-end gap-half">
+        <div className="flex flex-wrap items-end gap-snug">
           <Select
             label="Default theme"
             options={themes.map((t) => ({
@@ -94,11 +94,11 @@ function ThemeSection() {
           <span
             // The slide theme's own ink, shown as a chip of the film it prints in. The colour is data, so it travels
             // as a variable the class reads.
-            className="mb-0 size-unit shrink-0 bg-(--swatch) shadow-[0_0_0_1px_var(--color-tick)]"
+            className="mb-0 size-[38px] shrink-0 bg-(--swatch) shadow-[0_0_0_1px_var(--color-field-edge)]"
             style={{ "--swatch": selected?.tokens?.colors["primary"] ?? "transparent" } as CSSProperties}
             aria-hidden="true"
           />
-          <code className="mb-hair font-galley text-field tracking-field text-graphite-soft uppercase">
+          <code className="mb-hair font-galley text-label leading-label text-graphite-soft">
             {selected?.tokens?.colors["primary"] ?? "—"}
           </code>
         </div>
@@ -148,14 +148,21 @@ function AppearanceSection() {
 
 function SettingsPage() {
   return (
-    <div className="mx-auto max-w-narrow">
-      <PageHeader title="Settings" subtitle="The default a new post starts from, and how you sign in." />
-      <div className="flex flex-col gap-unit">
+    <>
+      <DocBar>
+        <div className="flex min-w-0 flex-col gap-[2px]">
+          <BoardTitle>Settings</BoardTitle>
+          <p className="text-body leading-body font-medium text-graphite-soft">
+            The default a new post starts from, and how you sign in.
+          </p>
+        </div>
+      </DocBar>
+      <div className="mx-auto flex w-full max-w-narrow flex-col gap-card px-gutter pt-card pb-[40px] phone:px-card">
         <ThemeSection />
         <AppearanceSection />
         <AccountSection />
       </div>
-    </div>
+    </>
   );
 }
 
