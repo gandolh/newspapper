@@ -1,14 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  BoardTitle,
   Button,
   Card,
   ChipRow,
   ConfirmDialog,
   CropMarks,
-  EmptyState,
+  DocBar,
+  Icon,
   Input,
   Mark,
-  PageHeader,
   ProgressBar,
   Select,
   Skeleton,
@@ -195,179 +196,237 @@ function PostsPage() {
     }
   }
 
+  const filtered = Boolean(search || keyword || status !== "all");
+
   return (
     <>
-      <PageHeader
-        title="Posts"
-        subtitle="Everything you have written. Open one to keep editing, or render it out."
-        actions={<Button onClick={() => window.location.assign(withBase("/"))}>New post</Button>}
-      />
-
-      <div className="mb-half grid grid-cols-[calc(var(--spacing-unit)*8)_1fr] items-end gap-half max-md:grid-cols-[1fr]">
-        <Select
-          label="Status"
-          options={STATUS_OPTIONS}
-          value={status}
-          onValueChange={(v) => setStatus(v as StatusFilter)}
-          className="w-full"
-        />
-        <Input
-          label="Search"
-          placeholder="Title, description or markup"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
-
-      {allKeywords.length > 0 && (
-        <ChipRow
-          kind="filter"
-          className="mb-unit"
-          ariaLabel="Filter by keyword"
-          wrap
-          pad="hair"
-          options={[{ value: ALL_KEYWORDS, label: "All keywords" }, ...allKeywords.map((k) => ({ value: k }))]}
-          value={keyword ?? ALL_KEYWORDS}
-          onValueChange={(v) => setKeyword(v === ALL_KEYWORDS ? null : v)}
-        />
-      )}
-
-      {loading ? (
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(min(calc(var(--spacing-unit)*13),100%),1fr))] gap-unit max-md:gap-half [&>li]:flex [&>li]:min-w-0">
-          <Skeleton height={312} />
-          <Skeleton height={312} />
-          <Skeleton height={312} />
+      <DocBar>
+        <div className="flex min-w-0 flex-[1_1_380px] flex-col gap-[2px] phone:flex-none">
+          <BoardTitle>Posts</BoardTitle>
+          <p className="text-body leading-body font-medium text-graphite-soft">
+            Everything you have written. Open one to keep editing, or render it out.
+          </p>
         </div>
-      ) : posts.length === 0 ? (
-        <EmptyState
-          title={search || keyword || status !== "all" ? "Nothing matches" : "No posts yet"}
-          hint={
-            search || keyword || status !== "all"
-              ? "Try a wider filter."
-              : "Start writing and the first save lands here."
-          }
-          action={<Button onClick={() => window.location.assign(withBase("/"))}>New post</Button>}
-        />
-      ) : (
-        <ul
-          className="grid grid-cols-[repeat(auto-fill,minmax(min(calc(var(--spacing-unit)*13),100%),1fr))] gap-unit max-md:gap-half [&>li]:flex [&>li]:min-w-0"
-          role="list"
+        <Button
+          className="self-center max-[599px]:h-(--target) max-[599px]:self-stretch"
+          onClick={() => window.location.assign(withBase("/"))}
         >
-          {posts.map((post) => {
-            const render = renders.get(post.id);
-            // The render's 220 px thumbnail, not the full 1080 px slide.
-            const thumb = render?.thumb ?? null;
-            const rendered = (render?.files.length ?? 0) > 0;
-            const isRendering = renderingId === post.id;
-            const busy = busyId === post.id;
+          <Icon name="plus" />
+          New post
+        </Button>
+      </DocBar>
 
-            return (
-              <li key={post.id}>
-                <Card className="flex min-w-0 flex-1 flex-col gap-half">
-                  {post.status !== "published" && <TissueCorner />}
-                  <a
-                    className="relative block h-[104px] w-[104px] bg-board shadow-[0_0_0_1px_var(--color-hairline)]"
-                    href={postHref(post.id)}
-                    aria-hidden="true"
-                    tabIndex={-1}
+      <div className="mx-auto flex w-full max-w-content flex-col gap-card px-gutter pt-card pb-[40px] phone:px-card phone:pt-snug phone:pb-[24px]">
+        <section
+          aria-label="Filters"
+          className="flex flex-wrap items-end gap-card bg-paper px-card pt-snug pb-[14px] shadow-waxed phone:flex-col phone:items-stretch phone:gap-snug"
+        >
+          <Select
+            label="Status"
+            options={STATUS_OPTIONS}
+            value={status}
+            onValueChange={(v) => setStatus(v as StatusFilter)}
+            wrapperClassName="min-w-[190px]"
+            className="w-full"
+          />
+          <Input
+            label="Search"
+            placeholder="Title, description or markup"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-[36px]"
+            wrapperClassName="min-w-0 flex-[1_1_300px] phone:flex-none"
+            leading={<Icon name="search" className="text-graphite-soft" />}
+          />
+          {allKeywords.length > 0 && (
+            <ChipRow
+              kind="filter"
+              className="basis-full"
+              ariaLabel="Filter by keyword"
+              wrap
+              pad="hair"
+              options={[{ value: ALL_KEYWORDS, label: "All keywords" }, ...allKeywords.map((k) => ({ value: k }))]}
+              value={keyword ?? ALL_KEYWORDS}
+              onValueChange={(v) => setKeyword(v === ALL_KEYWORDS ? null : v)}
+            />
+          )}
+        </section>
+
+        {loading ? (
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(min(340px,100%),1fr))] gap-card phone:gap-snug">
+            <Skeleton height={312} />
+            <Skeleton height={312} />
+            <Skeleton height={312} />
+          </div>
+        ) : posts.length === 0 ? (
+          <Card padding="none" className="flex flex-col items-start gap-tight p-[20px]">
+            <h2 className="font-chrome text-head leading-head font-extrabold text-graphite-deep wdth-head">
+              {filtered ? "Nothing matches" : "No posts yet"}
+            </h2>
+            <p className="text-body leading-body text-graphite-soft">
+              {filtered ? "Try a wider filter." : "Start writing and the first save lands here."}
+            </p>
+            <Button onClick={() => window.location.assign(withBase("/"))}>
+              <Icon name="plus" />
+              New post
+            </Button>
+          </Card>
+        ) : (
+          <ul
+            className="grid grid-cols-[repeat(auto-fit,minmax(min(340px,100%),1fr))] gap-card phone:gap-snug [&>li]:flex [&>li]:min-w-0"
+            role="list"
+          >
+            {posts.map((post) => {
+              const render = renders.get(post.id);
+              // The render's 220 px thumbnail, not the full 1080 px slide.
+              const thumb = render?.thumb ?? null;
+              const rendered = (render?.files.length ?? 0) > 0;
+              const isRendering = renderingId === post.id;
+              const busy = busyId === post.id;
+
+              return (
+                <li key={post.id}>
+                  <Card
+                    padding="none"
+                    className="flex min-w-0 flex-1 flex-col gap-[14px] overflow-hidden p-card phone:p-[14px]"
                   >
-                    {thumb ? (
-                      <img className="block size-full object-cover" src={withBase(thumb)} alt="" loading="lazy" />
-                    ) : (
-                      <span className="flex size-full items-center justify-center font-galley text-field tracking-field text-graphite-soft uppercase">
-                        Not set
-                      </span>
-                    )}
-                    <CropMarks />
-                  </a>
-
-                  <div className="flex min-w-0 flex-col gap-hair">
-                    <div className="flex flex-wrap items-center gap-half">
+                    {post.status !== "published" && <TissueCorner />}
+                    <div className="flex items-start gap-card pr-[14px]">
                       <a
-                        className="line-clamp-2 overflow-hidden font-chrome text-label leading-label font-bold tracking-label text-graphite no-underline hover:underline hover:underline-offset-[3px]"
+                        className="relative m-[6px] grid size-[104px] shrink-0 place-items-center bg-board no-underline shadow-[0_0_0_1px_var(--color-hairline)]"
                         href={postHref(post.id)}
+                        aria-hidden="true"
+                        tabIndex={-1}
                       >
-                        {post.title}
+                        {thumb ? (
+                          <img className="block size-full object-cover" src={withBase(thumb)} alt="" loading="lazy" />
+                        ) : (
+                          <span className="font-chrome text-label leading-label font-semibold text-graphite-soft">
+                            Not set
+                          </span>
+                        )}
+                        <CropMarks small />
                       </a>
-                      {post.status === "published" ? <Stamp>Published</Stamp> : <Mark>Draft</Mark>}
-                      {rendered ? <Mark bare>{render?.slideCount} slides</Mark> : <Mark bare>Not rendered</Mark>}
+
+                      <div className="flex min-w-0 flex-col gap-tight">
+                        <h2 className="font-chrome text-section leading-[20px] font-extrabold text-graphite-deep wdth-head">
+                          <a
+                            className="text-graphite-deep no-underline hover:underline hover:underline-offset-[3px]"
+                            href={postHref(post.id)}
+                          >
+                            {post.title}
+                          </a>
+                        </h2>
+                        <div className="flex flex-wrap items-center gap-x-[14px] gap-y-[4px]">
+                          {post.status === "published" ? (
+                            <Stamp>Published</Stamp>
+                          ) : (
+                            <Mark icon="pencil" className="[&>svg]:size-[14px]">
+                              Draft
+                            </Mark>
+                          )}
+                          {rendered ? (
+                            <Mark icon="layers" className="[&>svg]:size-[14px]">
+                              {render?.slideCount} slides
+                            </Mark>
+                          ) : (
+                            <Mark className="[&>svg]:size-[14px]">
+                              <Icon name="box" dashed size={14} />
+                              Not rendered
+                            </Mark>
+                          )}
+                        </div>
+
+                        {post.description && (
+                          <p className="line-clamp-2 overflow-hidden text-hint leading-hint text-graphite-soft">
+                            {post.description}
+                          </p>
+                        )}
+
+                        <p className="font-chrome text-label leading-label font-medium text-graphite-soft tabular-nums">
+                          Updated {formatDate(post.updatedAt)}
+                          {post.publishedAt ? ` · published ${formatDate(post.publishedAt)}` : ""}
+                        </p>
+
+                        {post.keywords.length > 0 && (
+                          <div className="flex flex-wrap gap-x-snug gap-y-[2px]">
+                            {post.keywords.map((k) => (
+                              <Mark key={k}>{k}</Mark>
+                            ))}
+                          </div>
+                        )}
+
+                        {isRendering && (
+                          <div className="mt-hair">
+                            <ProgressBar
+                              value={
+                                renderProgress && renderProgress.total > 0
+                                  ? (renderProgress.done / renderProgress.total) * 100
+                                  : 0
+                              }
+                              label={
+                                renderProgress
+                                  ? `Rendering slide ${renderProgress.done} of ${renderProgress.total}`
+                                  : "Starting Chromium…"
+                              }
+                            />
+                          </div>
+                        )}
+                      </div>
                     </div>
 
-                    {post.description && (
-                      <p className="line-clamp-2 overflow-hidden text-label text-graphite-soft">{post.description}</p>
-                    )}
-
-                    <p className="font-galley text-field font-medium tracking-field text-graphite-soft uppercase tabular-nums">
-                      Updated {formatDate(post.updatedAt)}
-                      {post.publishedAt ? ` · published ${formatDate(post.publishedAt)}` : ""}
-                    </p>
-
-                    {post.keywords.length > 0 && (
-                      <div className="flex flex-wrap gap-half">
-                        {post.keywords.map((k) => (
-                          <Mark key={k}>{k}</Mark>
-                        ))}
-                      </div>
-                    )}
-
-                    {isRendering && (
-                      <div className="mt-hair">
-                        <ProgressBar
-                          value={
-                            renderProgress && renderProgress.total > 0
-                              ? (renderProgress.done / renderProgress.total) * 100
-                              : 0
-                          }
-                          label={
-                            renderProgress
-                              ? `Rendering slide ${renderProgress.done} of ${renderProgress.total}`
-                              : "Starting Chromium…"
-                          }
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="mt-auto flex flex-wrap items-center gap-[4px]">
-                    <Button size="sm" variant="secondary" onClick={() => window.location.assign(postHref(post.id))}>
-                      Open
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      loading={isRendering}
-                      disabled={renderingId !== null && !isRendering}
-                      onClick={() => void handleRender(post)}
-                    >
-                      Render
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      disabled={!rendered}
-                      onClick={() => window.location.assign(withBase(`/api/posts/${post.id}/export.zip`))}
-                    >
-                      Export ZIP
-                    </Button>
-                    {post.status === "published" ? (
-                      <Button size="sm" variant="ghost" loading={busy} onClick={() => void handleUnpublish(post)}>
-                        Unpublish
+                    <div className="mt-auto flex flex-wrap gap-tight border-t border-hairline pt-snug phone:grid phone:grid-cols-2">
+                      <Button variant="secondary" onClick={() => window.location.assign(postHref(post.id))}>
+                        Open
                       </Button>
-                    ) : (
-                      <Button size="sm" disabled={!rendered} loading={busy} onClick={() => setConfirmPublish(post)}>
-                        Publish
+                      <Button
+                        variant="secondary"
+                        loading={isRendering}
+                        disabled={renderingId !== null && !isRendering}
+                        onClick={() => void handleRender(post)}
+                      >
+                        <Icon name="layers" />
+                        Render
                       </Button>
-                    )}
-                    <Button size="sm" variant="danger" onClick={() => setConfirmDelete(post)}>
-                      Delete
-                    </Button>
-                  </div>
-                </Card>
-              </li>
-            );
-          })}
-        </ul>
-      )}
+                      <Button
+                        variant="secondary"
+                        disabled={!rendered}
+                        onClick={() => window.location.assign(withBase(`/api/posts/${post.id}/export.zip`))}
+                      >
+                        <Icon name="download" />
+                        Export ZIP
+                      </Button>
+                      {post.status === "published" ? (
+                        <Button variant="secondary" loading={busy} onClick={() => void handleUnpublish(post)}>
+                          Unpublish
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="secondary"
+                          disabled={!rendered}
+                          loading={busy}
+                          onClick={() => setConfirmPublish(post)}
+                        >
+                          <Icon name="send" />
+                          Publish
+                        </Button>
+                      )}
+                      <Button
+                        variant="danger"
+                        className="ml-auto phone:col-start-2 phone:ml-0"
+                        onClick={() => setConfirmDelete(post)}
+                      >
+                        <Icon name="trash" />
+                        Delete
+                      </Button>
+                    </div>
+                  </Card>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
 
       <ConfirmDialog
         open={confirmPublish !== null}
