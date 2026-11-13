@@ -21,6 +21,7 @@ import {
   Mark,
   Skeleton,
   EmptyState,
+  Icon,
   PageHeader,
   Textarea,
   useToast,
@@ -129,7 +130,7 @@ export function LibraryPanel() {
         </div>
       ) : articles.length === 0 ? (
         <EmptyState
-          icon="—"
+          icon={<Icon name="bookmark" size={28} />}
           title="Nothing saved yet"
           hint="Save an item from the Reader, or a Search result, to start building your library."
         />
@@ -192,10 +193,8 @@ export function LibraryPanel() {
               ) : (
                 <>
                   {article.note && (
-                    <p className="flex flex-col gap-[2px] border-l-2 border-graphite pl-hair text-label leading-[1.45] whitespace-pre-wrap text-graphite">
-                      <span className="font-galley text-field font-medium tracking-field text-graphite-soft uppercase">
-                        Note
-                      </span>
+                    <p className="flex flex-col gap-[2px] border-l-2 border-graphite pl-snug text-body leading-body whitespace-pre-wrap text-graphite">
+                      <span className="text-label leading-label font-semibold text-graphite-soft">Note</span>
                       {article.note}
                     </p>
                   )}

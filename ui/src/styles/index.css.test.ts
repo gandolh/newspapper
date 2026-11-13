@@ -11,7 +11,7 @@ describe("the stylesheet's closed system", () => {
       "--color-wax",
       "--spacing-unit",
       "--text-label",
-      "--tracking-field",
+      "--tracking-brand",
       "--color-field-edge",
       "--text-head",
       "--spacing-card",

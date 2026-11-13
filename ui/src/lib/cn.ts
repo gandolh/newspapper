@@ -7,14 +7,14 @@ import { extendTailwindMerge } from "tailwind-merge";
  * tracking, leading, shadow, spacing, font and z names. Keep the lists in step with @theme.
  *
  * The sizes carry no line height (a row sets its own with `leading-*`), so a size must not remove a `leading-*`,
- * which tailwind-merge does by default: `cn("leading-label", "text-mark")` keeps both.
+ * which tailwind-merge does by default: `cn("leading-label", "text-hint")` keeps both.
  */
 const twMerge = extendTailwindMerge<"wdth">({
   extend: {
     theme: {
-      text: ["board-title", "head", "section", "brand", "body", "hint", "label", "galley", "field", "mark", "caption"],
-      leading: ["board-title", "head", "section", "body", "hint", "label", "galley", "field"],
-      tracking: ["board-title", "brand", "label", "field", "mark"],
+      text: ["board-title", "head", "section", "brand", "body", "hint", "label", "galley"],
+      leading: ["board-title", "head", "section", "body", "hint", "label", "galley"],
+      tracking: ["board-title", "brand", "label"],
       shadow: ["waxed", "lifted", "hinged"],
       font: ["chrome", "galley", "slide"],
       spacing: ["hair", "half", "unit", "double", "tight", "snug", "card", "column", "gutter"],

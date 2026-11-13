@@ -102,7 +102,7 @@ export function ImagePicker({ open, onClose, onChoose }: ImagePickerProps) {
 
       {error && (
         <p
-          className="mb-half border-l-2 border-grease pl-half font-galley text-[10px] leading-[1.45] text-grease"
+          className="mb-snug border-l-2 border-grease pl-snug font-chrome text-hint leading-hint font-medium text-grease"
           role="alert"
         >
           {error}
@@ -117,7 +117,7 @@ export function ImagePicker({ open, onClose, onChoose }: ImagePickerProps) {
 
       {uploads !== null && uploads.length > 0 && (
         <ul // Every thumbnail at one fixed scale on a shared baseline, so the grid is a true comparison (The Fixed Scale Rule).
-          className="grid max-h-[50vh] grid-cols-[repeat(auto-fill,minmax(130px,1fr))] gap-half overflow-auto"
+          className="grid max-h-[50vh] grid-cols-[repeat(auto-fill,minmax(130px,1fr))] gap-snug overflow-auto"
         >
           {uploads.map((upload) => (
             <li key={upload.id}>
@@ -137,7 +137,7 @@ export function ImagePicker({ open, onClose, onChoose }: ImagePickerProps) {
                   className="h-[104px] w-full bg-board object-cover shadow-[0_0_0_1px_var(--color-hairline)]"
                   loading="lazy"
                 />
-                <span className="max-w-full overflow-hidden font-galley text-field tracking-field text-ellipsis whitespace-nowrap text-graphite-soft uppercase">
+                <span className="max-w-full overflow-hidden text-label leading-label font-semibold text-ellipsis whitespace-nowrap text-graphite-soft">
                   {upload.filename}
                 </span>
               </Button>

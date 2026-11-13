@@ -13,7 +13,7 @@
 import { useState, useRef } from "react";
 import { api, sse, ApiError } from "@/lib/api";
 import type { Article, ScrapedArticle } from "@/lib/types";
-import { Button, Card, Input, Mark, EmptyState, PageHeader, useToast } from "../../ui";
+import { Button, Card, EmptyState, Icon, Input, Mark, PageHeader, useToast } from "../../ui";
 import { excerpt, formatDate } from "../format";
 import { CLIPPING } from "./clippingLooks";
 
@@ -155,7 +155,7 @@ export function SearchPanel() {
 
       {!searching && hasSearched && results.length === 0 && (
         <EmptyState
-          icon="⌕"
+          icon={<Icon name="search" size={28} />}
           title="No matches"
           hint="Try broader or different keywords, or check that your sources are enabled."
         />

@@ -323,7 +323,7 @@ export function SourcePane({
           ref={textRef}
           className={cn(
             GALLEY_BOX,
-            "resize-none overflow-auto bg-transparent text-transparent caret-graphite outline-none selection:bg-transparent selection:text-transparent focus-visible:outline-none",
+            "resize-none overflow-auto bg-transparent text-transparent caret-graphite selection:bg-transparent selection:text-transparent focus-visible:-outline-offset-2",
           )}
           value={source}
           spellCheck={false}

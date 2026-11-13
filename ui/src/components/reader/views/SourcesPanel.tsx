@@ -13,7 +13,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Button,
-  Card,
+  Icon,
   Input,
   Toggle,
   Mark,
@@ -136,7 +136,7 @@ function CopyableUrl({ url }: { url: string }) {
       >
         {truncateUrl(url)}
       </span>
-      {copied && <span className="text-[11px] text-graphite">copied!</span>}
+      {copied && <span className="text-label text-graphite">copied!</span>}
     </span>
   );
 }
@@ -460,13 +460,13 @@ export function SourcesPanel() {
       {/* Empty state */}
       {sources.length === 0 ? (
         <EmptyState
-          icon="⊕"
+          icon={<Icon name="plus" size={28} />}
           title="No sources yet"
           hint="Add your first RSS feed. The Reader stores what it publishes; Search reads it live."
           action={<Button onClick={handleAdd}>Add first feed</Button>}
         />
       ) : (
-        <Card padding="none">
+        <div className="border border-hairline">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px] border-collapse text-[14px]">
               <thead>
@@ -475,7 +475,7 @@ export function SourcesPanel() {
                     <th
                       key={col.label}
                       className={cn(
-                        "px-[16px] py-[10px] text-left text-[12px] font-semibold tracking-[0.05em] whitespace-nowrap text-graphite-soft uppercase",
+                        "px-snug py-[10px] text-left text-label leading-label font-semibold whitespace-nowrap text-graphite-soft",
                         col.center && "text-center",
                       )}
                     >
@@ -487,33 +487,31 @@ export function SourcesPanel() {
               <tbody>
                 {sources.map((source) => (
                   <tr key={source.id} className="not-last:border-b not-last:border-hairline">
-                    <td className="px-[16px] py-[12px]">
+                    <td className="px-snug py-[12px]">
                       <span className="text-[14px] font-semibold">{source.name}</span>
-                      <div className="mt-[2px] text-[11px] text-graphite-soft">{source.id}</div>
+                      <div className="mt-[2px] text-label leading-label text-graphite-soft">{source.id}</div>
                     </td>
-                    <td className="px-[16px] py-[12px]">
+                    <td className="px-snug py-[12px]">
                       {source.category ? (
-                        <span className="font-galley text-field font-medium tracking-field text-graphite uppercase">
-                          {source.category}
-                        </span>
+                        <span className="text-label leading-label font-semibold text-graphite">{source.category}</span>
                       ) : (
                         <span className="text-[12px] text-graphite-soft">—</span>
                       )}
                     </td>
-                    <td className="px-[16px] py-[12px]">
+                    <td className="px-snug py-[12px]">
                       <CopyableUrl url={source.rss} />
                     </td>
-                    <td className="px-[16px] py-[12px] text-center">
+                    <td className="px-snug py-[12px] text-center">
                       <Toggle
                         checked={source.enabled}
                         onCheckedChange={(c) => void handleToggle(source, c)}
                         aria-label={`Enable ${source.name}`}
                       />
                     </td>
-                    <td className="px-[16px] py-[12px]">
+                    <td className="px-snug py-[12px]">
                       {pings[source.id] ? <PingMark state={pings[source.id]} /> : <RefreshMark source={source} />}
                     </td>
-                    <td className="px-[16px] py-[12px]">
+                    <td className="px-snug py-[12px]">
                       <div className="flex justify-end gap-hair">
                         <Button
                           size="sm"
@@ -537,7 +535,7 @@ export function SourcesPanel() {
               </tbody>
             </table>
           </div>
-        </Card>
+        </div>
       )}
 
       {/* Add/Edit modal */}

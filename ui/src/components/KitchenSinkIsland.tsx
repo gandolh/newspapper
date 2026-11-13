@@ -17,6 +17,7 @@ import {
   EmptyState,
   Finding,
   HeldOut,
+  Icon,
   Input,
   Mark,
   Modal,
@@ -34,6 +35,36 @@ import {
   WAX,
 } from "./ui";
 
+const ICONS = [
+  "pulse",
+  "board",
+  "stack",
+  "lines",
+  "sliders",
+  "check",
+  "chevronDown",
+  "chevronRight",
+  "plus",
+  "up",
+  "down",
+  "close",
+  "search",
+  "pencil",
+  "layers",
+  "download",
+  "send",
+  "refresh",
+  "back",
+  "bookmark",
+  "rss",
+  "disk",
+  "box",
+  "trash",
+  "alert",
+  "pointer",
+  "info",
+] as const;
+
 const SIZE_SCALE = ["xs", "sm", "md", "lg", "xl"].map((value) => ({ value }));
 
 const SELECT_OPTIONS = [
@@ -45,7 +76,7 @@ const SELECT_OPTIONS = [
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <Card>
-      <h2 className="mb-half border-b border-rule pb-[4px] font-galley text-field font-medium tracking-field text-graphite-soft uppercase">
+      <h2 className="mb-snug border-b border-hairline pb-[4px] font-chrome text-section leading-section font-extrabold text-graphite-deep wdth-head">
         {title}
       </h2>
       {children}
@@ -56,7 +87,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function ToastDemo() {
   const { addToast } = useToast();
   return (
-    <div className="mb-half flex flex-wrap items-center gap-half">
+    <div className="mb-snug flex flex-wrap items-center gap-snug">
       <Button size="sm" variant="secondary" onClick={() => addToast("Post saved.", "success")}>
         Toast done
       </Button>
@@ -87,63 +118,84 @@ export function KitchenSinkIsland() {
         />
 
         <Section title="Marks">
-          <p className="mb-half max-w-[66ch] text-label leading-[1.45] text-graphite-soft">
+          <p className="mb-snug max-w-[66ch] text-label leading-[1.45] text-graphite-soft">
             One mark per idea. Rubylith is the only way this app says “held out”.
           </p>
-          <div className="mb-half flex flex-wrap items-center gap-half">
-            <Mark>Draft</Mark>
-            <Mark tone="ink">3 slides</Mark>
-            <Mark tone="rubylith">2 errors</Mark>
+          <div className="mb-snug flex flex-wrap items-center gap-snug">
+            <Mark icon="pencil">Draft</Mark>
+            <Mark icon="layers" tone="ink">
+              3 slides
+            </Mark>
+            <Mark icon="alert" tone="rubylith">
+              2 errors
+            </Mark>
+            <Mark icon="check" tone="ink">
+              Compiles
+            </Mark>
+            <Mark icon="disk">Saved</Mark>
             <Mark tone="blue">warm-industrial-1</Mark>
             <Mark>1 : 2</Mark>
             <Stamp>Published</Stamp>
           </div>
-          <div className="mb-half flex flex-wrap items-center gap-half">
+          <div className="mb-snug flex flex-wrap items-center gap-snug">
             <span className="text-body">
               Selected in the galley takes the <span className={WAX}>wax</span>.
             </span>
           </div>
-          <div className="mb-half flex flex-wrap items-center gap-half">
+          <div className="mb-snug flex flex-wrap items-center gap-snug">
             <HeldOut className="border border-tick px-half py-hair font-galley text-galley text-graphite">
               <span>Held out — the rubylith wash</span>
             </HeldOut>
             <HeldOut hatch className="border border-tick px-half py-hair font-galley text-galley text-graphite">
-              <span>Held out — the 45° hatch, at tray scale</span>
+              <span>Held out — the 135° hatch, at control scale</span>
             </HeldOut>
           </div>
-          <div className="mb-half flex flex-wrap items-center gap-half">
+          <div className="mb-snug flex flex-wrap items-center gap-snug">
             <span className="relative block border border-hairline py-half pr-double pl-half font-galley text-galley">
-              Draft: the tissue corner
+              Draft: the dog-ear
               <TissueCorner />
             </span>
             <span className="relative m-unit block size-double bg-paper shadow-[0_0_0_1px_var(--color-hairline)]">
               <CropMarks />
+            </span>
+            <span className="relative block h-[110px] w-[180px] bg-board shadow-waxed">
               <RegisterTargets />
             </span>
           </div>
           <Finding where="WZD201 · line 14, col 6">Heading runs 3 characters past the measure at xl.</Finding>
         </Section>
 
+        <Section title="Icons">
+          <div className="flex flex-wrap items-center gap-snug text-graphite">
+            {ICONS.map((name) => (
+              <span key={name} className="inline-flex flex-col items-center gap-[4px] text-label text-graphite-soft">
+                <Icon name={name} size={20} />
+                {name}
+              </span>
+            ))}
+          </div>
+        </Section>
+
         <Section title="Buttons">
-          <div className="mb-half flex flex-wrap items-center gap-half">
+          <div className="mb-snug flex flex-wrap items-center gap-snug">
             <Button variant="primary">Primary</Button>
             <Button variant="secondary">Secondary</Button>
             <Button variant="ghost">Ghost</Button>
             <Button variant="danger">Danger</Button>
           </div>
-          <div className="mb-half flex flex-wrap items-center gap-half">
+          <div className="mb-snug flex flex-wrap items-center gap-snug">
             <Button size="sm">Small</Button>
             <Button size="md">Medium</Button>
             <Button size="lg">Large</Button>
           </div>
-          <div className="mb-half flex flex-wrap items-center gap-half">
+          <div className="mb-snug flex flex-wrap items-center gap-snug">
             <Button loading>Rendering</Button>
             <Button disabled>Disabled</Button>
           </div>
         </Section>
 
         <Section title="Fields">
-          <div className="flex flex-col gap-half">
+          <div className="flex flex-col gap-snug">
             <Input label="Title" placeholder="Today’s lead" hint="Sets the post’s index columns." />
             <Input label="Feed" defaultValue="not a url" error="That is not a URL." />
             <Textarea label="Caption" placeholder="What goes with the post…" />
@@ -178,10 +230,10 @@ export function KitchenSinkIsland() {
         </Section>
 
         <Section title="Progress and placeholders">
-          <div className="flex flex-col gap-half">
+          <div className="flex flex-col gap-snug">
             <ProgressBar value={progress} label="Rendering slides" showPercent />
             <ProgressBar value={30} variant="error" label="Failed at slide 2" showPercent />
-            <div className="mb-half flex flex-wrap items-center gap-half">
+            <div className="mb-snug flex flex-wrap items-center gap-snug">
               <Button size="sm" variant="secondary" onClick={() => setProgress((p) => Math.max(0, p - 10))}>
                 −10
               </Button>
@@ -194,7 +246,7 @@ export function KitchenSinkIsland() {
         </Section>
 
         <Section title="Overlays">
-          <div className="mb-half flex flex-wrap items-center gap-half">
+          <div className="mb-snug flex flex-wrap items-center gap-snug">
             <Button variant="secondary" onClick={() => setModalOpen(true)}>
               Open modal
             </Button>
@@ -204,8 +256,8 @@ export function KitchenSinkIsland() {
           </div>
           <ToastDemo />
           <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Example modal">
-            <p className="mb-half max-w-[66ch] text-label leading-[1.45] text-graphite-soft">
-              A modal has to pick one of the two shadows. It is a slip waxed over the board, so it takes the hard short
+            <p className="mb-snug max-w-[66ch] text-label leading-[1.45] text-graphite-soft">
+              A modal has to pick one of the two shadows. It is a card laid over the board, so it takes the hard short
               one.
             </p>
             <Button onClick={() => setModalOpen(false)}>Close</Button>
@@ -222,7 +274,7 @@ export function KitchenSinkIsland() {
 
         <Section title="Empty">
           <EmptyState
-            icon="—"
+            icon={<Icon name="box" size={28} />}
             title="Nothing set yet"
             hint="The frame is drawn; the copy has not been pasted down."
             action={<Button size="sm">Start one</Button>}

@@ -211,9 +211,6 @@
   --text-hint: 13px;
   --text-label: 12px;
   --text-galley: 13px;
-  --text-field: 9px;
-  --text-mark: 9px;
-  --text-caption: 11px;
 
   --leading-board-title: 1.154;
   --leading-head: 1.2;
@@ -222,13 +219,10 @@
   --leading-hint: 1.385;
   --leading-label: 1.333;
   --leading-galley: 1.846;
-  --leading-field: 1.4;
 
   --tracking-board-title: 0em;
   --tracking-brand: 0.06em;
   --tracking-label: 0em;
-  --tracking-field: 0.17em;
-  --tracking-mark: 0.14em;
 
   --container-content: 1440px; /* pages cap here, with a 28px gutter */
   --container-narrow: 728px; /* 28 x 26 */

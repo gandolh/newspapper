@@ -7,11 +7,11 @@ describe("cn", () => {
   });
 
   it("keeps a named tracking and a named leading beside a size", () => {
-    expect(cn("leading-label", "text-mark", "tracking-field")).toBe("leading-label text-mark tracking-field");
+    expect(cn("leading-label", "text-hint", "tracking-label")).toBe("leading-label text-hint tracking-label");
   });
 
   it("lets a later size, colour, shadow, spacing or z win over an earlier one of the same kind", () => {
-    expect(cn("text-label", "text-mark")).toBe("text-mark");
+    expect(cn("text-label", "text-hint")).toBe("text-hint");
     expect(cn("text-graphite", "text-rubylith-ink")).toBe("text-rubylith-ink");
     expect(cn("shadow-waxed", "shadow-hinged")).toBe("shadow-hinged");
     expect(cn("p-hair", "p-unit")).toBe("p-unit");
