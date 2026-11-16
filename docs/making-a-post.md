@@ -4,7 +4,7 @@ One post from an empty editor to a ZIP of slides. This is the walkthrough that u
 
 ## 1. Write it
 
-You land on the editor (`/`) with a starter document already loaded. The left pane is the `.wzd` source, the middle is the live 1080×1080 canvas, and the right holds the component palette and the post's fields.
+You land on the editor (`/`) with a starter document already loaded. The left pane is the `.wzd` source. The middle holds the working slide on a live 1080×1080 stage, with a strip of every slide in the post below it. The right holds the component palette and the post's fields. On a phone the three panes become Source, Preview and Inspector tabs.
 
 A document has two top-level elements, and casing carries the meaning. Lowercase tags are metadata; capitalised tags draw.
 
@@ -35,17 +35,19 @@ A document has two top-level elements, and casing carries the meaning. Lowercase
 </body>
 ```
 
-Each `<Slide>` is one image. Type it, or add components from the palette; the palette writes through the formatter, so the source reads as if a person typed it. Click anything in the preview to select it and change its props. Props choose from named scales (`size`, `align`, `emphasis`) and there is no raw CSS field, on purpose, so a post stays inside its theme. The linter flags an unknown component, a bad prop value or a missing title as you type. Saving is automatic.
+Each `<Slide>` is one image. Type it, or add components from the palette; the palette writes through the formatter, so the source reads as if a person typed it. Click anything on the stage to select it and change its props, or pick a thumbnail in the strip to work on that slide. Props choose from named scales (`size`, `align`, `emphasis`) and there is no raw CSS field, on purpose, so a post stays inside its theme. The linter flags an unknown component, a bad prop value or a missing title as you type. Saving is automatic.
 
-![Typing a new headline into the source pane: the heading on the canvas redraws word by word, then the preview scrolls down through slides 2 and 3](images/editing.gif)
+![Selecting the heading in the source pane and typing "Trams run all night": the working slide and its thumbnail redraw word by word, then slides 2 and 3 are picked from the strip and their markup is marked in the source](images/editing.gif)
 
 ## 2. Add pictures, if you want any
 
-Upload an image from the editor. Newspapper keeps the original, stores a normalised copy, and refers to it by a short name made from the file name, for example `<Image src="harbour-at-dawn-9f3a1c2b" />`.
+Upload an image from the editor. Newspapper keeps the original, stores a normalised copy, and refers to it by a short name made from the file name, such as `harbour-at-dawn-9f3a1c2b`. That name goes in an `<Image>`'s `src` prop.
 
 ## 3. Find something to write about, if you need it
 
-The Reader (`/reader`) follows your RSS feeds and keeps what they publish. Its Search view scans the feeds by keyword, Library holds what you saved with a note, and Sources is where you add feeds, ping them to check they answer, and sort them into categories. `/articles` redirects there. The Reader is not deployed yet; see [status](../corpus/wiki/status.md).
+The Reader (`/reader`) follows your RSS feeds and keeps what they publish. Its Search view scans the feeds by keyword, Library holds what you saved with a note, and Sources is where you add feeds, ping them to check they answer, and sort them into categories. `/articles` redirects there. Whether production has the Reader yet is not recorded; see [status](../corpus/wiki/status.md).
+
+![The Reader with five made-up feeds grouped by category on the left, the unread items in the middle, and an item about Sample City's night tram timetable open on the right](images/reader.webp)
 
 ## 4. Render it
 
@@ -59,4 +61,4 @@ Publish marks the post published and runs a JPEG optimisation pass over the rend
 
 Pick a theme per post in the editor, or set the default in `/settings`. Three ship, `warm-industrial-1`, `-2` and `-3`: one design in three primary colours.
 
-![Posts page with three made-up posts as cards, each with a thumbnail of its first slide, its keywords and Open, Render, Export ZIP and Publish buttons; one card carries a red Published stamp](images/posts.webp)
+![Posts page with three made-up posts as cards, each with a thumbnail of its latest render, its keywords and Open, Render, Export ZIP, Publish and Delete buttons; the middle card is published, with a red Published stamp and Unpublish in place of Publish](images/posts.webp)
