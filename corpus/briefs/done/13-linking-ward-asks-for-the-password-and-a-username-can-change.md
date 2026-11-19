@@ -49,3 +49,16 @@ What the update changes here:
 - [ ] Both vendored copies at the new version; the tests above pass; `npm run check` exit 0; `bash corpus/lint.sh` OK.
 - [ ] The outcome note lists each CHANGELOG entry this app crossed and what it needed, and the username check's finding.
 - [ ] End move `ready_for_deploy` with the app's deploy step (server and web both change).
+
+## Outcome (2026-11-19)
+
+Both vendored copies are ward-auth 1.1.0 (the controller's staged copy, built at wzd_auth 66998b7; SHA256SUMS checked in each folder).
+
+- **Link and Unlink Ward** take the password: one field in the Ward card, labelled "Current password", `autocomplete="current-password"`, with `link(currentPassword)` / `unlink(currentPassword)`. The buttons stay off until it is typed. `invalid_credentials` ("That is not your current password.") and `too_many_attempts` (with the wait) show under the field, which keeps focus. A Ward-only user sees no field and the old hint to set a password first.
+- **Username card** (`useRenameUser`): `username_taken` (a look-alike answers the same), `invalid_username`, `too_many_attempts` show under the field.
+- **CHANGELOG entries crossed:** 0.4.0 rename route on by default (kept on, screen built); 0.5.0 `usernameFor` (nothing: not used); 0.6.0 migration 4 and disabling (nothing, the app never disables); 0.7.0 `returnTo` (nothing: the login page keeps its retry); 0.7.1 and 0.7.2 nothing; 1.0.0 password for link and unlink (done above; server tests send `{ currentPassword }`, with none, wrong and right cases); 1.1.0 look-alike names and migration 5 (nothing by hand).
+- **Username check:** nothing is keyed by the name. Posts, sources, uploads and settings have no owner column; `User` is subject plus username. Only the seed matches by name: a seed run with an old name after a rename creates a second account.
+- **Start log:** on a fresh dev seed the migration filled `username_skeleton` and the log showed no `ward-auth: N users have usernames that read the same` line. The deployed database has not been booted here.
+- **Tests:** server rename (new name signs in, old name refused, `alice`, `ALICE`, `AIice` answer 409 `username_taken`); link/unlink without, wrong and right password; the UI tests carry the password and show the refusal.
+- **Found while shooting:** the `ward` message context said "Wrong username or password." for a wrong password; it now says "That is not your current password." Two fields called "Current password" share an id by default, so the Ward one has its own.
+- **Shots** (stubbed session and routes, no Ward) at 1280 light and 390 dark, with both refusals showing: no clipping, no horizontal overflow.

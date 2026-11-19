@@ -86,3 +86,7 @@ section 7 says, with a test.
   browser goes to Ward's own origin; the app's server talks to Ward through
   `WARD_OIDC_ISSUER`.
 - `WARD_PUBLIC_ORIGIN`, `WARD_API_BASE_PATH` and `WARD_APP_KEY`, and `jose`.
+
+## 2026-11-19: ward-auth 1.1.0, and a username can change
+
+The library is vendored at 1.1.0 (it was 0.3.1). Linking and unlinking Ward ask for the local password again, next to each button in Settings. The rename route stays on (the owner, 2026-11-19) and Settings has a Username card. Nothing in the app is keyed by the name: posts, sources and uploads carry no owner, and `GET /api/me` reports the subject beside the name; only the seed script matches by name, so a seed run with the old name after a rename creates a second account. A new or changed name that reads like an existing one (`AIice` against `alice`) answers `username_taken`.

@@ -86,8 +86,10 @@ element shows was settled on 2026-11-06 (non-photo blue) and built the same day.
   feed fetch also connects only to the address it checked, through
   `node:http` with a vetting lookup, which closes the DNS-rebinding gap the
   sweep had accepted.
-- **Accounts** (2026-10-13). Local accounts on the shared ward-auth library
-  (vendored 0.3.1), with "Sign in with Ward" when configured; identity was
+- **Accounts** (2026-10-13; ward-auth 1.1.0 since 2026-11-19, awaiting a deploy:
+  Link and Unlink Ward ask for the password, a Username card renames the
+  account, a look-alike name is refused). Local accounts on the shared ward-auth library
+  (vendored 1.1.0), with "Sign in with Ward" when configured; identity was
   Ward's alone from 2026-09-06 until then
   ([decisions-accounts.md](./decisions-accounts.md)). Local dev signs in with a
   seeded account or through a local Ward

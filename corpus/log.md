@@ -2004,3 +2004,7 @@ The owner approved the redesign direction "Contact sheet" on the estate redesign
 ## [2026-11-13] done | Brief 12: the Contact sheet redesign
 
 The chrome was redrawn as the Contact sheet, the direction the owner approved: tokens, a paper band with a phone bottom bar, one working slide over a 1:8 strip, card pages for Posts and the Reader, 12px sentence-case labels with icons, the grid under the stage only. Recorded in `wiki/design.md`, `wiki/design-components.md` and `wiki/decisions-ui.md` (four reopened lines kept as history). Added `e2e/` (Playwright 1.63.0, stubbed API) and `scripts/contrast.mjs` (30 pairs, 0 fail). `CI=1 npm run check` passed. Awaits a deploy (`server`); the README images are stale.
+
+## [2026-11-19] done | Brief 13: ward-auth 1.1.0, linking asks for the password, a username can change
+
+Vendored ward-auth 1.1.0 (from 0.3.1) in `api/vendor/ward` and `ui/vendor/ward`. Settings: a password field with Link and Unlink Ward, and a Username card (the rename route stays on; nothing in the app is keyed by the name). Look-alike names (`AIice` against `alice`) answer `username_taken`. Awaits a deploy (`server`).
