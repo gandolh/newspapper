@@ -132,6 +132,54 @@ describe("local sign-in", () => {
   });
 });
 
+describe("renaming", () => {
+  beforeEach(async () => {
+    await boot();
+    for (const username of ["alice", "bob"]) {
+      if (!(await testAccounts().findUserByUsername(username))) {
+        await testAccounts().createUser({ username, password: PASSWORD, role: "editor" });
+      }
+    }
+  });
+
+  async function cookiesFor(username: string) {
+    const user = (await testAccounts().findUserByUsername(username))!;
+    const { token } = await testAccounts().startSession(user.id);
+    return { [SESSION_COOKIE]: token };
+  }
+  const rename = async (cookies: Record<string, string>, username: string) =>
+    app.inject({ method: "POST", url: "/api/auth/username", cookies, payload: { username } });
+
+  it("changes the name, keeps the session, and signs in under the new one", async () => {
+    const cookies = await cookiesFor("bob");
+    const res = await rename(cookies, "robert");
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toMatchObject({ user: { username: "robert" } });
+    expect((await app.inject({ method: "GET", url: "/api/posts", cookies })).statusCode).toBe(200);
+    const login = await app.inject({
+      method: "POST",
+      url: "/api/auth/login",
+      payload: { username: "robert", password: PASSWORD },
+    });
+    expect(login.statusCode).toBe(200);
+    const old = await app.inject({
+      method: "POST",
+      url: "/api/auth/login",
+      payload: { username: "bob", password: PASSWORD },
+    });
+    expect(old.statusCode).toBe(401);
+  });
+
+  it("answers username_taken for a name another user holds and for one that looks like it", async () => {
+    const cookies = await cookiesFor("robert");
+    for (const name of ["alice", "ALICE", "AIice"]) {
+      const res = await rename(cookies, name);
+      expect(res.statusCode).toBe(409);
+      expect(res.json()).toEqual({ error: "username_taken" });
+    }
+  });
+});
+
 describe("the guard", () => {
   beforeEach(async () => {
     await boot();
@@ -260,7 +308,16 @@ describe("Ward routes", () => {
 
     it("lets Settings link Ward: a signed-in local user gets Ward’s URL back", async () => {
       const { cookies } = await signInCookie();
-      const res = await app.inject({ method: "POST", url: "/api/auth/ward/link", cookies });
+      const link = (payload?: object) =>
+        app.inject({ method: "POST", url: "/api/auth/ward/link", cookies, ...(payload && { payload }) });
+
+      // The password is asked again: none, or a wrong one, starts nothing.
+      expect((await link()).statusCode).toBe(400);
+      const wrong = await link({ currentPassword: "not the password" });
+      expect(wrong.statusCode).toBe(401);
+      expect(wrong.json()).toEqual({ error: "invalid_credentials" });
+
+      const res = await link({ currentPassword: "a long enough password" });
       expect(res.statusCode).toBe(200);
       expect(res.json<{ url: string }>().url.startsWith(`${TEST_ISSUER}/auth?`)).toBe(true);
 
@@ -273,7 +330,12 @@ describe("Ward routes", () => {
       const cookies = await wardSession("hedy");
 
       // Refused while there is no local password.
-      const early = await app.inject({ method: "POST", url: "/api/auth/ward/unlink", cookies });
+      const early = await app.inject({
+        method: "POST",
+        url: "/api/auth/ward/unlink",
+        cookies,
+        payload: { currentPassword: "anything" },
+      });
       expect(early.statusCode).toBeGreaterThanOrEqual(400);
       expect(early.json()).toEqual({ error: "no_local_password" });
 
@@ -301,7 +363,13 @@ describe("Ward routes", () => {
       expect(await testAccounts().verifyCredentials("hedy", "a brand new password")).toBeDefined();
 
       // Now Ward can be unlinked; the session that began with Ward ends with it.
-      const unlink = await app.inject({ method: "POST", url: "/api/auth/ward/unlink", cookies });
+      const send = (payload?: object) =>
+        app.inject({ method: "POST", url: "/api/auth/ward/unlink", cookies, ...(payload && { payload }) });
+      expect((await send()).statusCode).toBe(400);
+      const wrong = await send({ currentPassword: "not the password" });
+      expect(wrong.statusCode).toBe(401);
+      expect(wrong.json()).toEqual({ error: "invalid_credentials" });
+      const unlink = await send({ currentPassword: "a brand new password" });
       expect(unlink.statusCode).toBe(200);
       expect(unlink.json()).toEqual({ signedOut: true });
       const after = await app.inject({ method: "GET", url: "/api/posts", cookies });

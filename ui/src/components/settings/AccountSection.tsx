@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button, Card, Input, Skeleton, useToast } from "../ui";
 import {
   useChangePassword,
   useLogout,
+  useRenameUser,
   useSession,
   useSetLocalPassword,
   useWardLink,
@@ -62,6 +63,7 @@ export function AccountSection() {
         <SignOutRow viaWard={info.origin === "ward"} />
       </Card>
 
+      <ChangeUsernameCard current={user.username} />
       {user.hasPassword ? <ChangePasswordCard /> : <SetPasswordCard />}
       {ward.enabled && <WardCard linked={ward.linked} hasPassword={user.hasPassword} />}
     </>
@@ -221,56 +223,138 @@ function SetPasswordCard() {
   );
 }
 
+/**
+ * The name you sign in with. The account keeps its id, its sessions and its
+ * posts; only the name changes. The server refuses a name another user holds
+ * and one that looks like another's (`AIice` against `alice`), both as
+ * `username_taken`.
+ */
+function ChangeUsernameCard({ current }: { current: string }) {
+  const { addToast } = useToast();
+  const { renameUser, pending, error, reset } = useRenameUser();
+  const [name, setName] = useState(current);
+  const formRef = useRef<HTMLFormElement>(null);
+  const next = name.trim();
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    if (pending || next === "" || next === current) return;
+    if (await renameUser(next)) {
+      addToast("Username changed", "success");
+    } else {
+      formRef.current?.querySelector("input")?.focus();
+    }
+  }
+
+  return (
+    <Card>
+      <form ref={formRef} onSubmit={(e) => void save(e)} noValidate>
+        <h2 className={SETTINGS.sectionTitle}>Username</h2>
+        <p className={SETTINGS.sectionHint}>
+          The name you sign in with. Your posts and sessions stay as they are; sign in with the new name from now on.
+        </p>
+        <div className={SETTINGS.fields}>
+          <Input
+            label="Username"
+            name="username"
+            type="text"
+            autoComplete="username"
+            autoCapitalize="none"
+            spellCheck={false}
+            value={name}
+            error={error ? authMessage(error, "username") : undefined}
+            onChange={(e) => {
+              setName(e.target.value);
+              reset();
+            }}
+          />
+        </div>
+        <div className={SETTINGS.formActions}>
+          <Button type="submit" loading={pending} disabled={next === "" || next === current}>
+            Change username
+          </Button>
+        </div>
+      </form>
+    </Card>
+  );
+}
+
 function WardCard({ linked, hasPassword }: { linked: boolean; hasPassword: boolean }) {
   const link = useWardLink();
   const unlink = useWardUnlink();
   const session = useSession();
   const error = link.error ?? unlink.error;
+  const [password, setPassword] = useState("");
+  const formRef = useRef<HTMLFormElement>(null);
+  // Linking and unlinking both ask for the local password again. A Ward-only
+  // user has none to type: they set one first (above) and the server answers
+  // `no_local_password` whatever is sent.
+  const asksPassword = hasPassword;
 
-  async function unlinkWard() {
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!password) return;
     link.reset();
-    if (await unlink.unlink()) await session.refresh();
+    unlink.reset();
+    let ok: boolean;
+    if (linked) {
+      ok = await unlink.unlink(password);
+      if (ok) await session.refresh();
+    } else {
+      // On success the browser leaves for Ward, so there is nothing to clear.
+      ok = await link.link(password);
+    }
+    if (!ok) formRef.current?.querySelector("input")?.focus();
   }
 
   return (
     <Card>
-      <h2 className={SETTINGS.sectionTitle}>Ward</h2>
-      <p className={SETTINGS.sectionHint}>
-        {linked
-          ? "Your Ward account is linked, so you can sign in with the Ward button."
-          : "Link your Ward account to sign in with the Ward button. Nothing is linked by name: you confirm it at Ward."}
-      </p>
-      {link.linked && !error && <p className={SETTINGS.note}>Ward is linked.</p>}
-      {error && (
-        <p className={SETTINGS.problem} role="alert">
-          {authMessage(error, "ward")}
+      <form ref={formRef} onSubmit={(e) => void submit(e)} noValidate>
+        <h2 className={SETTINGS.sectionTitle}>Ward</h2>
+        <p className={SETTINGS.sectionHint}>
+          {linked
+            ? "Your Ward account is linked, so you can sign in with the Ward button. Type your password to unlink it."
+            : "Link your Ward account to sign in with the Ward button. Type your password to start; nothing is linked by name, you confirm it at Ward."}
         </p>
-      )}
-      <div className={SETTINGS.actions}>
-        {linked ? (
-          <Button
-            variant="secondary"
-            loading={unlink.pending}
-            disabled={!hasPassword}
-            onClick={() => void unlinkWard()}
-          >
-            Unlink Ward
-          </Button>
-        ) : (
-          <Button
-            loading={link.pending}
-            onClick={() => {
-              unlink.reset();
-              void link.link();
-            }}
-          >
-            Link Ward
-          </Button>
+        {link.linked && !error && <p className={SETTINGS.note}>Ward is linked.</p>}
+        {asksPassword && (
+          <div className={SETTINGS.fields}>
+            <Input
+              label="Current password"
+              id="ward-current-password"
+              name="ward-current-password"
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              error={error ? authMessage(error, "ward") : undefined}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                link.reset();
+                unlink.reset();
+              }}
+            />
+          </div>
         )}
-      </div>
-      {linked && !hasPassword && (
-        <p className={SETTINGS.sectionHint}>Set a local password above before you unlink Ward.</p>
-      )}
+        {!asksPassword && error && (
+          <p className={SETTINGS.problem} role="alert">
+            {authMessage(error, "ward")}
+          </p>
+        )}
+        <div className={SETTINGS.actions}>
+          {linked ? (
+            <Button type="submit" variant="secondary" loading={unlink.pending} disabled={!hasPassword || !password}>
+              Unlink Ward
+            </Button>
+          ) : (
+            <Button type="submit" loading={link.pending} disabled={!password}>
+              Link Ward
+            </Button>
+          )}
+        </div>
+        {linked && !hasPassword && (
+          <p className={SETTINGS.sectionHint}>Set a local password above before you unlink Ward.</p>
+        )}
+      </form>
     </Card>
   );
 }

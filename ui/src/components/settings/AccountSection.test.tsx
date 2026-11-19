@@ -14,8 +14,12 @@ const session = vi.fn();
 const local = vi.fn();
 const idle = { pending: false, error: null, reset: () => undefined };
 const reauthenticate = vi.fn(async () => true);
-const link = vi.fn(async () => true);
-const unlink = vi.fn(async () => true);
+const link = vi.fn(async (_currentPassword: string) => true);
+const unlink = vi.fn(async (_currentPassword: string) => true);
+const renameUser = vi.fn(async (_next: string) => true);
+const linkState = vi.fn();
+const unlinkState = vi.fn();
+const renameState = vi.fn();
 
 vi.mock("@/lib/auth", () => ({
   useSession: () => session(),
@@ -23,8 +27,9 @@ vi.mock("@/lib/auth", () => ({
   useWardSignOut: () => ({ ...idle, signOut: async () => true }),
   useChangePassword: () => ({ ...idle, changePassword: async () => true, done: false }),
   useSetLocalPassword: () => local(),
-  useWardLink: () => ({ ...idle, link, linked: false }),
-  useWardUnlink: () => ({ ...idle, unlink, done: false }),
+  useRenameUser: () => ({ ...idle, renameUser, done: false, ...renameState() }),
+  useWardLink: () => ({ ...idle, link, linked: false, ...linkState() }),
+  useWardUnlink: () => ({ ...idle, unlink, done: false, ...unlinkState() }),
 }));
 
 const { AccountSection } = await import("./AccountSection");
@@ -64,6 +69,16 @@ async function mount() {
 }
 
 const titles = () => [...container.querySelectorAll("h2")].map((h) => h.textContent);
+const field = (name: string) => container.querySelector<HTMLInputElement>(`input[name="${name}"]`)!;
+
+/** Types into a controlled input the way a person does, so React sees the change. */
+async function type(input: HTMLInputElement, value: string) {
+  const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!;
+  await act(async () => {
+    set.call(input, value);
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+}
 const button = (label: string) => [...container.querySelectorAll("button")].find((b) => b.textContent?.includes(label));
 
 beforeEach(() => {
@@ -81,13 +96,16 @@ afterEach(() => {
   root = null;
   container.remove();
   vi.clearAllMocks();
+  linkState.mockReset();
+  unlinkState.mockReset();
+  renameState.mockReset();
 });
 
 describe("AccountSection", () => {
   it("offers a local password to a Ward-only user, and will not unlink until they have one", async () => {
     signedIn({ hasPassword: false, origin: "ward", ward: { enabled: true, linked: true } });
     await mount();
-    expect(titles()).toEqual(["Account", "Local password", "Ward"]);
+    expect(titles()).toEqual(["Account", "Username", "Local password", "Ward"]);
     expect(button("Unlink Ward")?.disabled).toBe(true);
     expect(button("Sign out of Ward too")).toBeDefined();
     expect(container.textContent).toContain("Set a local password above before you unlink Ward.");
@@ -111,24 +129,63 @@ describe("AccountSection", () => {
   it("lets a user with a password change it, and link Ward from here", async () => {
     signedIn({ hasPassword: true, ward: { enabled: true, linked: false } });
     await mount();
-    expect(titles()).toEqual(["Account", "Password", "Ward"]);
+    expect(titles()).toEqual(["Account", "Username", "Password", "Ward"]);
     expect(button("Sign out of Ward too")).toBeUndefined();
+    expect(button("Link Ward")?.disabled).toBe(true);
+    await type(field("ward-current-password"), "hunter2 hunter2");
     await act(async () => button("Link Ward")!.click());
-    expect(link).toHaveBeenCalled();
+    expect(link).toHaveBeenCalledWith("hunter2 hunter2");
   });
 
   it("unlinks Ward for a user who has a password", async () => {
     signedIn({ hasPassword: true, ward: { enabled: true, linked: true } });
     await mount();
+    await type(field("ward-current-password"), "hunter2 hunter2");
     expect(button("Unlink Ward")?.disabled).toBe(false);
     await act(async () => button("Unlink Ward")!.click());
-    expect(unlink).toHaveBeenCalled();
+    expect(unlink).toHaveBeenCalledWith("hunter2 hunter2");
+  });
+
+  it("keeps a refused password on the page, beside the field", async () => {
+    signedIn({ hasPassword: true, ward: { enabled: true, linked: false } });
+    linkState.mockReturnValue({ error: { code: "invalid_credentials" } });
+    await mount();
+    const input = field("ward-current-password");
+    expect(container.textContent).toContain("That is not your current password.");
+    expect(input.getAttribute("aria-describedby")).toBe(`${input.id}-err`);
+    linkState.mockReturnValue({ error: { code: "too_many_attempts", retryAfterSeconds: 42 } });
+    await act(async () =>
+      root!.render(
+        <ToastProvider>
+          <AccountSection />
+        </ToastProvider>,
+      ),
+    );
+    expect(container.textContent).toContain("Try again in 42 seconds.");
+  });
+
+  it("renames the user, and shows a refused name beside the field", async () => {
+    signedIn({ hasPassword: true, ward: { enabled: false, linked: false } });
+    await mount();
+    expect(button("Change username")?.disabled).toBe(true);
+    await type(field("username"), "  ada2 ");
+    await act(async () => button("Change username")!.click());
+    expect(renameUser).toHaveBeenCalledWith("ada2");
+    renameState.mockReturnValue({ error: { code: "username_taken" } });
+    await act(async () =>
+      root!.render(
+        <ToastProvider>
+          <AccountSection />
+        </ToastProvider>,
+      ),
+    );
+    expect(container.textContent).toContain("That username is taken");
   });
 
   it("shows no Ward card when the server has no Ward", async () => {
     signedIn({ hasPassword: true, ward: { enabled: false, linked: false } });
     await mount();
-    expect(titles()).toEqual(["Account", "Password"]);
+    expect(titles()).toEqual(["Account", "Username", "Password"]);
   });
 
   it("goes back to the login form when the session has ended", async () => {

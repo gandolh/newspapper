@@ -9,12 +9,14 @@ import type { AuthError } from "@/lib/auth";
  * from: a wrong password at the login form is "wrong username or password",
  * but in the change-password form it is "your current password".
  */
-export type AuthContext = "login" | "password" | "ward";
+export type AuthContext = "login" | "password" | "ward" | "username";
 
 export function authMessage(error: AuthError, context: AuthContext = "login"): string {
   switch (error.code) {
     case "invalid_credentials":
-      return context === "password" ? "That is not your current password." : "Wrong username or password.";
+      return context === "password" || context === "ward"
+        ? "That is not your current password."
+        : "Wrong username or password.";
     case "too_many_attempts": {
       const seconds = error.retryAfterSeconds;
       return seconds
@@ -24,7 +26,11 @@ export function authMessage(error: AuthError, context: AuthContext = "login"): s
     case "network":
       return "Could not reach the server. Check your connection and try again.";
     case "invalid_request":
-      return "Fill in both fields.";
+      return context === "ward" ? "Type your password first." : "Fill in both fields.";
+    case "invalid_username":
+      return "That username is not allowed: 1 to 256 characters, no control characters.";
+    case "username_taken":
+      return "That username is taken, or looks too much like one that is.";
     case "password_too_short":
       return "That password is too short.";
     case "password_too_long":

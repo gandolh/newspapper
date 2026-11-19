@@ -20,6 +20,7 @@ export {
   useChangePassword,
   useLogin,
   useLogout,
+  useRenameUser,
   useSession,
   useSetLocalPassword,
   useWardLink,
