@@ -1,0 +1,133 @@
+/*
+ * Newspapper, direction B "Contact sheet": the token set in the app's own names.
+ * A drop-in for ui/src/styles/index.css. It replaces the colour, shadow, type, leading and tracking groups of the
+ * `@theme static` block and the colour/shadow overrides of `:root[data-theme="dark"]`, and adds the names marked NEW.
+ * Everything else in that file stays: the `--color-*: initial` resets, the font-face blocks, spacing hair/half/unit/double,
+ * `--container-narrow`, the z-index scale, the utilities and the Light / Dark / System mechanism.
+ * The file's own mechanism is kept: `@theme static` holds the light values, dark is a plain override on :root.
+ * Faces are today's (Archivo, Spline Sans Mono, Inter for the artwork). Radius: none, as today (zero radius).
+ */
+@theme static {
+  /* Ground and surfaces */
+  --color-board: #e9e8e3; /* the ground behind every card; deeper than today's #fbfbf9 so paper stands off it */
+  --color-paper: #ffffff; /* the band, the galley, the palette card, the strip, every post and reader card */
+  --color-tissue: rgba(251, 249, 241, 0.9); /* the inspector, translucent over board (was 0.7) */
+  --color-tissue-edge: #a29f95;
+  --color-tissue-ink: #8d8a80; /* unchanged, no longer used by the design */
+
+  /* Ink. graphite-soft is the FLOOR for text (5.69:1 on board, 6.99 on paper). graphite-tint: ticks and hatch only. */
+  --color-graphite: #232322;
+  --color-graphite-deep: #1a1a1a;
+  --color-graphite-soft: #5c5952;
+  --color-graphite-tint: #7a7a76; /* unchanged */
+
+  /* Marks. */
+  --color-process-blue: #1a5c9e;
+  --color-non-photo: rgba(127, 182, 232, 0.32); /* the 26px grid, on the stage only (was 0.4 under everything) */
+  --color-non-photo-select: #99c5ed; /* unchanged */
+  --color-rubylith: #e8452e; /* unchanged */
+  --color-rubylith-wash: rgba(232, 69, 46, 0.34); /* unchanged */
+  --color-rubylith-wash-soft: rgba(232, 69, 46, 0.16); /* unchanged */
+  --color-rubylith-ink: #b52f1d;
+  --color-grease: #b52f1d;
+  --color-wax: #f5d97a; /* unchanged */
+  --color-wax-ink: #3d3416; /* unchanged */
+
+  /* The slide canvas is artwork, not chrome: unchanged, and the same in both themes. */
+  --color-slide-paper: #ffffff;
+  --color-slide-ink: #2b2b2b;
+
+  /* Rules and edges: never text, except the field edge, which is a 3:1 UI part */
+  --color-hairline: #c8c7bf;
+  --color-rule: #c6c5bd;
+  --color-tick: #b5b2a9;
+  --color-field-edge: #85827a; /* NEW: inputs, selects, outlined buttons, the segmented control (3.84:1 on paper) */
+
+  /* Two shadows, both hard-edged. Waxed carries every card and the band; hinged is the inspector tissue. */
+  --shadow-waxed: 2px 3px 0 rgba(35, 35, 34, 0.16), 0 0 0 1px var(--color-hairline);
+  --shadow-lifted: 2px 3px 0 rgba(35, 35, 34, 0.16);
+  --shadow-hinged: -9px 0 22px rgba(35, 35, 34, 0.12);
+
+  /* Spacing: the 26px grid names stay (hair, half, unit, double). The layout uses a 4/8 scale beside them. */
+  --spacing-0: 0px;
+  --spacing-hair: 6px;
+  --spacing-half: 13px;
+  --spacing-unit: 26px;
+  --spacing-double: 52px;
+  --spacing-tight: 8px; /* NEW */
+  --spacing-snug: 12px; /* NEW */
+  --spacing-card: 16px; /* NEW: card padding, the gap between cards */
+  --spacing-column: 24px; /* NEW: the gap between the editor's columns and the reader's panes */
+  --spacing-gutter: 28px; /* NEW: the page gutter at desktop (16px on a phone: spacing-card) */
+
+  --font-chrome: "Archivo", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-galley: "Spline Sans Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-slide: "Inter", system-ui, -apple-system, sans-serif;
+
+  /* Six sizes and the logotype. Labels are 12px sentence-case Archivo at 600; mono stays in the galley and the marks. */
+  --text-board-title: 26px; /* 22px on a phone, set with a max-md variant */
+  --leading-board-title: 1.154; /* 30 */
+  --tracking-board-title: 0em; /* was -0.02em */
+  --text-head: 20px; /* NEW: empty-state heads, palette specimens (800, wdth 112) */
+  --leading-head: 1.2;
+  --text-section: 16px; /* NEW: card and section heads (800, wdth 112) */
+  --leading-section: 1.25;
+  --text-body: 14px;
+  --leading-body: 1.43; /* 20 (was 1.5) */
+  --text-hint: 13px; /* NEW: hints, notes, small buttons, counts */
+  --leading-hint: 1.385; /* 18 */
+  --text-galley: 13px; /* was 12.5 */
+  --leading-galley: 1.846; /* 24 */
+  --text-label: 12px; /* was 13: the one label size, 600, sentence case, graphite-soft */
+  --leading-label: 1.333; /* 16 */
+  --tracking-label: 0em; /* was -0.01em */
+  --text-brand: 17px; /* the wordmark, uppercase wdth 115 (was 14) */
+  --tracking-brand: 0.06em; /* was 0.05em */
+
+  --container-content: 1440px; /* was 1092 (42 x 26): pages run to a 28px gutter, and cap here */
+  --container-narrow: 728px; /* unchanged */
+}
+
+/* Plain variables: not utilities' names. */
+:root {
+  --grid: 26px;
+  --tray-h: 56px; /* was 78 */
+  --bottom-bar-h: 64px; /* NEW: the phone's bottom bar, plus the gesture inset */
+  --target: 48px; /* NEW: the phone's touch target */
+  --wdth-title: 125; /* was 112 */
+  --wdth-head: 112; /* NEW: section and card heads */
+  --wdth-brand: 115;
+  --wdth-narrow: 92;
+  --hatch: repeating-linear-gradient(135deg, transparent 0 7px, var(--color-hairline) 7px 8px);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-board: #121315;
+  --color-paper: #232428;
+  --color-tissue: rgba(42, 43, 48, 0.9);
+  --color-tissue-edge: #66676e;
+  --color-tissue-ink: #9d9c96;
+  --color-graphite: #efeee9;
+  --color-graphite-deep: #fafaf7;
+  --color-graphite-soft: #adaaa2;
+  --color-graphite-tint: #8d8c85;
+  --color-process-blue: #82b5e8;
+  --color-non-photo: rgba(127, 182, 232, 0.14);
+  --color-non-photo-select: #2f5b86;
+  --color-rubylith: #ff6a52;
+  --color-rubylith-wash: rgba(255, 106, 82, 0.3);
+  --color-rubylith-wash-soft: rgba(255, 106, 82, 0.16);
+  --color-rubylith-ink: #ff917d;
+  --color-grease: #ff917d;
+  --color-wax: #5c4c14;
+  --color-wax-ink: #f5d97a;
+  --color-hairline: #3a3b41;
+  --color-rule: #4a4b52;
+  --color-tick: #5d5e64;
+  --color-field-edge: #7a7b82;
+  --shadow-waxed: 2px 3px 0 rgba(0, 0, 0, 0.5), 0 0 0 1px var(--color-hairline);
+  --shadow-lifted: 2px 3px 0 rgba(0, 0, 0, 0.5);
+  --shadow-hinged: -9px 0 22px rgba(0, 0, 0, 0.45);
+  --hatch: repeating-linear-gradient(135deg, transparent 0 7px, var(--color-hairline) 7px 8px);
+}

@@ -2008,3 +2008,7 @@ The chrome was redrawn as the Contact sheet, the direction the owner approved: t
 ## [2026-11-19] done | Brief 13: ward-auth 1.1.0, linking asks for the password, a username can change
 
 Vendored ward-auth 1.1.0 (from 0.3.1) in `api/vendor/ward` and `ui/vendor/ward`. Settings: a password field with Link and Unlink Ward, and a Username card (the rename route stays on; nothing in the app is keyed by the name). Look-alike names (`AIice` against `alice`) answer `username_taken`. Awaits a deploy (`server`).
+
+## [2026-11-20] maintenance | The redesign's board page copied into the repo
+
+The estate redesign board is a private canvas, so `design/estate-redesign/` now holds a copy of this app's page on it and the build behind it: the directions, the judges' and the controller's rulings, the critique, the token hand-off, the board's notes, the owner's decisions, the proposed screens (as HTML with renders, or as the board's own artboard sources), and today's shots from before the redesign. It is the design record of brief 12, which built it; its README says what each file is. Prettier and the Docker build skip the folder.

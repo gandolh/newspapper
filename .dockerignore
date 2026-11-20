@@ -6,6 +6,7 @@ node_modules
 **/dist
 .git
 corpus
+design
 docs
 .scratch
 .impeccable
