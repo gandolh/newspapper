@@ -2012,3 +2012,7 @@ Vendored ward-auth 1.1.0 (from 0.3.1) in `api/vendor/ward` and `ui/vendor/ward`.
 ## [2026-11-20] maintenance | The redesign's board page copied into the repo
 
 The estate redesign board is a private canvas, so `design/estate-redesign/` now holds a copy of this app's page on it and the build behind it: the directions, the judges' and the controller's rulings, the critique, the token hand-off, the board's notes, the owner's decisions, the proposed screens (as HTML with renders, or as the board's own artboard sources), and today's shots from before the redesign. It is the design record of brief 12, which built it; its README says what each file is. Prettier and the Docker build skip the folder.
+
+## [2026-11-24] todo | Brief 14: the image ships only the headless shell
+
+The box's disk was 90% full after the 2026-11-23 rollout. This image's `/ms-playwright` holds the full Chromium (377 MB) beside the headless shell (260 MB) the renderer actually starts, and its production install carries the UI's packages. [Brief 14](briefs/todo/14-the-image-ships-only-the-headless-shell.md) drops both, tries Playwright's shorter library list for the shell, and checks the slides stay pixel-identical. Not built.
