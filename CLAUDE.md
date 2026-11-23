@@ -33,6 +33,8 @@ node scripts/contrast.mjs        # contrast of the built tokens in both themes
 npx vitest run core/src/path/to/file.test.ts
 ```
 
+`npm run check` keeps going after a failing step and prints one line per step, then the end of each failure. The whole output stays in `node_modules/.cache/check/last.log`, so read that log rather than running the gate again. While you work, `npm run check:fast` and any test file you touched are enough; run the full gate once, after your last change.
+
 `check` sets `CI=1`, so the Chromium tests run (and fail when Chromium is missing). `npm run gate` is `check`, `build` and the corpus lint.
 
 Every one of those coverages was, at some point, silently doing nothing — see Tests below.
