@@ -2020,3 +2020,12 @@ The box's disk was 90% full after the 2026-11-23 rollout. This image's `/ms-play
 ## [2026-11-24] done | Brief 14: the image ships only the headless shell
 
 `prod-deps` now installs `--only-shell chromium` and a production install scoped to `@newspapper/core` and `@newspapper/api`. `/ms-playwright` went from 669 MB to 276 MB (full Chromium gone), `COPY /app` from 106 MB to 79.2 MB, the image from 1331 MB to 911 MB. `install-deps chromium-headless-shell` gave the same 111 packages and a 318 MB layer, no saving, so `install-deps chromium` stays. A reference post with diacritics and emoji renders pixel-identical (0 AE on all three slides) with both lists. New page: [image.md](wiki/image.md). The deploy is `node cli.ts newspapper server`; the stack has no `deploy` phase, so the brief's own command was wrong.
+
+## [2026-11-24] todo | Briefs 15 and 16 from the infra review of 2026-11-24
+
+Filed from the estate's infra review. Brief 15: Chromium closes after 120 s with no render and on shutdown
+(`closeBrowser` was exported but never called), so the 100-300 MB browser no longer stays for the life of the
+container after the first Render. Brief 16: the `prod` stage starts with a prefix shared byte for byte with
+ro-housing and gazette (pinned bookworm base, Playwright 1.60.0's headless shell and libraries), so the box keeps
+one copy of about 580 MB of Chromium layers; it also pins the base and sets `MALLOC_ARENA_MAX=2`, and it carries
+the check that the sharing works. Both ship with `node cli.ts newspapper server`.
