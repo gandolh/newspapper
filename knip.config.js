@@ -5,6 +5,8 @@ import preset from "./vendor/house-style/knip.json" with { type: "json" };
 export default {
   ...preset,
   ignoreWorkspaces: ["docs"],
+  // design/ holds the redesign board's reference copy (tokens, sketches), never imported.
+  ignore: [...preset.ignore, "design/**"],
   // The Playwright config is read by the `playwright` CLI, not imported: it is an entry.
   workspaces: { ".": { entry: ["scripts/*.mjs", "e2e/playwright.config.ts"] } },
 };
