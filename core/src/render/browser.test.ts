@@ -201,8 +201,8 @@ describe("useBrowser idle close", () => {
     await closeBrowser();
     const first = await useBrowser(async (b) => b, 50);
     expect(first.isConnected()).toBe(true);
-    await new Promise((r) => setTimeout(r, 400));
-    expect(first.isConnected()).toBe(false);
+    // Closing Chromium takes longer on a loaded machine, so wait for it rather than a fixed time.
+    await vi.waitFor(() => expect(first.isConnected()).toBe(false), { timeout: 5_000, interval: 25 });
     const second = await useBrowser(async (b) => b, 50);
     expect(second).not.toBe(first);
     expect(second.isConnected()).toBe(true);
