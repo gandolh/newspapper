@@ -44,7 +44,7 @@
 # base — the native-build fallback and the workspace manifests, shared by both
 # installs below
 # ---------------------------------------------------------------------------
-FROM node:24-bookworm-slim AS base
+FROM node:24.22.1-bookworm-slim AS base
 # better-sqlite3 and sharp both ship glibc x64 prebuilds, so the toolchain is a
 # fallback rather than the normal path — but a version bump that drops a
 # prebuild would otherwise fail the build with a cryptic node-gyp error.
@@ -52,10 +52,6 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends python3 make g++ ca-certificates \
  && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-# Browsers outside the home directory, so the runtime stage can copy them by
-# path. Left unset they land in ~/.cache/ms-playwright, which is awkward to move
-# and easy to lose to a different runtime user.
-ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 # Manifests first, for layer caching: one root lockfile. All three workspace
 # manifests are needed because `npm ci` validates the lockfile against every
 # workspace the root package.json declares and bails on a missing one.
@@ -71,9 +67,8 @@ FROM base AS deps
 RUN npm ci
 
 # ---------------------------------------------------------------------------
-# prod-deps — production dependencies only, plus the Chromium the renderer
-# drives. This is the node_modules the runtime stage ships: no tsx, no
-# TypeScript, no Vite.
+# prod-deps — production dependencies only. This is the node_modules the runtime stage
+# ships: no tsx, no TypeScript, no Vite.
 # ---------------------------------------------------------------------------
 FROM base AS prod-deps
 # Install scripts run on purpose: better-sqlite3 fetches its prebuilt binary in
@@ -83,16 +78,8 @@ FROM base AS prod-deps
 # files from ui/dist, so its runtime packages (React and the rest) would only
 # add weight here.
 RUN npm ci --omit=dev --workspace @newspapper/core --workspace @newspapper/api
-# Explicit: the `playwright` package has no install step of its own that
-# fetches the browser. Without this line the container boots fine and then
-# throws "Executable doesn't exist" on the first render — a failure that only
-# appears on the one code path nobody exercises before deploying.
-#
-# Only the headless shell. Since Playwright 1.49 `install chromium` fetches the
-# full Chromium as well, but a launch with `headless: true` and no `channel`
-# (core/src/render/browser.ts) starts the shell, so the full browser would sit
-# in the image unused.
-RUN npx playwright install --only-shell chromium
+# No browser here: the prod stage's shared prefix installs the headless shell and its
+# libraries.
 
 # ---------------------------------------------------------------------------
 # builder — core and api to JavaScript with tsc, and the Vite bundle
@@ -122,9 +109,21 @@ RUN NEWSPAPPER_BASE=$NEWSPAPPER_BASE npm run build -w @newspapper/ui
 # prod — built JavaScript under node, production dependencies only, and the
 # browser with its system libraries
 # ---------------------------------------------------------------------------
-FROM node:24-bookworm-slim AS prod
+# THE SHARED PREFIX. These two lines are byte-identical in newspapper, ro-housing
+# and gazette, and the three change together: Docker stores a layer once only when
+# every layer before it matches, so the box keeps one copy of the browser's
+# libraries (about 318 MB) and the headless shell (about 276 MB) instead of one per
+# image. Nothing may go between the FROM and the RUN (no LABEL, ENV, ARG, WORKDIR
+# or COPY): any of them changes the cache key. Playwright is named here because no
+# node_modules exists yet; it must equal the version in package-lock.json, which the
+# build-time launch check below enforces. Change the pin or the base in all three
+# repos at once. See corpus/wiki/image.md.
+FROM node:24.22.1-bookworm-slim AS prod
+RUN PLAYWRIGHT_BROWSERS_PATH=/ms-playwright npx -y playwright@1.60.0 install --with-deps --only-shell chromium \
+ && rm -rf /var/lib/apt/lists/* /root/.npm
 LABEL org.opencontainers.image.title="Newspapper" \
       org.opencontainers.image.description="Turns today's news into an Instagram-style slide post"
+# Where the shared prefix put the shell; the app reads it at run time.
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 WORKDIR /app
 # The WHOLE of the prod-deps stage's /app, not just ./node_modules — npm hoists
@@ -136,16 +135,9 @@ WORKDIR /app
 # Taking the directory wholesale also means a future dependency that nests
 # somewhere new is picked up without another line here to forget.
 COPY --from=prod-deps /app ./
-COPY --from=prod-deps /ms-playwright /ms-playwright
-# The browser binary travelled from prod-deps; its shared libraries did
-# not, and Chromium is dynamically linked against a long list of them (fonts,
-# X client libs, NSS). `install-deps` is the vendor's own list for this exact
-# Playwright version, which is the point: a hand-written apt line drifts on
-# every upgrade and fails as a browser that will not start rather than as a
-# build error.
-RUN apt-get update \
- && npx playwright install-deps chromium \
- && rm -rf /var/lib/apt/lists/*
+# Launches the shell with the app's own Playwright and closes it. A Playwright bump
+# that leaves the prefix's pin behind fails the build here, not on the first render.
+RUN node -e "require('playwright').chromium.launch().then((b) => b.close())"
 # The compiled workspaces, beside the manifests and node_modules already in
 # place (node_modules/@newspapper/core links to /app/core). No `src/`: nothing
 # at runtime reads it. `api/vendor` is the vendored Ward library, which the
@@ -169,7 +161,12 @@ COPY data/sources.json ./data/sources.json
 COPY --from=builder /app/ui/dist ./ui/dist
 # NODE_OPTIONS points `@newspapper/core` at its compiled dist/ for every node
 # process in the container. See the header.
+#
+# MALLOC_ARENA_MAX=2: glibc gives every allocating thread its own arena and keeps it,
+# and sharp, better-sqlite3 and the Reader's fetches all run on threads. Shelfmark
+# measured 46 MB of growth over 13 searches with the default and 31 MB with 2.
 ENV NODE_ENV=production \
+    MALLOC_ARENA_MAX=2 \
     NODE_OPTIONS=--conditions=newspapper-built \
     PORT=3001 \
     NEWSPAPPER_DB_PATH=/data/newspapper.db \
