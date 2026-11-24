@@ -2,10 +2,10 @@
  * Two leaks on the shared, long-lived Chromium: concurrent launches
  * orphaning a browser, and a render whose setup failed leaving its context open.
  */
-import { afterAll, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, describe, expect, it, vi } from "vitest";
 import { chromium, type Browser } from "playwright";
 
-import { closeBrowser, getBrowser } from "./browser.js";
+import { closeBrowser, getBrowser, useBrowser } from "./browser.js";
 import { RenderTimeoutError, renderInBrowser } from "./screenshot.js";
 import { probeChromium } from "./test-support/chromium.js";
 
@@ -115,5 +115,96 @@ describe("renderInBrowser timeouts", () => {
     const browser = { newContext: vi.fn(async () => context) } as unknown as Pick<Browser, "newContext">;
     await renderInBrowser(browser, "<p>x</p>", 100, 100, async () => "ok");
     expect(setContent).toHaveBeenCalledWith("<p>x</p>", expect.objectContaining({ timeout: 20_000 }));
+  });
+});
+
+describe("useBrowser idle close", () => {
+  // A fake browser, so fake timers can run without touching Playwright's own.
+  function fakeLaunch() {
+    const made: { connected: boolean; close: ReturnType<typeof vi.fn> }[] = [];
+    const launch = vi.spyOn(chromium, "launch").mockImplementation((async () => {
+      const b = {
+        connected: true,
+        close: vi.fn(async () => {
+          b.connected = false;
+        }),
+        isConnected: () => b.connected,
+      };
+      made.push(b);
+      return b as unknown as Browser;
+    }) as unknown as typeof chromium.launch);
+    return { made, launch };
+  }
+
+  afterEach(async () => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+    await closeBrowser();
+  });
+
+  it("closes after the idle time, and the next render launches a new one", async () => {
+    await closeBrowser();
+    vi.useFakeTimers();
+    const { made, launch } = fakeLaunch();
+    await useBrowser(async () => "one", 1_000);
+    expect(made[0]?.connected).toBe(true);
+    await vi.advanceTimersByTimeAsync(999);
+    expect(made[0]?.close).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(2);
+    expect(made[0]?.close).toHaveBeenCalledTimes(1);
+    await useBrowser(async () => "two", 1_000);
+    expect(launch).toHaveBeenCalledTimes(2);
+  });
+
+  it("keeps the browser while a render is still running when the time would end", async () => {
+    await closeBrowser();
+    vi.useFakeTimers();
+    const { made } = fakeLaunch();
+    await useBrowser(async () => "warm", 1_000);
+    let finish!: () => void;
+    const running = useBrowser(() => new Promise<void>((r) => (finish = r)), 1_000);
+    await vi.advanceTimersByTimeAsync(5_000);
+    expect(made).toHaveLength(1);
+    expect(made[0]?.close).not.toHaveBeenCalled();
+    finish();
+    await running;
+    await vi.advanceTimersByTimeAsync(1_001);
+    expect(made[0]?.close).toHaveBeenCalledTimes(1);
+  });
+
+  it("a render arriving just as the timer fires keeps the browser it joined", async () => {
+    await closeBrowser();
+    vi.useFakeTimers();
+    const { made, launch } = fakeLaunch();
+    await useBrowser(async () => "warm", 1_000);
+    await vi.advanceTimersByTimeAsync(999);
+    let finish!: () => void;
+    // Started one tick before the timer: it cancels the timer and holds the browser.
+    const joined = useBrowser(() => new Promise<void>((r) => (finish = r)), 1_000);
+    await vi.advanceTimersByTimeAsync(10);
+    expect(made[0]?.close).not.toHaveBeenCalled();
+    finish();
+    await joined;
+    expect(launch).toHaveBeenCalledTimes(1);
+  });
+
+  it("two renders started together share one launch", async () => {
+    await closeBrowser();
+    const { launch } = fakeLaunch();
+    const [a, b] = await Promise.all([useBrowser(async (x) => x), useBrowser(async (x) => x)]);
+    expect(launch).toHaveBeenCalledTimes(1);
+    expect(a).toBe(b);
+  });
+
+  it("after the idle time a real render closes Chromium and the next one launches again", async (ctx) => {
+    if (!guard.orSkip((note) => ctx.skip(note))) return;
+    await closeBrowser();
+    const first = await useBrowser(async (b) => b, 50);
+    expect(first.isConnected()).toBe(true);
+    await new Promise((r) => setTimeout(r, 400));
+    expect(first.isConnected()).toBe(false);
+    const second = await useBrowser(async (b) => b, 50);
+    expect(second).not.toBe(first);
+    expect(second.isConnected()).toBe(true);
   });
 });

@@ -3,6 +3,7 @@
  * seed command build what they need without opening a port.
  */
 import { constants } from "node:os";
+import { closeBrowser } from "@newspapper/core";
 import closeWithGrace from "close-with-grace";
 import { buildApp } from "./app.js";
 import { loadConfig } from "./config.js";
@@ -51,6 +52,7 @@ closeWithGrace({ delay: 10_000, logger: app.log }, async ({ signal, err }) => {
   if (err) app.log.error({ err }, "closing after an uncaught error");
   else app.log.info(`closing on ${signal ?? "exit"}`);
   await app.close();
+  await closeBrowser();
   if (signal !== undefined) process.exit(128 + (constants.signals[signal as NodeJS.Signals] ?? 0));
 });
 

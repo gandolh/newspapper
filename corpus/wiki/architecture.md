@@ -37,7 +37,9 @@ No HTTP, no side effects at import time. Four entry points — `.`, `./templates
   This is the compile *target*, not an authoring surface: `TemplateDoc`, the
   template JSON files, the registry and `/builder` were removed in the template retirement (2026-08-27).
 - **render** — Playwright Chromium screenshot pipeline (`renderSlides`,
-  `zipRun`, `installFontRoute`, `resolveImageUrls`).
+  `zipRun`, `installFontRoute`, `resolveImageUrls`). The Chromium is one shared
+  browser that `useBrowser` hands to each render and counts; it closes after
+  120 s with no render in use (and on SIGTERM), and the next render relaunches it.
 - **publish** — the JPEG re-encode pass run once, on publish.
 - **scrape** — RSS fetch + body fetch + keyword match (`searchArticles`,
   `pingSource`, and `fetchFeed`, which the Reader shares). Persists nothing.

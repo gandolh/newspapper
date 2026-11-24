@@ -13,7 +13,7 @@
  */
 
 import type { Browser, BrowserContext, Page } from "playwright";
-import { getBrowser } from "./browser.js";
+import { useBrowser } from "./browser.js";
 import { installFontRoute } from "./fonts.js";
 import { installUploadsRoute } from "./uploads-route.js";
 import type { DB } from "../storage/db.js";
@@ -93,7 +93,7 @@ async function withRenderedPage<T>(
   fn: (page: Page) => Promise<T>,
   db?: DB,
 ): Promise<T> {
-  return renderInBrowser(await getBrowser(), html, width, height, fn, db);
+  return useBrowser((browser) => renderInBrowser(browser, html, width, height, fn, db));
 }
 
 /**
