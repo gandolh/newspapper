@@ -6,6 +6,9 @@ paths:
 # The UI (ui/src)
 
 - Read `corpus/wiki/chrome.md` and `corpus/wiki/design-components.md` before you change the chrome.
+- Browsers: Chrome on Android decides what to build; Safari on iPhone,
+  Firefox and desktop Safari must keep working. Before you use a platform
+  feature newer than Baseline Widely available, read the `web-platform` skill.
 - Every route but `/login` renders inside one `<App>` element at one position in `ui/src/routes.tsx`, so
   the sidebar tray stays mounted. A route that renders its own `<App>` breaks that without an error.
 - Base UI is imported only under `ui/src/components/ui/`, from its part subpaths (`@base-ui/react/dialog`,
