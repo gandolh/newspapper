@@ -78,12 +78,21 @@ RUN npm ci
 FROM base AS prod-deps
 # Install scripts run on purpose: better-sqlite3 fetches its prebuilt binary in
 # one, and skipping them builds an image that boots and dies on the first query.
-RUN npm ci --omit=dev
+#
+# Scoped to the two workspaces the runtime loads. The UI is served as built
+# files from ui/dist, so its runtime packages (React and the rest) would only
+# add weight here.
+RUN npm ci --omit=dev --workspace @newspapper/core --workspace @newspapper/api
 # Explicit: the `playwright` package has no install step of its own that
 # fetches the browser. Without this line the container boots fine and then
 # throws "Executable doesn't exist" on the first render — a failure that only
 # appears on the one code path nobody exercises before deploying.
-RUN npx playwright install chromium
+#
+# Only the headless shell. Since Playwright 1.49 `install chromium` fetches the
+# full Chromium as well, but a launch with `headless: true` and no `channel`
+# (core/src/render/browser.ts) starts the shell, so the full browser would sit
+# in the image unused.
+RUN npx playwright install --only-shell chromium
 
 # ---------------------------------------------------------------------------
 # builder — core and api to JavaScript with tsc, and the Vite bundle
