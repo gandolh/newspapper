@@ -2029,3 +2029,5 @@ container after the first Render. Brief 16: the `prod` stage starts with a prefi
 ro-housing and gazette (pinned bookworm base, Playwright 1.60.0's headless shell and libraries), so the box keeps
 one copy of about 580 MB of Chromium layers; it also pins the base and sets `MALLOC_ARENA_MAX=2`, and it carries
 the check that the sharing works. Both ship with `node cli.ts newspapper server`.
+
+## [2026-11-24] brief 15 | Chromium closes after 120 s with no render in use and on SIGTERM (`useBrowser` in core/src/render/browser.ts); local measure 523 MiB before vs 188 MiB after 3 idle minutes; Ready for deploy with `node cli.ts newspapper server`

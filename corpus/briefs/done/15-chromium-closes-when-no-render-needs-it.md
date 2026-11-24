@@ -71,3 +71,20 @@ and its Chromium children), and hand the container reading to the controller.
 ## Owner steps
 
 - `node cli.ts newspapper server` from vps-deploy. It can ship in the same deploy as brief 16.
+
+## Outcome (2026-11-24)
+
+- `core/src/render/browser.ts`: `useBrowser(fn, idleMs = IDLE_CLOSE_MS)` counts the renders holding the browser;
+  at zero an unref'd timer starts (`IDLE_CLOSE_MS` = 120 s, the reason is in the comment) and re-checks the count
+  when it fires; a new call cancels it; `closeBrowser()` also clears it. `getBrowser()` is unchanged and the
+  `_launching` guard still holds. `withRenderedPage` goes through `useBrowser`. `api/src/server.ts` calls
+  `closeBrowser()` after `app.close()` in the `closeWithGrace` handler.
+- Callers confirmed: only `withRenderedPage` and the test support used the browser.
+- Tests (`browser.test.ts`, 13 pass): idle close then relaunch, a render running when the time would end keeps
+  the browser, a render joining one tick before the timer keeps it, two together share one launch (fake timers and
+  a fake launch), and one real Chromium close and relaunch.
+- Measured on the laptop with the node process tree (`ps`, includes the tsx wrapper's 3 children, about 190 MiB):
+  start 212 MiB; after one render 549 MiB (8 processes); 3 minutes later 523 MiB before the change, 188 MiB with
+  3 processes after it, no Chromium left. The container reading (`docker top`) is for the controller: no image
+  built here.
+- `npm run check` exit 0. Ships with `node cli.ts newspapper server`.

@@ -1,6 +1,6 @@
 ---
 summary: Dated snapshot (2026-11-07) of Newspapper, per area — the Wizard rebuild (2026-08-27 to 09-01), the 2026-09-27 improvements sweep (fixed 2026-10-02/03), local accounts with Ward as a second way in (2026-10-13), the Reader (2026-10-09, schema v6), the docs site on Docusaurus and the wax fix (2026-10-19), the API on built JavaScript under node (2026-11-04), the galley painting its own text selection (2026-11-05), feed fetches connecting only to the address they checked and text selections in non-photo blue (2026-11-06), the README's editing GIF retaken (2026-11-07), the API in the house code structure (2026-11-11); what is deployed (the accounts) and what may not be (the Reader), the owner's next steps, the green-because-nothing-ran thread, and the known strays. The Contact sheet redesign (brief 12, built 2026-11-13: a paper band, one working slide over a contact strip, a phone bottom bar, 12px sentence-case labels, the grid under the stage only) awaits a deploy.
-updated: 2026-11-13
+updated: 2026-11-24
 ---
 
 # Status — 2026-11-06
@@ -15,7 +15,7 @@ no GitHub CI, by the owner's choice (2026-10-04). Brief numbering restarted at
 filed on 2026-11-09 and is blocked since 2026-11-10: the owner wants no video
 export yet. Before it,
 brief 01 retook the README's editing GIF on 2026-11-07, after briefs 03 and 05
-changed how a selection paints. Brief 07 (Base UI 1.9.0) was built on 2026-11-10 and awaits a deploy, and brief 08 (the house-style harness) on 2026-11-11, and brief 09 (Base UI by the conventions) on 2026-11-11, which awaits a deploy with them. Briefs 07 to 11 (Base UI 1.9.0, the house-style harness, Base UI by the conventions, the UI on Tailwind, the API in the house structure) were filed on 2026-11-10 from the owner's calls of 2026-11-09, and were revised to the owner's grilling of 2026-11-10, with a redesign brief (12) added; see [../log.md](../log.md). Nothing is open in
+changed how a selection paints. Brief 07 (Base UI 1.9.0) was built on 2026-11-10 and awaits a deploy, and brief 08 (the house-style harness) on 2026-11-11, and brief 09 (Base UI by the conventions) on 2026-11-11, which awaits a deploy with them. Briefs 07 to 11 (Base UI 1.9.0, the house-style harness, Base UI by the conventions, the UI on Tailwind, the API in the house structure) were filed on 2026-11-10 from the owner's calls of 2026-11-09, and were revised to the owner's grilling of 2026-11-10, with a redesign brief (12) added; see [../log.md](../log.md). Brief 15 (built 2026-11-24, awaits `node cli.ts newspapper server`) closes Chromium after 120 s with no render. Nothing is open in
 [open-questions.md](./open-questions.md): how a selection inside the waxed
 element shows was settled on 2026-11-06 (non-photo blue) and built the same day.
 
