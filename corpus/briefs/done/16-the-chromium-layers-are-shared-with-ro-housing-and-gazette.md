@@ -102,3 +102,26 @@ the controller.
 
 - `node cli.ts newspapper server` from vps-deploy. The box shares the layers once ro-housing's brief 29 also ships
   (`node cli.ts ro-housing server`) from the same build cache; gazette has no stack yet.
+
+## Outcome (2026-11-24)
+
+Built. `infrastructure/Dockerfile` starts `prod` with the shared prefix (diff against the brief: identical), both
+`FROM node` lines are `node:24.22.1-bookworm-slim`, `prod-deps` installs no shell, `prod` copies no `/ms-playwright`
+and runs no `install-deps`, the base stage's `PLAYWRIGHT_BROWSERS_PATH` is gone, and `prod` has its own `ENV`. The
+build-time launch check (`RUN node -e "require('playwright').chromium.launch().then((b) => b.close())"`) runs and
+passes. `MALLOC_ARENA_MAX=2` is in `prod`'s `ENV` with its reason. `corpus/wiki/image.md` has the prefix and its rules.
+
+- **Step 1, sharing.** A throwaway two-line-prefix image with `COPY a.txt` and another with `COPY b.txt` have identical
+  digests for the five base layers and the prefix layer; this brief's image has the same six. Met.
+- **Step 1, flags.** `/ms-playwright` holds `chromium_headless_shell-1223` and `ffmpeg-1011`, no `chromium-<number>`.
+- **Step 1, after a cache loss.** Not met: rebuilt with `--no-cache`, the prefix layer gets a new digest (the base five
+  stay equal). So the box shares the layer only while its build cache keeps that step (or while one image's layer is
+  reused as is); vps-deploy's prune policy decides how long the saving holds. Deviation: I used `--no-cache` on the
+  throwaway rather than `docker builder prune -af`, since three agents share this machine's build cache.
+- **`docker history`** (one machine, saved in the scratch folder): before, `install-deps` 318 MB + `COPY /ms-playwright`
+  276 MB + `COPY /app` 79.2 MB; after, one prefix layer of 594 MB (base layers excluded) + `COPY /app` 79.2 MB + a 186 kB
+  launch-check layer. Whole image 911 MB both ways: the change is sharing, not size.
+- **Step 4.** The reference post (diacritics, emoji, three slides) rendered through `POST /api/posts/:id/render` in a
+  container of each image: `compare -metric AE` gave 0 on all three slides; `/api/health` returned `{"ok":true}` on both.
+- `npm run check` exit 0; `bash corpus/lint.sh` clean. Ships with `node cli.ts newspapper server`. The sharing with
+  ro-housing starts once its brief 29 ships from the same build cache.

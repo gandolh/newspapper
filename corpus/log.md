@@ -2031,3 +2031,5 @@ one copy of about 580 MB of Chromium layers; it also pins the base and sets `MAL
 the check that the sharing works. Both ship with `node cli.ts newspapper server`.
 
 ## [2026-11-24] brief 15 | Chromium closes after 120 s with no render in use and on SIGTERM (`useBrowser` in core/src/render/browser.ts); local measure 523 MiB before vs 188 MiB after 3 idle minutes; Ready for deploy with `node cli.ts newspapper server`
+
+## [2026-11-24] brief 16 | the Chromium layers are a prefix shared with ro-housing and gazette on node:24.22.1-bookworm-slim, build-time launch check, MALLOC_ARENA_MAX=2; layers shared with a different COPY, lost on a cache rebuild; slides pixel-identical; Ready for deploy with `node cli.ts newspapper server`
