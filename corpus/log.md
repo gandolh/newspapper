@@ -2015,4 +2015,8 @@ The estate redesign board is a private canvas, so `design/estate-redesign/` now 
 
 ## [2026-11-24] todo | Brief 14: the image ships only the headless shell
 
-The box's disk was 90% full after the 2026-11-23 rollout. This image's `/ms-playwright` holds the full Chromium (377 MB) beside the headless shell (260 MB) the renderer actually starts, and its production install carries the UI's packages. [Brief 14](briefs/todo/14-the-image-ships-only-the-headless-shell.md) drops both, tries Playwright's shorter library list for the shell, and checks the slides stay pixel-identical. Not built.
+The box's disk was 90% full after the 2026-11-23 rollout. This image's `/ms-playwright` holds the full Chromium (377 MB) beside the headless shell (260 MB) the renderer actually starts, and its production install carries the UI's packages. [Brief 14](briefs/done/14-the-image-ships-only-the-headless-shell.md) drops both, tries Playwright's shorter library list for the shell, and checks the slides stay pixel-identical. Not built.
+
+## [2026-11-24] done | Brief 14: the image ships only the headless shell
+
+`prod-deps` now installs `--only-shell chromium` and a production install scoped to `@newspapper/core` and `@newspapper/api`. `/ms-playwright` went from 669 MB to 276 MB (full Chromium gone), `COPY /app` from 106 MB to 79.2 MB, the image from 1331 MB to 911 MB. `install-deps chromium-headless-shell` gave the same 111 packages and a 318 MB layer, no saving, so `install-deps chromium` stays. A reference post with diacritics and emoji renders pixel-identical (0 AE on all three slides) with both lists. New page: [image.md](wiki/image.md). The deploy is `node cli.ts newspapper server`; the stack has no `deploy` phase, so the brief's own command was wrong.

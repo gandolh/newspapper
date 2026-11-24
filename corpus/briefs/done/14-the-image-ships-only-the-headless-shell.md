@@ -87,3 +87,35 @@ repo's checks, and hand back with steps 2, 6 and 7 for the controller.
   and says which `install-deps` list stayed and why.
 - The deploy is the owner's step: `node cli.ts newspapper deploy` from
   vps-deploy.
+
+## Outcome (2026-11-24)
+
+Built. `infrastructure/Dockerfile` installs `npx playwright install --only-shell chromium` and
+`npm ci --omit=dev --workspace @newspapper/core --workspace @newspapper/api` in `prod-deps`.
+
+`docker history` on one machine, same Dockerfile apart from those two lines (full numbers in
+[image.md](../../wiki/image.md)):
+
+| Layer | Before | After |
+|---|---|---|
+| `COPY /ms-playwright` | 669 MB | 276 MB |
+| `apt-get` + `install-deps chromium` | 318 MB | 318 MB |
+| `apt-get` + `install-deps chromium-headless-shell` | not built | 318 MB |
+| `COPY /app` | 106 MB | 79.2 MB |
+| Image total | 1331 MB | 911 MB |
+
+- `/ms-playwright` holds `chromium_headless_shell-1223` and `ffmpeg-1011`, no `chromium-<number>`.
+- `install-deps chromium-headless-shell` is accepted by 1.60 but resolves to the same 111 packages, so the layer
+  does not shrink (0 MB, not the 50 MB the decision asked for). `install-deps chromium` stays.
+- No ui-only package (`@base-ui/react`, `@use-gesture/react`, `animejs`, `clsx`, `dompurify`, `react`,
+  `react-dom`, `tailwind-merge`) is in the image's `node_modules`; `@newspapper/core` and `api` link as before.
+- Pixel result: a reference post (diacritics ă â î ș ț and capitals, emoji, three slides) was rendered through
+  `POST /api/posts/:id/render` in a container from the before image, the shell-only image and the
+  shell-only plus short-list image. `compare -metric AE` gave 0 on all three slides in both comparisons.
+  `/api/health` returned `{"ok":true}` each time.
+- Phase correction: the brief's `node cli.ts newspapper deploy` is wrong; the stack has no `deploy` phase. A
+  Dockerfile change ships with `node cli.ts newspapper server`.
+- `npm run check`: tests 1043 of 1044 passed; `ui/src/components/base-urls.test.ts` timed out at 5 s while
+  Docker and other agents loaded the machine, and passes alone (4 of 4). `check:conventions` fails on knip findings
+  in files this brief did not touch (the unused-export list, `design/estate-redesign/manifests/newspapper.tokens.css`);
+  a Dockerfile change cannot affect it.

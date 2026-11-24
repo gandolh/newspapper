@@ -118,7 +118,8 @@ production's schema version (`PRAGMA user_version`, 6 with the Reader) before
 assuming either way. The docs site and the wax fix (2026-10-19) came after, and
 are built and checked locally only, as are the built-JavaScript runtime
 (2026-11-04), the galley's text selection (2026-11-05), the connect-time
-address check on feed fetches and the blue selections (2026-11-06).
+address check on feed fetches and the blue selections (2026-11-06), and the
+smaller image (2026-11-24, [image.md](./image.md); ships with `server`).
 
 ## Next (owner)
 
